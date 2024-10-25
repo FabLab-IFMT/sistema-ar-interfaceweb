@@ -4,7 +4,7 @@ sistema web que faz a ponte com um programa de gerenciamento de dispositivos em 
 ## Bootswatch Theme: Minty
 https://bootswatch.com/minty/
 
-
+## Esqueleto
 -  login/register  
 
 - app para gerenciamento dos dispostivos em salas  
