@@ -5,9 +5,9 @@ interface web em django
 https://bootswatch.com/minty/
 
 
--> login/register
+-> login/register  
 
--> app para gerenciamento dos dispostivos em salas
-  -> inserir nova sala
-  -> ver/editar sala inserida
-    -> interface de interacao com o backend
+-> app para gerenciamento dos dispostivos em salas  
+  -> inserir nova sala  
+  -> ver/editar sala inserida  
+    -> interface de interacao com o backend  
