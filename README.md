@@ -1,5 +1,5 @@
 # ControllerApp
-interface web em django
+sistema web que faz a ponte com um programa de gerenciamento de dispositivos em salas (ar condicionado, projetor, impressora, etc)
 
 ## Bootswatch Theme: Minty
 https://bootswatch.com/minty/
