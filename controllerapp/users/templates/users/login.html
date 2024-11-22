@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    Login
+{% endblock %}
+
+{% block content%}
+    <h1>Fazer login</h1>
+        <form action="{% url 'users:login' %}" method="post">
+            {% csrf_token %}
+            {{ form }}
+            <button >Submit</button>
+        </form>
+
+{% endblock %}

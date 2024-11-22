@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="https://bootswatch.com/5/minty/bootstrap.min.css">
-    <title>Document</title>
+    <title>
+      {% block title %}{% endblock %}
+    </title>
   </head>
 
   <body>
@@ -17,18 +19,40 @@
         <div class="collapse navbar-collapse" id="navbarColor02">
           <ul class="navbar-nav me-auto">
             <li class="nav-item">
-              <a class="nav-link active" href="/">Home
+              <a class="nav-link" href="/">Home
                 <span class="visually-hidden">(current)</span>
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/about">Sobre</a>
             </li>
+
+            <li class="nav-item">
+              <a class="nav-link" href="/logs">Agenda</a>
+            </li>
+
           </ul>
-          <form class="d-flex">
-            <input class="form-control me-sm-2" type="search" placeholder="Search">
-            <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
-          </form>
+
+          {% if user.is_authenticated %}
+
+            <p style="margin-bottom: 0px; margin-right: 10px" class="text-light">
+              {% if user.is_staff %}
+                👑
+              {% endif %}
+              {{user.username}}
+            </p>
+            <form action="{% url 'users:logout' %}" method="post">
+              {% csrf_token %} 
+              <button class="btn btn-outline-danger btn-sm">Deslogar</button>
+            </form>
+          {% else %}
+            <a href="/users/login"> 
+              <button style="margin-right: 5px" class="btn btn-success">Login</button> 
+            </a>
+            <a href="/users/register">
+            <button class="btn btn-light">Registrar</button>
+            </a>
+          {% endif %}
         </div>
       </div>
     </nav>

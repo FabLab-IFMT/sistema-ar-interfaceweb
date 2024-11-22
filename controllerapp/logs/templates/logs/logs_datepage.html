@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    Ações em {{date}}
+{% endblock %}
+
+{% block content%}
+    <h1 style="margin-bottom: 20px;">Ações realizadas em {{date}}</h1>
+    {% for action in actions %}
+        <div class="card border-primary mb-3" style="max-width: 30rem; margin-left: 10px">
+            <div class="card-header">
+                {{action.time}} por {{action.author}}
+            </div>
+            <div class="card-body">
+                <h4 class="card-title">{{action.type}}</h4>
+                <p class="card-text">{{action.description}}</p>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock%}

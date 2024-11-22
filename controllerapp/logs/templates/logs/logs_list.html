@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    Agenda
+{%endblock%}
+
+{% block content%}
+    <h1>Dias com ações atribuídas</h1>
+    {% for date in dates %}
+        <a href="{% url 'logs:datepage' day=date.day month=date.month year=date.year %}">
+            <h3>{{date.day}}/{{date.month}}/{{date.year}}</h3>
+        </a>
+        <br>
+    {% endfor %}
+{% endblock%}
