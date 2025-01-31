@@ -1,0 +1,19 @@
+
+.nav-link, .drop-down.li{
+    list-style: none;
+    cursor: pointer;
+}
+
+.drop-down{
+
+    position: absolute;
+    background-color: #343a40;
+    display: none;
+}
+
+
+
+.project:hover .drop-down{
+
+    display: block;
+}
