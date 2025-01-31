@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, HttpResponse 
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm 
+from .forms import CustomUserCreationForm
 from django.contrib.auth import login, logout
+
 
 def login_view(request): 
     if request.method == "POST": 
@@ -14,12 +16,12 @@ def login_view(request):
 
 def register_view(request):
     if request.method == "POST": 
-        form = UserCreationForm(request.POST) 
-        if form.is_valid(): 
+        form = CustomUserCreationForm(request.POST) 
+        if form.is_valid():
             login(request, form.save())
             return redirect("/")
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
     return render(request, "users/register.html", { "form": form })
 
 def logout_view(request):
