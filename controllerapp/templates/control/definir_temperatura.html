@@ -1,0 +1,19 @@
+<!-- control/templates/control/definir_temperatura.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Definir Temperatura</title>
+</head>
+<body>
+    <h1>Definir Temperatura</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="temp">Temperatura desejada:</label>
+        <input type="number" name="temp" id="temp" required>
+        <button type="submit">Enviar</button>
+    </form>
+    <br>
+    <a href="{% url 'index' %}">Voltar</a>
+</body>
+</html>

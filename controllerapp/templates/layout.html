@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 
   <head>
     <meta charset="UTF-8">
@@ -18,7 +18,9 @@
     <nav class="navbar navbar-expand-lg bg-dark" data-bs-theme="dark">
       
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">ConApp</a>
+        <a class="navbar-brand" href="#">
+          <img src="{% static 'images/logo.png' %}" alt="Logo" style="height: 60px;">
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -51,6 +53,11 @@
                   </ul>
                 
             </li>
+            {% if user.is_authenticated %}
+              <li class="nav-item">
+                <a class="nav-link" href="/painelar">Automação</a>
+              </li>
+            {% endif %}
             
             </li>
             </ul>
@@ -83,6 +90,19 @@
       {% block content %}
       {% endblock %}
     </main>
+
+    <footer class="bg-body-tertiary text-center mt-auto">
+      <!-- Grid container -->
+      <div class="container p-4"></div>
+      <!-- Grid container -->
+    
+      <!-- Copyright -->
+      <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.05);">
+        © 2024 Copyright:
+        <a class="text-body" href="#">Sistema de Gestão de Laboratório</a>
+      </div>
+      <!-- Copyright -->
+    </footer>
 
     <!-- Adicionar os scripts necessários para Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-sr1jPL5Snge8A9aFwpZY97V0+EQBdCWb54SXTDi9IBo1l9n1i1R72BG8pTA4PHS2" crossorigin="anonymous"></script>
