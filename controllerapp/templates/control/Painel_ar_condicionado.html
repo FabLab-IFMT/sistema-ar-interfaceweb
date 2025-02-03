@@ -1,0 +1,21 @@
+<!-- control/templates/control/index.html -->
+{% extends "layout.html" %} {% block title %}Controle do ESP32{% endblock %} 
+{%block content %}
+<h1>Controle do ESP32</h1>
+<ul>
+  <li><a href="{% url 'Controle_ar:ligar' %}">Ligar</a></li>
+  <li><a href="{% url 'Controle_ar:desligar' %}">Desligar</a></li>
+  <li><a href="{% url 'Controle_ar:aumentar' %}">Aumentar Temperatura</a></li>
+  <li><a href="{% url 'Controle_ar:diminuir' %}">Diminuir Temperatura</a></li>
+  <li>
+    <a href="{% url 'Controle_ar:definir_temperatura' %}"
+      >Definir Temperatura</a
+    >
+  </li>
+</ul>
+{% endblock %}
+<script>
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+</script>
