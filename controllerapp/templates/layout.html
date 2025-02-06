@@ -72,7 +72,7 @@
               {% if user.is_staff %}
                 👑
               {% endif %}
-              {{ user.username }}
+              {{user.first_name}} {{user.last_name}}
             </p>
             <form action="{% url 'users:logout' %}" method="post">
               {% csrf_token %}
