@@ -48,14 +48,34 @@
             <li class="nav-item">
               <a class="nav-link" href="/about">Sobre</a>
             </li>
+            <li class="nav-item project" style="position: relative;">
+              
+              <a class="nav-link" >FABLAB <i class="fas fa-caret-down"></i></a>
+              
+              
+              <ul class="drop-down" style="position: absolute; z-index: 10000;">
+                <li><a class="nav-link" href="https://fablabifmt.github.io/"> Equipamentos</a></li>
+                <li><a class="nav-link" href="#"> Serviços</a></li>
+                <li><a class="nav-link" href="#"> Publicações</a></li>
+                <li><a class="nav-link" href="#"> Visitas</a></li>
+                <li><a class="nav-link" href="#"> Reservas</a></li>
+                <li><a class="nav-link" href="#"> Membros</a></li>
+
+              </ul>
+            </li>
             <li class="nav-item">
               <a class="nav-link" href="/logs">Agenda</a>
             </li>
             <!-- Dropdown Menu -->
             <li class="nav-item project" style="position: relative;">
+              {% if user.is_staff %}
               <a class="nav-link" href="/projects">Projetos <i class="fas fa-caret-down"></i></a>
+              {% endif %}
+              {% if not user.is_staff %}
+              <a class="nav-link" >Projetos <i class="fas fa-caret-down"></i></a>
+              {% endif %}
               <ul class="drop-down" style="position: absolute; z-index: 10000;">
-              <li><a class="nav-link" href="https://fablabifmt.github.io/"> Equipamentos</a></li>
+              
               <li><a class="nav-link" href="https://github.com/FabLab-IFMT"> Repositório</a></li>
               
               </ul>
