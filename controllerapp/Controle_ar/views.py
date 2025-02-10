@@ -1,29 +1,18 @@
 import requests
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-<<<<<<< Updated upstream
-=======
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
 from logs.models import Action
 from logs.scripts import create_log
->>>>>>> Stashed changes
 
-# Substitua pelo IP do seu ESP32 (ex.: '192.168.1.100')
 ESP32_IP = '192.168.1.113'
 
 def index(request):
-    # Renderiza o template com o container de Toasts já configurado
     return render(request, 'control/Painel_ar_condicionado.html')
 
 def ligar(request):
     try:
-<<<<<<< Updated upstream
-        response = requests.get(f'http://{ESP32_IP}/ligar')
-        return HttpResponse(f'Comando "Ligar" enviado. Resposta do ESP32: {response.text}')
-    except Exception as e:
-        return HttpResponse(f'Erro ao enviar comando "Ligar": {str(e)}')
-=======
         url = f'http://{ESP32_IP}/ligar'
         response = requests.get(url, timeout=5)
         response.raise_for_status()  # Lança erro se a resposta não for 200
@@ -39,16 +28,9 @@ def ligar(request):
         create_log("init_error", author="ESP32")
         messages.error(request, f"Erro ao enviar comando 'Ligar': {e}")
     return redirect('Controle_ar:home')
->>>>>>> Stashed changes
 
 def desligar(request):
     try:
-<<<<<<< Updated upstream
-        response = requests.get(f'http://{ESP32_IP}/desligar')
-        return HttpResponse(f'Comando "Desligar" enviado. Resposta do ESP32: {response.text}')
-    except Exception as e:
-        return HttpResponse(f'Erro ao enviar comando "Desligar": {str(e)}')
-=======
         url = f'http://{ESP32_IP}/desligar'
         response = requests.get(url, timeout=5)
         response.raise_for_status()
@@ -64,7 +46,6 @@ def desligar(request):
         create_log("shutdown_error", author="ESP32")
         messages.error(request, f"Erro ao enviar comando 'Desligar': {e}")
     return redirect('Controle_ar:home')
->>>>>>> Stashed changes
 
 def aumentar(request):
     try:
@@ -101,13 +82,6 @@ def definir_temperatura(request):
             messages.error(request, "Temperatura não informada.")
             return redirect('Controle_ar:home')
         try:
-<<<<<<< Updated upstream
-            # Envia o comando com o parâmetro 'temp'
-            response = requests.get(f'http://{ESP32_IP}/definir_temperatura', params={'temp': temp})
-            return HttpResponse(f'Comando "Definir Temperatura" enviado. Resposta do ESP32: {response.text}')
-        except Exception as e:
-            return HttpResponse(f'Erro ao enviar comando "Definir Temperatura": {str(e)}')
-=======
             url = f'http://{ESP32_IP}/definir_temperatura'
             response = requests.get(url, params={'temp': temp}, timeout=5)
             response.raise_for_status()
@@ -123,6 +97,4 @@ def definir_temperatura(request):
             create_log("command_error", author="ESP32", param1="Definir temperatura")
             messages.error(request, f"Erro ao enviar comando 'Definir Temperatura': {e}")
         return redirect('Controle_ar:home')
-        
->>>>>>> Stashed changes
     return render(request, 'control/definir_temperatura.html')
