@@ -9,6 +9,9 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('', views.index, name='home'),
+
+
+    
     # Adicionando paths para os comandos do ESP32
     path('ligar/', views.ligar, name='ligar'),
     path('desligar/', views.desligar, name='desligar'),

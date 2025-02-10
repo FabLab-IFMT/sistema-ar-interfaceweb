@@ -11,7 +11,9 @@ urlpatterns = [
     path('projects/', views.projects, name='projects'),
     path('users/', include('users.urls')),
     path('logs/', include('logs.urls')),
-    path('painelar', include('Controle_ar.urls'))
+    path('painelar/', include('Controle_ar.urls')),
+    path('options/', include('options.urls')),
 ]
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

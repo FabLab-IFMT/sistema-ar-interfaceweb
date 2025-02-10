@@ -1,25 +1,19 @@
-
-.nav-link, .drop-down.li{
+.nav-link, .drop-down.li {
     list-style: none;
     cursor: pointer;
 }
 
-.drop-down{
-
+.drop-down {
     position: absolute;
     background-color: #343a40;
     display: none;
 }
 
-
-
-.project:hover .drop-down{
-
+.project:hover .drop-down {
     display: block;
 }
 
-
- /* comentário */
+/* Estilos movidos do HTML */
 html, body {
     height: 100%;
     margin: 0;
@@ -32,6 +26,7 @@ main {
     flex: 1;
 }
 
+/* ...existing code... */
 .toast {
     opacity: 0; /* Começa invisível */
     transition: opacity 0.5s ease-in-out; /* Efeito de fade-in/out */

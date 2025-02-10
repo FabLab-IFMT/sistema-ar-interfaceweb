@@ -11,11 +11,39 @@
     <div class="card-body">
       <h5 class="card-title">Controle do Ar Condicionado</h5>
       <p class="card-text">Utilize os botões abaixo para controlar o dispositivo.</p>
-      <a href="{% url 'Controle_ar:ligar' %}" class="btn btn-primary mb-2 d-block">Ligar</a>
-      <a href="{% url 'Controle_ar:desligar' %}" class="btn btn-secondary mb-2 d-block">Desligar</a>
-      <a href="{% url 'Controle_ar:aumentar' %}" class="btn btn-success mb-2 d-block">Aumentar Temp.</a>
-      <a href="{% url 'Controle_ar:diminuir' %}" class="btn btn-warning mb-2 d-block">Diminuir Temp.</a>
-      <a href="{% url 'Controle_ar:definir_temperatura' %}" class="btn btn-info d-block">Definir Temp.</a>
+      <a href="{% url 'Controle_ar:ligar' %}" class="btn btn-primary mb-2 d-block w-100">Ligar</a>
+      <a href="{% url 'Controle_ar:desligar' %}" class="btn btn-secondary mb-2 d-block w-100">Desligar</a>
+      <a href="{% url 'Controle_ar:aumentar' %}" class="btn btn-success mb-2 d-block w-100">Aumentar Temp.</a>
+      <a href="{% url 'Controle_ar:diminuir' %}" class="btn btn-warning mb-2 d-block w-100">Diminuir Temp.</a>
+      <!-- Botão modificado para acionar o modal -->
+      <button type="button" class="btn btn-info d-block w-100" data-bs-toggle="modal" data-bs-target="#defineTempModal">
+        Definir Temp.
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="defineTempModal" tabindex="-1" aria-labelledby="defineTempModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="defineTempModalLabel">Definir Temperatura</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <form id="definirTempForm" method="post" action="{% url 'Controle_ar:definir_temperatura' %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="temp" class="form-label">Temperatura desejada:</label>
+            <input type="number" class="form-control" name="temp" id="temp" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Enviar</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -23,8 +51,15 @@
 
 {% block scripts %}
 <script>
+  // Evita reenvio de formulário ao recarregar
   if (window.history.replaceState) {
     window.history.replaceState(null, null, window.location.href);
   }
+  // Fecha o modal imediatamente ao submeter o formulário
+  document.getElementById("definirTempForm").addEventListener("submit", function(e) {
+    var modalEl = document.getElementById("defineTempModal");
+    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.hide();
+  });
 </script>
 {% endblock %}
