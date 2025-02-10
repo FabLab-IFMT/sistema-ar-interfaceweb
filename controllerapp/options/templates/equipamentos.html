@@ -5,6 +5,62 @@
 {% endblock %}
 
 {% block content %}
-essa é a pagina sobre Equipamentos
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="mb-3">Materias do laboratório</h1>
+      <p>
+        No FabLab, buscamos oferecer aos nossos membros as melhores ferramentas para prototipagem e fabricação digital. 
+        Contamos com uma variedade de máquinas, desde fresadoras CNC até impressoras 3D e cortadoras a laser, permitindo 
+        que estudantes, pesquisadores e entusiastas desenvolvam projetos inovadores.
+      </p>
+      <p>
+        Nosso objetivo é proporcionar um ambiente de aprendizado prático e colaborativo, onde a tecnologia e a criatividade 
+        se unem para transformar ideias em realidade. Abaixo, você pode conferir a lista de equipamentos disponíveis, suas 
+        especificações e detalhes de uso.
+        <br>
+        <br>
+      </p>
+    </div>
+    <hr>
+  </div>
+  <div class="row">
+    {% for material in materiais %}
+    <div class="col-md-4 mb-3">
+      <div class="card">
+        <img src="{{ material.imagem_do_material.url }}" class="card-img-top" alt="{{ material.Nome_do_meterial }}" style="height: 200px; object-fit: cover;">
+        <div class="card-body">
+          <h5 class="card-title">{{ material.Nome_do_meterial }}</h5>
+          <p class="card-text">
+            {{ material.descrição_do_material|slice:":15" }}{% if material.descrição_do_material|length > 15 %}...{% endif %}
+          </p>
+          <!-- Botão para abrir o modal -->
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal{{ material.id }}">
+            Ver mais
+          </button>
+        </div>
+      </div>
+    </div>
 
+    <!-- Modal para o material -->
+    <div class="modal fade" id="modal{{ material.id }}" tabindex="-1" aria-labelledby="modalLabel{{ material.id }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalLabel{{ material.id }}">{{ material.Nome_do_meterial }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <img src="{{ material.imagem_do_material.url }}" class="img-fluid mb-3" alt="{{ material.Nome_do_meterial }}">
+            <p class="text-break">{{ material.descrição_do_material }}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
 {% endblock %}
