@@ -23,7 +23,7 @@
     <!-- Itens do Carrossel -->
     <div class="carousel-inner">
       {% for image in carousel_images %}
-        <div class="carousel-item {% if forloop.first %}active{% endif %}" style="max-height:300px; overflow:hidden;">
+        <div class="carousel-item {% if forloop.first %}active{% endif %}" style="max-height:300px; overflow:hidden;">{#O temanho da imagem deve ser de 1980 por 300#}
           
           {% if image.link %}
             {# Verifica se o link é externo (começa com "http") para definir o target #}

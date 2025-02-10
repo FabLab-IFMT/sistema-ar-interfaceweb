@@ -1,0 +1,30 @@
+<!-- control/templates/control/Painel_ar_condicionado.html -->
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Controle do ESP32{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center mt-5">
+  <div class="card" style="width: 18rem;">
+    <img src="{% static 'images/cards_automacoes/ar_condicionado.jpg' %}" class="card-img-top" alt="Ar Condicionado">
+    <div class="card-body">
+      <h5 class="card-title">Controle do Ar Condicionado</h5>
+      <p class="card-text">Utilize os botões abaixo para controlar o dispositivo.</p>
+      <a href="{% url 'Controle_ar:ligar' %}" class="btn btn-primary mb-2 d-block">Ligar</a>
+      <a href="{% url 'Controle_ar:desligar' %}" class="btn btn-secondary mb-2 d-block">Desligar</a>
+      <a href="{% url 'Controle_ar:aumentar' %}" class="btn btn-success mb-2 d-block">Aumentar Temp.</a>
+      <a href="{% url 'Controle_ar:diminuir' %}" class="btn btn-warning mb-2 d-block">Diminuir Temp.</a>
+      <a href="{% url 'Controle_ar:definir_temperatura' %}" class="btn btn-info d-block">Definir Temp.</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  if (window.history.replaceState) {
+    window.history.replaceState(null, null, window.location.href);
+  }
+</script>
+{% endblock %}
