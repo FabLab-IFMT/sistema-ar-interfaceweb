@@ -31,3 +31,12 @@ body {
 main {
     flex: 1;
 }
+
+.toast {
+    opacity: 0; /* Começa invisível */
+    transition: opacity 0.5s ease-in-out; /* Efeito de fade-in/out */
+}
+
+.toast.show {
+    opacity: 1; /* Quando ativado, fica visível */
+}
