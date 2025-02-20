@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect, HttpResponse 
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm 
-from .forms import CustomUserCreationForm
+from django.shortcuts import render, redirect, HttpResponse
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import login, logout
-
+from .models import CustomUser, Card
 
 def login_view(request): 
     if request.method == "POST": 
@@ -16,12 +16,12 @@ def login_view(request):
 
 def register_view(request):
     if request.method == "POST": 
-        form = CustomUserCreationForm(request.POST) 
+        form = UserCreationForm(request.POST) 
         if form.is_valid():
             login(request, form.save())
             return redirect("/")
     else:
-        form = CustomUserCreationForm()
+        form = UserCreationForm()
     return render(request, "users/register.html", { "form": form })
 
 def logout_view(request):
@@ -30,3 +30,12 @@ def logout_view(request):
         return redirect("/")
     return redirect("/")
 
+# Restrito a superusuários
+def is_superuser(user):
+    return user.is_superuser
+
+@login_required
+@user_passes_test(is_superuser)
+def user_list(request):
+    users = CustomUser.objects.all()
+    return render(request, "users/user_list.html", {"users": users})

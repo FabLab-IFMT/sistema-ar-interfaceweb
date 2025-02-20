@@ -1,5 +1,3 @@
-
-
 from pathlib import Path
 import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -10,7 +8,7 @@ SECRET_KEY = 'django-insecure-q25vadyhqou5z75*^oc#ln6g04f&+t6w@7&2!m$@dr^$h_ch!2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -25,7 +23,8 @@ INSTALLED_APPS = [
     'users',
     'logs',
     'Controle_ar',
-    'options'
+    'options',
+    'acesso_e_ponto',  # adicionado
 ]
 
 MIDDLEWARE = [
