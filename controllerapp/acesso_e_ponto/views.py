@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import Card
+from users.models import Card  # Corrigido: importar do app users
 
 @csrf_exempt  # Desativa proteção CSRF para permitir requisições do ESP32
 def check_card(request):

@@ -13,6 +13,7 @@ urlpatterns = [
     path('logs/', include('logs.urls')),
     path('painelar/', include('Controle_ar.urls')),
     path('options/', include('options.urls')),
+    path('acesso_e_ponto/', include('acesso_e_ponto.urls')),  # nova rota integrada
 ]
 
 if settings.DEBUG:

@@ -1,5 +1,3 @@
-
-
 from pathlib import Path
 import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +23,8 @@ INSTALLED_APPS = [
     'users',
     'logs',
     'Controle_ar',
-    'options'
+    'options',
+    'acesso_e_ponto',  # adicionado
 ]
 
 MIDDLEWARE = [
