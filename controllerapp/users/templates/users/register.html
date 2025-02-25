@@ -4,12 +4,74 @@
     Registrar usuário
 {% endblock %}
 
+{% block head %}
+    <style>
+        html, body, .registerbox {
+            height: 100%;
+        }
+        
+        .registerbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-    <h1>Registrar um usuário</h1>
-    <form action="{% url 'users:register' %}" method="post">
-        {% csrf_token %}
-        {{ form }}
-        <button>Submit</button>
-    </form>
-    espero que esteja funcionando.
+    <div class="registerbox">
+        <form action="{% url 'users:register' %}" method="post">
+            {% csrf_token %}
+            <h1>Registrar um usuário</h1>
+
+            <div>
+                <label for="id_id" class="form-label mt-4"><b>Número de Matrícula</b></label>
+                <div class="helptext" id="id_id_helptext">
+                    <small class="form-text text-muted">Seu número de matrícula do SUAP ou SIAPE. Apenas números.</small>
+                </div>
+                <input class="form-control" type="text" name="id" maxlength="13" autofocus required aria-describedby="id_id_helptext" id="id_id">
+            </div>
+
+            <div>
+                <label for="id_email" class="form-label mt-4"><b>Endereço de E-mail</b></label>
+                <input class="form-control" type="email" name="email" maxlength="254" required id="id_email">
+            </div>
+
+            <div>
+                <label for="id_first_name" class="form-label mt-4"><b>Nome</b></label>
+                <input class="form-control" type="text" name="first_name" maxlength="150" required id="id_first_name">
+            </div>
+
+            <div>
+                <label for="id_last_name" class="form-label mt-4"><b>Sobrenome</b></label>
+                <input class="form-control" type="text" name="last_name" maxlength="150" required id="id_last_name">
+            </div>
+
+            <div>
+                <label for="id_password1" class="form-label mt-4"><b>Senha</b></label>
+                <div class="helptext" id="id_password1_helptext">
+                    <small class="form-text text-muted">
+                    <ul>
+                        <li>Sua senha não pode ser muito parecida com o resto das suas informações pessoais.</li>
+                        <li>Sua senha precisa conter pelo menos 8 caracteres.</li>
+                        <li>Sua senha não pode ser uma senha comumente utilizada.</li>
+                        <li>Sua senha não pode ser inteiramente numérica.</li>
+                    </ul>
+                    </small>
+                </div>
+                <input class="form-control" type="password" name="password1" autocomplete="new-password" aria-describedby="id_password1_helptext" id="id_password1">
+            </div>
+
+            <div>
+                <label for="id_password2" class="form-label mt-4"><b>Confirme a senha</b></label>
+                <div class="helptext" id="id_password2_helptext">
+                    <small class="form-text text-muted">Informe a mesma senha informada anteriormente, para verificação.</small>
+                </div>
+                <input class="form-control" type="password" name="password2" autocomplete="new-password" aria-describedby="id_password2_helptext" id="id_password2">
+            </div>
+
+            <button class="btn btn-primary btn-lg">Registrar</button>
+        </form>
+    </div>
+
 {% endblock %}

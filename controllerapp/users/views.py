@@ -1,27 +1,28 @@
 from django.shortcuts import render, redirect, HttpResponse
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import login, logout
 from .models import CustomUser, Card
+from .forms import CustomUserCreationForm, CustomAuthenticationForm
 
 def login_view(request): 
     if request.method == "POST": 
-        form = AuthenticationForm(data=request.POST)
+        form = CustomAuthenticationForm(data=request.POST)
         if form.is_valid(): 
             login(request, form.get_user())
             return redirect("/")
     else: 
-        form = AuthenticationForm()
+        form = CustomAuthenticationForm()
     return render(request, "users/login.html", { "form": form })
 
 def register_view(request):
     if request.method == "POST": 
-        form = UserCreationForm(request.POST) 
+        form = CustomUserCreationForm(request.POST) 
         if form.is_valid():
             login(request, form.save())
             return redirect("/")
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
     return render(request, "users/register.html", { "form": form })
 
 def logout_view(request):
