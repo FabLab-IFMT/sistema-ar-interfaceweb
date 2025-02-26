@@ -4,12 +4,39 @@
     Login
 {% endblock %}
 
+{% block head %}
+    <style>
+        html, body, .loginbox {
+            height: 100%;
+        }
+        
+        .loginbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+{% endblock %}
+
 {% block content%}
-    <h1>Fazer login</h1>
+    <div class="loginbox">
         <form action="{% url 'users:login' %}" method="post">
             {% csrf_token %}
-            {{ form }}
-            <button >Submit</button>
-        </form>
 
+            <h1> Fazer Login </h1>
+            <br>
+            <div class="form-floating mb-3">
+                <input class="form-control form-control-lg" type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="13" required id="id_username" placeholder="Número de Matrícula">
+                <label for="id_username">Número de Matrícula</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input class="form-control form-control-lg"  type="password" name="password" autocomplete="current-password" required id="id_password" placeholder="Senha">
+                <label for="id_password">Senha</label>
+              </div>
+
+
+            <br>
+            <button class="btn btn-primary btn-lg">Entrar</button>
+        </form>
+    </div>
 {% endblock %}
