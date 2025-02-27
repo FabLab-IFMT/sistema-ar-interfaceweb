@@ -15,28 +15,58 @@
             align-items: center;
             justify-content: center;
         }
+
+        .login-form {
+            width: 100%;
+            max-width: 450px;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+
+        .login-footer {
+            margin-top: 20px;
+            text-align: center;
+        }
     </style>
 {% endblock %}
 
 {% block content%}
     <div class="loginbox">
-        <form action="{% url 'users:login' %}" method="post">
-            {% csrf_token %}
+        <div class="login-form">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form action="{% url 'users:login' %}" method="post">
+                {% csrf_token %}
 
-            <h1> Fazer Login </h1>
-            <br>
-            <div class="form-floating mb-3">
-                <input class="form-control form-control-lg" type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="13" required id="id_username" placeholder="Número de Matrícula">
-                <label for="id_username">Número de Matrícula</label>
-              </div>
-              <div class="form-floating mb-3">
-                <input class="form-control form-control-lg"  type="password" name="password" autocomplete="current-password" required id="id_password" placeholder="Senha">
-                <label for="id_password">Senha</label>
-              </div>
+                <h1 class="text-center mb-4">Fazer Login</h1>
+                
+                <div class="form-floating mb-3">
+                    <input class="form-control form-control-lg" type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="13" required id="id_username" placeholder="Número de Matrícula">
+                    <label for="id_username">Número de Matrícula</label>
+                </div>
+                
+                <div class="form-floating mb-4">
+                    <input class="form-control form-control-lg" type="password" name="password" autocomplete="current-password" required id="id_password" placeholder="Senha">
+                    <label for="id_password">Senha</label>
+                </div>
 
-
-            <br>
-            <button class="btn btn-primary btn-lg">Entrar</button>
-        </form>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary btn-lg">Entrar</button>
+                </div>
+                
+                <div class="login-footer">
+                    <p>Não tem uma conta? <a href="{% url 'users:register' %}">Registre-se aqui</a></p>
+                </div>
+            </form>
+        </div>
     </div>
 {% endblock %}
