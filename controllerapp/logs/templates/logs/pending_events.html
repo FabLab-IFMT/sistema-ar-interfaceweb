@@ -1,0 +1,130 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+    Solicitações Pendentes - FabLab
+{% endblock %}
+
+{% block head %}
+    <style>
+        .card-header-visit {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .card-header-other {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .event-detail {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .event-description {
+            white-space: pre-line;
+            font-size: 0.9rem;
+            max-height: 150px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .action-buttons {
+            margin-top: 15px;
+        }
+        
+        .no-requests {
+            font-style: italic;
+            color: #6c757d;
+            margin: 20px 0;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Solicitações Pendentes</h1>
+        <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-primary">Voltar para Agenda</a>
+    </div>
+    
+    <div class="row">
+        <!-- Solicitações de Visitas -->
+        <div class="col-md-6">
+            <h2 class="mb-3">Solicitações de Visita</h2>
+            {% if visit_requests %}
+                {% for event in visit_requests %}
+                    <div class="card mb-4">
+                        <div class="card-header card-header-visit d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ event.title }}</h5>
+                            <span class="badge bg-light text-dark">{{ event.start_time|date:"d/m/Y" }}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="event-detail"><strong>Solicitante:</strong> {{ event.created_by.first_name }} {{ event.created_by.last_name }}</div>
+                            <div class="event-detail"><strong>Horário:</strong> {{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}</div>
+                            
+                            <div class="event-description">{{ event.description }}</div>
+                            
+                            <div class="action-buttons d-flex justify-content-between">
+                                <a href="{% url 'logs:event_detail' event.id %}" class="btn btn-sm btn-info">Ver detalhes</a>
+                                <div>
+                                    <a href="{% url 'logs:approve_event' event.id %}" class="btn btn-sm btn-success">Aprovar</a>
+                                    <a href="{% url 'logs:delete_event' event.id %}" class="btn btn-sm btn-danger" 
+                                       onclick="return confirm('Tem certeza que deseja rejeitar esta solicitação?');">Rejeitar</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-requests">Não há solicitações de visita pendentes.</p>
+            {% endif %}
+        </div>
+        
+        <!-- Outros Eventos Pendentes -->
+        <div class="col-md-6">
+            <h2 class="mb-3">Outros Eventos Pendentes</h2>
+            {% if other_events %}
+                {% for event in other_events %}
+                    <div class="card mb-4">
+                        <div class="card-header card-header-other d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ event.title }}</h5>
+                            <span class="badge bg-light text-dark">{{ event.get_event_type_display }}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="event-detail"><strong>Criado por:</strong> {{ event.created_by.first_name }} {{ event.created_by.last_name }}</div>
+                            <div class="event-detail"><strong>Data:</strong> {{ event.start_time|date:"d/m/Y" }}</div>
+                            <div class="event-detail"><strong>Horário:</strong> {{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}</div>
+                            
+                            <div class="event-description">{{ event.description }}</div>
+                            
+                            <div class="action-buttons d-flex justify-content-between">
+                                <a href="{% url 'logs:event_detail' event.id %}" class="btn btn-sm btn-info">Ver detalhes</a>
+                                <div>
+                                    <a href="{% url 'logs:approve_event' event.id %}" class="btn btn-sm btn-success">Aprovar</a>
+                                    <a href="{% url 'logs:delete_event' event.id %}" class="btn btn-sm btn-danger" 
+                                       onclick="return confirm('Tem certeza que deseja rejeitar este evento?');">Rejeitar</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-requests">Não há outros eventos pendentes de aprovação.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Nenhuma solicitação pendente -->
+    {% if not visit_requests and not other_events %}
+    <div class="alert alert-success text-center mt-4">
+        <h4 class="alert-heading">Ótimo trabalho!</h4>
+        <p>Não há solicitações pendentes no momento. Todas as solicitações foram processadas.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

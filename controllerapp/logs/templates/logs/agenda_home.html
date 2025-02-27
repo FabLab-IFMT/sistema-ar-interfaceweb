@@ -1,0 +1,265 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+    Agenda - FabLab
+{% endblock %}
+
+{% block head %}
+    <style>
+        .calendar {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .calendar th, .calendar td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            vertical-align: top;
+            height: 120px;
+        }
+        
+        .calendar th {
+            background-color: #f8f9fa;
+            text-align: center;
+            height: auto;
+        }
+        
+        .today {
+            background-color: #e9f5fb;
+        }
+        
+        .calendar-event {
+            background-color: #3498db;
+            color: white;
+            padding: 2px 5px;
+            margin-bottom: 2px;
+            border-radius: 3px;
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .event-visit {
+            background-color: #e74c3c;
+        }
+        
+        .event-workshop {
+            background-color: #2ecc71;
+        }
+        
+        .event-maintenance {
+            background-color: #f39c12;
+        }
+        
+        .calendar-navigation {
+            margin-bottom: 20px;
+        }
+        
+        .schedule-table {
+            width: 100%;
+        }
+        
+        .schedule-table th, .schedule-table td {
+            padding: 10px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .schedule-closed {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Agenda do FabLab</h1>
+                <div>
+                    {% if user.is_staff %}
+                        <a href="{% url 'logs:create_event' %}" class="btn btn-primary">Agendar Evento</a>
+                    {% endif %}
+                    <a href="{% url 'logs:request_visit' %}" class="btn btn-outline-secondary">Solicitar Visita</a>
+                </div>
+            </div>
+            
+            <!-- Navegação do calendário -->
+            <div class="calendar-navigation d-flex justify-content-between align-items-center mb-3">
+                <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn btn-sm btn-outline-primary">&laquo; Mês Anterior</a>
+                <h3>{{ month_name }} de {{ year }}</h3>
+                <a href="?month={{ next_month }}&year={{ next_year }}" class="btn btn-sm btn-outline-primary">Próximo Mês &raquo;</a>
+            </div>
+            
+            <!-- Calendário -->
+            <table class="calendar">
+                <thead>
+                    <tr>
+                        <th>Dom</th>
+                        <th>Seg</th>
+                        <th>Ter</th>
+                        <th>Qua</th>
+                        <th>Qui</th>
+                        <th>Sex</th>
+                        <th>Sáb</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for week in calendar %}
+                        <tr>
+                            {% for day in week %}
+                                {% if day != 0 %}
+                                    <td class="{% if day == today.day and month == today.month and year == today.year %}today{% endif %}">
+                                        <div class="d-flex justify-content-between">
+                                            <span>{{ day }}</span>
+                                        </div>
+                                        <!-- Eventos do dia -->
+                                        {% for event in events %}
+                                            {% if event.start_time.day == day and event.start_time.month == month and event.start_time.year == year %}
+                                                <div class="calendar-event event-{{ event.event_type }}"
+                                                     title="{{ event.title }} ({{ event.get_event_type_display }})">
+                                                    <a href="{% url 'logs:event_detail' event.id %}" class="text-white">
+                                                        {{ event.start_time|date:"H:i" }} - {{ event.title|truncatechars:15 }}
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Legenda -->
+            <div class="mt-4">
+                <h5>Legenda</h5>
+                <div class="d-flex flex-wrap">
+                    <div class="me-3 mb-2">
+                        <span class="calendar-event">Evento Interno</span>
+                    </div>
+                    <div class="me-3 mb-2">
+                        <span class="calendar-event event-workshop">Workshop</span>
+                    </div>
+                    <div class="me-3 mb-2">
+                        <span class="calendar-event event-visit">Visita</span>
+                    </div>
+                    <div class="me-3 mb-2">
+                        <span class="calendar-event event-maintenance">Manutenção</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Próximos eventos -->
+            <div class="mt-5">
+                <h3>Próximos Eventos</h3>
+                {% if events %}
+                    <div class="list-group">
+                    {% for event in events|slice:":5" %}
+                        <a href="{% url 'logs:event_detail' event.id %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ event.title }}</h5>
+                                <small>{{ event.start_time|date:"d/m/Y" }}</small>
+                            </div>
+                            <p class="mb-1">{{ event.description|truncatechars:100 }}</p>
+                            <small>
+                                <span class="badge bg-primary">{{ event.get_event_type_display }}</span>
+                                {{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}
+                            </small>
+                        </a>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">Não há eventos agendados para este mês.</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Horários de funcionamento -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Horários de Funcionamento</h4>
+                </div>
+                <div class="card-body">
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th>Dia</th>
+                                <th>Horário</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for schedule in lab_schedule %}
+                                <tr>
+                                    <td>{{ schedule.get_day_of_week_display }}</td>
+                                    <td>
+                                        {% if schedule.is_closed %}
+                                            <span class="schedule-closed">Fechado</span>
+                                        {% else %}
+                                            {{ schedule.opening_time|time:"H:i" }} - {{ schedule.closing_time|time:"H:i" }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center">Horários não definidos</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Informações de agendamento -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Sobre Agendamentos</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Como agendar uma visita?</h5>
+                    <p>Para agendar uma visita ao FabLab, clique no botão "Solicitar Visita" e preencha o formulário com suas informações.</p>
+                    
+                    <h5>Regras para agendamento:</h5>
+                    <ul>
+                        <li>As solicitações passam por aprovação prévia</li>
+                        <li>O agendamento deve ser feito com no mínimo 48h de antecedência</li>
+                        <li>Visitas em grupo devem informar o número exato de participantes</li>
+                        <li>Cancelamentos devem ser informados com antecedência</li>
+                    </ul>
+                    
+                    <a href="{% url 'logs:request_visit' %}" class="btn btn-success btn-block w-100">Solicitar Visita</a>
+                </div>
+            </div>
+            
+            {% if user.is_staff %}
+            <!-- Painel de administração (apenas para admin) -->
+            <div class="card mt-4">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Administração</h4>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'logs:pending_events' %}" class="btn btn-warning mb-2 w-100">
+                        <i class="fas fa-clock"></i> Solicitações Pendentes
+                        {% with pending_count=pending_count|default:0 %}
+                        {% if pending_count > 0 %}
+                            <span class="badge bg-danger">{{ pending_count }}</span>
+                        {% endif %}
+                        {% endwith %}
+                    </a>
+                    <a href="{% url 'logs:list' %}" class="btn btn-outline-danger mb-2 w-100">Visualizar Logs</a>
+                    <a href="{% url 'admin:logs_event_changelist' %}" class="btn btn-outline-danger mb-2 w-100">Gerenciar Eventos</a>
+                    <a href="{% url 'admin:logs_labschedule_changelist' %}" class="btn btn-outline-danger w-100">Gerenciar Horários</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

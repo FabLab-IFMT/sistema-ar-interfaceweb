@@ -1,0 +1,275 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+    Controle de Automação - FabLab
+{% endblock %}
+
+{% block head %}
+<style>
+    .device-card {
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .device-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .device-header {
+        padding: 15px;
+        color: white;
+    }
+    
+    .device-header-on {
+        background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    }
+    
+    .device-header-off {
+        background: linear-gradient(135deg, #F44336, #B71C1C);
+    }
+    
+    .device-offline {
+        background: linear-gradient(135deg, #9E9E9E, #424242);
+        opacity: 0.8;
+    }
+    
+    .device-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+    
+    .status-indicator {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    
+    .status-on {
+        background-color: #4CAF50;
+    }
+    
+    .status-off {
+        background-color: #F44336;
+    }
+    
+    .status-offline {
+        background-color: #9E9E9E;
+    }
+    
+    .device-info {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+        font-size: 0.9rem;
+    }
+    
+    .device-footer {
+        border-top: 1px solid #dee2e6;
+        padding-top: 15px;
+        margin-top: 15px;
+    }
+    
+    .section-title {
+        position: relative;
+        margin-bottom: 30px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .section-title:after {
+        content: '';
+        position: absolute;
+        width: 100px;
+        height: 3px;
+        background-color: #007bff;
+        bottom: -2px;
+        left: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="section-title">Painel de Controle de Automação</h1>
+            <p class="lead">Gerencie os dispositivos do laboratório de forma eficiente e inteligente.</p>
+        </div>
+    </div>
+    
+    <!-- Seção de Ar Condicionados -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">Ar Condicionados</h2>
+        </div>
+        
+        {% if ares %}
+            {% for ar in ares %}
+                <div class="col-md-4">
+                    <div class="card device-card">
+                        <!-- Cabeçalho com status -->
+                        <div class="device-header {% if ar.online %}{% if ar.estado %}device-header-on{% else %}device-header-off{% endif %}{% else %}device-offline{% endif %}">
+                            <div class="text-center">
+                                <div class="device-icon">
+                                    <i class="fas {% if ar.estado %}fa-wind{% else %}fa-fan{% endif %}"></i>
+                                </div>
+                                <h3>{{ ar.nome }}</h3>
+                                <span class="badge bg-light text-dark">
+                                    {% if ar.online %}
+                                        {% if ar.estado %}
+                                            <span class="status-indicator status-on"></span> Ligado
+                                        {% else %}
+                                            <span class="status-indicator status-off"></span> Desligado
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="status-indicator status-offline"></span> Offline
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Corpo do cartão -->
+                        <div class="card-body">
+                            {% if ar.online %}
+                                <!-- Informações do dispositivo -->
+                                {% if ar.estado %}
+                                    <div class="text-center mb-3">
+                                        <h2>{{ ar.temperatura }}°C</h2>
+                                        <p>Modo: {{ ar.modo_display }} | Velocidade: {{ ar.velocidade_display }}</p>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Informações adicionais -->
+                                <div class="device-info">
+                                    <span><i class="fas fa-bolt"></i> {{ ar.consumo_atual|floatformat:2 }} kW/h</span>
+                                    {% if ar.temperatura_ambiente %}
+                                        <span><i class="fas fa-thermometer-half"></i> {{ ar.temperatura_ambiente }}°C (ambiente)</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Última atualização -->
+                                <div class="text-muted text-center mt-2">
+                                    <small>Última atualização: {{ ar.ultima_alteracao|date:"d/m/Y H:i:s" }}</small>
+                                </div>
+                            {% else %}
+                                <!-- Mensagem de dispositivo offline -->
+                                <div class="alert alert-warning text-center">
+                                    <i class="fas fa-exclamation-triangle"></i> Dispositivo offline
+                                    <p class="small mb-0">Última conexão: {% if ar.ultimo_ping %}{{ ar.ultimo_ping|date:"d/m/Y H:i:s" }}{% else %}Nunca conectado{% endif %}</p>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Botões de controle -->
+                            <div class="device-footer text-center">
+                                <a href="{% url 'Controle_ar:controlar_ar' ar.id %}" class="btn btn-primary">
+                                    <i class="fas fa-sliders-h"></i> Controlar
+                                </a>
+                                
+                                {% if ar.online %}
+                                    {% if ar.estado %}
+                                        <a href="{% url 'Controle_ar:desligar_ar' ar.id %}" class="btn btn-outline-danger">
+                                            <i class="fas fa-power-off"></i> Desligar
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'Controle_ar:ligar_ar' ar.id %}" class="btn btn-outline-success">
+                                            <i class="fas fa-power-off"></i> Ligar
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    Nenhum ar-condicionado configurado no sistema.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Estatísticas e Informações -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Consumo de Energia</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <h3>
+                            {% if ares %}
+                                {% with consumo_total=0 %}
+                                    {% for ar in ares %}
+                                        {% with consumo_total=consumo_total|add:ar.consumo_atual %}{% endwith %}
+                                    {% endfor %}
+                                    {{ consumo_total|floatformat:2 }} kW/h
+                                {% endwith %}
+                            {% else %}
+                                0.00 kW/h
+                            {% endif %}
+                        </h3>
+                        <p>Consumo atual total</p>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i> Dica de economia: Mantenha a temperatura entre 23°C e 25°C para um melhor equilíbrio entre conforto e economia de energia.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Status do Sistema</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Dispositivos conectados
+                            <span class="badge bg-primary rounded-pill">{{ ares.count }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Dispositivos ativos
+                            <span class="badge bg-success rounded-pill">
+                                {% with ativos=0 %}
+                                    {% for ar in ares %}
+                                        {% if ar.estado %}
+                                            {% with ativos=ativos|add:1 %}{% endwith %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ ativos }}
+                                {% endwith %}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Temperatura média
+                            <span class="badge bg-info rounded-pill">
+                                {% if ares.count > 0 %}
+                                    {% with temp_sum=0 %}
+                                        {% for ar in ares %}
+                                            {% with temp_sum=temp_sum|add:ar.temperatura %}{% endwith %}
+                                        {% endfor %}
+                                        {{ temp_sum|floatformat:1 }}°C
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+    Agendar Visita - FabLab
+{% endblock %}
+
+{% block head %}
+    <style>
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-help-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        
+        .card-header {
+            font-weight: bold;
+        }
+        
+        .visit-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Informações sobre visitas -->
+            <div class="visit-info">
+                <h4>Agendamento de Visitas</h4>
+                <p>Para agendar uma visita ao FabLab, preencha o formulário abaixo com suas informações e o motivo da visita.</p>
+                <ul>
+                    <li>O agendamento está sujeito à aprovação prévia pela nossa equipe</li>
+                    <li>Prefira agendar com pelo menos 48 horas de antecedência</li>
+                    <li>Para visitas em grupo, informe o número total de visitantes</li>
+                    <li>Em caso de dúvidas, entre em contato por email: fablab@ifmt.edu.br</li>
+                </ul>
+            </div>
+            
+            <!-- Formulário de agendamento -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h2 class="mb-0">Solicitar Visita ao FabLab</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.visitor_name.id_for_label }}">{{ form.visitor_name.label }}</label>
+                                    {{ form.visitor_name }}
+                                    {% if form.visitor_name.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.visitor_name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.visitor_phone.id_for_label }}">{{ form.visitor_phone.label }}</label>
+                                    {{ form.visitor_phone }}
+                                    {% if form.visitor_phone.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.visitor_phone.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.visitor_email.id_for_label }}">{{ form.visitor_email.label }}</label>
+                            {{ form.visitor_email }}
+                            {% if form.visitor_email.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.visitor_email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.number_of_visitors.id_for_label }}">{{ form.number_of_visitors.label }}</label>
+                            {{ form.number_of_visitors }}
+                            <div class="form-help-text">Indique o número total de visitantes no grupo (incluindo você)</div>
+                            {% if form.number_of_visitors.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.number_of_visitors.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <hr>
+                        <h5>Informações da Visita</h5>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                            {{ form.title }}
+                            <div class="form-help-text">Descreva brevemente o objetivo da sua visita</div>
+                            {% if form.title.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.title.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.start_time.id_for_label }}">{{ form.start_time.label }}</label>
+                                    {{ form.start_time }}
+                                    {% if form.start_time.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.start_time.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.end_time.id_for_label }}">{{ form.end_time.label }}</label>
+                                    {{ form.end_time }}
+                                    {% if form.end_time.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.end_time.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                            {{ form.description }}
+                            <div class="form-help-text">Descreva detalhadamente o motivo da visita e quaisquer requisitos especiais</div>
+                            {% if form.description.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.description.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Campo oculto para o tipo de evento - não precisamos condicioná-lo agora -->
+                        {{ form.event_type }}
+                        
+                        <div class="alert alert-warning">
+                            <strong>Importante:</strong> Sua solicitação será analisada pela equipe do FabLab. Você receberá uma confirmação por email quando ela for aprovada.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">Solicitar Visita</button>
+                            <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Script para adicionar a classe form-control aos campos do formulário
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('form input:not([type="hidden"]), form select, form textarea').forEach(function(input) {
+            input.classList.add('form-control');
+        });
+        
+        // Ajusta o tamanho da área de texto
+        document.querySelectorAll('textarea').forEach(function(textarea) {
+            textarea.rows = 5;
+        });
+    });
+</script>
+{% endblock %}
