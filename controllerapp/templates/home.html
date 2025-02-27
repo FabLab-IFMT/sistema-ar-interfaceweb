@@ -6,6 +6,16 @@
 {% endblock %}
 
 {% block content %}
+  <!-- Debug info -->
+  {% if debug %}
+  <div class="alert alert-info">
+    <strong>Debug:</strong> Carrossel com {{ carousel_images|length }} imagens.
+    {% for img in carousel_images %}
+      <p>Imagem #{{ forloop.counter }}: {{ img.image.url }}</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <!-- Carrossel principal -->
   <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
     <!-- Indicadores -->
@@ -27,7 +37,8 @@
       {% for image in carousel_images %}
         <div class="carousel-item {% if forloop.first %}active{% endif %}">
           {% if image.link %}<a href="{{ image.link }}">{% endif %}
-            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ image.caption }}">
+            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ image.caption|default:'Imagem do carrossel' }}" 
+                 height="400" style="object-fit: cover; width: 100%;">
           {% if image.link %}</a>{% endif %}
           {% if image.caption or image.description %}
             <div class="carousel-caption d-none d-md-block">
@@ -38,13 +49,26 @@
         </div>
       {% empty %}
         <div class="carousel-item active">
-          <img src="{% static 'images/default1.jpg' %}" class="d-block w-100" alt="Default Image 1">
+          <img src="{% static 'images/default1.jpg' %}" class="d-block w-100" alt="Default Image 1" 
+               height="500" style="object-fit: cover; width: 100%;">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>Imagem Padrão 1</h5>
+            <p>Adicione imagens ao carrossel pelo painel administrativo.</p>
+          </div>
         </div>
         <div class="carousel-item">
-          <img src="{% static 'images/default2.jpg' %}" class="d-block w-100" alt="Default Image 2">
+          <img src="{% static 'images/default2.jpg' %}" class="d-block w-100" alt="Default Image 2" 
+               height="500" style="object-fit: cover; width: 100%;">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>Imagem Padrão 2</h5>
+          </div>
         </div>
         <div class="carousel-item">
-          <img src="{% static 'images/default3.jpg' %}" class="d-block w-100" alt="Default Image 3">
+          <img src="{% static 'images/default3.jpg' %}" class="d-block w-100" alt="Default Image 3" 
+               height="500" style="object-fit: cover; width: 100%;">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>Imagem Padrão 3</h5>
+          </div>
         </div>
       {% endfor %}
     </div>
@@ -243,5 +267,28 @@
 {% block scripts %}
 <script>
   // Adicione aqui scripts específicos da página inicial, se necessário
+  document.addEventListener('DOMContentLoaded', function() {
+    // Inicializa o carrossel manualmente para garantir que funcione corretamente
+    var myCarousel = new bootstrap.Carousel(document.getElementById('mainCarousel'), {
+      interval: 5000,
+      wrap: true
+    });
+    
+    // Log para depuração
+    console.log("Carrossel inicializado");
+  });
 </script>
+{% endblock %}
+
+{% block styles %}
+<style>
+  /* Estilo para garantir que as imagens do carrossel tenham tamanho consistente */
+  .carousel-img {
+    object-fit: cover;
+    height: 500px; /* Alterado de 400px para 500px */
+    width: 100%;
+  }
+  
+
+</style>
 {% endblock %}
