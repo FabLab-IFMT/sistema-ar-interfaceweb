@@ -1,10 +1,238 @@
 {% extends 'layout.html' %}
+{% load static %}
 
 {% block title %}
-    Sobre
+  Sobre o FabLab - Laboratório de Fabricação Digital
 {% endblock %}
 
 {% block content %}
-essa é a pagina sobre
+  <!-- Cabeçalho da página -->
+  <div class="container-fluid bg-primary py-5 mb-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center text-white">
+          <h1 class="display-3 fw-bold">Sobre o FabLab</h1>
+          <p class="lead">Conheça nossa história, missão e visão</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <!-- Seção de introdução -->
+  <div class="container mb-5">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+        <h2 class="mb-4">O que é o FabLab?</h2>
+        <p class="lead mb-4">O FabLab do IFMT é um espaço colaborativo dedicado à fabricação digital, prototipagem e inovação.</p>
+        <p>Nosso laboratório faz parte da rede global de FabLabs, iniciada pelo MIT (Massachusetts Institute of Technology), que visa democratizar o acesso a ferramentas de fabricação digital e fomentar a inovação local.</p>
+        <p>O FabLab IFMT oferece acesso a equipamentos modernos como impressoras 3D, cortadoras a laser, fresadoras CNC, entre outros, permitindo que estudantes, professores e pesquisadores transformem suas ideias em protótipos reais.</p>
+      </div>
+      <div class="col-lg-6">
+        <div class="rounded shadow-lg overflow-hidden">
+          <img src="{% static 'images/about/lab_panorama.jpg' %}" class="img-fluid" alt="Panorama do FabLab" onerror="this.src='https://placehold.co/800x500?text=FabLab'">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Missão, Visão e Valores -->
+  <div class="container-fluid bg-light py-5 mb-5">
+    <div class="container">
+      <div class="row text-center mb-5">
+        <div class="col-12">
+          <h2 class="mb-4">Nossos princípios</h2>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 border-0 shadow">
+            <div class="card-body text-center">
+              <div class="p-4 bg-primary bg-opacity-10 rounded-circle d-inline-block mb-3">
+                <i class="fas fa-bullseye fa-3x text-primary"></i>
+              </div>
+              <h3 class="card-title">Missão</h3>
+              <p class="card-text">Proporcionar acesso a tecnologias de fabricação digital, incentivando a inovação, o aprendizado prático e o desenvolvimento de soluções criativas para problemas reais da comunidade.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 border-0 shadow">
+            <div class="card-body text-center">
+              <div class="p-4 bg-success bg-opacity-10 rounded-circle d-inline-block mb-3">
+                <i class="fas fa-eye fa-3x text-success"></i>
+              </div>
+              <h3 class="card-title">Visão</h3>
+              <p class="card-text">Ser um centro de referência em fabricação digital na região, promovendo a democratização do acesso a tecnologias avançadas e formando uma comunidade engajada em soluções criativas e sustentáveis.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 border-0 shadow">
+            <div class="card-body text-center">
+              <div class="p-4 bg-info bg-opacity-10 rounded-circle d-inline-block mb-3">
+                <i class="fas fa-star fa-3x text-info"></i>
+              </div>
+              <h3 class="card-title">Valores</h3>
+              <p class="card-text">
+                <ul class="list-unstyled text-start">
+                  <li><i class="fas fa-check-circle text-info me-2"></i> Inovação aberta</li>
+                  <li><i class="fas fa-check-circle text-info me-2"></i> Colaboração</li>
+                  <li><i class="fas fa-check-circle text-info me-2"></i> Aprendizagem contínua</li>
+                  <li><i class="fas fa-check-circle text-info me-2"></i> Sustentabilidade</li>
+                  <li><i class="fas fa-check-circle text-info me-2"></i> Inclusão</li>
+                </ul>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- História e Equipe -->
+  <div class="container mb-5">
+    <div class="row mb-5">
+      <div class="col-lg-6 mb-4">
+        <h2>Nossa história</h2>
+        <p>O FabLab do IFMT foi inaugurado em 2018, com o objetivo de proporcionar aos estudantes e à comunidade acadêmica acesso a tecnologias de fabricação digital. Desde então, temos crescido continuamente, expandindo nossa infraestrutura, equipamentos e projetos.</p>
+        <p>Ao longo dos anos, dezenas de projetos inovadores foram desenvolvidos em nosso espaço, abrangendo áreas como engenharia, design, arquitetura, saúde, educação e muitas outras.</p>
+        <div class="row mt-4">
+          <div class="col-6">
+            <div class="card border-0 bg-light mb-3">
+              <div class="card-body text-center">
+                <div class="display-4 fw-bold text-primary">2018</div>
+                <div class="text-muted">Ano de fundação</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card border-0 bg-light mb-3">
+              <div class="card-body text-center">
+                <div class="display-4 fw-bold text-success">50+</div>
+                <div class="text-muted">Projetos concluídos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <h2>Nossa equipe</h2>
+        <p>O FabLab IFMT conta com uma equipe qualificada de professores, técnicos e monitores que estão à disposição para orientar e auxiliar nos projetos desenvolvidos no laboratório.</p>
+        <div class="row g-4 mt-3">
+          <!-- Membros padrão -->
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="flex-shrink-0">
+                    <img src="https://placehold.co/80x80?text=C" class="rounded-circle" width="60" height="60" alt="Coordenador">
+                  </div>
+                  <div class="flex-grow-1 ms-3">
+                    <h5 class="mb-0">Prof. Coordenador</h5>
+                    <p class="text-muted mb-0">Coordenador FabLab</p>
+                  </div>
+                </div>
+                <p class="card-text">Responsável pela coordenação geral do laboratório e desenvolvimento de projetos.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="flex-shrink-0">
+                    <img src="https://placehold.co/80x80?text=T" class="rounded-circle" width="60" height="60" alt="Técnico">
+                  </div>
+                  <div class="flex-grow-1 ms-3">
+                    <h5 class="mb-0">Técnico de Laboratório</h5>
+                    <p class="text-muted mb-0">Suporte Técnico</p>
+                  </div>
+                </div>
+                <p class="card-text">Responsável pelo suporte técnico e manutenção dos equipamentos do laboratório.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Galeria de Fotos -->
+  <div class="container-fluid bg-light py-5">
+    <div class="container">
+      <div class="row text-center mb-4">
+        <div class="col-12">
+          <h2>Nosso espaço</h2>
+          <p class="lead">Conheça as instalações do FabLab IFMT</p>
+        </div>
+      </div>
+      <div class="row g-4">
+        <!-- Fotos padrão -->
+        <div class="col-md-4 col-sm-6">
+          <div class="card border-0 shadow h-100">
+            <img src="https://placehold.co/400x200?text=Impressoras+3D" class="card-img-top" alt="Área de impressão 3D" style="height: 200px; object-fit: cover;">
+            <div class="card-body">
+              <h5 class="card-title">Área de impressão 3D</h5>
+              <p class="card-text">Espaço dedicado às impressoras 3D e processamento de modelos.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+          <div class="card border-0 shadow h-100">
+            <img src="https://placehold.co/400x200?text=CNC" class="card-img-top" alt="Área de usinagem CNC" style="height: 200px; object-fit: cover;">
+            <div class="card-body">
+              <h5 class="card-title">Área de usinagem CNC</h5>
+              <p class="card-text">Local onde são realizados os trabalhos com fresadoras e tornos CNC.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+          <div class="card border-0 shadow h-100">
+            <img src="https://placehold.co/400x200?text=Eletrônica" class="card-img-top" alt="Área de eletrônica" style="height: 200px; object-fit: cover;">
+            <div class="card-body">
+              <h5 class="card-title">Área de eletrônica</h5>
+              <p class="card-text">Espaço para desenvolvimento de projetos eletrônicos e prototipagem.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call to Action -->
+  <div class="container mt-5 mb-5 text-center">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <h2 class="mb-4">Venha conhecer o FabLab!</h2>
+        <p class="lead mb-4">Tem interesse em conhecer nosso laboratório ou desenvolver um projeto? Entre em contato conosco ou agende uma visita.</p>
+        <div class="d-flex justify-content-center gap-3">
+          <a href="{% url 'options:equipamentos' %}" class="btn btn-primary btn-lg">Ver equipamentos</a>
+          <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-primary btn-lg">Agendar visita</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+  /* Estilos específicos para a página Sobre */
+  .bg-primary.py-5 {
+    position: relative;
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  }
+  
+  .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+  }
+  
+  .rounded-circle {
+    object-fit: cover;
+  }
+</style>
 {% endblock %}
