@@ -13,19 +13,49 @@ from .models import Ar_condicionado, Comando_ar, LogOperacao
 
 ESP32_IP = '192.168.1.113'
 
+# Função auxiliar para verificar se o usuário é administrador
+def is_admin(user):
+    return user.is_authenticated and user.is_staff
+
+# Função auxiliar para redirecionar usuários não administradores
+def admin_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not is_admin(request.user):
+            messages.error(request, "Acesso negado. Apenas administradores podem acessar esta funcionalidade.")
+            return redirect('home')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
 @login_required
-def dashboard(request):
+@admin_required
+def automacao_home(request):
+    """Página inicial de automação com seleção de subsistemas"""
+    ar_count = Ar_condicionado.objects.count()
+    return render(request, 'Controle_ar/automacao_home.html', {'ar_count': ar_count})
+
+@login_required
+@admin_required
+def ar_dashboard(request):
     """Exibe todos os ar-condicionados disponíveis para controle"""
     ares = Ar_condicionado.objects.all()
     return render(request, 'Controle_ar/dashboard.html', {'ares': ares})
 
+# Renomear o método original dashboard para ar_dashboard e manter um redirecionamento por compatibilidade
 @login_required
+@admin_required
+def dashboard(request):
+    """Redirecionamento para compatibilidade"""
+    return ar_dashboard(request)
+
+@login_required
+@admin_required
 def controlar_ar(request, ar_id):
     """Exibe a interface de controle para um ar-condicionado específico"""
     ar = get_object_or_404(Ar_condicionado, id=ar_id)
     return render(request, 'Controle_ar/controlar_ar.html', {'ar': ar})
 
 @login_required
+@admin_required
 def ligar_ar(request, ar_id):
     """Liga o ar-condicionado"""
     ar = get_object_or_404(Ar_condicionado, id=ar_id)
@@ -57,6 +87,7 @@ def ligar_ar(request, ar_id):
     return redirect('Controle_ar:controlar_ar', ar_id=ar.id)
 
 @login_required
+@admin_required
 def desligar_ar(request, ar_id):
     """Desliga o ar-condicionado"""
     ar = get_object_or_404(Ar_condicionado, id=ar_id)
@@ -88,6 +119,7 @@ def desligar_ar(request, ar_id):
     return redirect('Controle_ar:controlar_ar', ar_id=ar.id)
 
 @login_required
+@admin_required
 def ajustar_temperatura(request, ar_id):
     """Ajusta a temperatura do ar-condicionado"""
     if request.method == "POST":
@@ -125,6 +157,7 @@ def ajustar_temperatura(request, ar_id):
     return redirect('Controle_ar:controlar_ar', ar_id=ar_id)
 
 @login_required
+@admin_required
 def ajustar_modo(request, ar_id):
     """Ajusta o modo de operação do ar-condicionado"""
     if request.method == "POST":
@@ -162,6 +195,7 @@ def ajustar_modo(request, ar_id):
     return redirect('Controle_ar:controlar_ar', ar_id=ar_id)
 
 @login_required
+@admin_required
 def ajustar_velocidade(request, ar_id):
     """Ajusta a velocidade do ventilador do ar-condicionado"""
     if request.method == "POST":
@@ -198,6 +232,7 @@ def ajustar_velocidade(request, ar_id):
     return redirect('Controle_ar:controlar_ar', ar_id=ar_id)
 
 @login_required
+@admin_required
 def toggle_swing(request, ar_id):
     """Alterna o modo swing do ar-condicionado"""
     ar = get_object_or_404(Ar_condicionado, id=ar_id)

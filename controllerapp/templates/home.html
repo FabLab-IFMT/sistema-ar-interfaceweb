@@ -6,6 +6,16 @@
 {% endblock %}
 
 {% block content %}
+  <!-- Debug info -->
+  {% if debug %}
+  <div class="alert alert-info">
+    <strong>Debug:</strong> Carrossel com {{ carousel_images|length }} imagens.
+    {% for img in carousel_images %}
+      <p>Imagem #{{ forloop.counter }}: {{ img.image.url }}</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <!-- Carrossel principal -->
   <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
     <!-- Indicadores -->
@@ -27,7 +37,8 @@
       {% for image in carousel_images %}
         <div class="carousel-item {% if forloop.first %}active{% endif %}">
           {% if image.link %}<a href="{{ image.link }}">{% endif %}
-            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ image.caption }}">
+            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ image.caption|default:'Imagem do carrossel' }}" 
+                 height="400" style="object-fit: cover; width: 100%;">
           {% if image.link %}</a>{% endif %}
           {% if image.caption or image.description %}
             <div class="carousel-caption d-none d-md-block">
@@ -38,13 +49,26 @@
         </div>
       {% empty %}
         <div class="carousel-item active">
-          <img src="{% static 'images/default1.jpg' %}" class="d-block w-100" alt="Default Image 1">
+          <img src="{% static 'images/default1.jpg' %}" class="d-block w-100" alt="Default Image 1" 
+               height="500" style="object-fit: cover; width: 100%;">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>Imagem Padrão 1</h5>
+            <p>Adicione imagens ao carrossel pelo painel administrativo.</p>
+          </div>
         </div>
         <div class="carousel-item">
-          <img src="{% static 'images/default2.jpg' %}" class="d-block w-100" alt="Default Image 2">
+          <img src="{% static 'images/default2.jpg' %}" class="d-block w-100" alt="Default Image 2" 
+               height="500" style="object-fit: cover; width: 100%;">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>Imagem Padrão 2</h5>
+          </div>
         </div>
         <div class="carousel-item">
-          <img src="{% static 'images/default3.jpg' %}" class="d-block w-100" alt="Default Image 3">
+          <img src="{% static 'images/default3.jpg' %}" class="d-block w-100" alt="Default Image 3" 
+               height="500" style="object-fit: cover; width: 100%;">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>Imagem Padrão 3</h5>
+          </div>
         </div>
       {% endfor %}
     </div>
@@ -60,62 +84,57 @@
     </button>
   </div>
 
-  <!-- Seção de boas-vindas -->
-  <div class="container mt-5">
-    <div class="row">
-      <div class="col-12 text-center">
-        <h1>Bem-vindo ao FabLab</h1>
-        <p class="lead">
-          Um espaço colaborativo para inovação, aprendizagem e prototipagem
-        </p>
-        <hr class="my-4">
-      </div>
-    </div>
-  </div>
-
-  <!-- Cards de funcionalidades principais -->
-  <div class="container mt-4">
-    <h2 class="text-center mb-4">O que você deseja fazer?</h2>
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-      <!-- Card 1: Equipamentos -->
-      <div class="col">
-        <div class="card h-100 border-primary">
-          <div class="card-header bg-primary text-white">
-            <h5 class="card-title mb-0">Equipamentos</h5>
+  <!-- Seção de boas-vindas aprimorada -->
+  <div class="container-fluid bg-light py-5">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <h1 class="display-4 fw-bold text-primary mb-3">Bem-vindo ao FabLab</h1>
+          <div class="border-start border-primary border-4 ps-3 mb-4">
+            <p class="lead">
+              Um espaço colaborativo para inovação, aprendizagem e prototipagem no IFMT.
+            </p>
           </div>
-          <div class="card-body">
-            <p class="card-text">Conheça as máquinas e ferramentas disponíveis no nosso laboratório.</p>
-            <a href="{% url 'options:equipamentos' %}" class="btn btn-outline-primary">Ver equipamentos</a>
+          <p class="mb-4">O Laboratório de Fabricação Digital (FabLab) é um ambiente equipado com tecnologias de ponta, onde ideias ganham forma através das mais diversas ferramentas de fabricação digital. Aqui, a criatividade encontra recursos para se transformar em protótipos, projetos e soluções reais.</p>
+          <div class="d-flex gap-3 mb-4">
+            <a href="{% url 'about' %}" class="btn btn-primary btn-lg">Conheça mais sobre o laboratório</a>
+            <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-primary btn-lg">Agende uma visita</a>
           </div>
         </div>
-      </div>
-      
-      <!-- Card 2: Automação -->
-      <div class="col">
-        <div class="card h-100 border-success">
-          <div class="card-header bg-success text-white">
-            <h5 class="card-title mb-0">Automação</h5>
-          </div>
-          <div class="card-body">
-            <p class="card-text">Controle os dispositivos do laboratório como ar-condicionado e iluminação.</p>
-            {% if user.is_authenticated %}
-              <a href="{% url 'Controle_ar:dashboard' %}" class="btn btn-outline-success">Acessar controles</a>
-            {% else %}
-              <a href="{% url 'users:login' %}" class="btn btn-outline-success">Faça login para acessar</a>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-      
-      <!-- Card 3: Agenda - Atualizado o link para apontar para a nova página de agenda -->
-      <div class="col">
-        <div class="card h-100 border-info">
-          <div class="card-header bg-info text-white">
-            <h5 class="card-title mb-0">Agenda</h5>
-          </div>
-          <div class="card-body">
-            <p class="card-text">Verifique os horários disponíveis e agende seu uso do laboratório.</p>
-            <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-info">Ver agenda</a>
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-lg">
+            <div class="card-body p-4 text-center bg-white rounded">
+              <div class="row g-4">
+                <div class="col-6">
+                  <div class="d-inline-block p-3 bg-primary bg-opacity-10 rounded-circle mb-3">
+                    <i class="fas fa-lightbulb fa-2x text-primary"></i>
+                  </div>
+                  <h5>Inovação</h5>
+                  <p class="text-muted">Desenvolva projetos inovadores com tecnologias avançadas</p>
+                </div>
+                <div class="col-6">
+                  <div class="d-inline-block p-3 bg-success bg-opacity-10 rounded-circle mb-3">
+                    <i class="fas fa-users fa-2x text-success"></i>
+                  </div>
+                  <h5>Colaboração</h5>
+                  <p class="text-muted">Compartilhe conhecimentos e trabalhe em equipe</p>
+                </div>
+                <div class="col-6">
+                  <div class="d-inline-block p-3 bg-info bg-opacity-10 rounded-circle mb-3">
+                    <i class="fas fa-cogs fa-2x text-info"></i>
+                  </div>
+                  <h5>Prototipagem</h5>
+                  <p class="text-muted">Transforme seus projetos em protótipos reais</p>
+                </div>
+                <div class="col-6">
+                  <div class="d-inline-block p-3 bg-warning bg-opacity-10 rounded-circle mb-3">
+                    <i class="fas fa-graduation-cap fa-2x text-warning"></i>
+                  </div>
+                  <h5>Aprendizagem</h5>
+                  <p class="text-muted">Aprenda novas habilidades e expanda seus conhecimentos</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -127,20 +146,32 @@
     <h2 class="text-center mb-4">FabLab em números</h2>
     <div class="row text-center">
       <div class="col-md-3 mb-3">
-        <div class="display-4 fw-bold text-primary">12+</div>
-        <div class="h5">Equipamentos</div>
+        <div class="p-3 bg-white rounded shadow-sm">
+          <i class="fas fa-tools fa-2x text-primary mb-3"></i>
+          <div class="display-4 fw-bold text-primary">12+</div>
+          <div class="h5">Equipamentos</div>
+        </div>
       </div>
       <div class="col-md-3 mb-3">
-        <div class="display-4 fw-bold text-success">50+</div>
-        <div class="h5">Projetos realizados</div>
+        <div class="p-3 bg-white rounded shadow-sm">
+          <i class="fas fa-project-diagram fa-2x text-success mb-3"></i>
+          <div class="display-4 fw-bold text-success">50+</div>
+          <div class="h5">Projetos realizados</div>
+        </div>
       </div>
       <div class="col-md-3 mb-3">
-        <div class="display-4 fw-bold text-info">200+</div>
-        <div class="h5">Usuários ativos</div>
+        <div class="p-3 bg-white rounded shadow-sm">
+          <i class="fas fa-users fa-2x text-info mb-3"></i>
+          <div class="display-4 fw-bold text-info">200+</div>
+          <div class="h5">Usuários ativos</div>
+        </div>
       </div>
       <div class="col-md-3 mb-3">
-        <div class="display-4 fw-bold text-warning">1000+</div>
-        <div class="h5">Horas de uso</div>
+        <div class="p-3 bg-white rounded shadow-sm">
+          <i class="fas fa-clock fa-2x text-warning mb-3"></i>
+          <div class="display-4 fw-bold text-warning">1000+</div>
+          <div class="h5">Horas de uso</div>
+        </div>
       </div>
     </div>
   </div>
@@ -238,10 +269,152 @@
       </div>
     </div>
   </div>
+  
+  <!-- Cards de funcionalidades principais (movido para o final) -->
+  <div class="container mt-5 mb-5">
+    <h2 class="text-center mb-4">O que você deseja fazer?</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+      <!-- Card 1: Equipamentos -->
+      <div class="col">
+        <div class="card h-100 border-primary">
+          <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Equipamentos</h5>
+          </div>
+          <div class="card-body">
+            <p class="card-text">Conheça as máquinas e ferramentas disponíveis no nosso laboratório.</p>
+            <a href="{% url 'options:equipamentos' %}" class="btn btn-outline-primary">Ver equipamentos</a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 2: Automação -->
+      <div class="col">
+        <div class="card h-100 border-success">
+          <div class="card-header bg-success text-white">
+            <h5 class="card-title mb-0">Automação</h5>
+          </div>
+          <div class="card-body">
+            <p class="card-text">Controle os dispositivos do laboratório como ar-condicionado e iluminação.</p>
+            {% if user.is_authenticated and user.is_staff %}
+              <a href="{% url 'Controle_ar:automacao_home' %}" class="btn btn-outline-success">Acessar controles</a>
+            {% else %}
+              <p class="text-danger">Acesso restrito a administradores do sistema.</p>
+              {% if not user.is_authenticated %}
+                <a href="{% url 'users:login' %}" class="btn btn-outline-secondary">Fazer login</a>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 3: Agenda - Atualizado o link para apontar para a nova página de agenda -->
+      <div class="col">
+        <div class="card h-100 border-info">
+          <div class="card-header bg-info text-white">
+            <h5 class="card-title mb-0">Agenda</h5>
+          </div>
+          <div class="card-body">
+            <p class="card-text">Verifique os horários disponíveis e agende seu uso do laboratório.</p>
+            <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-info">Ver agenda</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
   // Adicione aqui scripts específicos da página inicial, se necessário
+  document.addEventListener('DOMContentLoaded', function() {
+    // Inicializa o carrossel manualmente para garantir que funcione corretamente
+    var myCarousel = new bootstrap.Carousel(document.getElementById('mainCarousel'), {
+      interval: 5000,
+      wrap: true
+    });
+    
+    // Log para depuração
+    console.log("Carrossel inicializado");
+  });
+
+  // Adicione antes do fechamento do script
+  // Animação simples para os números
+  window.addEventListener('scroll', function() {
+    const statsSection = document.querySelector('.container.mt-5.py-4.bg-light');
+    const statsPosition = statsSection.getBoundingClientRect().top;
+    const screenPosition = window.innerHeight / 1.3;
+    
+    if(statsPosition < screenPosition) {
+      const numbers = document.querySelectorAll('.display-4.fw-bold');
+      numbers.forEach(number => {
+        number.classList.add('number-animation');
+      });
+    }
+  });
 </script>
+{% endblock %}
+
+{% block styles %}
+<style>
+  /* Estilo para garantir que as imagens do carrossel tenham tamanho consistente */
+  .carousel-img {
+    object-fit: cover;
+    height: 500px; /* Alterado de 400px para 500px */
+    width: 100%;
+  }
+  
+  /* Estilos adicionais para melhorar a aparência da página */
+  .display-4 {
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+  
+  .lead {
+    font-size: 1.25rem;
+    font-weight: 400;
+  }
+  
+  /* Animação para os ícones */
+  .fas {
+    transition: transform 0.3s ease;
+  }
+  
+  .rounded-circle:hover .fas {
+    transform: scale(1.2);
+  }
+  
+  /* Melhorias nos cards */
+  .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+  }
+
+  /* Animação para os números da estatística */
+  .number-animation {
+    animation: pop-in 0.6s ease-out forwards;
+  }
+  
+  @keyframes pop-in {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  /* Melhorias nos cards de estatísticas */
+  .bg-white.rounded.shadow-sm {
+    transition: transform 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .bg-white.rounded.shadow-sm:hover {
+    transform: translateY(-10px);
+  }
+</style>
 {% endblock %}

@@ -4,7 +4,16 @@ from . import views
 app_name = 'Controle_ar'
 
 urlpatterns = [
-    path('', views.dashboard, name='dashboard'),
+    # Página principal de automação
+    path('', views.automacao_home, name='automacao_home'),
+    
+    # Dashboard de ar-condicionado
+    path('ar/', views.ar_dashboard, name='ar_dashboard'),
+    
+    # Manter compatibilidade com links antigos
+    path('dashboard/', views.ar_dashboard, name='dashboard'),
+    
+    # Demais URLs permanecem iguais
     path('controlar/<int:ar_id>/', views.controlar_ar, name='controlar_ar'),
     path('ligar/<int:ar_id>/', views.ligar_ar, name='ligar_ar'),
     path('desligar/<int:ar_id>/', views.desligar_ar, name='desligar_ar'),
