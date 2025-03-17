@@ -24,7 +24,8 @@ INSTALLED_APPS = [
     'logs',
     'Controle_ar',
     'options',
-    'acesso_e_ponto',  # adicionado
+    'acesso_e_ponto',
+    'Email_notificacoes',
 ]
 
 MIDDLEWARE = [
@@ -119,3 +120,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "users.CustomUser"
 
 LOGIN_URL = '/users/login/'
+
+
+
+
+
+#Configurações de EMAIL
+
+
+# Configuração de email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com' 
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'ifmtmaker.fablab.cba@gmail.com'
+EMAIL_HOST_PASSWORD = 'tgnm eeyu yhyu tycj'  
+DEFAULT_FROM_EMAIL = 'FabLab <seu-email@gmail.com>'
