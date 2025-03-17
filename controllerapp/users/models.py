@@ -8,7 +8,8 @@ class CustomUser(AbstractUser):
     username = None
     first_name = models.CharField(_("first name"), max_length=150, blank=False)
     last_name = models.CharField(_("last name"), max_length=150, blank=False)
-    email = models.EmailField(_("email address"), blank=False)
+    email = models.EmailField(_("email address"), blank=False, unique=True, 
+                              error_messages={"unique": _("Um usuário com este email já está cadastrado.")})
 
     id = models.CharField(_("matricula"), 
         max_length=13,

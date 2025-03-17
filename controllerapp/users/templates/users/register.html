@@ -36,6 +36,16 @@
             padding-left: 1.5rem;
             margin-bottom: 0;
         }
+        
+        .field-error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        .has-error {
+            border-color: #dc3545;
+        }
     </style>
 {% endblock %}
 
@@ -51,6 +61,12 @@
                 {% endfor %}
             {% endif %}
             
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Erro no formulário:</strong> Por favor, corrija os erros abaixo.
+                </div>
+            {% endif %}
+            
             <form action="{% url 'users:register' %}" method="post">
                 {% csrf_token %}
                 <h1 class="text-center mb-4">Registrar um usuário</h1>
@@ -60,28 +76,63 @@
                     <div class="helptext mb-2" id="id_id_helptext">
                         <small class="form-text text-muted">Seu número de matrícula do SUAP ou SIAPE. Apenas números.</small>
                     </div>
-                    <input class="form-control" type="text" name="id" maxlength="13" autofocus required aria-describedby="id_id_helptext" id="id_id">
+                    <input class="form-control {% if form.id.errors %}has-error{% endif %}" type="text" name="id" maxlength="13" autofocus required aria-describedby="id_id_helptext" id="id_id" value="{{ form.id.value|default:'' }}">
+                    {% if form.id.errors %}
+                        <div class="field-error">
+                            {% for error in form.id.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div>
                     <label for="id_email" class="form-label mt-3"><b>Endereço de E-mail</b></label>
-                    <input class="form-control" type="email" name="email" maxlength="254" required id="id_email">
+                    <input class="form-control {% if form.email.errors %}has-error{% endif %}" type="email" name="email" maxlength="254" required id="id_email" value="{{ form.email.value|default:'' }}">
+                    {% if form.email.errors %}
+                        <div class="field-error">
+                            {% for error in form.email.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="row">
                     <div class="col-md-6">
                         <label for="id_first_name" class="form-label mt-3"><b>Nome</b></label>
-                        <input class="form-control" type="text" name="first_name" maxlength="150" required id="id_first_name">
+                        <input class="form-control {% if form.first_name.errors %}has-error{% endif %}" type="text" name="first_name" maxlength="150" required id="id_first_name" value="{{ form.first_name.value|default:'' }}">
+                        {% if form.first_name.errors %}
+                            <div class="field-error">
+                                {% for error in form.first_name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                     <div class="col-md-6">
                         <label for="id_last_name" class="form-label mt-3"><b>Sobrenome</b></label>
-                        <input class="form-control" type="text" name="last_name" maxlength="150" required id="id_last_name">
+                        <input class="form-control {% if form.last_name.errors %}has-error{% endif %}" type="text" name="last_name" maxlength="150" required id="id_last_name" value="{{ form.last_name.value|default:'' }}">
+                        {% if form.last_name.errors %}
+                            <div class="field-error">
+                                {% for error in form.last_name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
 
                 <div>
                     <label for="id_password1" class="form-label mt-3"><b>Senha</b></label>
-                    <input class="form-control" type="password" name="password1" autocomplete="new-password" aria-describedby="id_password1_helptext" id="id_password1">
+                    <input class="form-control {% if form.password1.errors %}has-error{% endif %}" type="password" name="password1" autocomplete="new-password" aria-describedby="id_password1_helptext" id="id_password1">
+                    {% if form.password1.errors %}
+                        <div class="field-error">
+                            {% for error in form.password1.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                     <div class="helptext mt-2 alert alert-info py-2" id="id_password1_helptext">
                         <small class="form-text">Requisitos para senha:</small>
                         <ul class="password-rules">
@@ -95,7 +146,14 @@
 
                 <div>
                     <label for="id_password2" class="form-label mt-3"><b>Confirme a senha</b></label>
-                    <input class="form-control" type="password" name="password2" autocomplete="new-password" aria-describedby="id_password2_helptext" id="id_password2">
+                    <input class="form-control {% if form.password2.errors %}has-error{% endif %}" type="password" name="password2" autocomplete="new-password" aria-describedby="id_password2_helptext" id="id_password2">
+                    {% if form.password2.errors %}
+                        <div class="field-error">
+                            {% for error in form.password2.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                     <div class="helptext mt-1" id="id_password2_helptext">
                         <small class="form-text text-muted">Informe a mesma senha informada anteriormente, para verificação.</small>
                     </div>
