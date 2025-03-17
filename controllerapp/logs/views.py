@@ -8,6 +8,7 @@ import calendar
 from .models import Action, Event, LabSchedule
 from .scripts import FormattedAction
 from .forms import EventForm, VisitRequestForm
+from Email_notificacoes.models import enviar_email_solicitacao_enviada, enviar_email_solicitacao_aprovada
 
 def staff_check(user):
     return user.is_staff
@@ -158,6 +159,13 @@ def agenda_request_visit(request):
             event.description = visitor_info
             event.save()
             
+            # Enviar email de confirmação de solicitação
+            try:
+                enviar_email_solicitacao_enviada(event)
+            except Exception as e:
+                # Registrar erro mas não impedir o fluxo
+                print(f"Erro ao enviar email de solicitação: {e}")
+            
             messages.success(request, 'Solicitação de visita enviada com sucesso! Aguardando aprovação.')
             return redirect('logs:agenda_home')
     else:
@@ -177,6 +185,14 @@ def agenda_approve_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     event.approved = True
     event.save()
+    
+    # Enviar email de aprovação
+    try:
+        enviar_email_solicitacao_aprovada(event)
+    except Exception as e:
+        # Registrar erro mas não impedir o fluxo
+        print(f"Erro ao enviar email de aprovação: {e}")
+    
     messages.success(request, f'O evento "{event.title}" foi aprovado com sucesso!')
     
     # Verificar de onde veio a requisição para redirecionar apropriadamente
