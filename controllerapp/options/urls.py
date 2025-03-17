@@ -5,4 +5,5 @@ app_name = 'options'
 
 urlpatterns = [
     path('equipamentos/', views.equipamentos, name='equipamentos'),
+    path('membros/', views.membros, name='membros'),
 ]

@@ -19,16 +19,15 @@ venv/
 env/
 ENV/
 
-# Configurações IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Arquivos de migração de banco de dados (opcional)
-# */migrations/*.py
-# !*/migrations/__init__.py
-
-# Arquivos de ambiente
+# Configurações de banco de dados e arquivos sensíveis
 .env
+*.env
 .env.local
+.env.development
+.env.production
+settings_local.py
+local_settings.py
+**/settings/local.py
+**/settings/production.py
+secrets.json
+credentials.json

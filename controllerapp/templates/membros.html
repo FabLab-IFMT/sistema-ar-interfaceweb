@@ -1,0 +1,131 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Membros da Equipe{% endblock %}
+
+{% block head %}
+<style>
+  .team-member-card {
+    transition: transform 0.3s;
+    margin-bottom: 2rem;
+    height: 100%;
+  }
+  
+  .team-member-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .member-img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #007bff;
+    margin: 0 auto;
+  }
+  
+  .member-social a {
+    display: inline-block;
+    margin: 0 5px;
+    color: #6c757d;
+    font-size: 1.2rem;
+    transition: color 0.3s;
+  }
+  
+  .member-social a:hover {
+    color: #007bff;
+  }
+  
+  .member-info {
+    padding: 1.5rem;
+  }
+  
+  .member-name {
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 0.2rem;
+  }
+  
+  .member-role {
+    color: #6c757d;
+    font-style: italic;
+    margin-bottom: 0.8rem;
+  }
+  
+  .section-heading {
+    position: relative;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  .section-heading:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background-color: #007bff;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h1 class="section-heading">Nossa Equipe</h1>
+  
+  <div class="row">
+    {% if membros %}
+      {% for membro in membros %}
+        <div class="col-md-4">
+          <div class="card team-member-card shadow">
+            <div class="text-center pt-4">
+              {% if membro.foto %}
+                <img src="{{ membro.foto.url }}" alt="{{ membro.nome }}" class="member-img">
+              {% else %}
+                <img src="{% static 'images/default-user.png' %}" alt="{{ membro.nome }}" class="member-img">
+              {% endif %}
+            </div>
+            <div class="card-body member-info text-center">
+              <h5 class="member-name">{{ membro.nome }}</h5>
+              <p class="member-role">{{ membro.cargo }}</p>
+              
+              {% if membro.bio %}
+                <p class="card-text text-muted mb-3">{{ membro.bio|truncatewords:30 }}</p>
+              {% endif %}
+              
+              <div class="member-social mb-2">
+                {% if membro.email %}
+                  <a href="mailto:{{ membro.email }}" title="E-mail"><i class="fas fa-envelope"></i></a>
+                {% endif %}
+                
+                {% if membro.linkedin %}
+                  <a href="{{ membro.linkedin }}" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                {% endif %}
+                
+                {% if membro.github %}
+                  <a href="{{ membro.github }}" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                {% endif %}
+                
+                {% if membro.lattes %}
+                  <a href="{{ membro.lattes }}" target="_blank" title="Lattes"><i class="fas fa-graduation-cap"></i></a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12 text-center py-5">
+        <div class="alert alert-info">
+          <h4>Não há membros cadastrados no momento.</h4>
+          <p>Em breve nossa equipe será atualizada.</p>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
