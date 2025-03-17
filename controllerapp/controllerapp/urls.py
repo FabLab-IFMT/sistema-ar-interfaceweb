@@ -14,6 +14,7 @@ urlpatterns = [
     path('painelar/', include('Controle_ar.urls')),
     path('options/', include('options.urls')),
     path('acesso_e_ponto/', include('acesso_e_ponto.urls')),
+    path('toggle-theme/', views.toggle_theme, name='toggle_theme'),
 ]
 
 # Adicionar URLs para mídia durante o desenvolvimento
