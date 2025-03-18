@@ -1,0 +1,387 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Solicitação #{{ solicitacao.id }}{% endblock %}
+
+{% block head %}
+<style>
+  .status-badge {
+    font-size: 1rem;
+    padding: 0.6rem 1rem;
+  }
+  
+  .status-pendente {
+    background-color: #ffc107;
+    color: #212529;
+  }
+  
+  .status-analise {
+    background-color: #6c757d;
+    color: white;
+  }
+  
+  .status-respondido {
+    background-color: #17a2b8;
+    color: white;
+  }
+  
+  .status-aprovado {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .status-recusado {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .status-concluido {
+    background-color: #20c997;
+    color: white;
+  }
+  
+  .status-cancelado {
+    background-color: #6c757d;
+    color: white;
+    text-decoration: line-through;
+  }
+  
+  .request-header {
+    position: relative;
+    background-color: #f8f9fa;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+  }
+  
+  .card-service {
+    transition: transform 0.3s;
+  }
+  
+  .card-service:hover {
+    transform: translateY(-5px);
+  }
+  
+  .timeline {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-left: 2rem;
+  }
+  
+  .timeline::after {
+    content: '';
+    position: absolute;
+    width: 2px;
+    background-color: #dee2e6;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    margin-left: 10px;
+  }
+  
+  .timeline-item {
+    margin-bottom: 2rem;
+    position: relative;
+  }
+  
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: -2.3rem;
+    background-color: white;
+    border: 3px solid #17a2b8;
+    top: 0px;
+    border-radius: 50%;
+    z-index: 1;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<section class="request-header">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'options:minhas_solicitacoes' %}">Minhas Solicitações</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Solicitação #{{ solicitacao.id }}</li>
+          </ol>
+        </nav>
+        <h1 class="mb-0">Solicitação de Orçamento #{{ solicitacao.id }}</h1>
+      </div>
+      <div>
+        <span class="badge status-{{ solicitacao.status }} status-badge">
+          {{ solicitacao.get_status_display }}
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container mb-5">
+  <div class="row">
+    <!-- Coluna principal -->
+    <div class="col-lg-8">
+      <!-- Detalhes da solicitação -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Detalhes da Solicitação</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-6 mb-3 mb-md-0">
+              <h6>Informações do Solicitante</h6>
+              <dl class="row mb-0">
+                <dt class="col-sm-4">Nome:</dt>
+                <dd class="col-sm-8">{{ solicitacao.nome }}</dd>
+                <dt class="col-sm-4">E-mail:</dt>
+                <dd class="col-sm-8">{{ solicitacao.email }}</dd>
+                {% if solicitacao.telefone %}
+                <dt class="col-sm-4">Telefone:</dt>
+                <dd class="col-sm-8">{{ solicitacao.telefone }}</dd>
+                {% endif %}
+              </dl>
+            </div>
+            <div class="col-md-6">
+              <h6>Informações da Solicitação</h6>
+              <dl class="row mb-0">
+                <dt class="col-sm-4">Data:</dt>
+                <dd class="col-sm-8">{{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</dd>
+                <dt class="col-sm-4">Serviço:</dt>
+                <dd class="col-sm-8">{{ solicitacao.servico.nome }}</dd>
+                <dt class="col-sm-4">Status:</dt>
+                <dd class="col-sm-8">
+                  <span class="badge status-{{ solicitacao.status }}">{{ solicitacao.get_status_display }}</span>
+                </dd>
+              </dl>
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <h6>Descrição do Projeto</h6>
+            <div class="card">
+              <div class="card-body bg-light">
+                {{ solicitacao.descricao_projeto|linebreaks }}
+              </div>
+            </div>
+          </div>
+          
+          {% if solicitacao.arquivo_referencia %}
+          <div>
+            <h6>Arquivo de Referência</h6>
+            <a href="{{ solicitacao.arquivo_referencia.url }}" class="btn btn-outline-secondary" target="_blank">
+              <i class="fas fa-download me-2"></i>Baixar arquivo
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Serviço solicitado -->
+      <div class="card mb-4 shadow-sm card-service">
+        <div class="card-header bg-secondary text-white">
+          <h5 class="mb-0">Serviço Solicitado</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4 mb-3 mb-md-0">
+              {% if solicitacao.servico.imagem %}
+                <img src="{{ solicitacao.servico.imagem.url }}" alt="{{ solicitacao.servico.nome }}" class="img-fluid rounded">
+              {% else %}
+                <img src="{% static 'images/default-service.jpg' %}" alt="{{ solicitacao.servico.nome }}" class="img-fluid rounded">
+              {% endif %}
+            </div>
+            <div class="col-md-8">
+              <h5>{{ solicitacao.servico.nome }}</h5>
+              <p class="text-muted">{{ solicitacao.servico.descricao_curta }}</p>
+              <p class="mb-2">
+                <span class="badge bg-info text-dark">{{ solicitacao.servico.categoria.nome }}</span>
+                {% if solicitacao.servico.tempo_estimado %}
+                  <span class="badge bg-light text-dark ms-2">
+                    <i class="far fa-clock me-1"></i> {{ solicitacao.servico.tempo_estimado }}
+                  </span>
+                {% endif %}
+              </p>
+              <a href="{% url 'options:detalhe_servico' solicitacao.servico.id %}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-external-link-alt me-1"></i> Ver detalhes do serviço
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {% if solicitacao.status != 'pendente' %}
+      <!-- Orçamento -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">Orçamento</h5>
+        </div>
+        <div class="card-body">
+          {% if solicitacao.valor_orcado %}
+            <div class="alert alert-info">
+              <h5 class="mb-2">Valor Orçado: R$ {{ solicitacao.valor_orcado }}</h5>
+              <p class="mb-0">Entre em contato conosco para mais detalhes sobre este orçamento e para proceder com a aprovação.</p>
+            </div>
+            
+            {% if solicitacao.status == 'respondido' %}
+              <div class="mt-3 d-flex gap-2">
+                <button class="btn btn-success">
+                  <i class="fas fa-check me-2"></i> Aprovar Orçamento
+                </button>
+                <button class="btn btn-danger">
+                  <i class="fas fa-times me-2"></i> Recusar Orçamento
+                </button>
+              </div>
+            {% endif %}
+          {% else %}
+            <div class="alert alert-warning">
+              <p class="mb-0">Seu orçamento está sendo analisado. Em breve receberá uma resposta.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      
+      <!-- Timeline de atualizações -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">Histórico da Solicitação</h5>
+        </div>
+        <div class="card-body">
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="mb-2">
+                <span class="fw-bold">{{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</span>
+              </div>
+              <h5>Solicitação Enviada</h5>
+              <p>Sua solicitação de orçamento foi enviada com sucesso.</p>
+            </div>
+            
+            {% if solicitacao.status != 'pendente' %}
+              <div class="timeline-item">
+                <div class="mb-2">
+                  <span class="fw-bold">{{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</span>
+                </div>
+                <h5>Em Análise</h5>
+                <p>Sua solicitação está sendo analisada pela nossa equipe.</p>
+              </div>
+            {% endif %}
+            
+            {% if solicitacao.status == 'respondido' or solicitacao.status == 'aprovado' or solicitacao.status == 'recusado' or solicitacao.status == 'concluido' %}
+              <div class="timeline-item">
+                <div class="mb-2">
+                  <span class="fw-bold">{{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</span>
+                </div>
+                <h5>Orçamento Enviado</h5>
+                <p>Enviamos um orçamento para sua solicitação.</p>
+              </div>
+            {% endif %}
+            
+            {% if solicitacao.status == 'aprovado' or solicitacao.status == 'concluido' %}
+              <div class="timeline-item">
+                <div class="mb-2">
+                  <span class="fw-bold">{{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</span>
+                </div>
+                <h5>Orçamento Aprovado</h5>
+                <p>Você aprovou o orçamento e o projeto está em andamento.</p>
+              </div>
+            {% endif %}
+            
+            {% if solicitacao.status == 'concluido' %}
+              <div class="timeline-item">
+                <div class="mb-2">
+                  <span class="fw-bold">{{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</span>
+                </div>
+                <h5>Projeto Concluído</h5>
+                <p>Seu projeto foi finalizado e entregue.</p>
+              </div>
+            {% endif %}
+            
+            {% if solicitacao.status == 'recusado' %}
+              <div class="timeline-item">
+                <div class="mb-2">
+                  <span class="fw-bold">{{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</span>
+                </div>
+                <h5>Orçamento Recusado</h5>
+                <p>O orçamento foi recusado. Entre em contato caso deseje renegociar.</p>
+              </div>
+            {% endif %}
+            
+            {% if solicitacao.status == 'cancelado' %}
+              <div class="timeline-item">
+                <div class="mb-2">
+                  <span class="fw-bold">{{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</span>
+                </div>
+                <h5>Solicitação Cancelada</h5>
+                <p>Esta solicitação foi cancelada.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Ações -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-dark text-white">
+          <h5 class="mb-0">Ações</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <a href="{% url 'options:minhas_solicitacoes' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i> Voltar para Minhas Solicitações
+            </a>
+            
+            {% if solicitacao.status == 'pendente' %}
+              <button class="btn btn-warning" disabled>
+                <i class="fas fa-clock me-2"></i> Aguardando Análise
+              </button>
+            {% endif %}
+            
+            {% if solicitacao.status == 'analise' %}
+              <button class="btn btn-info" disabled>
+                <i class="fas fa-cog fa-spin me-2"></i> Em Análise
+              </button>
+            {% endif %}
+            
+            <a href="mailto:fablab@ifmt.edu.br?subject=Solicitação #{{ solicitacao.id }} - {{ solicitacao.servico.nome }}" class="btn btn-primary">
+              <i class="fas fa-envelope me-2"></i> Entrar em Contato
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Informações de Contato -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Informações de Contato</h5>
+        </div>
+        <div class="card-body">
+          <p><strong>Para dúvidas sobre sua solicitação:</strong></p>
+          <ul class="list-unstyled">
+            <li class="mb-2">
+              <i class="fas fa-envelope me-2 text-primary"></i>fablab@ifmt.edu.br
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-phone me-2 text-primary"></i>(65) XXXX-XXXX
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-map-marker-alt me-2 text-primary"></i>IFMT Campus Cuiabá
+            </li>
+          </ul>
+          
+          <p class="mt-3 mb-0 small text-muted">
+            Horário de atendimento: Segunda a Sexta, das 8h às 18h
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

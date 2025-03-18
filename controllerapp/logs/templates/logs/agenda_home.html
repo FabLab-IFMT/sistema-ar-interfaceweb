@@ -7,187 +7,520 @@
 
 {% block head %}
     <style>
-        .calendar {
-            width: 100%;
-            border-collapse: collapse;
+        /* Estilos gerais da página */
+        .header-section {
+            background-color: #f8f9fa;
+            padding: 3rem 0;
+            position: relative;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
         
-        .calendar th, .calendar td {
-            border: 1px solid #dee2e6;
-            padding: 10px;
-            vertical-align: top;
-            height: 120px;
+        .header-section h1 {
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .header-section .subtitle {
+            color: #6c757d;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .header-actions {
+            margin-top: 1.5rem;
+        }
+        
+        .card {
+            border-radius: 12px;
+            border: none;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            border-bottom: none;
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        /* Estilos do calendário */
+        .calendar-wrapper {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .calendar-navigation {
+            background-color: #fff;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .month-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: #333;
+        }
+        
+        .calendar {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 2px;
         }
         
         .calendar th {
+            padding: 15px 10px;
             background-color: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
             text-align: center;
-            height: auto;
+            border: none;
+            font-size: 0.9rem;
         }
         
-        .today {
-            background-color: #e9f5fb;
+        .calendar td {
+            padding: 8px;
+            vertical-align: top;
+            height: 120px;
+            border: 1px solid #eee;
+            background-color: white;
+            transition: background-color 0.3s;
+        }
+        
+        .calendar td:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .day-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .today .day-number {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        /* Estilos para eventos no calendário */
+        .events-container {
+            margin-top: 5px;
+            max-height: 80px;
+            overflow-y: auto;
         }
         
         .calendar-event {
-            background-color: #3498db;
-            color: white;
-            padding: 2px 5px;
-            margin-bottom: 2px;
-            border-radius: 3px;
+            padding: 4px 8px;
+            margin-bottom: 4px;
+            border-radius: 6px;
             font-size: 12px;
-            overflow: hidden;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: block;
+            text-decoration: none;
             text-overflow: ellipsis;
+            overflow: hidden;
             white-space: nowrap;
         }
         
-        .event-visit {
-            background-color: #e74c3c;
+        .calendar-event:hover {
+            transform: translateX(3px);
+            opacity: 0.9;
+        }
+        
+        .event-internal {
+            background-color: #3498db;
         }
         
         .event-workshop {
             background-color: #2ecc71;
         }
         
+        .event-visit {
+            background-color: #e74c3c;
+        }
+        
         .event-maintenance {
             background-color: #f39c12;
         }
         
-        .calendar-navigation {
-            margin-bottom: 20px;
+        .event-other {
+            background-color: #9b59b6;
         }
         
+        /* Estilo para legenda */
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            margin-right: 6px;
+            display: inline-block;
+        }
+        
+        /* Estilos para próximos eventos */
+        .upcoming-event-card {
+            border-left: 4px solid #3498db;
+            transition: all 0.3s;
+        }
+        
+        .upcoming-event-card:hover {
+            transform: translateX(5px);
+        }
+        
+        .upcoming-event-card.event-workshop {
+            border-left-color: #2ecc71;
+        }
+        
+        .upcoming-event-card.event-visit {
+            border-left-color: #e74c3c;
+        }
+        
+        .upcoming-event-card.event-maintenance {
+            border-left-color: #f39c12;
+        }
+        
+        .upcoming-event-card.event-other {
+            border-left-color: #9b59b6;
+        }
+        
+        .event-date {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .event-time {
+            display: inline-block;
+            background-color: #f8f9fa;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+        
+        /* Estilos para horários de funcionamento */
         .schedule-table {
             width: 100%;
+            border-collapse: collapse;
         }
         
         .schedule-table th, .schedule-table td {
-            padding: 10px;
-            border: 1px solid #dee2e6;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .schedule-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .schedule-day {
+            font-weight: 500;
+        }
+        
+        .schedule-hours {
+            font-size: 0.95rem;
         }
         
         .schedule-closed {
             color: #e74c3c;
-            font-weight: bold;
+            font-weight: 600;
+        }
+        
+        /* Estilos para o bloco de sobre agendamento */
+        .info-icon {
+            background-color: rgba(46, 204, 113, 0.1);
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        
+        .info-icon i {
+            color: #2ecc71;
+            font-size: 20px;
+        }
+        
+        .info-step {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        .info-step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        /* Estilos para admin panel */
+        .admin-action {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #495057;
+        }
+        
+        .admin-action:hover {
+            background-color: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .admin-icon {
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .admin-icon i {
+            color: #6c757d;
+            font-size: 18px;
+        }
+        
+        .action-warning .admin-icon i {
+            color: #f39c12;
+        }
+        
+        .action-danger .admin-icon i {
+            color: #e74c3c;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .calendar th, .calendar td {
+                height: auto;
+                padding: 5px;
+            }
+            
+            .day-number {
+                width: 25px;
+                height: 25px;
+                line-height: 25px;
+                font-size: 0.9rem;
+            }
+            
+            .events-container {
+                max-height: 60px;
+            }
         }
     </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<!-- Header Section -->
+<section class="header-section">
+    <div class="container">
+        <div class="text-center">
+            <h1>Agenda do FabLab</h1>
+            <p class="subtitle">Visualize todos os eventos, workshops e horários disponíveis. Agende sua visita ao laboratório.</p>
+            <div class="header-actions">
+                {% if user.is_staff %}
+                    <a href="{% url 'logs:create_event' %}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-2"></i> Agendar Evento
+                    </a>
+                {% endif %}
+                <a href="{% url 'logs:request_visit' %}" class="btn btn-outline-primary ms-2">
+                    <i class="fas fa-calendar-check me-2"></i> Solicitar Visita
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container mb-5">
     <div class="row">
-        <div class="col-md-8">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1>Agenda do FabLab</h1>
-                <div>
-                    {% if user.is_staff %}
-                        <a href="{% url 'logs:create_event' %}" class="btn btn-primary">Agendar Evento</a>
-                    {% endif %}
-                    <a href="{% url 'logs:request_visit' %}" class="btn btn-outline-secondary">Solicitar Visita</a>
+        <!-- Coluna principal com Calendário -->
+        <div class="col-lg-8">
+            <!-- Calendário -->
+            <div class="calendar-wrapper mb-4">
+                <div class="calendar-navigation d-flex justify-content-between align-items-center">
+                    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-chevron-left me-1"></i> {{ prev_month }}/{{ prev_year }}
+                    </a>
+                    <h3 class="month-title">{{ month_name }} de {{ year }}</h3>
+                    <a href="?month={{ next_month }}&year={{ next_year }}" class="btn btn-sm btn-outline-secondary">
+                        {{ next_month }}/{{ next_year }} <i class="fas fa-chevron-right ms-1"></i>
+                    </a>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="calendar">
+                        <thead>
+                            <tr>
+                                <th>Domingo</th>
+                                <th>Segunda</th>
+                                <th>Terça</th>
+                                <th>Quarta</th>
+                                <th>Quinta</th>
+                                <th>Sexta</th>
+                                <th>Sábado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for week in calendar %}
+                                <tr>
+                                    {% for day in week %}
+                                        {% if day != 0 %}
+                                            <td class="{% if day == today.day and month == today.month and year == today.year %}today{% endif %}">
+                                                <div class="d-flex justify-content-between">
+                                                    <span class="day-number">{{ day }}</span>
+                                                </div>
+                                                <!-- Eventos do dia -->
+                                                <div class="events-container">
+                                                    {% for event in events %}
+                                                        {% if event.start_time.day == day and event.start_time.month == month and event.start_time.year == year %}
+                                                            <a href="{% url 'logs:event_detail' event.id %}" class="calendar-event event-{{ event.event_type }}"
+                                                               title="{{ event.title }} ({{ event.get_event_type_display }}) - {{ event.start_time|date:'H:i' }} às {{ event.end_time|date:'H:i' }}">
+                                                                <i class="fas fa-circle me-1" style="font-size: 8px;"></i>
+                                                                {{ event.start_time|date:"H:i" }} - {{ event.title|truncatechars:15 }}
+                                                            </a>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            </td>
+                                        {% else %}
+                                            <td class="empty-day"></td>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
             
-            <!-- Navegação do calendário -->
-            <div class="calendar-navigation d-flex justify-content-between align-items-center mb-3">
-                <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn btn-sm btn-outline-primary">&laquo; Mês Anterior</a>
-                <h3>{{ month_name }} de {{ year }}</h3>
-                <a href="?month={{ next_month }}&year={{ next_year }}" class="btn btn-sm btn-outline-primary">Próximo Mês &raquo;</a>
-            </div>
-            
-            <!-- Calendário -->
-            <table class="calendar">
-                <thead>
-                    <tr>
-                        <th>Dom</th>
-                        <th>Seg</th>
-                        <th>Ter</th>
-                        <th>Qua</th>
-                        <th>Qui</th>
-                        <th>Sex</th>
-                        <th>Sáb</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for week in calendar %}
-                        <tr>
-                            {% for day in week %}
-                                {% if day != 0 %}
-                                    <td class="{% if day == today.day and month == today.month and year == today.year %}today{% endif %}">
-                                        <div class="d-flex justify-content-between">
-                                            <span>{{ day }}</span>
-                                        </div>
-                                        <!-- Eventos do dia -->
-                                        {% for event in events %}
-                                            {% if event.start_time.day == day and event.start_time.month == month and event.start_time.year == year %}
-                                                <div class="calendar-event event-{{ event.event_type }}"
-                                                     title="{{ event.title }} ({{ event.get_event_type_display }})">
-                                                    <a href="{% url 'logs:event_detail' event.id %}" class="text-white">
-                                                        {{ event.start_time|date:"H:i" }} - {{ event.title|truncatechars:15 }}
-                                                    </a>
-                                                </div>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </td>
-                                {% else %}
-                                    <td></td>
-                                {% endif %}
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            
             <!-- Legenda -->
-            <div class="mt-4">
-                <h5>Legenda</h5>
-                <div class="d-flex flex-wrap">
-                    <div class="me-3 mb-2">
-                        <span class="calendar-event">Evento Interno</span>
-                    </div>
-                    <div class="me-3 mb-2">
-                        <span class="calendar-event event-workshop">Workshop</span>
-                    </div>
-                    <div class="me-3 mb-2">
-                        <span class="calendar-event event-visit">Visita</span>
-                    </div>
-                    <div class="me-3 mb-2">
-                        <span class="calendar-event event-maintenance">Manutenção</span>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Legenda</h5>
+                    <div class="d-flex flex-wrap mt-2">
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #3498db;"></span>
+                            <span>Evento Interno</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #2ecc71;"></span>
+                            <span>Workshop</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #e74c3c;"></span>
+                            <span>Visita</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #f39c12;"></span>
+                            <span>Manutenção</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #9b59b6;"></span>
+                            <span>Outro</span>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <!-- Próximos eventos -->
-            <div class="mt-5">
-                <h3>Próximos Eventos</h3>
-                {% if events %}
-                    <div class="list-group">
-                    {% for event in events|slice:":5" %}
-                        <a href="{% url 'logs:event_detail' event.id %}" class="list-group-item list-group-item-action">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">{{ event.title }}</h5>
-                                <small>{{ event.start_time|date:"d/m/Y" }}</small>
-                            </div>
-                            <p class="mb-1">{{ event.description|truncatechars:100 }}</p>
-                            <small>
-                                <span class="badge bg-primary">{{ event.get_event_type_display }}</span>
-                                {{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}
-                            </small>
-                        </a>
-                    {% endfor %}
+            <div class="card">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Próximos Eventos</h4>
+                        <span class="badge bg-primary">{{ events|length }} evento(s) este mês</span>
                     </div>
-                {% else %}
-                    <div class="alert alert-info">Não há eventos agendados para este mês.</div>
-                {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if events %}
+                        {% for event in events|slice:":5" %}
+                            <div class="upcoming-event-card event-{{ event.event_type }} bg-white p-3 mb-3 shadow-sm rounded">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="mb-1">
+                                            <a href="{% url 'logs:event_detail' event.id %}" class="text-decoration-none text-dark">
+                                                {{ event.title }}
+                                            </a>
+                                        </h5>
+                                        <div class="event-date">
+                                            <i class="far fa-calendar-alt me-1"></i> 
+                                            {{ event.start_time|date:"d/m/Y" }}
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-{{ event.event_type }}">{{ event.get_event_type_display }}</span>
+                                </div>
+                                <p class="text-muted mt-2 mb-2">{{ event.description|truncatechars:100 }}</p>
+                                <div>
+                                    <span class="event-time">
+                                        <i class="far fa-clock me-1"></i>
+                                        {{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        
+                        {% if events|length > 5 %}
+                            <div class="text-center mt-3">
+                                <button class="btn btn-outline-primary btn-sm">Ver mais eventos</button>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Não há eventos agendados para este mês.
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
         
-        <div class="col-md-4">
+        <!-- Coluna lateral -->
+        <div class="col-lg-4">
             <!-- Horários de funcionamento -->
             <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Horários de Funcionamento</h4>
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-clock me-2"></i>
+                        Horários de Funcionamento
+                    </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <table class="schedule-table">
                         <thead>
                             <tr>
@@ -198,18 +531,19 @@
                         <tbody>
                             {% for schedule in lab_schedule %}
                                 <tr>
-                                    <td>{{ schedule.get_day_of_week_display }}</td>
-                                    <td>
+                                    <td class="schedule-day">{{ schedule.get_day_of_week_display }}</td>
+                                    <td class="schedule-hours">
                                         {% if schedule.is_closed %}
                                             <span class="schedule-closed">Fechado</span>
                                         {% else %}
+                                            <i class="far fa-clock me-1 text-muted"></i>
                                             {{ schedule.opening_time|time:"H:i" }} - {{ schedule.closing_time|time:"H:i" }}
                                         {% endif %}
                                     </td>
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="2" class="text-center">Horários não definidos</td>
+                                    <td colspan="2" class="text-center py-3">Horários não definidos</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -217,45 +551,127 @@
                 </div>
             </div>
             
-            <!-- Informações de agendamento -->
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0">Sobre Agendamentos</h4>
+            <!-- Como agendar -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 text-success">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Como Agendar uma Visita
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <h5>Como agendar uma visita?</h5>
-                    <p>Para agendar uma visita ao FabLab, clique no botão "Solicitar Visita" e preencha o formulário com suas informações.</p>
+                    <div class="info-step d-flex">
+                        <div class="info-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div>
+                            <h6>1. Solicite sua visita</h6>
+                            <p class="text-muted small mb-0">Preencha o formulário com seus dados e informações sobre a visita</p>
+                        </div>
+                    </div>
                     
-                    <h5>Regras para agendamento:</h5>
-                    <ul>
-                        <li>As solicitações passam por aprovação prévia</li>
-                        <li>O agendamento deve ser feito com no mínimo 48h de antecedência</li>
-                        <li>Visitas em grupo devem informar o número exato de participantes</li>
-                        <li>Cancelamentos devem ser informados com antecedência</li>
+                    <div class="info-step d-flex">
+                        <div class="info-icon">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <div>
+                            <h6>2. Aguarde aprovação</h6>
+                            <p class="text-muted small mb-0">Nossa equipe avaliará sua solicitação em até 24 horas</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-step d-flex">
+                        <div class="info-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div>
+                            <h6>3. Confirmação</h6>
+                            <p class="text-muted small mb-0">Você receberá um email confirmando sua visita</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid mt-4">
+                        <a href="{% url 'logs:request_visit' %}" class="btn btn-success">
+                            <i class="fas fa-calendar-plus me-2"></i>
+                            Solicitar Agora
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Regras e Políticas -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 text-secondary">
+                        <i class="fas fa-list-ul me-2"></i>
+                        Regras para Agendamento
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li class="mb-2">As solicitações passam por aprovação prévia</li>
+                        <li class="mb-2">O agendamento deve ser feito com no mínimo 48h de antecedência</li>
+                        <li class="mb-2">Visitas em grupo devem informar o número exato de participantes</li>
+                        <li class="mb-2">Cancelamentos devem ser informados com antecedência</li>
+                        <li class="mb-2">Durante a visita, siga as normas de segurança do laboratório</li>
                     </ul>
-                    
-                    <a href="{% url 'logs:request_visit' %}" class="btn btn-success btn-block w-100">Solicitar Visita</a>
                 </div>
             </div>
             
             {% if user.is_staff %}
-            <!-- Painel de administração (apenas para admin) -->
-            <div class="card mt-4">
-                <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0">Administração</h4>
+            <!-- Painel de administração -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 text-danger">
+                        <i class="fas fa-cogs me-2"></i>
+                        Painel de Administração
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <a href="{% url 'logs:pending_events' %}" class="btn btn-warning mb-2 w-100">
-                        <i class="fas fa-clock"></i> Solicitações Pendentes
-                        {% with pending_count=pending_count|default:0 %}
-                        {% if pending_count > 0 %}
-                            <span class="badge bg-danger">{{ pending_count }}</span>
-                        {% endif %}
-                        {% endwith %}
+                    <a href="{% url 'logs:pending_events' %}" class="admin-action action-warning mb-3">
+                        <div class="admin-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <strong>Solicitações Pendentes</strong>
+                            <div class="small text-muted">Avaliar pedidos de agendamento</div>
+                            {% with pending_count=pending_count|default:0 %}
+                            {% if pending_count > 0 %}
+                                <span class="badge bg-danger mt-1">{{ pending_count }} pendente(s)</span>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
                     </a>
-                    <a href="{% url 'logs:list' %}" class="btn btn-outline-danger mb-2 w-100">Visualizar Logs</a>
-                    <a href="{% url 'admin:logs_event_changelist' %}" class="btn btn-outline-danger mb-2 w-100">Gerenciar Eventos</a>
-                    <a href="{% url 'admin:logs_labschedule_changelist' %}" class="btn btn-outline-danger w-100">Gerenciar Horários</a>
+                    
+                    <a href="{% url 'logs:list' %}" class="admin-action">
+                        <div class="admin-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div>
+                            <strong>Visualizar Logs</strong>
+                            <div class="small text-muted">Histórico de ações no sistema</div>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'admin:logs_event_changelist' %}" class="admin-action">
+                        <div class="admin-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div>
+                            <strong>Gerenciar Eventos</strong>
+                            <div class="small text-muted">Editar ou excluir eventos</div>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'admin:logs_labschedule_changelist' %}" class="admin-action">
+                        <div class="admin-icon">
+                            <i class="fas fa-business-time"></i>
+                        </div>
+                        <div>
+                            <strong>Gerenciar Horários</strong>
+                            <div class="small text-muted">Definir horários de funcionamento</div>
+                        </div>
+                    </a>
                 </div>
             </div>
             {% endif %}

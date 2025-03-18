@@ -1,0 +1,247 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Minhas Solicitações{% endblock %}
+
+{% block head %}
+<style>
+  .hidden-section {
+    display: none; /* Oculta a seção por padrão */
+  }
+  
+  .status-badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.8rem;
+  }
+  
+  .request-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .request-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .request-header {
+    position: relative;
+    padding: 3rem 0;
+    background-color: #f8f9fa;
+    margin-bottom: 2rem;
+  }
+  
+  .status-pendente {
+    background-color: #ffc107;
+    color: #212529;
+  }
+  
+  .status-analise {
+    background-color: #6c757d;
+    color: white;
+  }
+  
+  .status-respondido {
+    background-color: #17a2b8;
+    color: white;
+  }
+  
+  .status-aprovado {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .status-recusado {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .status-concluido {
+    background-color: #20c997;
+    color: white;
+  }
+  
+  .status-cancelado {
+    background-color: #6c757d;
+    color: white;
+    text-decoration: line-through;
+  }
+  
+  .timeline {
+    list-style-type: none;
+    position: relative;
+    padding-left: 30px;
+  }
+  
+  .timeline:before {
+    content: ' ';
+    background: #dee2e6;
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    width: 2px;
+    height: 100%;
+  }
+  
+  .timeline > li {
+    margin-bottom: 20px;
+    position: relative;
+  }
+  
+  .timeline > li:before {
+    content: ' ';
+    background: white;
+    display: inline-block;
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid #22c0e8;
+    left: -36px;
+    width: 15px;
+    height: 15px;
+    z-index: 2;
+    top: 5px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 
+  Esta seção está temporariamente escondida. 
+  Para reativá-la, remova a classe "hidden-section" do div abaixo ou
+  remova este comentário HTML.
+-->
+<div class="hidden-section">
+  <!-- Header -->
+  <section class="request-header">
+    <div class="container">
+      <h1 class="text-center mb-2">Minhas Solicitações</h1>
+      <p class="text-center text-muted">Acompanhe o status das suas solicitações de serviços</p>
+    </div>
+  </section>
+
+  <div class="container mb-5">
+    <div class="row">
+      <div class="col-lg-3 mb-4">
+        <!-- Sidebar filter -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Filtros</h5>
+          </div>
+          <div class="card-body">
+            <form method="get">
+              <div class="mb-3">
+                <label class="form-label">Status</label>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="todos">
+                  <label class="form-check-label" for="todos">
+                    Todos
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="pendente">
+                  <label class="form-check-label" for="pendente">
+                    Pendente
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="respondido">
+                  <label class="form-check-label" for="respondido">
+                    Orçamento Enviado
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="concluido">
+                  <label class="form-check-label" for="concluido">
+                    Concluído
+                  </label>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Período</label>
+                <select class="form-select form-select-sm">
+                  <option selected>Todos</option>
+                  <option>Últimos 30 dias</option>
+                  <option>Últimos 3 meses</option>
+                  <option>Últimos 6 meses</option>
+                  <option>Este ano</option>
+                </select>
+              </div>
+              
+              <button type="submit" class="btn btn-primary w-100">Aplicar Filtros</button>
+            </form>
+          </div>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Links Rápidos</h5>
+          </div>
+          <div class="card-body">
+            <div class="list-group list-group-flush">
+              <a href="{% url 'options:servicos' %}" class="list-group-item list-group-item-action">
+                <i class="fas fa-search me-2"></i> Ver todos os serviços
+              </a>
+              <a href="/" class="list-group-item list-group-item-action">
+                <i class="fas fa-home me-2"></i> Página inicial
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-9">
+        {% if solicitacoes %}
+          <div class="row">
+            {% for solicitacao in solicitacoes %}
+              <div class="col-md-6 mb-4">
+                <div class="card request-card h-100 shadow-sm">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Solicitação #{{ solicitacao.id }}</h5>
+                    <span class="badge status-{{ solicitacao.status }} status-badge">
+                      {{ solicitacao.get_status_display }}
+                    </span>
+                  </div>
+                  
+                  <div class="card-body">
+                    <p class="card-text"><strong>Serviço:</strong> {{ solicitacao.servico.nome }}</p>
+                    <p class="card-text"><strong>Data:</strong> {{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</p>
+                    
+                    {% if solicitacao.valor_orcado and solicitacao.status != 'pendente' %}
+                      <p class="card-text"><strong>Valor orçado:</strong> R$ {{ solicitacao.valor_orcado }}</p>
+                    {% endif %}
+                    
+                    <p class="card-text text-muted small text-truncate">
+                      <strong>Descrição:</strong> {{ solicitacao.descricao_projeto }}
+                    </p>
+                  </div>
+                  
+                  <div class="card-footer bg-transparent">
+                    <a href="{% url 'options:solicitacao_detalhe' solicitacao.id %}" class="btn btn-outline-primary btn-sm">Ver Detalhes</a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-info" role="alert">
+            Nenhuma solicitação encontrada.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mensagem temporária -->
+<div class="container mt-5">
+  <div class="alert alert-warning text-center p-5">
+    <h3 class="mb-3"><i class="fas fa-tools me-2"></i> Área em Manutenção</h3>
+    <p class="lead mb-4">A seção de "Minhas Solicitações" está temporariamente indisponível enquanto realizamos melhorias no sistema.</p>
+    <p>Agradecemos sua compreensão. Em breve disponibilizaremos esta funcionalidade com novos recursos.</p>
+    <div class="mt-4">
+      <a href="/" class="btn btn-primary">Voltar para a página inicial</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
