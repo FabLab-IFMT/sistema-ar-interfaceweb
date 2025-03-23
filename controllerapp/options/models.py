@@ -1,8 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
-
-
+from django.urls import reverse
+from django.utils.text import slugify
 
 # Create your models here.
 class Material(models.Model):
@@ -110,3 +110,52 @@ class SolicitacaoOrcamento(models.Model):
     
     def __str__(self):
         return f"Orçamento {self.id} - {self.servico.nome} ({self.nome})"
+
+class Hashtag(models.Model):
+    nome = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=50, unique=True)
+    
+    class Meta:
+        ordering = ['nome']
+        verbose_name = 'Hashtag'
+        verbose_name_plural = 'Hashtags'
+    
+    def __str__(self):
+        return f"#{self.nome}"
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.nome)
+        super().save(*args, **kwargs)
+    
+    def get_absolute_url(self):
+        return reverse('options:noticias_por_tag', args=[self.slug])
+
+class Noticia(models.Model):
+    titulo = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True, help_text="URL amigável baseada no título")
+    resumo = models.TextField(help_text="Resumo curto da notícia (exibido na listagem)")
+    conteudo = models.TextField(help_text="Conteúdo completo da notícia")
+    imagem = models.ImageField(upload_to='noticias/', help_text="Imagem principal da notícia")
+    data_publicacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+    autor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='noticias')
+    
+    # Tags/Hashtags para categorização
+    hashtags = models.ManyToManyField(Hashtag, blank=True, related_name='noticias')
+    
+    # Flags de controle
+    publicado = models.BooleanField(default=True, help_text="Se marcado, a notícia será visível no site")
+    mostrar_na_home = models.BooleanField(default=False, help_text="Se marcado, a notícia será exibida na página inicial")
+    destaque = models.BooleanField(default=False, help_text="Se marcado, receberá destaque visual")
+    
+    class Meta:
+        ordering = ['-data_publicacao']
+        verbose_name = 'Notícia'
+        verbose_name_plural = 'Notícias'
+    
+    def __str__(self):
+        return self.titulo
+    
+    def get_absolute_url(self):
+        return reverse('options:noticia_detalhe', args=[self.slug])

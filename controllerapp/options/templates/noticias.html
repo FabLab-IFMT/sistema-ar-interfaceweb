@@ -1,0 +1,213 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+  Notícias - FabLab IFMT
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row mb-5">
+    <div class="col-12">
+      <h1 class="display-5 fw-bold text-center">{{ titulo|default:"Notícias e Comunicados" }}</h1>
+      <div class="text-center">
+        <div class="mx-auto bg-primary" style="height: 3px; width: 80px; margin-top: 15px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Conteúdo principal - Lista de notícias -->
+    <div class="col-lg-9">
+      {% if tag_atual %}
+      <div class="alert alert-info mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <span>
+            <i class="fas fa-tag me-2"></i> Mostrando notícias com a tag: <strong>#{{ tag_atual.nome }}</strong>
+          </span>
+          <a href="{% url 'options:noticias' %}" class="btn btn-sm btn-outline-primary">Ver todas</a>
+        </div>
+      </div>
+      {% endif %}
+      
+      {% if noticias %}
+        <div class="row g-4">
+          {% for noticia in noticias %}
+            <div class="col-md-6 col-lg-4 mb-4">
+              <div class="card h-100 border-0 shadow-sm news-card">
+                <div class="position-relative">
+                  <img src="{{ noticia.imagem.url }}" alt="{{ noticia.titulo }}" class="card-img-top">
+                  <div class="position-absolute top-0 start-0 bg-primary text-white py-1 px-2 m-2">
+                    {{ noticia.data_publicacao|date:"d/m/Y" }}
+                  </div>
+                  {% if noticia.destaque %}
+                    <div class="position-absolute top-0 end-0 bg-warning text-white py-1 px-2 m-2">
+                      <i class="fas fa-star me-1"></i> Destaque
+                    </div>
+                  {% endif %}
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title">{{ noticia.titulo }}</h5>
+                  <p class="card-text text-muted">{{ noticia.resumo|truncatechars:120 }}</p>
+                  
+                  {% if noticia.hashtags.all %}
+                  <div class="mt-2 mb-2">
+                    {% for tag in noticia.hashtags.all %}
+                      <a href="{% url 'options:noticias_por_tag' tag.slug %}" class="badge bg-light text-primary me-1 mb-1">
+                        #{{ tag.nome }}
+                      </a>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="card-footer bg-white border-0">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                      {% if noticia.autor %}
+                        <i class="fas fa-user me-1"></i> {{ noticia.autor.get_full_name|default:noticia.autor.username }}
+                      {% endif %}
+                    </small>
+                    <a href="{{ noticia.get_absolute_url }}" class="btn btn-sm btn-outline-primary">Leia mais</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        
+        <!-- Paginação -->
+        <div class="row mt-5">
+          <div class="col-12">
+            <nav aria-label="Navegação de páginas">
+              <ul class="pagination justify-content-center">
+                {% if noticias.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; Primeira</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ noticias.previous_page_number }}">Anterior</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled">
+                    <span class="page-link">&laquo; Primeira</span>
+                  </li>
+                  <li class="page-item disabled">
+                    <span class="page-link">Anterior</span>
+                  </li>
+                {% endif %}
+                
+                {% for i in noticias.paginator.page_range %}
+                  {% if noticias.number == i %}
+                    <li class="page-item active">
+                      <span class="page-link">{{ i }} <span class="sr-only">(atual)</span></span>
+                    </li>
+                  {% elif i > noticias.number|add:'-3' and i < noticias.number|add:'3' %}
+                    <li class="page-item">
+                      <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+                
+                {% if noticias.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ noticias.next_page_number }}">Próxima</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ noticias.paginator.num_pages }}">Última &raquo;</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled">
+                    <span class="page-link">Próxima</span>
+                  </li>
+                  <li class="page-item disabled">
+                    <span class="page-link">Última &raquo;</span>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle fa-2x mb-3"></i>
+          <h4>Nenhuma notícia disponível</h4>
+          <p>No momento não há notícias publicadas. Volte em breve para novidades.</p>
+        </div>
+      {% endif %}
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-3">
+      <!-- Card com todos os tópicos/hashtags -->
+      {% if hashtags %}
+      <div class="card shadow-sm mb-4 sticky-lg-top" style="top: 100px; z-index: 990;">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Tópicos</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-2">
+            {% for tag in hashtags %}
+              <a href="{% url 'options:noticias_por_tag' tag.slug %}" 
+                 class="badge bg-light text-primary me-1 mb-2 {% if tag_atual == tag %}active{% endif %}">
+                #{{ tag.nome }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+  .news-card {
+    overflow: hidden;
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .news-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+  }
+  
+  .news-card img {
+    height: 220px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  
+  .news-card:hover img {
+    transform: scale(1.05);
+  }
+  
+  .pagination .page-link {
+    color: var(--bs-primary);
+  }
+  
+  .pagination .page-item.active .page-link {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+  }
+  
+  .badge.bg-light.text-primary {
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .badge.bg-light.text-primary:hover {
+    background-color: var(--bs-primary) !important;
+    color: white !important;
+  }
+  
+  .badge.bg-light.text-primary.active {
+    background-color: var(--bs-primary) !important;
+    color: white !important;
+  }
+</style>
+{% endblock %}

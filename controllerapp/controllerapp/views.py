@@ -33,12 +33,16 @@ def projects(request):
     theme = get_theme(request)
     return render(request, 'projects.html', {'theme': theme})
 
-# Importe o modelo CarouselImage
+# Importe o modelo CarouselImage e o novo modelo Noticia
 from Controle_ar.models import CarouselImage
+from options.models import Noticia
 
 def home(request):
     # Busca apenas imagens ativas do carrossel
     carousel_images = CarouselImage.objects.filter(active=True)
+    
+    # Busca notícias marcadas para exibir na página inicial
+    noticias_home = Noticia.objects.filter(publicado=True, mostrar_na_home=True)[:3]
     
     # Para depuração
     debug = request.GET.get('debug', False)
@@ -48,6 +52,8 @@ def home(request):
     
     context = {
         'carousel_images': carousel_images,
+        'noticias': noticias_home,
+        'tem_noticias': noticias_home.exists(),  # Para verificar se há notícias
         'debug': debug,
         'theme': theme,
         # Outras variáveis de contexto que possam existir...
