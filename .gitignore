@@ -8,9 +8,9 @@ __pycache__/
 # Django
 *.log
 *.pot
-db.sqlite3
-db.sqlite3-journal
-media
+#db.sqlite3
+#db.sqlite3-journal
+#media
 static/admin
 static/rest_framework
 
