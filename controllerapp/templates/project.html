@@ -1,10 +1,57 @@
 {% extends 'layout.html' %}
 
 {% block title %}
-    Sobre
+    Projetos
 {% endblock %}
 
 {% block content %}
-nossos projetos aqui
-
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-4 fw-bold text-primary mb-4">Nossos Projetos</h1>
+            <p class="lead">Conheça os projetos desenvolvidos pelo FabLab IFMT</p>
+            <hr class="my-4">
+        </div>
+    </div>
+    
+    <div class="row my-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-primary">Sistema de Gestão do Laboratório</h3>
+                    <p class="card-text">Plataforma para gerenciamento de equipamentos, agendamentos e projetos do FabLab.</p>
+                    <p class="text-muted"><strong>Tecnologias:</strong> Python, Django, JavaScript, Bootstrap</p>
+                </div>
+                <div class="card-footer bg-white">
+                    <a href="https://github.com/FabLab-IFMT/sistema-gestao" class="btn btn-outline-primary" target="_blank">
+                        <i class="fab fa-github me-2"></i>Ver no GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-primary">Automação do Laboratório</h3>
+                    <p class="card-text">Sistema IoT para controle de acesso e monitoramento de equipamentos do laboratório.</p>
+                    <p class="text-muted"><strong>Tecnologias:</strong> Arduino, ESP8266, MQTT, Django</p>
+                </div>
+                <div class="card-footer bg-white">
+                    <a href="https://github.com/FabLab-IFMT/automacao-lab" class="btn btn-outline-primary" target="_blank">
+                        <i class="fab fa-github me-2"></i>Ver no GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        Para mais projetos e contribuições, visite nosso <a href="https://github.com/FabLab-IFMT" target="_blank" class="alert-link">repositório no GitHub</a>.
+    </div>
+</div>
 {% endblock %}
+
+{% block scripts %}{% endblock %}
+{% block styles %}{% endblock %}

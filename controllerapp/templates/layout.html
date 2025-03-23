@@ -13,20 +13,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     {% block head %} {% endblock %}
 
-    <!-- Estilos globais do site -->
     <style>
-      /* Variáveis de cores para manter consistência */
       :root {
         --primary-color: #007bff;
         --secondary-color: #6c757d;
         --accent-color: #28a745;
         --danger-color: #dc3545;
-        --footer-bg: #343a40;
-        --footer-text: #f8f9fa;
-        --footer-link-hover: #17a2b8;
       }
       
-      /* Layout principal - garante que o rodapé fique sempre no final */
       body {
         display: flex;
         flex-direction: column;
@@ -38,7 +32,6 @@
         padding: 1rem 0;
       }
 
-      /* Estilos do cabeçalho/barra de navegação */
       .navbar {
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         padding: 0.5rem 1rem;
@@ -52,7 +45,6 @@
         transform: scale(1.05);
       }
       
-      /* Indicador de notificações */
       .notification-indicator {
         position: relative;
         display: inline-block;
@@ -81,7 +73,6 @@
         padding-right: 10px;
       }
 
-      /* Menus dropdown do projeto */
       .nav-item.project {
         position: relative;
       }
@@ -99,6 +90,8 @@
         list-style: none;
         margin: 0;
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        position: absolute;
+        z-index: 1000;
       }
 
       .nav-item.project:hover .drop-down {
@@ -118,7 +111,6 @@
         color: white;
       }
       
-      /* Estilos do carrossel */
       .carousel-item {
         height: 450px;
       }
@@ -128,14 +120,6 @@
         height: 100%;
       }
       
-      /* Estilos do rodapé */
-      footer {
-        background-color: var(--footer-bg);
-        color: var(--footer-text);
-        margin-top: auto;
-      }
-      
-      /* Estilos para o bloco de usuário logado */
       .user-welcome {
         display: flex;
         align-items: center;
@@ -147,88 +131,106 @@
         font-size: 1.2rem;
       }
       
-      /* Estilos para os toasts de notificação */
       .toast {
         opacity: 1;
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
       }
-
-      /* Estilos adicionais para o rodapé melhorado */
-      .footer-links h5 {
-        position: relative;
-        padding-bottom: 12px;
-        margin-bottom: 20px;
-        font-weight: 600;
+      
+      /* Estilos adicionados para o novo footer */
+      footer {
+        background-color: #212529;
+        color: #f8f9fa;
+        margin-top: auto;
       }
-
-      .footer-links h5::after {
+      
+      footer h5 {
+        color: #ffffff;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+      }
+      
+      footer h5::after {
         content: '';
         position: absolute;
         left: 0;
         bottom: 0;
-        width: 40px;
         height: 2px;
+        width: 50px;
         background-color: var(--primary-color);
       }
-
-      .footer-links ul li {
-        margin-bottom: 10px;
+      
+      .footer-logo {
+        max-height: 60px;
+        margin-bottom: 15px;
       }
-
-      .footer-links a {
-        color: var(--footer-text);
+      
+      .footer-links ul li {
+        padding: 0.35rem 0;
+      }
+      
+      .footer-links ul li a {
+        color: #e2e2e2;
         text-decoration: none;
         transition: all 0.3s ease;
-        position: relative;
       }
-
-      .footer-links a:hover {
-        color: var(--footer-link-hover);
+      
+      .footer-links ul li a:hover {
+        color: #ffffff;
         padding-left: 5px;
       }
-
+      
+      .social-links {
+        display: flex;
+        gap: 10px;
+      }
+      
       .social-links a {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         width: 38px;
         height: 38px;
+        background-color: rgba(255,255,255,0.1);
         border-radius: 50%;
-        background-color: rgba(255, 255, 255, 0.1);
-        margin-right: 10px;
+        color: #ffffff;
+        text-decoration: none;
         transition: all 0.3s ease;
       }
-
+      
       .social-links a:hover {
         background-color: var(--primary-color);
         transform: translateY(-3px);
       }
-
-      .footer-bottom {
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        padding-top: 20px;
-        margin-top: 20px;
-      }
-
+      
       .contact-info li {
         display: flex;
-        margin-bottom: 15px;
+        align-items: flex-start;
+        margin-bottom: 16px;
       }
-
-      .contact-info i {
-        width: 24px;
-        margin-right: 10px;
+      
+      .contact-info li i {
+        margin-right: 12px;
+        margin-top: 5px;
         color: var(--primary-color);
       }
-
-      .footer-logo {
-        max-width: 180px;
-        margin-bottom: 15px;
-        transition: transform 0.3s ease;
+      
+      .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding-top: 20px;
+        margin-top: 30px;
+        padding-bottom: 20px;
       }
-
-      .footer-logo:hover {
-        transform: scale(1.05);
+      
+      @media (max-width: 768px) {
+        .footer-links {
+          margin-bottom: 30px;
+        }
+        
+        .footer-bottom {
+          text-align: center;
+        }
       }
     </style>
   </head>

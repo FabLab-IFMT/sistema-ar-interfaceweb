@@ -1,6 +1,8 @@
 from django.db import models
-from django.core.mail import send_mail
 from django.conf import settings
+from django.template.loader import render_to_string
+# Importar nova função de envio assíncrono
+from .utils import enviar_email_async
 
 def enviar_email_boas_vindas(usuario):
     """
@@ -32,12 +34,11 @@ def enviar_email_boas_vindas(usuario):
     email_de = settings.DEFAULT_FROM_EMAIL
     email_para = [usuario.email]
     
-    return send_mail(
+    return enviar_email_async(
         assunto,
         mensagem,
         email_de,
-        email_para,
-        fail_silently=False,
+        email_para
     )
 
 def enviar_email_solicitacao_enviada(evento):
@@ -68,12 +69,11 @@ def enviar_email_solicitacao_enviada(evento):
     email_de = settings.DEFAULT_FROM_EMAIL
     email_para = [usuario.email]
     
-    return send_mail(
+    return enviar_email_async(
         assunto,
         mensagem,
         email_de,
-        email_para,
-        fail_silently=False,
+        email_para
     )
 
 def enviar_email_solicitacao_aprovada(evento):
@@ -104,10 +104,55 @@ def enviar_email_solicitacao_aprovada(evento):
     email_de = settings.DEFAULT_FROM_EMAIL
     email_para = [usuario.email]
     
-    return send_mail(
+    return enviar_email_async(
         assunto,
         mensagem,
         email_de,
+        email_para
+    )
+
+def enviar_email_notificacao_interesse(solicitacao):
+    """
+    Envia uma notificação por e-mail quando alguém demonstra interesse em uma capacidade do laboratório.
+    
+    Args:
+        solicitacao: O objeto SolicitacaoInteresse que foi criado
+    """
+    assunto = f"Nova solicitação de interesse: {solicitacao.servico.nome}"
+    
+    # Criar conteúdo do email em HTML
+    contexto = {
+        'solicitacao': solicitacao,
+        'servico': solicitacao.servico,
+    }
+    html_mensagem = render_to_string('emails/novo_interesse.html', contexto)
+    
+    # Texto simples para clientes de email que não suportam HTML
+    texto_mensagem = f"""
+    Nova solicitação de interesse no FabLab:
+    
+    Capacidade: {solicitacao.servico.nome}
+    Nome: {solicitacao.nome}
+    Email: {solicitacao.email}
+    Telefone: {solicitacao.telefone or "Não informado"}
+    
+    Descrição do projeto/interesse:
+    {solicitacao.descricao_projeto}
+    
+    ---
+    Este é um email automático enviado pelo sistema do FabLab IFMT.
+    """
+    
+    # Email de quem envia
+    email_de = settings.DEFAULT_FROM_EMAIL
+    
+    # Email para onde vai a notificação
+    email_para = ['ifmtmaker.fablab.cba@gmail.com']
+    
+    return enviar_email_async(
+        assunto,
+        texto_mensagem,
+        email_de,
         email_para,
-        fail_silently=False,
+        html_message=html_mensagem
     )
