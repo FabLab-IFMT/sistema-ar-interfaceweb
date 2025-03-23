@@ -2,7 +2,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.defaults import page_not_found, server_error, permission_denied, bad_request
 from . import views
+
+# Definir aqui os handlers de erro
+handler400 = 'controllerapp.views.bad_request'
+handler403 = 'controllerapp.views.permission_denied'
+handler404 = 'controllerapp.views.page_not_found'
+handler500 = 'controllerapp.views.server_error'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -20,3 +27,16 @@ urlpatterns = [
 # Adicionar URLs para mídia durante o desenvolvimento
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    
+    # Método alternativo para testar páginas de erro - usando uma função de teste
+    urlpatterns += [
+        path('teste-400/', lambda request: bad_request(request, Exception("Teste de erro 400"))),
+        path('teste-403/', lambda request: permission_denied(request, Exception("Teste de erro 403"))),
+        path('teste-404/', lambda request: page_not_found(request, Exception("Teste de erro 404"))),
+        path('teste-500/', lambda request: server_error(request)),
+    ]
+
+# Adicione temporariamente para testar em produção
+urlpatterns += [
+    path('erro-teste/', lambda request: 1/0),  # Isso gerará um erro 500
+]
