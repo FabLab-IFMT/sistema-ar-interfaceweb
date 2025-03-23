@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
+from django.utils import timezone
+from datetime import timedelta
 
 # Removed duplicate function definition of home
 
@@ -36,6 +38,8 @@ def projects(request):
 # Importe o modelo CarouselImage e o novo modelo Noticia
 from Controle_ar.models import CarouselImage
 from options.models import Noticia
+# Nova importação para os eventos
+from logs.models import Event
 
 def home(request):
     # Busca apenas imagens ativas do carrossel
@@ -43,6 +47,15 @@ def home(request):
     
     # Busca notícias marcadas para exibir na página inicial
     noticias_home = Noticia.objects.filter(publicado=True, mostrar_na_home=True)[:3]
+    
+    # Buscar próximos eventos (apenas aprovados e futuros)
+    now = timezone.now()
+    proximos_eventos = Event.objects.filter(
+        approved=True,
+        start_time__gte=now,
+        # Filtramos apenas os tipos de eventos que queremos mostrar
+        event_type__in=['internal', 'workshop', 'maintenance']
+    ).order_by('start_time')[:5]  # Limitar aos próximos 5 eventos
     
     # Para depuração
     debug = request.GET.get('debug', False)
@@ -54,6 +67,8 @@ def home(request):
         'carousel_images': carousel_images,
         'noticias': noticias_home,
         'tem_noticias': noticias_home.exists(),  # Para verificar se há notícias
+        'proximos_eventos': proximos_eventos,
+        'tem_eventos': proximos_eventos.exists(),
         'debug': debug,
         'theme': theme,
         # Outras variáveis de contexto que possam existir...

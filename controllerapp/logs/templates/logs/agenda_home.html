@@ -356,7 +356,7 @@
             <p class="subtitle">Visualize todos os eventos, workshops e horários disponíveis. Agende sua visita ao laboratório.</p>
             <div class="header-actions">
                 {% if user.is_staff %}
-                    <a href="{% url 'logs:create_event' %}" class="btn btn-primary">
+                    <a href="{% url 'logs:agenda_create_event' %}" class="btn btn-primary">
                         <i class="fas fa-plus-circle me-2"></i> Agendar Evento
                     </a>
                 {% endif %}
@@ -410,7 +410,7 @@
                                                 <div class="events-container">
                                                     {% for event in events %}
                                                         {% if event.start_time.day == day and event.start_time.month == month and event.start_time.year == year %}
-                                                            <a href="{% url 'logs:event_detail' event.id %}" class="calendar-event event-{{ event.event_type }}"
+                                                            <a href="{% url 'logs:agenda_event_detail' event.id %}" class="calendar-event event-{{ event.event_type }}"
                                                                title="{{ event.title }} ({{ event.get_event_type_display }}) - {{ event.start_time|date:'H:i' }} às {{ event.end_time|date:'H:i' }}">
                                                                 <i class="fas fa-circle me-1" style="font-size: 8px;"></i>
                                                                 {{ event.start_time|date:"H:i" }} - {{ event.title|truncatechars:15 }}
@@ -474,7 +474,7 @@
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <h5 class="mb-1">
-                                            <a href="{% url 'logs:event_detail' event.id %}" class="text-decoration-none text-dark">
+                                            <a href="{% url 'logs:agenda_event_detail' event.id %}" class="text-decoration-none text-dark">
                                                 {{ event.title }}
                                             </a>
                                         </h5>
@@ -643,7 +643,7 @@
                         </div>
                     </a>
                     
-                    <a href="{% url 'logs:list' %}" class="admin-action">
+                    <a href="{% url 'logs:index' %}" class="admin-action">
                         <div class="admin-icon">
                             <i class="fas fa-history"></i>
                         </div>

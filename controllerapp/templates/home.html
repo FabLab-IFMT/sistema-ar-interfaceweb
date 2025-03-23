@@ -162,7 +162,7 @@
       <div class="col-md-3 mb-3">
         <div class="p-3 bg-white rounded shadow-sm">
           <i class="fas fa-users fa-2x text-info mb-3"></i>
-          <div class="display-4 fw-bold text-info">200+</div>
+          <div class="display-4 fw-bold text-info">200+</</div>
           <div class="h5">Usuários ativos</div>
         </div>
       </div>
@@ -278,17 +278,59 @@
     </div>
   </div>
 
-  <!-- Próximos eventos -->
+  <!-- Próximos eventos - Agora com eventos reais do sistema -->
   <div class="container mt-5">
     <div class="row">
       <div class="col-md-6">
         <h2 class="mb-4">Próximos eventos</h2>
-        <div class="list-group">
-          <a href="{% url 'logs:agenda_home' %}" class="list-group-item list-group-item-action text-center">
-            <h5 class="mb-1">Ver todos os eventos na agenda</h5>
-            <p class="mb-1">Consulte nossa agenda completa e faça seu agendamento.</p>
-          </a>
-        </div>
+        
+        {% if tem_eventos %}
+          <div class="list-group eventos-home shadow-sm">
+            {% for evento in proximos_eventos %}
+              {% with evento_tipo=evento.event_type %}
+                <a href="{% url 'logs:agenda_event_detail' evento.id %}" 
+                   class="list-group-item list-group-item-action border-0 mb-2 evento-item">
+                  <div class="d-flex align-items-center">
+                    <!-- Indicador de tipo de evento com cor correspondente -->
+                    <div class="evento-indicador 
+                      {% if evento_tipo == 'internal' %}bg-primary{% endif %}
+                      {% if evento_tipo == 'workshop' %}bg-success{% endif %}
+                      {% if evento_tipo == 'maintenance' %}bg-warning{% endif %}">
+                    </div>
+                    <div class="ms-3 flex-grow-1">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-1">{{ evento.title }}</h5>
+                        <span class="badge 
+                          {% if evento_tipo == 'internal' %}bg-primary{% endif %}
+                          {% if evento_tipo == 'workshop' %}bg-success{% endif %}
+                          {% if evento_tipo == 'maintenance' %}bg-warning{% endif %}">
+                          {{ evento.get_event_type_display }}
+                        </span>
+                      </div>
+                      <div class="small text-muted mb-1">
+                        <i class="far fa-calendar-alt me-1"></i> {{ evento.start_time|date:"d/m/Y" }}
+                        <i class="far fa-clock ms-2 me-1"></i> {{ evento.start_time|date:"H:i" }} - {{ evento.end_time|date:"H:i" }}
+                      </div>
+                      {% if evento.description %}
+                        <p class="mb-0 small text-truncate">{{ evento.description|truncatechars:80 }}</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </a>
+              {% endwith %}
+            {% endfor %}
+          </div>
+          <div class="text-center mt-3">
+            <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-primary">Ver agenda completa</a>
+          </div>
+        {% else %}
+          <div class="text-center py-4 bg-light rounded shadow-sm">
+            <i class="far fa-calendar-alt fa-3x text-muted mb-3"></i>
+            <h5>Nenhum evento programado</h5>
+            <p class="text-muted">No momento não há eventos agendados para os próximos dias.</p>
+            <a href="{% url 'logs:agenda_home' %}" class="btn btn-primary mt-2">Ver agenda completa</a>
+          </div>
+        {% endif %}
       </div>
       
       <div class="col-md-6">
@@ -491,6 +533,30 @@
   .badge.bg-light.text-primary:hover {
     background-color: var(--bs-primary) !important;
     color: white !important;
+  }
+
+  /* Estilos para os eventos na página inicial */
+  .evento-item {
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background-color: #fff;
+  }
+  
+  .evento-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  .eventos-home {
+    max-height: 600px;
+    overflow-y: auto;
+  }
+  
+  .evento-indicador {
+    width: 8px;
+    height: 100%;
+    min-height: 60px;
+    border-radius: 4px 0 0 4px;
   }
 </style>
 {% endblock %}
