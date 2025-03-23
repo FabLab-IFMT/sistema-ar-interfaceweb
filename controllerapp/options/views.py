@@ -2,6 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.core.mail import send_mail
+from django.conf import settings
+from django.template.loader import render_to_string
 from .models import Material, Membro, CategoriaServico, Servico, SolicitacaoInteresse, Noticia, Hashtag
 from .forms import SolicitacaoInteresseForm
 
@@ -53,6 +56,10 @@ def detalhe_servico(request, servico_id):
             if request.user.is_authenticated:
                 solicitacao.usuario = request.user
             solicitacao.save()
+            
+            # Enviar email de notificação
+            enviar_email_notificacao_interesse(solicitacao)
+            
             messages.success(request, 'Sua solicitação de interesse foi registrada com sucesso! Entraremos em contato em breve.')
             return redirect('options:detalhe_servico', servico_id=servico.id)
     
@@ -64,6 +71,54 @@ def detalhe_servico(request, servico_id):
         'servicos_relacionados': servicos_relacionados
     }
     return render(request, 'detalhe_servico.html', context)
+
+def enviar_email_notificacao_interesse(solicitacao):
+    """Envia um email de notificação quando alguém demonstra interesse em uma capacidade."""
+    assunto = f"Nova solicitação de interesse: {solicitacao.servico.nome}"
+    
+    # Criar conteúdo do email em HTML
+    contexto = {
+        'solicitacao': solicitacao,
+        'servico': solicitacao.servico,
+    }
+    html_mensagem = render_to_string('emails/novo_interesse.html', contexto)
+    
+    # Texto simples para clientes de email que não suportam HTML
+    texto_mensagem = f"""
+    Nova solicitação de interesse no FabLab:
+    
+    Capacidade: {solicitacao.servico.nome}
+    Nome: {solicitacao.nome}
+    Email: {solicitacao.email}
+    Telefone: {solicitacao.telefone or "Não informado"}
+    
+    Descrição do projeto/interesse:
+    {solicitacao.descricao_projeto}
+    
+    ---
+    Este é um email automático enviado pelo sistema do FabLab IFMT.
+    """
+    
+    # Destinatário (email do administrador definido nas configurações)
+    destinatario = settings.ADMIN_EMAIL
+    
+    # Email do remetente (definido nas configurações)
+    remetente = settings.DEFAULT_FROM_EMAIL
+    
+    # Enviar o email
+    try:
+        send_mail(
+            assunto,
+            texto_mensagem,
+            remetente,
+            [destinatario],
+            html_message=html_mensagem,
+            fail_silently=False,
+        )
+        return True
+    except Exception as e:
+        print(f"Erro ao enviar email: {e}")
+        return False
 
 @login_required
 def minhas_solicitacoes(request):

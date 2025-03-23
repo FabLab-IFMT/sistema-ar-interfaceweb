@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Nova solicitação de interesse no FabLab</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            padding: 10px 20px;
+            font-size: 12px;
+            text-align: center;
+            color: #666;
+            background-color: #eee;
+        }
+        .data-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .data-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border-left: 3px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Nova solicitação de interesse no FabLab</h2>
+    </div>
+    
+    <div class="content">
+        <p>Uma nova solicitação de interesse foi registrada no sistema do FabLab.</p>
+        
+        <div class="data-section">
+            <p><span class="data-label">Capacidade:</span> {{ solicitacao.servico.nome }}</p>
+            <p><span class="data-label">Categoria:</span> {{ solicitacao.servico.categoria.nome }}</p>
+        </div>
+        
+        <div class="data-section">
+            <p><span class="data-label">Nome:</span> {{ solicitacao.nome }}</p>
+            <p><span class="data-label">Email:</span> {{ solicitacao.email }}</p>
+            <p><span class="data-label">Telefone:</span> {{ solicitacao.telefone|default:"Não informado" }}</p>
+        </div>
+        
+        <div class="data-section">
+            <p><span class="data-label">Descrição do projeto/interesse:</span></p>
+            <p>{{ solicitacao.descricao_projeto|linebreaks }}</p>
+        </div>
+        
+        <p>Você pode acessar essa solicitação no painel administrativo para responder e gerenciar o status.</p>
+    </div>
+    
+    <div class="footer">
+        <p>Esta mensagem foi enviada automaticamente pelo sistema do FabLab IFMT.</p>
+        <p>© {% now "Y" %} FabLab IFMT. Todos os direitos reservados.</p>
+    </div>
+</body>
+</html>
