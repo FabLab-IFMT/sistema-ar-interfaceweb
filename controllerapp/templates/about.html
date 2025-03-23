@@ -12,24 +12,49 @@
       <div class="row">
         <div class="col-12 text-center text-white">
           <h1 class="display-3 fw-bold">Sobre o FabLab</h1>
-          <p class="lead">Conheça nossa história, missão e visão</p>
+          <p class="lead">Conheça um pouco de nós</p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Seção de introdução -->
-  <div class="container mb-5">
-    <div class="row align-items-center">
+  <div class="container my-5 py-4">
+    <div class="row align-items-center g-4">
       <div class="col-lg-6">
-        <h2 class="mb-4">O que é o FabLab?</h2>
-        <p class="lead mb-4">O FabLab do IFMT é um espaço colaborativo dedicado à fabricação digital, prototipagem e inovação.</p>
-        <p>Nosso laboratório faz parte da rede global de FabLabs, iniciada pelo MIT (Massachusetts Institute of Technology), que visa democratizar o acesso a ferramentas de fabricação digital e fomentar a inovação local.</p>
-        <p>O FabLab IFMT oferece acesso a equipamentos modernos como impressoras 3D, cortadoras a laser, fresadoras CNC, entre outros, permitindo que estudantes, professores e pesquisadores transformem suas ideias em protótipos reais.</p>
+        <div class="pe-lg-4">
+          <h2 class="mb-4 display-5 fw-bold text-primary">O que é o <span class="border-bottom border-3 border-warning">FabLab</span>?</h2>
+          <p class="lead mb-4 fs-4">O FabLab do IFMT é um espaço colaborativo dedicado à fabricação digital, prototipagem e inovação tecnológica.</p>
+          
+          <div class="d-flex align-items-center mb-3">
+            <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+              <i class="fas fa-globe-americas text-primary fa-2x"></i>
+            </div>
+            <p class="m-0">Parte da rede global de FabLabs.</p>
+          </div>
+          
+          <div class="d-flex align-items-center mb-3">
+            <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+              <i class="fas fa-tools text-primary fa-2x"></i>
+            </div>
+            <p class="m-0">Acesso a impressoras 3D, cortadoras a laser, fresadoras CNC e muito mais.</p>
+          </div>
+          
+          <div class="d-flex align-items-center mb-4">
+            <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+              <i class="fas fa-lightbulb text-primary fa-2x"></i>
+            </div>
+            <p class="m-0">Transforme suas ideias em protótipos reais com suporte técnico especializado.</p>
+          </div>
+          
+
+        </div>
       </div>
       <div class="col-lg-6">
-        <div class="rounded shadow-lg overflow-hidden">
-          <img src="{% static 'images/about/lab_panorama.jpg' %}" class="img-fluid" alt="Panorama do FabLab" onerror="this.src='https://placehold.co/800x500?text=FabLab'">
+        <div class="position-relative">
+          <div class="rounded-4 shadow-lg overflow-hidden">
+            <img src="{% static 'images/sobre/imagem monitores.jpeg' %}" class="img-fluid w-100" alt="Panorama do FabLab" style="height: 400px; object-fit: cover;" onerror="this.src='https://placehold.co/800x500?text=FabLab'">
+          </div>
         </div>
       </div>
     </div>
@@ -94,13 +119,13 @@
     <div class="row mb-5">
       <div class="col-lg-6 mb-4">
         <h2>Nossa história</h2>
-        <p>O FabLab do IFMT foi inaugurado em 2018, com o objetivo de proporcionar aos estudantes e à comunidade acadêmica acesso a tecnologias de fabricação digital. Desde então, temos crescido continuamente, expandindo nossa infraestrutura, equipamentos e projetos.</p>
-        <p>Ao longo dos anos, dezenas de projetos inovadores foram desenvolvidos em nosso espaço, abrangendo áreas como engenharia, design, arquitetura, saúde, educação e muitas outras.</p>
+        <p>O FabLab do IFMT foi inaugurado em 2023, com o objetivo de proporcionar aos estudantes e à comunidade acadêmica acesso a tecnologias de fabricação digital. Desde então, temos crescido continuamente, expandindo nossa infraestrutura, equipamentos e projetos.</p>
+        <p>Ao longo dos anos, dezenas de projetos foram desenvolvidos em nosso espaço, abrangendo áreas como engenharia, desenvolvimento de software, reciclagem, educação e muitas outras.</p>
         <div class="row mt-4">
           <div class="col-6">
             <div class="card border-0 bg-light mb-3">
               <div class="card-body text-center">
-                <div class="display-4 fw-bold text-primary">2018</div>
+                <div class="display-4 fw-bold text-primary">2023</div>
                 <div class="text-muted">Ano de fundação</div>
               </div>
             </div>
@@ -117,7 +142,7 @@
       </div>
       <div class="col-lg-6">
         <h2>Nossa equipe</h2>
-        <p>O FabLab IFMT conta com uma equipe qualificada de professores, técnicos e monitores que estão à disposição para orientar e auxiliar nos projetos desenvolvidos no laboratório.</p>
+        <p>O FabLab IFMT conta com uma equipe qualificada de professores e monitores que estão à disposição para orientar e auxiliar nos projetos desenvolvidos no laboratório.</p>
         <div class="row g-4 mt-3">
           <!-- Membros padrão -->
           <div class="col-md-6">
@@ -129,10 +154,10 @@
                   </div>
                   <div class="flex-grow-1 ms-3">
                     <h5 class="mb-0">Prof. Coordenador</h5>
-                    <p class="text-muted mb-0">Coordenador FabLab</p>
+                    <p class="text-muted mb-0">Fabiano Joao Leoncio de Padua
                   </div>
                 </div>
-                <p class="card-text">Responsável pela coordenação geral do laboratório e desenvolvimento de projetos.</p>
+                <p class="card-text">Responsável pela coordenação geral do laboratório.</p>
               </div>
             </div>
           </div>
@@ -144,11 +169,11 @@
                     <img src="https://placehold.co/80x80?text=T" class="rounded-circle" width="60" height="60" alt="Técnico">
                   </div>
                   <div class="flex-grow-1 ms-3">
-                    <h5 class="mb-0">Técnico de Laboratório</h5>
-                    <p class="text-muted mb-0">Suporte Técnico</p>
+                    <h5 class="mb-0">Coordenador de Projetos</h5>
+                    <p class="text-muted mb-0">Paulo Cesar Lenco</p>
                   </div>
                 </div>
-                <p class="card-text">Responsável pelo suporte técnico e manutenção dos equipamentos do laboratório.</p>
+                <p class="card-text">Responsável pelo suporte técnico e manutenção dos equipamentos do laboratório e desenvolvimento de projetos.</p>
               </div>
             </div>
           </div>

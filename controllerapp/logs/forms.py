@@ -1,5 +1,7 @@
 from django import forms
+from django.utils import timezone
 from .models import Event
+import datetime
 from django.utils.translation import gettext_lazy as _
 
 class DateInput(forms.DateInput):
@@ -16,55 +18,120 @@ class EventForm(forms.ModelForm):
         model = Event
         fields = ['title', 'description', 'start_time', 'end_time', 'event_type']
         widgets = {
-            'start_time': DateTimeInput(),
-            'end_time': DateTimeInput(),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'start_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'end_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'event_type': forms.Select(attrs={'class': 'form-control'})
         }
-        
+        labels = {
+            'title': 'Título do Evento',
+            'description': 'Descrição',
+            'start_time': 'Data e Hora de Início',
+            'end_time': 'Data e Hora de Término',
+            'event_type': 'Tipo de Evento'
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Define valores iniciais de data/hora
+        if not self.instance.pk:  # Se for um novo evento
+            now = timezone.now()
+            rounded_now = now.replace(minute=0, second=0, microsecond=0) + datetime.timedelta(hours=1)
+            self.fields['start_time'].initial = rounded_now
+            self.fields['end_time'].initial = rounded_now + datetime.timedelta(hours=1)
+
     def clean(self):
         cleaned_data = super().clean()
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
         
-        if start_time and end_time:
-            if start_time >= end_time:
-                raise forms.ValidationError(
-                    _("O horário de término deve ser após o horário de início.")
-                )
-                
-        # Verificar conflitos com outros eventos
-        if start_time and end_time and not self.instance.pk:  # Se não for edição
-            conflicts = Event.objects.filter(
-                approved=True,
-                start_time__lt=end_time,
-                end_time__gt=start_time,
-            ).exists()
+        # Validar se a hora de término é posterior à hora de início
+        if start_time and end_time and end_time <= start_time:
+            self.add_error('end_time', 'A hora de término deve ser posterior à hora de início.')
             
-            if conflicts:
-                raise forms.ValidationError(
-                    _("Já existe um evento aprovado para este horário. Por favor, escolha outro horário.")
-                )
-                
+        # Validar se a data não é passada
+        if start_time and start_time < timezone.now():
+            self.add_error('start_time', 'Não é possível agendar eventos em datas passadas.')
+            
         return cleaned_data
 
-class VisitRequestForm(EventForm):
-    visitor_name = forms.CharField(max_length=200, label=_("Seu Nome"))
-    visitor_email = forms.EmailField(label=_("Seu Email"))
-    visitor_phone = forms.CharField(max_length=15, label=_("Seu Telefone"))
-    number_of_visitors = forms.IntegerField(
-        min_value=1, 
-        max_value=30, 
-        initial=1,
-        label=_("Número de Visitantes")
+class VisitRequestForm(forms.ModelForm):
+    # Campos adicionais para informações do visitante
+    visitor_name = forms.CharField(label='Seu Nome', max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    visitor_email = forms.EmailField(label='Seu Email', widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    visitor_phone = forms.CharField(label='Seu Telefone', max_length=20, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    number_of_visitors = forms.IntegerField(label='Número de Visitantes', min_value=1, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    
+    # Novos campos para data e horários separados
+    visit_date = forms.DateField(
+        label='Data da Visita',
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    start_hour = forms.TimeField(
+        label='Horário de Entrada',
+        widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'})
+    )
+    end_hour = forms.TimeField(
+        label='Horário de Saída',
+        widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'})
     )
     
-    class Meta(EventForm.Meta):
-        fields = ['title', 'description', 'start_time', 'end_time', 
-                 'event_type', 'visitor_name', 'visitor_email', 'visitor_phone', 'number_of_visitors']
-        widgets = EventForm.Meta.widgets.copy()
-        widgets['event_type'] = forms.HiddenInput()
-        
+    class Meta:
+        model = Event
+        fields = ['title', 'description']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+        labels = {
+            'title': 'Motivo da Visita',
+            'description': 'Detalhes Adicionais'
+        }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['title'].initial = "Solicitação de Visita"
-        self.fields['event_type'].initial = Event.EventType.VISIT
-        self.fields['event_type'].disabled = True  # Impede a alteração do tipo
+        # Definir tipo de evento como 'visit' por padrão (oculto no formulário)
+        self.fields['event_type'] = forms.CharField(
+            widget=forms.HiddenInput(),
+            initial=Event.EventType.VISIT
+        )
+        
+        # Valores iniciais para data e hora
+        now = timezone.now()
+        rounded_now = now.replace(hour=9, minute=0, second=0, microsecond=0)
+        if now.hour >= 9:
+            rounded_now = rounded_now + datetime.timedelta(days=1)
+            
+        self.fields['visit_date'].initial = rounded_now.date()
+        self.fields['start_hour'].initial = "09:00"
+        self.fields['end_hour'].initial = "11:00"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        visit_date = cleaned_data.get('visit_date')
+        start_hour = cleaned_data.get('start_hour')
+        end_hour = cleaned_data.get('end_hour')
+        
+        if visit_date and start_hour and end_hour:
+            # Conversão para datetime para validação
+            start_datetime = timezone.make_aware(
+                datetime.datetime.combine(visit_date, start_hour)
+            )
+            end_datetime = timezone.make_aware(
+                datetime.datetime.combine(visit_date, end_hour)
+            )
+            
+            # Verificar se o horário de saída é depois do horário de entrada
+            if end_hour <= start_hour:
+                self.add_error('end_hour', 'O horário de saída deve ser posterior ao horário de entrada')
+            
+            # Verificar se a data não é passada
+            if start_datetime < timezone.now():
+                self.add_error('visit_date', 'Não é possível agendar visitas para datas/horários passados')
+                
+            # Armazenar os valores datetime para uso em save_event
+            self.start_datetime = start_datetime
+            self.end_datetime = end_datetime
+                
+        return cleaned_data
