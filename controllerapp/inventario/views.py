@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import Sum, Count, F, Q
 from django.core.paginator import Paginator
 from django.utils import timezone
+from django.urls import reverse  # Adicionado import para a função reverse
 from .models import Categoria, Item, Emprestimo
 from .forms import ItemForm, CategoriaForm, EmprestimoForm, DevolucaoEmprestimoForm
 
