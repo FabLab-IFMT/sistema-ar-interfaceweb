@@ -308,6 +308,15 @@
               </ul>
             </li>
             
+            <!-- Link de inventário (apenas para administradores) -->
+            {% if user.is_authenticated and user.is_staff %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'inventario:dashboard' %}">
+                  <i class="fas fa-boxes me-1"></i> Inventário
+                </a>
+              </li>
+            {% endif %}
+            
             <!-- Link de automação (apenas para administradores) -->
             {% if user.is_authenticated and user.is_staff %}
               <li class="nav-item">

@@ -1,0 +1,174 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Registrar Devolução{% endblock %}
+
+{% block head %}
+<style>
+  .item-details {
+    background-color: #f8f9fa;
+    border-left: 4px solid #007bff;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+  
+  .item-details h6 {
+    color: #007bff;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 10px;
+  }
+  
+  .status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  
+  .status-on-time {
+    background-color: #28a745;
+  }
+  
+  .status-late {
+    background-color: #dc3545;
+    animation: pulse 1s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'inventario:emprestimo_list' %}">Empréstimos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'inventario:emprestimo_detail' emprestimo.pk %}">Detalhes</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Devolução</li>
+    </ol>
+  </nav>
+
+  <div class="card shadow">
+    <div class="card-header py-3 bg-success text-white">
+      <h6 class="m-0 font-weight-bold">Registrar Devolução de Item</h6>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-primary mb-4">
+        <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i> Confirmação de Devolução</h5>
+        <p class="mb-0">Você está registrando a devolução do item <strong>{{ emprestimo.item.nome }}</strong> (código: {{ emprestimo.item.codigo }}) que foi emprestado para <strong>{{ emprestimo.usuario.get_full_name }}</strong>.</p>
+      </div>
+      
+      <!-- Detalhes do empréstimo -->
+      <div class="item-details">
+        <h6 class="fw-bold">Detalhes do Empréstimo</h6>
+        <div class="row">
+          <div class="col-md-6">
+            <p>
+              <strong>Item:</strong> 
+              <a href="{% url 'inventario:item_detail' emprestimo.item.pk %}">
+                {{ emprestimo.item.nome }}
+              </a>
+            </p>
+            <p><strong>Código:</strong> {{ emprestimo.item.codigo }}</p>
+            <p><strong>Usuário:</strong> {{ emprestimo.usuario.get_full_name }}</p>
+            <p><strong>Quantidade:</strong> {{ emprestimo.quantidade }} {{ emprestimo.item.get_unidade_display }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Data do empréstimo:</strong> {{ emprestimo.data_emprestimo|date:"d/m/Y H:i" }}</p>
+            <p>
+              <strong>Previsão de devolução:</strong> 
+              {% if emprestimo.status == 'atrasado' %}
+                <span class="text-danger">
+                  {{ emprestimo.data_prevista_devolucao|date:"d/m/Y" }}
+                  <span class="status-indicator status-late" title="Em atraso"></span>
+                </span>
+              {% else %}
+                {{ emprestimo.data_prevista_devolucao|date:"d/m/Y" }}
+                <span class="status-indicator status-on-time" title="No prazo"></span>
+              {% endif %}
+            </p>
+            <p><strong>Responsável pelo empréstimo:</strong> {{ emprestimo.responsavel_emprestimo.get_full_name }}</p>
+            <p>
+              <strong>Status:</strong>
+              {% if emprestimo.status == 'atrasado' %}
+                <span class="badge bg-danger">Atrasado</span>
+              {% else %}
+                <span class="badge bg-primary">Emprestado</span>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        
+        {% if emprestimo.observacao %}
+          <hr class="my-3">
+          <div class="row">
+            <div class="col-12">
+              <p><strong>Observação do empréstimo:</strong></p>
+              <p class="fst-italic">{{ emprestimo.observacao }}</p>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Formulário de devolução -->
+      <form method="post">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+          <label for="{{ form.observacao.id_for_label }}" class="form-label">Observação sobre a devolução</label>
+          {{ form.observacao.errors }}
+          {{ form.observacao }}
+          <div class="form-text text-muted">
+            Você pode adicionar observações sobre o estado de conservação, problemas encontrados, etc.
+          </div>
+        </div>
+        
+        <div class="alert alert-warning mb-4">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle me-3 fa-2x"></i>
+            <div>
+              <h5 class="alert-heading">Importante!</h5>
+              <p class="mb-0">Ao confirmar a devolução:</p>
+              <ul class="mb-0">
+                <li>O item será adicionado novamente ao estoque ({{ emprestimo.quantidade }} {{ emprestimo.item.get_unidade_display }})</li>
+                <li>O status do empréstimo será alterado para 'Devolvido'</li>
+                <li>Você será registrado como responsável pela devolução</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+          <a href="{% url 'inventario:emprestimo_detail' emprestimo.pk %}" class="btn btn-secondary me-md-2">
+            <i class="fas fa-times me-1"></i> Cancelar
+          </a>
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-check-circle me-1"></i> Confirmar Devolução
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Estilize as textareas
+    document.querySelectorAll('textarea').forEach(function(textarea) {
+      if (!textarea.classList.contains('form-control')) {
+        textarea.classList.add('form-control');
+      }
+    });
+  });
+</script>
+{% endblock %}

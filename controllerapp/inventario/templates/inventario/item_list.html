@@ -1,0 +1,326 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}{% if mostrar_baixos %}Itens com Estoque Crítico{% else %}Itens do Inventário{% endif %}{% endblock %}
+
+{% block head %}
+<style>
+  .filter-bar {
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+  }
+  
+  .status-ok {
+    background-color: #28a745;
+  }
+  
+  .status-warning {
+    background-color: #ffc107;
+  }
+  
+  .status-critical {
+    background-color: #dc3545;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
+      {% if mostrar_baixos %}
+        <li class="breadcrumb-item active" aria-current="page">Itens Críticos</li>
+      {% else %}
+        <li class="breadcrumb-item active" aria-current="page">Lista de Itens</li>
+      {% endif %}
+    </ol>
+  </nav>
+
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">
+      {% if mostrar_baixos %}
+        <i class="fas fa-exclamation-triangle me-2 text-danger"></i> Itens com Estoque Crítico
+      {% else %}
+        <i class="fas fa-boxes me-2"></i> Itens do Inventário
+      {% endif %}
+    </h1>
+    <div>
+      <a href="{% url 'inventario:item_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Novo Item
+      </a>
+      <a href="{% url 'inventario:dashboard' %}" class="btn btn-secondary ms-2">
+        <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+      </a>
+      {% if mostrar_baixos %}
+        <a href="{% url 'inventario:item_list' %}" class="btn btn-info ms-2">
+          <i class="fas fa-list me-1"></i> Todos os Itens
+        </a>
+      {% else %}
+        <a href="{% url 'inventario:item_list' %}?baixos=true" class="btn btn-danger ms-2">
+          <i class="fas fa-exclamation-triangle me-1"></i> Itens Críticos
+        </a>
+      {% endif %}
+    </div>
+  </div>
+  
+  <!-- Filtros e busca -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold">Filtros</h6>
+    </div>
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-4">
+          <label for="q" class="form-label">Buscar</label>
+          <input type="text" class="form-control" id="q" name="q" value="{{ query }}" placeholder="Nome, código ou descrição...">
+        </div>
+        <div class="col-md-3">
+          <label for="categoria" class="form-label">Categoria</label>
+          <select class="form-select" id="categoria" name="categoria">
+            <option value="">Todas as categorias</option>
+            {% for cat in categorias %}
+              <option value="{{ cat.id }}" {% if categoria_id == cat.id|stringformat:"i" %}selected{% endif %}>{{ cat.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="order_by" class="form-label">Ordenar por</label>
+          <select class="form-select" id="order_by" name="order_by">
+            <option value="nome" {% if order_by == 'nome' %}selected{% endif %}>Nome (A-Z)</option>
+            <option value="-nome" {% if order_by == '-nome' %}selected{% endif %}>Nome (Z-A)</option>
+            <option value="quantidade" {% if order_by == 'quantidade' %}selected{% endif %}>Quantidade (Menor)</option>
+            <option value="-quantidade" {% if order_by == '-quantidade' %}selected{% endif %}>Quantidade (Maior)</option>
+            <option value="codigo" {% if order_by == 'codigo' %}selected{% endif %}>Código</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="baixos" name="baixos" value="true" {% if mostrar_baixos %}checked{% endif %}>
+            <label class="form-check-label" for="baixos">
+              Mostrar apenas itens críticos
+            </label>
+          </div>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary mb-2">Filtrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Status de estoque e legenda -->
+  <div class="row mb-4">
+    <div class="col">
+      <div class="card shadow">
+        <div class="card-body">
+          <h6 class="card-title">Status de Estoque</h6>
+          <div class="d-flex flex-wrap gap-3">
+            <div class="d-flex align-items-center">
+              <span class="status-indicator status-ok me-2"></span>
+              <span>Estoque Adequado</span>
+            </div>
+            <div class="d-flex align-items-center">
+              <span class="status-indicator status-critical me-2"></span>
+              <span>Abaixo do Mínimo</span>
+            </div>
+            <div class="d-flex align-items-center ms-auto">
+              <span class="badge bg-primary">{{ page_obj.paginator.count }} itens encontrados</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Listagem de itens -->
+  <div class="card shadow">
+    <div class="card-header py-3 d-flex align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold">
+        {% if mostrar_baixos %}Itens Críticos{% else %}Itens{% endif %}
+        {% if query %}(Busca: "{{ query }}"){% endif %}
+        {% if categoria_id %}(Categoria: "{{ categoria.nome }}"){% endif %}
+      </h6>
+    </div>
+    <div class="card-body">
+      {% if page_obj %}
+        <div class="table-responsive">
+          <table class="table table-hover table-striped">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Quantidade</th>
+                <th>Mínimo</th>
+                <th>Localização</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in page_obj %}
+                <tr {% if item.estoque_baixo %}class="table-danger"{% endif %}>
+                  <td>{{ item.codigo }}</td>
+                  <td>{{ item.nome }}</td>
+                  <td>{{ item.categoria.nome|default:"Sem categoria" }}</td>
+                  <td>
+                    {% if item.estoque_baixo %}
+                      <span class="text-danger fw-bold">
+                        {{ item.quantidade }} {{ item.get_unidade_display }}
+                      </span>
+                    {% else %}
+                      {{ item.quantidade }} {{ item.get_unidade_display }}
+                    {% endif %}
+                  </td>
+                  <td>{{ item.quantidade_minima }} {{ item.get_unidade_display }}</td>
+                  <td>{{ item.localizacao|default:"Não definida" }}</td>
+                  <td>
+                    <a href="{% url 'inventario:item_detail' item.pk %}" class="btn btn-sm btn-info" title="Ver detalhes">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{% url 'inventario:item_update' item.pk %}" class="btn btn-sm btn-warning" title="Editar">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'inventario:item_delete' item.pk %}" class="btn btn-sm btn-danger" title="Excluir">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                    {% if item.disponivel_para_emprestimo %}
+                      <a href="{% url 'inventario:emprestimo_create' %}?item={{ item.pk }}" class="btn btn-sm btn-success" title="Emprestar">
+                        <i class="fas fa-hand-holding"></i>
+                      </a>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center">
+                    {% if mostrar_baixos %}
+                      Parabéns! Não há itens com estoque crítico no momento.
+                    {% else %}
+                      Nenhum item encontrado com os filtros atuais.
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Paginação -->
+        {% if page_obj.paginator.num_pages > 1 %}
+          <nav aria-label="Paginação" class="mt-4">
+            <ul class="pagination justify-content-center">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" aria-label="Primeira">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                  </a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" aria-label="Anterior">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+              {% else %}
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Primeira">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                  </a>
+                </li>
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Anterior">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+              {% endif %}
+              
+              {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                  <li class="page-item active" aria-current="page">
+                    <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}">{{ num }}</a>
+                  </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+              
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" aria-label="Próxima">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" aria-label="Última">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                  </a>
+                </li>
+              {% else %}
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Próxima">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Última">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                  </a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+        {% endif %}
+      {% else %}
+        <div class="alert alert-info">
+          Nenhum item cadastrado no sistema. <a href="{% url 'inventario:item_create' %}" class="alert-link">Clique aqui</a> para adicionar o primeiro item.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Atalho para ações principais -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card shadow">
+        <div class="card-body">
+          <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'inventario:item_create' %}" class="btn btn-primary">
+              <i class="fas fa-plus me-1"></i> Adicionar Novo Item
+            </a>
+            <a href="{% url 'inventario:categoria_list' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-tags me-1"></i> Gerenciar Categorias
+            </a>
+            <a href="{% url 'inventario:emprestimo_list' %}" class="btn btn-outline-success">
+              <i class="fas fa-hand-holding me-1"></i> Ver Empréstimos
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Adicionar tooltips aos botões de ação
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+  });
+</script>
+{% endblock %}
