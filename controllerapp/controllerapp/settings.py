@@ -5,9 +5,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-q25vadyhqou5z75*^oc#ln6g04f&+t6w@7&2!m$@dr^$h_ch!2'
 
+#################################################################
 # SECURITY WARNING: don't run with debug turned on in production!
-# Para testar as páginas de erro com imagens funcionando
-DEBUG = False
+# Para ver detalhes dos erros durante desenvolvimento, 
+
+# Deixe Debug=True
+# Para produção, Debug=False
+
+DEBUG = True
+#################################################################
+
 
 ALLOWED_HOSTS = ['*']
 
@@ -30,6 +37,7 @@ INSTALLED_APPS = [
     'options',
     'acesso_e_ponto',
     'Email_notificacoes',
+    'inventario', 
 ]
 
 MIDDLEWARE = [

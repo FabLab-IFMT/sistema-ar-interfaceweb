@@ -1,0 +1,157 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'inventario:item_list' %}">Itens</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+    </ol>
+  </nav>
+
+  <div class="card shadow">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold">{{ title }}</h6>
+    </div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label for="{{ form.codigo.id_for_label }}" class="form-label">Código*</label>
+            {{ form.codigo.errors }}
+            <input type="text" name="{{ form.codigo.name }}" id="{{ form.codigo.id_for_label }}" 
+                  class="form-control {% if form.codigo.errors %}is-invalid{% endif %}" 
+                  value="{{ form.codigo.value|default:'' }}" required>
+            {% if form.codigo.help_text %}
+              <div class="form-text text-muted">{{ form.codigo.help_text }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="col-md-8">
+            <label for="{{ form.nome.id_for_label }}" class="form-label">Nome*</label>
+            {{ form.nome.errors }}
+            <input type="text" name="{{ form.nome.name }}" id="{{ form.nome.id_for_label }}" 
+                  class="form-control {% if form.nome.errors %}is-invalid{% endif %}" 
+                  value="{{ form.nome.value|default:'' }}" required>
+          </div>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="{{ form.categoria.id_for_label }}" class="form-label">Categoria</label>
+            {{ form.categoria.errors }}
+            {{ form.categoria }}
+            <div class="mt-2">
+              <a href="{% url 'inventario:categoria_create' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-plus me-1"></i> Nova categoria
+              </a>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="{{ form.imagem.id_for_label }}" class="form-label">Imagem</label>
+            {{ form.imagem.errors }}
+            {{ form.imagem }}
+            {% if form.instance.imagem %}
+              <div class="mt-2">
+                <p>Imagem atual:</p>
+                <img src="{{ form.instance.imagem.url }}" alt="{{ form.instance.nome }}" style="max-height: 100px;">
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col-md-12">
+            <label for="{{ form.descricao.id_for_label }}" class="form-label">Descrição</label>
+            {{ form.descricao.errors }}
+            {{ form.descricao }}
+          </div>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <label for="{{ form.quantidade.id_for_label }}" class="form-label">Quantidade*</label>
+            {{ form.quantidade.errors }}
+            <input type="number" name="{{ form.quantidade.name }}" id="{{ form.quantidade.id_for_label }}" 
+                  class="form-control {% if form.quantidade.errors %}is-invalid{% endif %}" 
+                  value="{{ form.quantidade.value|default:'0' }}" step="0.01" required>
+          </div>
+          
+          <div class="col-md-3">
+            <label for="{{ form.quantidade_minima.id_for_label }}" class="form-label">Quantidade Mínima*</label>
+            {{ form.quantidade_minima.errors }}
+            <input type="number" name="{{ form.quantidade_minima.name }}" id="{{ form.quantidade_minima.id_for_label }}" 
+                  class="form-control {% if form.quantidade_minima.errors %}is-invalid{% endif %}" 
+                  value="{{ form.quantidade_minima.value|default:'0' }}" step="0.01" required>
+          </div>
+          
+          <div class="col-md-3">
+            <label for="{{ form.unidade.id_for_label }}" class="form-label">Unidade*</label>
+            {{ form.unidade.errors }}
+            {{ form.unidade }}
+          </div>
+          
+          <div class="col-md-3">
+            <label for="{{ form.valor_unitario.id_for_label }}" class="form-label">Valor unitário</label>
+            {{ form.valor_unitario.errors }}
+            <div class="input-group">
+              <span class="input-group-text">R$</span>
+              <input type="number" name="{{ form.valor_unitario.name }}" id="{{ form.valor_unitario.id_for_label }}" 
+                    class="form-control {% if form.valor_unitario.errors %}is-invalid{% endif %}" 
+                    value="{{ form.valor_unitario.value|default:'' }}" step="0.01">
+            </div>
+          </div>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="{{ form.localizacao.id_for_label }}" class="form-label">Localização</label>
+            {{ form.localizacao.errors }}
+            <input type="text" name="{{ form.localizacao.name }}" id="{{ form.localizacao.id_for_label }}" 
+                  class="form-control {% if form.localizacao.errors %}is-invalid{% endif %}" 
+                  value="{{ form.localizacao.value|default:'' }}" placeholder="Ex: Prateleira 3, Armário 2">
+          </div>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col-md-12">
+            <label for="{{ form.observacoes.id_for_label }}" class="form-label">Observações</label>
+            {{ form.observacoes.errors }}
+            {{ form.observacoes }}
+          </div>
+        </div>
+        
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+          <a href="{% url 'inventario:item_list' %}" class="btn btn-secondary me-md-2">Cancelar</a>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Estilize os selects
+    document.querySelectorAll('select').forEach(function(select) {
+      select.classList.add('form-select');
+    });
+    
+    // Estilize as textareas
+    document.querySelectorAll('textarea').forEach(function(textarea) {
+      if (!textarea.classList.contains('form-control')) {
+        textarea.classList.add('form-control');
+      }
+    });
+  });
+</script>
+{% endblock %}

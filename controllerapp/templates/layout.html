@@ -273,9 +273,11 @@
                 <li><a class="nav-link" href="{% url 'logs:request_visit' %}"><i class="fas fa-users me-2"></i>Visitas</a></li>
                 <li><a class="nav-link" href="{% url 'logs:agenda_home' %}"><i class="fas fa-calendar-alt me-2"></i>Reservas</a></li>
                 <li><a class="nav-link" href="{% url 'options:membros' %}"><i class="fas fa-id-badge me-2"></i>Membros</a></li>
+                {% comment %}
                 {% if user.is_authenticated %}
                 <li><a class="nav-link" href="{% url 'options:minhas_solicitacoes' %}"><i class="fas fa-file-invoice-dollar me-2"></i>Minhas Solicitações</a></li>
                 {% endif %}
+                {% endcomment %}
               </ul>
             </li>
             
@@ -291,11 +293,15 @@
                 {% endif %}
               </a>
             </li>
+
+            {% comment %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'options:minhas_solicitacoes' %}">
                 <i class="fas fa-file-invoice-dollar me-1"></i> Minhas Solicitações
               </a>
             </li>
+            {% endcomment %}
+
             {% endif %}
             
             <!-- Menu de projetos -->
@@ -307,6 +313,15 @@
                 <li><a class="nav-link" href="https://github.com/FabLab-IFMT" target="_blank"><i class="fab fa-github me-2"></i>Repositório</a></li>
               </ul>
             </li>
+            
+            <!-- Link de inventário (apenas para administradores) -->
+            {% if user.is_authenticated and user.is_staff %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'inventario:dashboard' %}">
+                  <i class="fas fa-boxes me-1"></i> Inventário
+                </a>
+              </li>
+            {% endif %}
             
             <!-- Link de automação (apenas para administradores) -->
             {% if user.is_authenticated and user.is_staff %}

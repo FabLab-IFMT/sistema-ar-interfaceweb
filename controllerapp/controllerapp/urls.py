@@ -22,6 +22,7 @@ urlpatterns = [
     path('options/', include('options.urls')),
     path('acesso_e_ponto/', include('acesso_e_ponto.urls')),
     path('toggle-theme/', views.toggle_theme, name='toggle_theme'),
+    path('inventario/', include('inventario.urls')),
 ]
 
 # Adicionar URLs para mídia - mesmo com DEBUG=False para uso local

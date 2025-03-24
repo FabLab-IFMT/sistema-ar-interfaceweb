@@ -1,0 +1,191 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Detalhes do Empréstimo{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'inventario:emprestimo_list' %}">Empréstimos</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Detalhes</li>
+    </ol>
+  </nav>
+
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">
+      <i class="fas fa-clipboard-list me-2"></i> Detalhes do Empréstimo
+    </h1>
+    <div>
+      {% if emprestimo.status != 'devolvido' %}
+        <a href="{% url 'inventario:emprestimo_devolucao' emprestimo.pk %}" class="btn btn-success">
+          <i class="fas fa-check-circle me-1"></i> Registrar Devolução
+        </a>
+      {% endif %}
+      <a href="{% url 'inventario:emprestimo_list' %}" class="btn btn-secondary ms-2">
+        <i class="fas fa-arrow-left me-1"></i> Voltar à Lista
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Informações do empréstimo -->
+    <div class="col-lg-8">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+          <h6 class="m-0 font-weight-bold">Informações do Empréstimo</h6>
+          <span class="badge {% if emprestimo.status == 'devolvido' %}bg-success{% elif emprestimo.status == 'atrasado' %}bg-danger{% else %}bg-primary{% endif %}">
+            {{ emprestimo.get_status_display }}
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Item:</div>
+            <div class="col-md-8">
+              <a href="{% url 'inventario:item_detail' emprestimo.item.pk %}">
+                {{ emprestimo.item.nome }}
+              </a>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Código do item:</div>
+            <div class="col-md-8">{{ emprestimo.item.codigo }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Usuário:</div>
+            <div class="col-md-8">{{ emprestimo.usuario.get_full_name }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Email do usuário:</div>
+            <div class="col-md-8">{{ emprestimo.usuario.email }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Quantidade:</div>
+            <div class="col-md-8">{{ emprestimo.quantidade }} {{ emprestimo.item.get_unidade_display }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Data do empréstimo:</div>
+            <div class="col-md-8">{{ emprestimo.data_emprestimo|date:"d/m/Y H:i" }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Previsão de devolução:</div>
+            <div class="col-md-8">
+              {% if emprestimo.status == 'atrasado' and not emprestimo.data_devolucao %}
+                <span class="text-danger fw-bold">{{ emprestimo.data_prevista_devolucao|date:"d/m/Y H:i" }}</span>
+                <span class="badge bg-danger ms-2">Atrasado</span>
+              {% else %}
+                {{ emprestimo.data_prevista_devolucao|date:"d/m/Y H:i" }}
+              {% endif %}
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Responsável pelo empréstimo:</div>
+            <div class="col-md-8">{{ emprestimo.responsavel_emprestimo.get_full_name }}</div>
+          </div>
+          {% if emprestimo.data_devolucao %}
+            <div class="row mb-3">
+              <div class="col-md-4 fw-bold">Data de devolução:</div>
+              <div class="col-md-8">{{ emprestimo.data_devolucao|date:"d/m/Y H:i" }}</div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-4 fw-bold">Responsável pela devolução:</div>
+              <div class="col-md-8">{{ emprestimo.responsavel_devolucao.get_full_name }}</div>
+            </div>
+          {% endif %}
+          {% if emprestimo.observacao %}
+            <div class="row mb-3">
+              <div class="col-md-4 fw-bold">Observação:</div>
+              <div class="col-md-8">{{ emprestimo.observacao|linebreaks }}</div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Status e ações -->
+    <div class="col-lg-4">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold">Status do Empréstimo</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            {% if emprestimo.status == 'devolvido' %}
+              <div class="alert alert-success">
+                <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i> Devolvido</h5>
+                <p>O item foi devolvido em {{ emprestimo.data_devolucao|date:"d/m/Y" }}.</p>
+                <hr>
+                <p class="mb-0">O estoque já foi atualizado com a devolução.</p>
+              </div>
+            {% elif emprestimo.status == 'atrasado' %}
+              <div class="alert alert-danger">
+                <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i> Atrasado</h5>
+                <p>A devolução estava prevista para {{ emprestimo.data_prevista_devolucao|date:"d/m/Y" }}.</p>
+                <p class="mb-0">
+                  Atraso: 
+                  {% with atraso=emprestimo.data_prevista_devolucao|timeuntil %}
+                    {{ atraso }} atrás
+                  {% endwith %}
+                </p>
+              </div>
+              <div class="d-grid gap-2 mt-3">
+                <a href="{% url 'inventario:emprestimo_devolucao' emprestimo.pk %}" class="btn btn-success">
+                  <i class="fas fa-check-circle me-1"></i> Registrar Devolução
+                </a>
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i> Emprestado</h5>
+                <p>O empréstimo está dentro do prazo previsto.</p>
+                <p class="mb-0">
+                  Prazo restante: 
+                  {% with prazo=emprestimo.data_prevista_devolucao|timeuntil %}
+                    {{ prazo }}
+                  {% endwith %}
+                </p>
+              </div>
+              <div class="d-grid gap-2 mt-3">
+                <a href="{% url 'inventario:emprestimo_devolucao' emprestimo.pk %}" class="btn btn-success">
+                  <i class="fas fa-check-circle me-1"></i> Registrar Devolução
+                </a>
+              </div>
+            {% endif %}
+          </div>
+          
+          {% if emprestimo.item.imagem %}
+            <div class="text-center mt-4">
+              <p class="fw-bold">Imagem do Item</p>
+              <img src="{{ emprestimo.item.imagem.url }}" alt="{{ emprestimo.item.nome }}" class="img-fluid rounded mb-2" style="max-height: 150px;">
+              <a href="{{ emprestimo.item.imagem.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-search-plus me-1"></i> Ampliar
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="card shadow">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold">Ações</h6>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <a href="{% url 'inventario:item_detail' emprestimo.item.pk %}" class="btn btn-outline-info">
+              <i class="fas fa-cube me-1"></i> Ver Detalhes do Item
+            </a>
+            <a href="{% url 'inventario:emprestimo_list' %}?status=ativos" class="btn btn-outline-primary">
+              <i class="fas fa-clipboard-list me-1"></i> Empréstimos Ativos
+            </a>
+            {% if not emprestimo.data_devolucao %}
+              <a href="{% url 'inventario:emprestimo_devolucao' emprestimo.pk %}" class="btn btn-success">
+                <i class="fas fa-check-circle me-1"></i> Registrar Devolução
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

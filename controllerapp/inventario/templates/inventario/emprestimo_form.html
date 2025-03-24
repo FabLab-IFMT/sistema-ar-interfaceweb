@@ -1,0 +1,194 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head %}
+<style>
+  .item-info {
+    display: none;
+    transition: all 0.3s ease;
+  }
+  .item-info.show {
+    display: block;
+    animation: fadeIn 0.5s;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .form-label.required::after {
+    content: " *";
+    color: #dc3545;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'inventario:emprestimo_list' %}">Empréstimos</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+    </ol>
+  </nav>
+
+  <div class="card shadow">
+    <div class="card-header py-3 bg-primary text-white">
+      <h6 class="m-0 fw-bold">{{ title }}</h6>
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        
+        <!-- Item a ser emprestado -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <label for="{{ form.item.id_for_label }}" class="form-label required">Item</label>
+            {{ form.item.errors }}
+            <select name="{{ form.item.name }}" id="{{ form.item.id_for_label }}" 
+                   class="form-select {% if form.item.errors %}is-invalid{% endif %}" required>
+              <option value="">Selecione um item...</option>
+              {% for choice in form.fields.item.queryset %}
+                <option value="{{ choice.id }}" 
+                        data-quantidade="{{ choice.quantidade }}" 
+                        data-unidade="{{ choice.get_unidade_display }}"
+                        data-codigo="{{ choice.codigo }}"
+                        {% if form.item.value|stringformat:"i" == choice.id|stringformat:"i" %}selected{% endif %}>
+                  {{ choice.codigo }} - {{ choice.nome }}
+                </option>
+              {% endfor %}
+            </select>
+            {% if form.item.help_text %}
+              <div class="form-text">{{ form.item.help_text }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="col-md-6">
+            <div id="itemInfo" class="item-info alert alert-info mt-4">
+              <h6 class="alert-heading">Informações do Item</h6>
+              <p id="itemCodigo" class="mb-1"></p>
+              <p id="itemQuantidade" class="mb-1"></p>
+              <p id="itemDisponibilidade" class="mb-0"></p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Usuário que irá receber o empréstimo -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <label for="{{ form.usuario.id_for_label }}" class="form-label required">Usuário</label>
+            {{ form.usuario.errors }}
+            <select name="{{ form.usuario.name }}" id="{{ form.usuario.id_for_label }}" 
+                   class="form-select {% if form.usuario.errors %}is-invalid{% endif %}" required>
+              <option value="">Selecione um usuário...</option>
+              {% for choice in form.fields.usuario.queryset %}
+                <option value="{{ choice.id }}" 
+                        {% if form.usuario.value|stringformat:"i" == choice.id|stringformat:"i" %}selected{% endif %}>
+                  {{ choice.get_full_name }} ({{ choice.email }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        
+        <!-- Quantidade e data de devolução -->
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <label for="{{ form.quantidade.id_for_label }}" class="form-label required">Quantidade</label>
+            {{ form.quantidade.errors }}
+            <input type="number" name="{{ form.quantidade.name }}" id="{{ form.quantidade.id_for_label }}" 
+                  class="form-control {% if form.quantidade.errors %}is-invalid{% endif %}" 
+                  value="{{ form.quantidade.value|default:'1' }}" step="0.01" min="0.01" required>
+          </div>
+          
+          <div class="col-md-4">
+            <label for="{{ form.data_prevista_devolucao.id_for_label }}" class="form-label required">Previsão de Devolução</label>
+            {{ form.data_prevista_devolucao.errors }}
+            <input type="datetime-local" name="{{ form.data_prevista_devolucao.name }}" id="{{ form.data_prevista_devolucao.id_for_label }}" 
+                  class="form-control {% if form.data_prevista_devolucao.errors %}is-invalid{% endif %}" 
+                  value="{{ form.data_prevista_devolucao.value|date:'Y-m-d\TH:i' }}" required>
+          </div>
+        </div>
+        
+        <!-- Observação -->
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <label for="{{ form.observacao.id_for_label }}" class="form-label">Observação</label>
+            {{ form.observacao.errors }}
+            {{ form.observacao }}
+            <div class="form-text">Adicione informações importantes sobre este empréstimo.</div>
+          </div>
+        </div>
+        
+        <div class="alert alert-light border">
+          <div class="fw-bold mb-2">Importante:</div>
+          <ul class="mb-0">
+            <li>O item será automaticamente descontado do estoque após o empréstimo.</li>
+            <li>O sistema registrará você como o responsável por autorizar este empréstimo.</li>
+            <li>A quantidade deve estar disponível em estoque.</li>
+          </ul>
+        </div>
+        
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+          <a href="{% url 'inventario:emprestimo_list' %}" class="btn btn-secondary me-md-2">
+            <i class="fas fa-times me-1"></i> Cancelar
+          </a>
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-check me-1"></i> Confirmar Empréstimo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Estilize as textareas
+    document.querySelectorAll('textarea').forEach(function(textarea) {
+      if (!textarea.classList.contains('form-control')) {
+        textarea.classList.add('form-control');
+      }
+    });
+    
+    // Mostrar informações do item selecionado
+    const itemSelect = document.getElementById('{{ form.item.id_for_label }}');
+    const itemInfo = document.getElementById('itemInfo');
+    const itemCodigo = document.getElementById('itemCodigo');
+    const itemQuantidade = document.getElementById('itemQuantidade');
+    const itemDisponibilidade = document.getElementById('itemDisponibilidade');
+    
+    function atualizarInfoItem() {
+      const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+      if (itemSelect.value) {
+        const quantidade = selectedOption.getAttribute('data-quantidade');
+        const unidade = selectedOption.getAttribute('data-unidade');
+        const codigo = selectedOption.getAttribute('data-codigo');
+        
+        itemCodigo.textContent = `Código: ${codigo}`;
+        itemQuantidade.textContent = `Quantidade disponível: ${quantidade} ${unidade}`;
+        
+        if (parseFloat(quantidade) > 0) {
+          itemDisponibilidade.innerHTML = `<span class="text-success"><i class="fas fa-check-circle me-1"></i> Disponível para empréstimo</span>`;
+        } else {
+          itemDisponibilidade.innerHTML = `<span class="text-danger"><i class="fas fa-times-circle me-1"></i> Indisponível (estoque zerado)</span>`;
+        }
+        
+        itemInfo.classList.add('show');
+      } else {
+        itemInfo.classList.remove('show');
+      }
+    }
+    
+    // Atualizar quando o select muda
+    itemSelect.addEventListener('change', atualizarInfoItem);
+    
+    // Atualizar na carga da página, caso já tenha um item selecionado
+    atualizarInfoItem();
+  });
+</script>
+{% endblock %}
