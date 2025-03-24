@@ -10,7 +10,8 @@ class Action(models.Model):
         CRITICAL = 'critical', _('Crítico')
         SECURITY = 'security', _('Segurança')
     
-    author = models.CharField(max_length=255)
+    # Tornar todos os campos não-essenciais opcionais
+    author = models.CharField(max_length=255, null=True, blank=True)
     type = models.CharField(max_length=255)
     description = models.TextField()
     date = models.DateField()

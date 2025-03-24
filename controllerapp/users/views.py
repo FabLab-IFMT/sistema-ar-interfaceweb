@@ -46,8 +46,7 @@ def register_view(request):
 
 def logout_view(request):
     if request.method == "POST":
-        # Removendo completamente o registro de log no logout
-        # para evitar problemas com o campo author
+        # Removido completamente o registro de log durante o logout
         logout(request)
         return redirect("/")
     return redirect("/")

@@ -189,7 +189,8 @@ def agenda_request_visit(request):
             event.end_time = form.end_datetime
             
             # O usuário logado é o criador do evento
-            event.created_by = request.user
+            if request.user.is_authenticated:
+                event.created_by = request.user
             
             event.save()
             

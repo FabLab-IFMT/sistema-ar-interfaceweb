@@ -1,4 +1,5 @@
 from .models import Action
+from django.utils import timezone
 
 
 class FormattedAction:
@@ -32,14 +33,18 @@ class FormattedAction:
 
 
 def create_log(type, **kwargs):
-    author = kwargs.get("author")
-    param1 = kwargs.get("param1")
-    param2 = kwargs.get ("param2")
+    # Modificando para permitir autor nulo
+    author = kwargs.get("author", "Sistema")
+    param1 = kwargs.get("param1", "Parâmetro 1 não especificado")
+    param2 = kwargs.get ("param2", "Parâmetro 2 não especificado")
 
-    if not author: author = "Desconhecido"
-    if not param1: param1 = "Parâmetro 1 não especificado"
-    if not param2: param2 = "Parâmetro 2 não especificado"
-
-    Action.objects.create(author=author, type=type, param1=param1, param2=param2 )
+    # Criar o log sem validar que o autor não seja nulo
+    Action.objects.create(
+        author=author if author else None,  # Usar None se author for vazio
+        type=type, 
+        description=f"{param1} - {param2}",  # Adicionando uma descrição padrão
+        date=timezone.now().date(),
+        time=timezone.now().time()
+    )
 
 
