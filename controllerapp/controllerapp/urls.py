@@ -24,19 +24,16 @@ urlpatterns = [
     path('toggle-theme/', views.toggle_theme, name='toggle_theme'),
 ]
 
-# Adicionar URLs para mídia durante o desenvolvimento
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    
-    # Método alternativo para testar páginas de erro - usando uma função de teste
-    urlpatterns += [
-        path('teste-400/', lambda request: bad_request(request, Exception("Teste de erro 400"))),
-        path('teste-403/', lambda request: permission_denied(request, Exception("Teste de erro 403"))),
-        path('teste-404/', lambda request: page_not_found(request, Exception("Teste de erro 404"))),
-        path('teste-500/', lambda request: server_error(request)),
-    ]
+# Adicionar URLs para mídia - mesmo com DEBUG=False para uso local
+# IMPORTANTE: Esta abordagem é apenas para uso local/teste e não deve ser usada em produção web
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
 
-# Adicione temporariamente para testar em produção
+# Método alternativo para testar páginas de erro
 urlpatterns += [
+    path('teste-400/', lambda request: bad_request(request, Exception("Teste de erro 400"))),
+    path('teste-403/', lambda request: permission_denied(request, Exception("Teste de erro 403"))),
+    path('teste-404/', lambda request: page_not_found(request, Exception("Teste de erro 404"))),
+    path('teste-500/', lambda request: server_error(request)),
     path('erro-teste/', lambda request: 1/0),  # Isso gerará um erro 500
 ]
