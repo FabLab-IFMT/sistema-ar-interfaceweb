@@ -3,14 +3,33 @@ from django.utils.translation import gettext_lazy as _
 from users.models import CustomUser
 
 class Action(models.Model):
+    ACTION_TYPES = [
+        ('info', 'Informação'),
+        ('success', 'Sucesso'),
+        ('warning', 'Aviso'),
+        ('error', 'Erro'),
+        ('critical', 'Crítico'),
+    ]
+
     author = models.CharField(max_length=255)
-    type = models.CharField(max_length=255)
+    type = models.CharField(max_length=255, choices=ACTION_TYPES, default='info')
     description = models.TextField()
-    date = models.DateField()
-    time = models.TimeField()
+    date = models.DateField(auto_now_add=True)
+    time = models.TimeField(auto_now_add=True)
+    # Novos campos
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='actions')
+    url = models.CharField(max_length=255, null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    error_traceback = models.TextField(null=True, blank=True)
     
     def __str__(self):
         return f"{self.type} - {self.date} {self.time}"
+    
+    class Meta:
+        ordering = ['-date', '-time']
+        verbose_name = _("Log de Ação")
+        verbose_name_plural = _("Logs de Ações")
 
 class Event(models.Model):
     class EventType(models.TextChoices):

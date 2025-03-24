@@ -1,15 +1,365 @@
 {% extends 'layout.html' %}
+{% load static %}
 
 {% block title %}
-    Agenda
-{%endblock%}
+    Logs do Sistema
+{% endblock %}
 
-{% block content%}
-    <h1>Dias com ações atribuídas</h1>
-    {% for date in dates %}
-        <a href="{% url 'logs:datepage' day=date.day month=date.month year=date.year %}">
-            <h3>{{date.day}}/{{date.month}}/{{date.year}}</h3>
-        </a>
-        <br>
-    {% endfor %}
-{% endblock%}
+{% block extra_css %}
+<style>
+    .logs-container {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+    .log-card {
+        transition: all 0.3s ease;
+        border-left: 5px solid transparent;
+    }
+    .log-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    .log-badge {
+        font-size: 0.8rem;
+    }
+    .log-timestamp {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    .log-author {
+        font-weight: 600;
+    }
+    .log-type-info { border-left-color: #0d6efd; }
+    .log-type-success { border-left-color: #198754; }
+    .log-type-warning { border-left-color: #ffc107; }
+    .log-type-error { border-left-color: #dc3545; }
+    .log-type-critical { border-left-color: #343a40; }
+    
+    .stats-card {
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .calendar-view-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    }
+    .filter-badge {
+        font-size: 0.85rem;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    .active-filters {
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5 fw-bold mb-0">
+                <i class="fas fa-history me-2"></i> Logs do Sistema
+            </h1>
+            <p class="text-muted">Monitorando ações e eventos do sistema</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group">
+                <a href="{% url 'logs:index' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-list"></i> Lista
+                </a>
+                <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-calendar-alt"></i> Calendário
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estatísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card card bg-primary text-white p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ total_logs }}</h3>
+                        <div>Total de logs</div>
+                    </div>
+                    <div class="display-4">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card card bg-danger text-white p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ error_logs }}</h3>
+                        <div>Erros</div>
+                    </div>
+                    <div class="display-4">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filtros ativos -->
+    {% if search or log_type or date_from or date_to or user_id %}
+    <div class="active-filters">
+        <h6>Filtros ativos:</h6>
+        <div>
+            {% if search %}
+            <span class="badge bg-info filter-badge">
+                <i class="fas fa-search me-1"></i> Busca: {{ search }}
+            </span>
+            {% endif %}
+            
+            {% if log_type %}
+            <span class="badge bg-info filter-badge">
+                <i class="fas fa-tag me-1"></i> Tipo: 
+                {% if log_type == 'info' %}Informação
+                {% elif log_type == 'success' %}Sucesso
+                {% elif log_type == 'warning' %}Aviso
+                {% elif log_type == 'error' %}Erro
+                {% elif log_type == 'critical' %}Crítico
+                {% endif %}
+            </span>
+            {% endif %}
+            
+            {% if date_from %}
+            <span class="badge bg-info filter-badge">
+                <i class="fas fa-calendar-day me-1"></i> A partir de: {{ date_from }}
+            </span>
+            {% endif %}
+            
+            {% if date_to %}
+            <span class="badge bg-info filter-badge">
+                <i class="fas fa-calendar-day me-1"></i> Até: {{ date_to }}
+            </span>
+            {% endif %}
+            
+            {% if user_id %}
+            <span class="badge bg-info filter-badge">
+                <i class="fas fa-user me-1"></i> Usuário: 
+                {% for uid, username, first_name, last_name in unique_users %}
+                    {% if uid|stringformat:"s" == user_id %}
+                        {% if first_name or last_name %}{{ first_name }} {{ last_name }}{% else %}{{ username }}{% endif %}
+                    {% endif %}
+                {% endfor %}
+            </span>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Filtros -->
+    <div class="filter-section mb-4">
+        <form method="get" action="{% url 'logs:index' %}" class="row g-3">
+            <div class="col-md-3 col-sm-6">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" name="search" class="form-control" placeholder="Pesquisar..." value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <select name="type" class="form-select">
+                    <option value="">Todos os tipos</option>
+                    <option value="info" {% if log_type == 'info' %}selected{% endif %}>Informação</option>
+                    <option value="success" {% if log_type == 'success' %}selected{% endif %}>Sucesso</option>
+                    <option value="warning" {% if log_type == 'warning' %}selected{% endif %}>Aviso</option>
+                    <option value="error" {% if log_type == 'error' %}selected{% endif %}>Erro</option>
+                    <option value="critical" {% if log_type == 'critical' %}selected{% endif %}>Crítico</option>
+                </select>
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <select name="user_id" class="form-select">
+                    <option value="">Todos os usuários</option>
+                    {% for uid, username, first_name, last_name in unique_users %}
+                        <option value="{{ uid }}" {% if user_id|stringformat:"s" == uid|stringformat:"s" %}selected{% endif %}>
+                            {% if first_name or last_name %}{{ first_name }} {{ last_name }}{% else %}{{ username }}{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <input type="date" name="date_from" class="form-control" value="{{ date_from }}" placeholder="De">
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <input type="date" name="date_to" class="form-control" value="{{ date_to }}" placeholder="Até">
+            </div>
+            <div class="col-md-1 col-sm-12 d-flex">
+                <button type="submit" class="btn btn-primary me-2 w-100" title="Aplicar filtros">
+                    <i class="fas fa-filter"></i>
+                </button>
+            </div>
+            <div class="col-md-1 col-sm-12 d-flex">
+                {% if search or log_type or date_from or date_to or user_id %}
+                <a href="{% url 'logs:index' %}" class="btn btn-outline-secondary w-100" title="Limpar todos os filtros">
+                    <i class="fas fa-times"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    
+    <!-- Lista de Logs -->
+    <div class="logs-container">
+        {% if actions %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Descrição</th>
+                            <th>Autor</th>
+                            <th>Data/Hora</th>
+                            <th>Página</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for action in actions %}
+                        <tr class="log-card log-type-{{ action.type }}">
+                            <td>
+                                <span class="badge bg-{{ action.type_class }}">
+                                    <i class="fas fa-{{ action.type_icon }}"></i> 
+                                    {{ action.type }}
+                                </span>
+                            </td>
+                            <td>{{ action.description }}</td>
+                            <td class="log-author">
+                                {% if action.user %}
+                                <a href="?user_id={{ action.user.id }}" class="text-decoration-none">
+                                    {{ action.author }}
+                                </a>
+                                {% else %}
+                                {{ action.author }}
+                                {% endif %}
+                            </td>
+                            <td class="log-timestamp">
+                                <a href="{% url 'logs:datepage' day=action.date.day month=action.date.month year=action.date.year %}" class="text-decoration-none">
+                                    {{ action.date }} {{ action.time }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if action.url %}
+                                <small class="text-muted">{{ action.url }}</small>
+                                {% else %}
+                                <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginação -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Log navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if log_type %}&type={{ log_type }}{% endif %}{% if user_id %}&user_id={{ user_id }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if log_type %}&type={{ log_type }}{% endif %}{% if user_id %}&user_id={{ user_id }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if log_type %}&type={{ log_type }}{% endif %}{% if user_id %}&user_id={{ user_id }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if log_type %}&type={{ log_type }}{% endif %}{% if user_id %}&user_id={{ user_id }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if log_type %}&type={{ log_type }}{% endif %}{% if user_id %}&user_id={{ user_id }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h3>Nenhum registro encontrado</h3>
+                <p class="text-muted">Tente ajustar os filtros de busca</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Botão flutuante para visualização de calendário -->
+<a href="{% url 'logs:agenda_home' %}" class="btn btn-primary calendar-view-btn">
+    <i class="fas fa-calendar-alt"></i>
+</a>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Efeitos de animação para os cartões de log
+    document.addEventListener('DOMContentLoaded', function() {
+        const logCards = document.querySelectorAll('.log-card');
+        logCards.forEach((card, index) => {
+            card.style.opacity = 0;
+            setTimeout(() => {
+                card.style.transition = 'opacity 0.5s ease, transform 0.3s ease';
+                card.style.opacity = 1;
+            }, index * 50);
+        });
+        
+        // Facilitar a leitura ao passar o mouse
+        logCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f8f9fa';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '';
+            });
+        });
+    });
+</script>
+{% endblock %}

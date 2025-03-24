@@ -4,6 +4,7 @@ from . import views
 app_name = 'logs'
 
 urlpatterns = [
+    # URLs para logs
     path('', views.logs_list, name='index'),
     path('log/<int:day>/<int:month>/<int:year>/', views.logs_datepage, name='datepage'),
     
@@ -12,9 +13,12 @@ urlpatterns = [
     path('agenda/evento/<int:event_id>/', views.agenda_event_detail, name='agenda_event_detail'),
     path('agenda/criar/', views.agenda_create_event, name='agenda_create_event'), 
     path('agenda/visita/', views.agenda_request_visit, name='request_visit'),
-    path('agenda/aprovar/<int:event_id>/', views.agenda_approve_event, name='agenda_approve_event'),
-    path('agenda/aprovar/<int:event_id>/', views.agenda_approve_event, name='approve_event'),  # Alias para URLs antigas
-    path('agenda/excluir/<int:event_id>/', views.agenda_delete_event, name='agenda_delete_event'),
-    path('agenda/excluir/<int:event_id>/', views.agenda_delete_event, name='delete_event'),  # Alias para URLs antigas
+    path('agenda/aprovar/<int:event_id>/', views.agenda_approve_event, name='approve_event'),
+    path('agenda/excluir/<int:event_id>/', views.agenda_delete_event, name='delete_event'),
     path('agenda/pendentes/', views.pending_events, name='pending_events'),
+    path('agenda/meus-eventos/', views.user_calendar, name='user_calendar'),
+    
+    # Remover aliases duplicados que estavam causando problemas
+    # path('agenda/aprovar/<int:event_id>/', views.agenda_approve_event, name='agenda_approve_event'),
+    # path('agenda/excluir/<int:event_id>/', views.agenda_delete_event, name='agenda_delete_event'),
 ]

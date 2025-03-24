@@ -1,11 +1,29 @@
 from django.contrib import admin
 from .models import Action, Event, LabSchedule
 
-@admin.register(Action)
 class ActionAdmin(admin.ModelAdmin):
-    list_display = ('type', 'author', 'date', 'time')
+    list_display = ('type', 'author', 'date', 'time', 'description', 'url')
     list_filter = ('date', 'type')
-    search_fields = ('author', 'description', 'type')
+    search_fields = ('author', 'description', 'type', 'url')
+    readonly_fields = ('date', 'time', 'ip_address', 'user_agent', 'error_traceback')
+    date_hierarchy = 'date'
+    list_per_page = 50
+
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('author', 'type', 'description')
+        }),
+        ('Detalhes Temporais', {
+            'fields': ('date', 'time')
+        }),
+        ('Relacionamentos', {
+            'fields': ('user',)
+        }),
+        ('Detalhes Técnicos', {
+            'classes': ('collapse',),
+            'fields': ('url', 'ip_address', 'user_agent', 'error_traceback'),
+        }),
+    )
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
@@ -23,3 +41,6 @@ class EventAdmin(admin.ModelAdmin):
 class LabScheduleAdmin(admin.ModelAdmin):
     list_display = ('get_day_of_week_display', 'opening_time', 'closing_time', 'is_closed')
     list_editable = ('opening_time', 'closing_time', 'is_closed')
+
+# Registrar o ActionAdmin com filtros avançados
+admin.site.register(Action, ActionAdmin)

@@ -1,20 +1,200 @@
 {% extends 'layout.html' %}
+{% load static %}
 
 {% block title %}
-    Ações em {{date}}
+    Logs - {{ date|date:"d/m/Y" }}
 {% endblock %}
 
-{% block content%}
-    <h1 style="margin-bottom: 20px;">Ações realizadas em {{date}}</h1>
-    {% for action in actions %}
-        <div class="card border-primary mb-3" style="max-width: 30rem; margin-left: 10px">
-            <div class="card-header">
-                {{action.time}} por {{action.author}}
-            </div>
-            <div class="card-body">
-                <h4 class="card-title">{{action.type}}</h4>
-                <p class="card-text">{{action.description}}</p>
-            </div>
+{% block extra_css %}
+<style>
+    .logs-container {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background: #dee2e6;
+    }
+    .timeline-item {
+        position: relative;
+        padding-left: 30px;
+        margin-bottom: 20px;
+    }
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+    .timeline-dot {
+        position: absolute;
+        left: -40px;
+        top: 0;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #0d6efd;
+        background: white;
+        z-index: 1;
+    }
+    .timeline-dot.info { box-shadow: 0 0 0 2px #0d6efd; }
+    .timeline-dot.success { box-shadow: 0 0 0 2px #198754; }
+    .timeline-dot.warning { box-shadow: 0 0 0 2px #ffc107; }
+    .timeline-dot.error { box-shadow: 0 0 0 2px #dc3545; }
+    .timeline-dot.critical { box-shadow: 0 0 0 2px #343a40; }
+    .timeline-body {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid transparent;
+    }
+    .timeline-body.info { border-left-color: #0d6efd; }
+    .timeline-body.success { border-left-color: #198754; }
+    .timeline-body.warning { border-left-color: #ffc107; }
+    .timeline-body.error { border-left-color: #dc3545; }
+    .timeline-body.critical { border-left-color: #343a40; }
+    .timeline-time {
+        position: absolute;
+        left: -90px;
+        top: 0;
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    .timeline-content {
+        margin-top: 5px;
+    }
+    .filter-bar {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5 fw-bold">
+                <i class="fas fa-calendar-day me-2"></i> Logs de {{ date|date:"d/m/Y" }}
+            </h1>
+            <p class="text-muted">Visualizando atividades do sistema nesta data</p>
         </div>
-    {% endfor %}
-{% endblock%}
+        <div class="col-md-4 text-end">
+            <a href="{% url 'logs:index' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i> Voltar para a lista
+            </a>
+        </div>
+    </div>
+    
+    <!-- Barra de filtros -->
+    <div class="filter-bar mb-4">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-md-4 col-sm-6">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" name="search" class="form-control" placeholder="Pesquisar..." value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <select name="type" class="form-select">
+                    <option value="">Todos os tipos</option>
+                    <option value="info" {% if log_type == 'info' %}selected{% endif %}>Informação</option>
+                    <option value="success" {% if log_type == 'success' %}selected{% endif %}>Sucesso</option>
+                    <option value="warning" {% if log_type == 'warning' %}selected{% endif %}>Aviso</option>
+                    <option value="error" {% if log_type == 'error' %}selected{% endif %}>Erro</option>
+                    <option value="critical" {% if log_type == 'critical' %}selected{% endif %}>Crítico</option>
+                </select>
+            </div>
+            <div class="col-md-3 col-sm-12">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-1"></i> Filtrar
+                </button>
+            </div>
+            <div class="col-md-2 col-sm-12">
+                {% if search or log_type %}
+                <a href="{% url 'logs:datepage' day=date.day month=date.month year=date.year %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-times"></i> Limpar
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    
+    <!-- Timeline de logs -->
+    <div class="logs-container">
+        {% if actions %}
+            <div class="timeline">
+                {% for action in actions %}
+                <div class="timeline-item">
+                    <div class="timeline-time">{{ action.time|time:"H:i:s" }}</div>
+                    <div class="timeline-dot {{ action.type }}"></div>
+                    <div class="timeline-body {{ action.type }}">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <span class="badge bg-{{ action.type_class }}">
+                                    <i class="fas fa-{{ action.type_icon }}"></i> 
+                                    {{ action.type }}
+                                </span>
+                            </div>
+                            <div class="text-muted small">
+                                <i class="fas fa-user me-1"></i> {{ action.author }}
+                            </div>
+                        </div>
+                        <div class="timeline-content">
+                            <p class="mb-1">{{ action.description }}</p>
+                            {% if action.url %}
+                                <small class="text-muted">
+                                    <i class="fas fa-link me-1"></i> {{ action.url }}
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-exclamation fa-3x text-muted mb-3"></i>
+                <h3>Nenhum registro para esta data</h3>
+                <p class="text-muted">Não há logs registrados para {{ date|date:"d/m/Y" }} com os filtros aplicados</p>
+                <a href="{% url 'logs:index' %}" class="btn btn-outline-primary mt-3">
+                    <i class="fas fa-arrow-left me-2"></i> Voltar para todos os logs
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animação para itens da timeline
+    document.addEventListener('DOMContentLoaded', function() {
+        const items = document.querySelectorAll('.timeline-item');
+        items.forEach((item, index) => {
+            item.style.opacity = 0;
+            item.style.transform = 'translateX(-20px)';
+            setTimeout(() => {
+                item.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                item.style.opacity = 1;
+                item.style.transform = 'translateX(0)';
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

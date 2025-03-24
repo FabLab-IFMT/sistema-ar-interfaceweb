@@ -1,63 +1,130 @@
+import traceback
+from datetime import datetime
 from .models import Action
-
 
 class FormattedAction:
     def __init__(self, action):
-        self.date = f"{action.date.day}/{action.date.month}/{action.date.year}"
-        self.time = str(action.time)
+        self.action = action
+        self.id = action.id
         self.author = action.author
+        self.type = action.type
+        self.description = action.description
+        self.date = action.date
+        self.time = action.time
+        self.user = action.user
+        self.url = action.url
+        self.ip_address = action.ip_address
         
-        if action.type == "person_num_changed":
-            self.type = "Mudança no número de pessoas"
-            self.description = f"Número de pessoas foi de {action.param1} para {action.param2}"
-
-        elif action.type == "temp_config_changed":
-            self.type = "Configuração de temperatura alterada"
-            self.description = f"Temperatura alterada de {action.param1} °C para {action.param2} °C"
-
-        elif action.type == "sleep_mode_entered":
-            self.type = "Modo alterado para ausente"
-            self.description = "Equipamentos desligados"
-
-        elif action.type == "exit_sleep_mode":
-            self.type = "Saindo do modo ausente"
-            self.description = "Equipamentos ligados"
-
-        elif action.type == "turn_on":
-            self.type = f"O controle {action.author} ligou"
-            self.descrition = "Ativo e pronto para receber comandos"
+        # Formata o tipo para exibição com classes CSS
+        self.type_class = self.get_type_class()
+        self.type_icon = self.get_type_icon()
         
-        elif action.type == "error":
-            self.type = "Ocorreu um erro"
-            self.description = f"Um erro não especificado ocorreu: {action.param1} {action.param2}"
-
-        elif action.type == "command_error":
-            self.type = f"Erro ao executar comando: {action.param1}"
-            self.description = f"Um erro ocorreu que impossibilitou o comando '{action.param1}' de ser executado."
-
-        elif action.type == "init_error":
-            self.type = "Erro ao inicializar o controle"
-            self.description = "Um problema impediu o controle de ligar"
-
-        elif action.type == "shutdown_error":
-            self.type = "Erro ao desligar o controle"
-            self.description = "Ocorreu um problema ao desligar o controle"
-
-        else:
-            self.type = "Ação indefinida"
-            self.description = f"Parâmetro 1: '{action.param1}'  Parâmetro 2: '{action.param2}'"
-
-
-def create_log(type, **kwargs):
-    author = kwargs.get("author")
-    param1 = kwargs.get("param1")
-    param2 = kwargs.get ("param2")
-
-    if not author: author = "Desconhecido"
-    if not param1: param1 = "Parâmetro 1 não especificado"
-    if not param2: param2 = "Parâmetro 2 não especificado"
-
-    Action.objects.create(author=author, type=type, param1=param1, param2=param2 )
-
+    def get_type_class(self):
+        type_classes = {
+            'info': 'primary',
+            'success': 'success',
+            'warning': 'warning',
+            'error': 'danger',
+            'critical': 'dark'
+        }
+        return type_classes.get(self.action.type, 'secondary')
     
+    def get_type_icon(self):
+        type_icons = {
+            'info': 'info-circle',
+            'success': 'check-circle',
+            'warning': 'exclamation-triangle',
+            'error': 'times-circle',
+            'critical': 'bug'
+        }
+        return type_icons.get(self.action.type, 'question-circle')
+
+def log_action(request=None, type='info', description='', user=None):
+    """
+    Registra uma ação no sistema
+    """
+    try:
+        action = Action()
+        action.type = type
+        action.description = description
         
+        # Se usuário for fornecido diretamente
+        if user:
+            action.user = user
+            action.author = f"{user.first_name} {user.last_name}" if user.first_name else user.username
+        # Se não, tenta obter do request
+        elif request and request.user.is_authenticated:
+            action.user = request.user
+            action.author = f"{request.user.first_name} {request.user.last_name}" if request.user.first_name else request.user.username
+        else:
+            action.author = "Sistema"
+        
+        # Capturar informações adicionais do request
+        if request:
+            action.url = request.path
+            action.ip_address = request.META.get('REMOTE_ADDR', '')
+            action.user_agent = request.META.get('HTTP_USER_AGENT', '')
+        
+        action.save()
+        return action
+    except Exception as e:
+        print(f"Erro ao registrar log: {str(e)}")
+        return None
+
+def log_error(request=None, error=None, description=None):
+    """
+    Registra um erro no sistema com stack trace
+    """
+    try:
+        error_desc = description or str(error) or "Erro desconhecido"
+        tb = traceback.format_exc() if error else ""
+        
+        action = Action()
+        action.type = 'error'
+        action.description = error_desc
+        action.error_traceback = tb
+        
+        if request and request.user.is_authenticated:
+            action.user = request.user
+            action.author = f"{request.user.first_name} {request.user.last_name}" if request.user.first_name else request.user.username
+        else:
+            action.author = "Sistema"
+        
+        # Capturar informações adicionais do request
+        if request:
+            action.url = request.path
+            action.ip_address = request.META.get('REMOTE_ADDR', '')
+            action.user_agent = request.META.get('HTTP_USER_AGENT', '')
+        
+        action.save()
+        return action
+    except Exception as e:
+        print(f"Erro ao registrar log de erro: {str(e)}")
+        return None
+
+# Função de compatibilidade para código existente
+def create_log(author, type, description, date=None, time=None):
+    """
+    Função de compatibilidade para manter código existente funcionando.
+    Recomenda-se usar log_action para novos desenvolvimentos.
+    """
+    try:
+        action = Action()
+        action.author = author
+        action.type = type
+        action.description = description
+        
+        # Se date e time não forem fornecidos, serão preenchidos automaticamente
+        # com auto_now_add=True no modelo
+        if date:
+            action.date = date
+        if time:
+            action.time = time
+            
+        action.save()
+        return action
+    except Exception as e:
+        print(f"Erro ao registrar log: {str(e)}")
+        return None
+
+
