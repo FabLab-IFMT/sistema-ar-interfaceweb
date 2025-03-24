@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-  <!-- Debug info -->
+  <!-- Debug info - Visível apenas com debug=True -->
   {% if debug %}
   <div class="alert alert-info">
     <strong>Debug:</strong> Carrossel com {{ carousel_images|length }} imagens.
@@ -16,15 +16,16 @@
   </div>
   {% endif %}
 
-  <!-- Carrossel principal -->
+  <!-- Carrossel principal - Banner rotativo da página inicial -->
   <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
-    <!-- Indicadores -->
+    <!-- Indicadores - Pontos de navegação do carrossel -->
     <div class="carousel-indicators">
       {% for image in carousel_images %}
         <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="{{ forloop.counter0 }}" 
               {% if forloop.first %}class="active" aria-current="true"{% endif %} 
               aria-label="Slide {{ forloop.counter }}"></button>
       {% empty %}
+        <!-- Indicadores padrão caso não haja imagens cadastradas -->
         <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active" 
               aria-current="true" aria-label="Slide 1"></button>
         <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
@@ -32,7 +33,7 @@
       {% endfor %}
     </div>
 
-    <!-- Itens do Carrossel -->
+    <!-- Itens do Carrossel - As imagens e legendas a serem exibidas -->
     <div class="carousel-inner">
       {% for image in carousel_images %}
         <div class="carousel-item {% if forloop.first %}active{% endif %}">
@@ -48,6 +49,7 @@
           {% endif %}
         </div>
       {% empty %}
+        <!-- Imagens padrão caso não haja imagens cadastradas -->
         <div class="carousel-item active">
           <img src="{% static 'images/default1.jpg' %}" class="d-block w-100" alt="Default Image 1" 
                height="500" style="object-fit: cover; width: 100%;">
@@ -73,7 +75,7 @@
       {% endfor %}
     </div>
 
-    <!-- Controles -->
+    <!-- Controles de navegação do carrossel -->
     <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Anterior</span>
@@ -84,10 +86,11 @@
     </button>
   </div>
 
-  <!-- Seção de boas-vindas aprimorada -->
+  <!-- Seção de boas-vindas - Primeira impressão para visitantes -->
   <div class="container-fluid bg-light py-5">
     <div class="container">
       <div class="row align-items-center">
+        <!-- Coluna esquerda: Texto e introdução -->
         <div class="col-lg-6">
           <h1 class="display-4 fw-bold text-primary mb-3">Bem-vindo ao FabLab</h1>
           <div class="border-start border-primary border-4 ps-3 mb-4">
@@ -96,15 +99,18 @@
             </p>
           </div>
           <p class="mb-4">O Laboratório de Fabricação Digital (FabLab) é um ambiente equipado com tecnologias de ponta, onde ideias ganham forma através das mais diversas ferramentas de fabricação digital. Aqui, a criatividade encontra recursos para se transformar em protótipos, projetos e soluções reais.</p>
+          <!-- Botões de chamada à ação (CTA) -->
           <div class="d-flex gap-3 mb-4">
             <a href="{% url 'about' %}" class="btn btn-primary btn-lg">Conheça mais sobre o laboratório</a>
             <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-primary btn-lg">Agende uma visita</a>
           </div>
         </div>
+        <!-- Coluna direita: Atributos e benefícios -->
         <div class="col-lg-6">
           <div class="card border-0 shadow-lg">
             <div class="card-body p-4 text-center bg-white rounded">
               <div class="row g-4">
+                <!-- Item 1: Inovação -->
                 <div class="col-6">
                   <div class="d-inline-block p-3 bg-primary bg-opacity-10 rounded-circle mb-3">
                     <i class="fas fa-lightbulb fa-2x text-primary"></i>
@@ -112,6 +118,7 @@
                   <h5>Inovação</h5>
                   <p class="text-muted">Desenvolva projetos inovadores com tecnologias avançadas</p>
                 </div>
+                <!-- Item 2: Colaboração -->
                 <div class="col-6">
                   <div class="d-inline-block p-3 bg-success bg-opacity-10 rounded-circle mb-3">
                     <i class="fas fa-users fa-2x text-success"></i>
@@ -119,6 +126,7 @@
                   <h5>Colaboração</h5>
                   <p class="text-muted">Compartilhe conhecimentos e trabalhe em equipe</p>
                 </div>
+                <!-- Item 3: Prototipagem -->
                 <div class="col-6">
                   <div class="d-inline-block p-3 bg-info bg-opacity-10 rounded-circle mb-3">
                     <i class="fas fa-cogs fa-2x text-info"></i>
@@ -126,6 +134,7 @@
                   <h5>Prototipagem</h5>
                   <p class="text-muted">Transforme seus projetos em protótipos reais</p>
                 </div>
+                <!-- Item 4: Aprendizagem -->
                 <div class="col-6">
                   <div class="d-inline-block p-3 bg-warning bg-opacity-10 rounded-circle mb-3">
                     <i class="fas fa-graduation-cap fa-2x text-warning"></i>
@@ -141,10 +150,11 @@
     </div>
   </div>
 
-  <!-- Estatísticas com correção do erro de sintaxe -->
+  <!-- Estatísticas - Dados numéricos importantes sobre o FabLab -->
   <div class="container mt-5 py-4 bg-light rounded shadow">
     <h2 class="text-center mb-4">FabLab em números</h2>
     <div class="row text-center">
+      <!-- Estatística 1: Equipamentos -->
       <div class="col-md-3 mb-3">
         <div class="p-3 bg-white rounded shadow-sm">
           <i class="fas fa-tools fa-2x text-primary mb-3"></i>
@@ -152,6 +162,7 @@
           <div class="h5">Equipamentos</div>
         </div>
       </div>
+      <!-- Estatística 2: Projetos -->
       <div class="col-md-3 mb-3">
         <div class="p-3 bg-white rounded shadow-sm">
           <i class="fas fa-project-diagram fa-2x text-success mb-3"></i>
@@ -159,13 +170,15 @@
           <div class="h5">Projetos realizados</div>
         </div>
       </div>
+      <!-- Estatística 3: Usuários -->
       <div class="col-md-3 mb-3">
         <div class="p-3 bg-white rounded shadow-sm">
           <i class="fas fa-users fa-2x text-info mb-3"></i>
-          <div class="display-4 fw-bold text-info">200+</</div>
+          <div class="display-4 fw-bold text-info">20+</div>
           <div class="h5">Usuários ativos</div>
         </div>
       </div>
+      <!-- Estatística 4: Horas -->
       <div class="col-md-3 mb-3">
         <div class="p-3 bg-white rounded shadow-sm">
           <i class="fas fa-clock fa-2x text-warning mb-3"></i>
@@ -176,12 +189,12 @@
     </div>
   </div>
 
-  <!-- Separador visual -->
+  <!-- Separador visual - Divide as seções principais da página -->
   <div class="container py-4">
     <hr class="separator">
   </div>
 
-  <!-- Notícias - Mostrar apenas se houver notícias marcadas para a home -->
+  <!-- Seção de Notícias - Mostrada apenas quando existem notícias cadastradas -->
   {% if tem_noticias %}
   <div class="container py-5 bg-white rounded shadow">
     <div class="row">
@@ -190,10 +203,12 @@
       </div>
     </div>
     
+    <!-- Grade de notícias - Loop pelas notícias disponíveis -->
     <div class="row g-4">
       {% for noticia in noticias %}
         <div class="col-lg-4 col-md-6">
           <div class="card border-0 h-100 news-card">
+            <!-- Imagem e badges da notícia -->
             <div class="position-relative">
               <img src="{{ noticia.imagem.url }}" class="card-img-top" alt="{{ noticia.titulo }}">
               <span class="position-absolute top-0 start-0 bg-primary text-white py-1 px-2 m-2">
@@ -205,11 +220,12 @@
                 </span>
               {% endif %}
             </div>
+            <!-- Corpo da notícia -->
             <div class="card-body">
               <h5 class="card-title">{{ noticia.titulo }}</h5>
               <p class="card-text text-muted">{{ noticia.resumo|truncatechars:120 }}</p>
               
-              <!-- Hashtags -->
+              <!-- Hashtags relacionadas -->
               {% if noticia.hashtags.all %}
               <div class="mt-3">
                 {% for tag in noticia.hashtags.all %}
@@ -220,6 +236,7 @@
               </div>
               {% endif %}
             </div>
+            <!-- Rodapé com link para leitura completa -->
             <div class="card-footer bg-white border-0">
               <a href="{{ noticia.get_absolute_url }}" class="btn btn-sm btn-outline-primary">Leia mais</a>
             </div>
@@ -228,6 +245,7 @@
       {% endfor %}
     </div>
     
+    <!-- Link para mais notícias -->
     <div class="row mt-4">
       <div class="col-12 text-center">
         <a href="{% url 'options:noticias' %}" class="btn btn-primary px-4">Ver todas as notícias</a>
@@ -236,15 +254,16 @@
   </div>
   {% endif %}
 
-  <!-- Separador visual -->
+  <!-- Outro separador visual -->
   <div class="container py-4">
     <hr class="separator">
   </div>
 
-  <!-- Equipamentos em destaque -->
+  <!-- Equipamentos em destaque - Mostra os equipamentos principais do FabLab -->
   <div class="container mt-5">
     <h2 class="text-center mb-4">Equipamentos em destaque</h2>
     <div class="row">
+      <!-- Equipamento 1: Impressora 3D -->
       <div class="col-md-4 mb-4">
         <div class="card">
           <img src="{% static 'images/cards_automacoes/ar_condicionado.jpg' %}" class="card-img-top" alt="Impressora 3D">
@@ -254,6 +273,7 @@
           </div>
         </div>
       </div>
+      <!-- Equipamento 2: Cortadora Laser -->
       <div class="col-md-4 mb-4">
         <div class="card">
           <img src="{% static 'images/cards_automacoes/ar_condicionado.jpg' %}" class="card-img-top" alt="Cortadora Laser">
@@ -263,6 +283,7 @@
           </div>
         </div>
       </div>
+      <!-- Equipamento 3: Fresadora CNC -->
       <div class="col-md-4 mb-4">
         <div class="card">
           <img src="{% static 'images/cards_automacoes/ar_condicionado.jpg' %}" class="card-img-top" alt="Fresadora CNC">
@@ -273,18 +294,21 @@
         </div>
       </div>
     </div>
+    <!-- Link para página completa de equipamentos -->
     <div class="text-center mt-3">
       <a href="{% url 'options:equipamentos' %}" class="btn btn-primary">Ver todos os equipamentos</a>
     </div>
   </div>
 
-  <!-- Próximos eventos - Agora com eventos reais do sistema -->
+  <!-- Seção de próximos eventos e informações práticas -->
   <div class="container mt-5">
     <div class="row">
+      <!-- Coluna esquerda: Próximos eventos -->
       <div class="col-md-6">
         <h2 class="mb-4">Próximos eventos</h2>
         
         {% if tem_eventos %}
+          <!-- Lista de eventos próximos -->
           <div class="list-group eventos-home shadow-sm">
             {% for evento in proximos_eventos %}
               {% with evento_tipo=evento.event_type %}
@@ -320,10 +344,12 @@
               {% endwith %}
             {% endfor %}
           </div>
+          <!-- Link para agenda completa -->
           <div class="text-center mt-3">
             <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-primary">Ver agenda completa</a>
           </div>
         {% else %}
+          <!-- Mensagem para quando não há eventos agendados -->
           <div class="text-center py-4 bg-light rounded shadow-sm">
             <i class="far fa-calendar-alt fa-3x text-muted mb-3"></i>
             <h5>Nenhum evento programado</h5>
@@ -333,9 +359,11 @@
         {% endif %}
       </div>
       
+      <!-- Coluna direita: Perguntas frequentes e instruções -->
       <div class="col-md-6">
         <h2 class="mb-4">Como funciona</h2>
         <div class="accordion" id="accordionExample">
+          <!-- FAQ Item 1 -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingOne">
               <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
@@ -348,6 +376,7 @@
               </div>
             </div>
           </div>
+          <!-- FAQ Item 2 -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingTwo">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
@@ -360,6 +389,7 @@
               </div>
             </div>
           </div>
+          <!-- FAQ Item 3 -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingThree">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
@@ -380,25 +410,26 @@
 
 {% block scripts %}
 <script>
-  // Adicione aqui scripts específicos da página inicial, se necessário
+  // Scripts específicos da página inicial
   document.addEventListener('DOMContentLoaded', function() {
     // Inicializa o carrossel manualmente para garantir que funcione corretamente
     var myCarousel = new bootstrap.Carousel(document.getElementById('mainCarousel'), {
-      interval: 5000,
-      wrap: true
+      interval: 5000,  // Tempo em milissegundos entre os slides
+      wrap: true       // Permite que o carrossel volte ao início após o último slide
     });
     
     // Log para depuração
     console.log("Carrossel inicializado");
   });
   
-  // Adicione antes do fechamento do script
-  // Animação simples para os números
+  // Animação para os números da seção de estatísticas
   window.addEventListener('scroll', function() {
+    // Detecta quando a seção de estatísticas entra no viewport
     const statsSection = document.querySelector('.container.mt-5.py-4.bg-light');
     const statsPosition = statsSection.getBoundingClientRect().top;
     const screenPosition = window.innerHeight / 1.3;
     
+    // Adiciona a animação quando a seção estiver visível
     if(statsPosition < screenPosition) {
       const numbers = document.querySelectorAll('.display-4.fw-bold');
       numbers.forEach(number => {
@@ -411,14 +442,16 @@
 
 {% block styles %}
 <style>
-  /* Estilo para garantir que as imagens do carrossel tenham tamanho consistente */
+  /* Estilos específicos da página inicial */
+  
+  /* Configuração do carrossel */
   .carousel-img {
     object-fit: cover;
-    height: 500px; /* Alterado de 400px para 500px */
+    height: 500px; /* Dimensão vertical das imagens do carrossel */
     width: 100%;
   }
   
-  /* Estilos adicionais para melhorar a aparência da página */
+  /* Tipografia para títulos e subtítulos */
   .display-4 {
     font-weight: 600;
     letter-spacing: -0.5px;
@@ -429,7 +462,7 @@
     font-weight: 400;
   }
   
-  /* Animação para os ícones */
+  /* Animação para ícones nas seções */
   .fas {
     transition: transform 0.3s ease;
   }
@@ -438,7 +471,7 @@
     transform: scale(1.2);
   }
   
-  /* Melhorias nos cards */
+  /* Efeitos de hover para os cards */
   .card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
@@ -448,7 +481,7 @@
     box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
   }
 
-  /* Animação para os números da estatística */
+  /* Animação de entrada para os números da estatística */
   .number-animation {
     animation: pop-in 0.6s ease-out forwards;
   }
@@ -472,7 +505,7 @@
     transform: translateY(-10px);
   }
   
-  /* Novos estilos para os cards de notícias */
+  /* Estilos para os cards de notícias */
   .news-card {
     overflow: hidden;
     box-shadow: 0 5px 15px rgba(0,0,0,0.08);
@@ -494,6 +527,7 @@
     padding-top: 15px;
   }
   
+  /* Estilo para os títulos de seção com linha decorativa */
   h2.mb-4.pb-2.text-center {
     position: relative;
   }
@@ -508,7 +542,7 @@
     border-radius: 2px;
   }
 
-  /* Estilo para o separador visual */
+  /* Separador visual entre seções */
   .separator {
     border: 0;
     height: 1px;
@@ -516,13 +550,13 @@
     margin: 2rem 0;
   }
   
-  /* Melhorias visuais para as seções */
+  /* Estilização de containers com sombra */
   .container.py-5.bg-white.rounded.shadow,
   .container.mt-5.py-4.bg-light.rounded.shadow {
     border: 1px solid rgba(0,0,0,0.05);
   }
   
-  /* Estilo para as hashtags */
+  /* Estilo para as hashtags das notícias */
   .badge.bg-light.text-primary {
     transition: all 0.3s ease;
     font-weight: 500;
@@ -535,7 +569,7 @@
     color: white !important;
   }
 
-  /* Estilos para os eventos na página inicial */
+  /* Estilos para a lista de eventos */
   .evento-item {
     border-radius: 8px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;

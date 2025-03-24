@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}{{ servico.nome }}{% endblock %}
+{% block title %}{{ servico.nome }} - Capacidade FABLAB{% endblock %}
 
 {% block head %}
 <style>
@@ -44,11 +44,6 @@
   .service-detail-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  }
-  
-  .price-tag {
-    font-size: 1.8rem;
-    font-weight: bold;
   }
   
   .timeline {
@@ -124,6 +119,19 @@
     height: 180px;
     object-fit: cover;
   }
+  
+  .capabilities-list {
+    padding-left: 0;
+    list-style: none;
+  }
+  
+  .capabilities-list li {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
+    border-left: 3px solid var(--primary-color);
+    border-radius: 4px;
+  }
 </style>
 {% endblock %}
 
@@ -135,14 +143,14 @@
       <div class="col-lg-8">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'options:servicos' %}" class="text-white">Serviços</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'options:servicos' %}" class="text-white">Capacidades</a></li>
             <li class="breadcrumb-item"><a href="{% url 'options:servicos' %}?categoria={{ servico.categoria.id }}" class="text-white">{{ servico.categoria.nome }}</a></li>
             <li class="breadcrumb-item active text-white" aria-current="page">{{ servico.nome }}</li>
           </ol>
         </nav>
         <h1 class="display-4 fw-bold mb-3">{{ servico.nome }}</h1>
         <p class="lead mb-4">{{ servico.descricao_curta }}</p>
-        <a href="#solicitar" class="btn btn-primary btn-lg">Solicitar Orçamento</a>
+        <a href="#interesse" class="btn btn-primary btn-lg">Tenho Interesse</a>
       </div>
     </div>
   </div>
@@ -156,50 +164,57 @@
       <!-- Description -->
       <div class="card service-detail-card mb-4">
         <div class="card-body">
-          <h2 class="mb-4">Descrição do Serviço</h2>
+          <h2 class="mb-4">Sobre esta Capacidade</h2>
           <div class="mb-4">
             {{ servico.descricao|linebreaks }}
           </div>
-          
-          {% if servico.preco_adicional %}
-          <div class="mt-4">
-            <h5>Informações adicionais sobre custos:</h5>
-            <p>{{ servico.preco_adicional }}</p>
-          </div>
-          {% endif %}
         </div>
       </div>
       
       <!-- Process -->
       <div class="card service-detail-card mb-4">
         <div class="card-body">
-          <h2 class="mb-4">Como Funciona</h2>
+          <h2 class="mb-4">Como Utilizar</h2>
           <div class="timeline">
             <div class="timeline-item">
-              <h5>1. Solicitação de Orçamento</h5>
-              <p>Preencha o formulário de solicitação com os detalhes do seu projeto.</p>
+              <h5>1. Explore a Capacidade</h5>
+              <p>Conheça detalhes sobre o equipamento ou tecnologia disponível.</p>
             </div>
             <div class="timeline-item">
-              <h5>2. Análise Técnica</h5>
-              <p>Nossa equipe analisará a viabilidade e requisitos do seu projeto.</p>
+              <h5>2. Demonstre Interesse</h5>
+              <p>Preencha o formulário para que possamos entender seu projeto.</p>
             </div>
             <div class="timeline-item">
-              <h5>3. Orçamento Detalhado</h5>
-              <p>Enviaremos um orçamento com custos, prazos e especificações.</p>
+              <h5>3. Consultoria Inicial</h5>
+              <p>Nossa equipe analisará seu projeto e agendará uma consultoria.</p>
             </div>
             <div class="timeline-item">
-              <h5>4. Aprovação e Pagamento</h5>
-              <p>Após sua aprovação, será gerada a GRU para pagamento.</p>
+              <h5>4. Treinamento</h5>
+              <p>Participe de um treinamento específico para o uso do equipamento.</p>
             </div>
             <div class="timeline-item">
-              <h5>5. Execução</h5>
-              <p>Seu projeto será desenvolvido por nossa equipe especializada.</p>
+              <h5>5. Agendamento</h5>
+              <p>Agende um horário para utilizar o laboratório com supervisão.</p>
             </div>
             <div class="timeline-item">
-              <h5>6. Entrega</h5>
-              <p>O projeto finalizado será entregue conforme as especificações.</p>
+              <h5>6. Execução</h5>
+              <p>Utilize o equipamento para desenvolver seu projeto com suporte técnico.</p>
             </div>
           </div>
+        </div>
+      </div>
+      
+      <!-- Possible Applications -->
+      <div class="card service-detail-card mb-4">
+        <div class="card-body">
+          <h2 class="mb-4">Aplicações Possíveis</h2>
+          <ul class="capabilities-list">
+            <li>Prototipagem rápida de componentes e produtos</li>
+            <li>Desenvolvimento de projetos acadêmicos e de pesquisa</li>
+            <li>Criação de modelos de demonstração e apresentação</li>
+            <li>Projetos de extensão e comunitários</li>
+            <li>Desenvolvimento de soluções para problemas locais</li>
+          </ul>
         </div>
       </div>
       
@@ -227,10 +242,10 @@
       </div>
       {% endif %}
       
-      <!-- Request Form -->
-      <div id="solicitar" class="card service-detail-card mb-4">
+      <!-- Interest Form -->
+      <div id="interesse" class="card service-detail-card mb-4">
         <div class="card-body">
-          <h2 class="mb-4">Solicitar Orçamento</h2>
+          <h2 class="mb-4">Tenho Interesse</h2>
           
           <div class="form-container">
             <form method="post" enctype="multipart/form-data">
@@ -268,7 +283,7 @@
               </div>
               
               <div class="mb-3">
-                <label for="{{ form.descricao_projeto.id_for_label }}" class="form-label">Descreva seu projeto</label>
+                <label for="{{ form.descricao_projeto.id_for_label }}" class="form-label">Descreva seu projeto ou interesse</label>
                 {{ form.descricao_projeto }}
                 {% if form.descricao_projeto.errors %}
                   <div class="alert alert-danger mt-1">
@@ -287,7 +302,7 @@
               
               <div class="text-center">
                 <button type="submit" class="btn btn-primary btn-lg">
-                  <i class="fas fa-paper-plane me-2"></i> Enviar Solicitação
+                  <i class="fas fa-paper-plane me-2"></i> Demonstrar Interesse
                 </button>
               </div>
             </form>
@@ -298,22 +313,15 @@
     
     <!-- Sidebar -->
     <div class="col-lg-4">
-      <!-- Price Card -->
+      <!-- Info Card -->
       <div class="card service-detail-card sticky-top mb-4" style="top: 2rem; z-index: 999;">
         <div class="card-body">
           <h3>Informações</h3>
           <hr>
           
-          {% if servico.preco_base %}
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="fw-bold">Valor a partir de:</span>
-            <span class="price-tag text-primary">R$ {{ servico.preco_base }}</span>
-          </div>
-          {% endif %}
-          
           {% if servico.tempo_estimado %}
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="fw-bold">Prazo estimado:</span>
+            <span class="fw-bold">Tempo médio de uso:</span>
             <span class="badge bg-info text-dark">{{ servico.tempo_estimado }}</span>
           </div>
           {% endif %}
@@ -323,7 +331,25 @@
             <span class="badge bg-secondary">{{ servico.categoria.nome }}</span>
           </div>
           
-          <a href="#solicitar" class="btn btn-primary w-100 mt-3">Solicitar Orçamento</a>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="fw-bold">Requer treinamento:</span>
+            <span class="badge bg-warning text-dark">Sim</span>
+          </div>
+          
+          <a href="#interesse" class="btn btn-primary w-100 mt-3">Tenho Interesse</a>
+        </div>
+      </div>
+      
+      <!-- Equipment Specifications -->
+      <div class="card service-detail-card mb-4">
+        <div class="card-body">
+          <h3 class="mb-3">Especificações Técnicas</h3>
+          <ul class="specs-list">
+            <li>Disponível para projetos acadêmicos</li>
+            <li>Suporte técnico durante utilização</li>
+            <li>Materiais básicos disponíveis</li>
+            <li>Uso supervisionado para iniciantes</li>
+          </ul>
         </div>
       </div>
       
@@ -331,7 +357,7 @@
       {% if servicos_relacionados %}
       <div class="card service-detail-card mb-4">
         <div class="card-body">
-          <h3 class="mb-3">Serviços Relacionados</h3>
+          <h3 class="mb-3">Capacidades Relacionadas</h3>
           <div class="list-group">
             {% for sr in servicos_relacionados %}
             <a href="{% url 'options:detalhe_servico' sr.id %}" class="list-group-item list-group-item-action">
@@ -357,7 +383,7 @@
       <div class="card service-detail-card">
         <div class="card-body">
           <h3 class="mb-3">Precisa de ajuda?</h3>
-          <p>Entre em contato com nossa equipe para mais informações sobre este serviço.</p>
+          <p>Entre em contato com nossa equipe para mais informações sobre esta capacidade.</p>
           <div class="d-grid gap-2">
             <a href="mailto:fablab@ifmt.edu.br" class="btn btn-outline-primary">
               <i class="fas fa-envelope me-2"></i>fablab@ifmt.edu.br

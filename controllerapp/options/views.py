@@ -2,8 +2,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from .models import Material, Membro, CategoriaServico, Servico, SolicitacaoOrcamento, Noticia, Hashtag
-from .forms import SolicitacaoOrcamentoForm
+from django.core.mail import send_mail
+from django.conf import settings
+from django.template.loader import render_to_string
+from .models import Material, Membro, CategoriaServico, Servico, SolicitacaoInteresse, Noticia, Hashtag
+from .forms import SolicitacaoInteresseForm
+
+# Importar a função de envio de email do app Email_notificacoes
+from Email_notificacoes.models import enviar_email_notificacao_interesse
 
 # Create your views here.
 
@@ -44,16 +50,20 @@ def servicos(request):
 
 def detalhe_servico(request, servico_id):
     servico = get_object_or_404(Servico, id=servico_id, disponivel=True)
-    form = SolicitacaoOrcamentoForm(initial={'servico': servico})
+    form = SolicitacaoInteresseForm(initial={'servico': servico})
     
     if request.method == 'POST':
-        form = SolicitacaoOrcamentoForm(request.POST, request.FILES)
+        form = SolicitacaoInteresseForm(request.POST, request.FILES)
         if form.is_valid():
             solicitacao = form.save(commit=False)
             if request.user.is_authenticated:
                 solicitacao.usuario = request.user
             solicitacao.save()
-            messages.success(request, 'Sua solicitação de orçamento foi enviada com sucesso! Entraremos em contato em breve.')
+            
+            # Enviar email de notificação de forma assíncrona
+            enviar_email_notificacao_interesse(solicitacao)
+            messages.success(request, 'Sua solicitação de interesse foi registrada com sucesso! Entraremos em contato em breve.')
+            
             return redirect('options:detalhe_servico', servico_id=servico.id)
     
     servicos_relacionados = Servico.objects.filter(categoria=servico.categoria, disponivel=True).exclude(id=servico.id)[:3]
@@ -67,12 +77,12 @@ def detalhe_servico(request, servico_id):
 
 @login_required
 def minhas_solicitacoes(request):
-    solicitacoes = SolicitacaoOrcamento.objects.filter(usuario=request.user)
+    solicitacoes = SolicitacaoInteresse.objects.filter(usuario=request.user)
     return render(request, 'minhas_solicitacoes.html', {'solicitacoes': solicitacoes})
 
 @login_required
 def solicitacao_detalhe(request, solicitacao_id):
-    solicitacao = get_object_or_404(SolicitacaoOrcamento, id=solicitacao_id)
+    solicitacao = get_object_or_404(SolicitacaoInteresse, id=solicitacao_id)
     
     # Verificar se o usuário atual é o dono da solicitação ou é staff
     if request.user != solicitacao.usuario and not request.user.is_staff:

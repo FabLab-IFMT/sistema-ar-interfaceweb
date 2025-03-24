@@ -7,6 +7,7 @@
     <meta name="description" content="Sistema de gestão do laboratório FABLAB IFMT">
     <title>{% block title %}{% endblock %} | FABLAB IFMT</title>
 
+    <!-- Arquivos CSS principais -->
     <link rel="stylesheet" href="{% static 'style.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -89,6 +90,8 @@
         list-style: none;
         margin: 0;
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        position: absolute;
+        z-index: 1000;
       }
 
       .nav-item.project:hover .drop-down {
@@ -117,12 +120,6 @@
         height: 100%;
       }
       
-      footer {
-        background-color: #343a40;
-        color: #f8f9fa;
-        margin-top: auto;
-      }
-      
       .user-welcome {
         display: flex;
         align-items: center;
@@ -138,12 +135,109 @@
         opacity: 1;
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
       }
+      
+      /* Estilos adicionados para o novo footer */
+      footer {
+        background-color: #212529;
+        color: #f8f9fa;
+        margin-top: auto;
+      }
+      
+      footer h5 {
+        color: #ffffff;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+      }
+      
+      footer h5::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: 2px;
+        width: 50px;
+        background-color: var(--primary-color);
+      }
+      
+      .footer-logo {
+        max-height: 60px;
+        margin-bottom: 15px;
+      }
+      
+      .footer-links ul li {
+        padding: 0.35rem 0;
+      }
+      
+      .footer-links ul li a {
+        color: #e2e2e2;
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+      
+      .footer-links ul li a:hover {
+        color: #ffffff;
+        padding-left: 5px;
+      }
+      
+      .social-links {
+        display: flex;
+        gap: 10px;
+      }
+      
+      .social-links a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        background-color: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        color: #ffffff;
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+      
+      .social-links a:hover {
+        background-color: var(--primary-color);
+        transform: translateY(-3px);
+      }
+      
+      .contact-info li {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 16px;
+      }
+      
+      .contact-info li i {
+        margin-right: 12px;
+        margin-top: 5px;
+        color: var(--primary-color);
+      }
+      
+      .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding-top: 20px;
+        margin-top: 30px;
+        padding-bottom: 20px;
+      }
+      
+      @media (max-width: 768px) {
+        .footer-links {
+          margin-bottom: 30px;
+        }
+        
+        .footer-bottom {
+          text-align: center;
+        }
+      }
     </style>
   </head>
 
   <body class="d-flex flex-column min-vh-100">
     
-    <!-- Navbar -->
+    <!-- Navbar - Barra de navegação principal -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
       <div class="container">
         <!-- Logo link para home -->
@@ -156,6 +250,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarColor02">
           <ul class="navbar-nav me-auto">
+            <!-- Links de navegação principal -->
             <li class="nav-item">
               <a class="nav-link" href="/">
                 <i class="fas fa-home me-1"></i> Home
@@ -166,6 +261,7 @@
                 <i class="fas fa-info-circle me-1"></i> Sobre
               </a>
             </li>
+            <!-- Menu dropdown do FABLAB -->
             <li class="nav-item project">
               <a class="nav-link">
                 <i class="fas fa-flask me-1"></i> FABLAB <i class="fas fa-caret-down ms-1"></i>
@@ -183,6 +279,7 @@
               </ul>
             </li>
             
+            <!-- Links disponíveis apenas para usuários autenticados -->
             {% if user.is_authenticated %}
             <li class="nav-item">
               <a class="nav-link agenda-with-notification" href="{% url 'logs:agenda_home' %}">
@@ -201,6 +298,7 @@
             </li>
             {% endif %}
             
+            <!-- Menu de projetos -->
             <li class="nav-item project">
               <a class="nav-link" {% if user.is_staff %}href="/projects"{% endif %}>
                 <i class="fas fa-project-diagram me-1"></i> Projetos <i class="fas fa-caret-down ms-1"></i>
@@ -210,6 +308,7 @@
               </ul>
             </li>
             
+            <!-- Link de automação (apenas para administradores) -->
             {% if user.is_authenticated and user.is_staff %}
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'Controle_ar:automacao_home' %}">
@@ -219,6 +318,7 @@
             {% endif %}
           </ul>
 
+          <!-- Bloco de autenticação do usuário -->
           <div class="d-flex align-items-center">
             {% if user.is_authenticated %}
               <div class="user-welcome text-light">
@@ -244,7 +344,7 @@
       </div>
     </nav>
         
-    <!-- Toast Container para mensagens -->
+    <!-- Container de Toast para mensagens de notificação -->
     <div aria-live="polite" aria-atomic="true" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
       {% if messages %}
         {% for message in messages %}
@@ -271,6 +371,7 @@
     <!-- Conteúdo Principal -->
     <main class="container py-4">
       {% block content %}
+      <!-- Conteúdo padrão - substituído nos templates filhos -->
       <!-- Exemplo de Carrossel Bootstrap 5 -->
       <section class="mb-5">
         <div class="card shadow">
@@ -325,55 +426,110 @@
       {% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="text-center mt-auto py-4 bg-dark text-white">
+    <!-- Footer - Rodapé do site -->
+    <footer class="pt-5 mt-auto bg-dark text-white">
       <div class="container">
         <div class="row">
-          <div class="col-md-4 mb-4 mb-md-0">
-            <h5>FABLAB IFMT</h5>
-            <p class="small">
-              Laboratório de fabricação digital e inovação tecnológica do Instituto Federal de Mato Grosso.
+          <!-- Coluna 1 - Informações do FabLab -->
+          <div class="col-lg-4 col-md-6 mb-4 mb-md-0 footer-links">
+            <h5>Sobre o FabLab</h5>
+            <div class="mb-3">
+              <img src="{% static 'images/logo.png' %}" alt="Logo FABLAB" class="footer-logo">
+            </div>
+            <p class="mb-3">
+              Laboratório de fabricação digital e inovação tecnológica do Instituto Federal de Mato Grosso, dedicado ao desenvolvimento de projetos e soluções criativas.
             </p>
+            <!-- Links de redes sociais -->
+            <div class="social-links mt-3">
+              <a href="https://www.instagram.com/ifmtmaker/" target="_blank" aria-label="Instagram" title="Instagram">
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a href="https://github.com/FabLab-IFMT" target="_blank" aria-label="GitHub" title="GitHub">
+                <i class="fab fa-github"></i>
+              </a>
+              <a href="https://www.youtube.com/channel/UCxxxxxxxx" target="_blank" aria-label="YouTube" title="YouTube">
+                <i class="fab fa-youtube"></i>
+              </a>
+              <a href="https://www.facebook.com/ifmtoficial/" target="_blank" aria-label="Facebook" title="Facebook">
+                <i class="fab fa-facebook-f"></i>
+              </a>
+            </div>
           </div>
-          <div class="col-md-4 mb-4 mb-md-0">
+          
+          <!-- Coluna 2 - Links Úteis -->
+          <div class="col-lg-3 col-md-6 mb-4 mb-md-0 footer-links">
             <h5>Links Úteis</h5>
             <ul class="list-unstyled">
-              <li><a href="/" class="text-white">Home</a></li>
-              <li><a href="/about" class="text-white">Sobre</a></li>
-              <li><a href="{% url 'options:equipamentos' %}" class="text-white">Equipamentos</a></li>
+              <li><a href="/" class="d-block"><i class="fas fa-chevron-right me-2"></i>Home</a></li>
+              <li><a href="/about" class="d-block"><i class="fas fa-chevron-right me-2"></i>Sobre</a></li>
+              <li><a href="{% url 'options:equipamentos' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Equipamentos</a></li>
+              <li><a href="{% url 'options:servicos' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Serviços</a></li>
+              <li><a href="{% url 'logs:agenda_home' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Agenda</a></li>
+              <li><a href="{% url 'options:noticias' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Notícias</a></li>
             </ul>
           </div>
-          <div class="col-md-4">
-            <h5>Contato</h5>
+          
+          <!-- Coluna 3 - Serviços -->
+          <div class="col-lg-2 col-md-6 mb-4 mb-md-0 footer-links">
+            <h5>Serviços</h5>
             <ul class="list-unstyled">
-              <li><i class="fas fa-envelope me-2"></i> fablab@ifmt.edu.br</li>
-              <li><i class="fas fa-map-marker-alt me-2"></i> IFMT Campus Cuiabá</li>
+              <li><a href="#" class="d-block"><i class="fas fa-chevron-right me-2"></i>Impressão 3D</a></li>
+              <li><a href="#" class="d-block"><i class="fas fa-chevron-right me-2"></i>Corte a Laser</a></li>
+              <li><a href="#" class="d-block"><i class="fas fa-chevron-right me-2"></i>Prototipagem</a></li>
+              <li><a href="#" class="d-block"><i class="fas fa-chevron-right me-2"></i>Capacitação</a></li>
+              <li><a href="#" class="d-block"><i class="fas fa-chevron-right me-2"></i>Consultoria</a></li>
+            </ul>
+          </div>
+          
+          <!-- Coluna 4 - Contato -->
+          <div class="col-lg-3 col-md-6 mb-4 mb-md-0 footer-links">
+            <h5>Contato</h5>
+            <ul class="list-unstyled contact-info">
               <li>
-                <a href="https://www.instagram.com/ifmtmaker/" class="text-white me-2" target="_blank">
-                  <i class="fab fa-instagram fa-lg"></i>
-                </a>
-                <a href="https://github.com/FabLab-IFMT" class="text-white" target="_blank">
-                  <i class="fab fa-github fa-lg"></i>
-                </a>
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Rua Zulmira Canavarros, 95, Centro, Cuiabá - MT, 78005-200</span>
+              </li>
+              <li>
+                <i class="fas fa-envelope"></i>
+                <span>fablab@ifmt.edu.br</span>
+              </li>
+              <li>
+                <i class="fas fa-phone"></i>
+                <span>(65) 3318-1400</span>
+              </li>
+              <li>
+                <i class="fas fa-clock"></i>
+                <span>Segunda à Sexta: 8:00 - 18:00</span>
               </li>
             </ul>
           </div>
         </div>
-      </div>
-      <div class="text-center p-3 mt-3" style="background-color: rgba(0, 0, 0, 0.2);">
-        © 2025 Copyright:
-        <a class="text-white" href="https://www.instagram.com/ifmtmaker/">IFMT - MAKER</a>
+        
+        <!-- Copyright e informações legais -->
+        <div class="row footer-bottom">
+          <div class="col-md-6 text-center text-md-start">
+            <p>&copy; 2025 FABLAB IFMT. Todos os direitos reservados.</p>
+          </div>
+          <div class="col-md-6 text-center text-md-end">
+            <p>
+                Desenvolvido com <i class="fas fa-heart text-danger"></i> pelo <a href="https://github.com/henrltop" target="_blank" class="text-white">Henrique</a> e equipe
+              <!-- Adicione aqui um link para a política de privacidade se desejar -->
+              <!-- <a href="/privacy-policy" class="text-white ms-2">Política de Privacidade</a> -->
+            </p>
+          </div>
+        </div>
       </div>
     </footer>
 
-    <!-- Scripts -->
+    <!-- Scripts JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
             crossorigin="anonymous"></script>
     
+    <!-- Script para inicializar os toasts -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        // Inicialização dos Toasts
+        // Inicialização dos Toasts para mensagens temporárias
         var toastElements = document.querySelectorAll('.toast');
         toastElements.forEach(function (toastEl) {
           var toast = new bootstrap.Toast(toastEl, {
@@ -385,6 +541,7 @@
       });
     </script>
     
+    <!-- Bloco para scripts específicos de cada página -->
     {% block scripts %}{% endblock %}
 
   </body>

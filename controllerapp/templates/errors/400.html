@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+
+{% block title %}Requisição Inválida (400){% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card {% if theme == 'dark' %}bg-dark text-light{% endif %}">
+                <div class="card-body">
+                    <h1 class="display-1">400</h1>
+                    <h2 class="mb-4">Requisição Inválida</h2>
+                    <p class="lead">Não foi possível processar a sua requisição porque ela contém erros.</p>
+                    <p>Verifique os dados informados e tente novamente.</p>
+                    <a href="{% url 'home' %}" class="btn btn-primary mt-3">Voltar para a página inicial</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

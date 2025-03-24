@@ -6,9 +6,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-q25vadyhqou5z75*^oc#ln6g04f&+t6w@7&2!m$@dr^$h_ch!2'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Para testar as páginas de erro com imagens funcionando
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
+
+#templates de KeyError
+TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
 
 # Application definition

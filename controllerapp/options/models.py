@@ -54,8 +54,6 @@ class Servico(models.Model):
     descricao_curta = models.CharField(max_length=200)
     descricao = models.TextField()
     imagem = models.ImageField(upload_to='servicos/', blank=True)
-    preco_base = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Preço base ou mínimo")
-    preco_adicional = models.TextField(blank=True, help_text="Explicação sobre custos adicionais ou variáveis")
     tempo_estimado = models.CharField(max_length=100, blank=True, help_text="Ex: '2-3 dias', '1 semana', etc.")
     disponivel = models.BooleanField(default=True)
     destaque = models.BooleanField(default=False, help_text="Serviço em destaque na página inicial")
@@ -80,14 +78,12 @@ class ProjetoExemplo(models.Model):
     def __str__(self):
         return self.titulo
 
-class SolicitacaoOrcamento(models.Model):
+class SolicitacaoInteresse(models.Model):
     STATUS_CHOICES = [
         ('pendente', 'Pendente'),
         ('analise', 'Em Análise'),
-        ('respondido', 'Orçamento Enviado'),
-        ('aprovado', 'Aprovado pelo Cliente'),
-        ('recusado', 'Recusado pelo Cliente'),
-        ('concluido', 'Serviço Concluído'),
+        ('respondido', 'Respondido'),
+        ('concluido', 'Contato Realizado'),
         ('cancelado', 'Cancelado'),
     ]
     
@@ -96,20 +92,19 @@ class SolicitacaoOrcamento(models.Model):
     email = models.EmailField()
     telefone = models.CharField(max_length=20, blank=True)
     servico = models.ForeignKey(Servico, on_delete=models.CASCADE)
-    descricao_projeto = models.TextField(help_text="Descreva seu projeto ou necessidade em detalhes")
-    arquivo_referencia = models.FileField(upload_to='orcamentos/', blank=True, null=True, help_text="Arquivo de referência ou modelo")
+    descricao_projeto = models.TextField(help_text="Descreva seu interesse ou projeto em detalhes")
+    arquivo_referencia = models.FileField(upload_to='interesses/', blank=True, null=True, help_text="Arquivo de referência ou modelo")
     data_solicitacao = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
-    valor_orcado = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     observacoes_admin = models.TextField(blank=True, help_text="Observações internas (visíveis apenas para staff)")
     
     class Meta:
-        verbose_name = 'Solicitação de Orçamento'
-        verbose_name_plural = 'Solicitações de Orçamentos'
+        verbose_name = 'Solicitação de Interesse'
+        verbose_name_plural = 'Solicitações de Interesse'
         ordering = ['-data_solicitacao']
     
     def __str__(self):
-        return f"Orçamento {self.id} - {self.servico.nome} ({self.nome})"
+        return f"Interesse {self.id} - {self.servico.nome} ({self.nome})"
 
 class Hashtag(models.Model):
     nome = models.CharField(max_length=50, unique=True)

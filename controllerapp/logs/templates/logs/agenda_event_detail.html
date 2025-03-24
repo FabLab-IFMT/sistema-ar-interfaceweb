@@ -103,9 +103,9 @@
                         <h5>Administração</h5>
                         <div class="d-grid gap-2">
                             {% if not event.approved %}
-                            <a href="{% url 'logs:approve_event' event.id %}" class="btn btn-success">Aprovar Evento</a>
+                            <a href="{% url 'logs:agenda_approve_event' event.id %}" class="btn btn-success">Aprovar Evento</a>
                             {% endif %}
-                            <a href="{% url 'logs:delete_event' event.id %}" class="btn btn-danger" 
+                            <a href="{% url 'logs:agenda_delete_event' event.id %}" class="btn btn-danger" 
                                onclick="return confirm('Tem certeza que deseja excluir este evento?');">Excluir Evento</a>
                         </div>
                     </div>

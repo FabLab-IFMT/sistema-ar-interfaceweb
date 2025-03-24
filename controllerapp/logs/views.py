@@ -139,9 +139,12 @@ def agenda_request_visit(request):
     if request.method == 'POST':
         form = VisitRequestForm(request.POST)
         if form.is_valid():
+            # Criar o evento com os dados separados de data e hora
             event = form.save(commit=False)
-            # Não precisamos definir novamente o event_type aqui, ele já vem no formulário
-            # e está sendo definido como inicial no __init__ do formulário
+            
+            # Usar os valores datetime criados na validação
+            event.start_time = form.start_datetime
+            event.end_time = form.end_datetime
             
             # O usuário logado é o criador do evento
             event.created_by = request.user
@@ -153,8 +156,10 @@ def agenda_request_visit(request):
                 f"Solicitante: {form.cleaned_data['visitor_name']}\n"
                 f"Email: {form.cleaned_data['visitor_email']}\n"
                 f"Telefone: {form.cleaned_data['visitor_phone']}\n"
-                f"Número de visitantes: {form.cleaned_data['number_of_visitors']}\n\n"
-                f"Descrição da visita:\n{event.description}"
+                f"Número de visitantes: {form.cleaned_data['number_of_visitors']}\n"
+                f"Data da visita: {form.cleaned_data['visit_date'].strftime('%d/%m/%Y')}\n"
+                f"Horário: {form.cleaned_data['start_hour'].strftime('%H:%M')} - {form.cleaned_data['end_hour'].strftime('%H:%M')}\n\n"
+                f"Detalhes adicionais:\n{event.description}"
             )
             event.description = visitor_info
             event.save()

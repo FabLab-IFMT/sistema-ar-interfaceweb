@@ -75,3 +75,24 @@ def home(request):
     }
     
     return render(request, 'home.html', context)
+
+# Handlers de erros personalizados - modificados para funcionarem com URLs de teste
+def bad_request(request, exception=None):
+    """View para erro 400 - Bad Request"""
+    theme = get_theme(request)
+    return render(request, 'errors/400.html', {'theme': theme}, status=400)
+
+def permission_denied(request, exception=None):
+    """View para erro 403 - Forbidden"""
+    theme = get_theme(request)
+    return render(request, 'errors/403.html', {'theme': theme}, status=403)
+
+def page_not_found(request, exception=None):
+    """View para erro 404 - Page Not Found"""
+    theme = get_theme(request)
+    return render(request, 'errors/404.html', {'theme': theme}, status=404)
+
+def server_error(request, exception=None):
+    """View para erro 500 - Server Error - modificado para aceitar exception"""
+    theme = get_theme(request)
+    return render(request, 'errors/500.html', {'theme': theme}, status=500)
