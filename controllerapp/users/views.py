@@ -5,6 +5,7 @@ from django.contrib.auth import login, logout
 from django.contrib import messages
 from .models import CustomUser, Card
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from logs.utils import log_user_action
 
 def login_view(request): 
     if request.method == "POST": 
@@ -44,8 +45,10 @@ def register_view(request):
     return render(request, "users/register.html", { "form": form })
 
 def logout_view(request):
-    if request.method == "POST": 
-        logout(request) 
+    if request.method == "POST":
+        # Removendo completamente o registro de log no logout
+        # para evitar problemas com o campo author
+        logout(request)
         return redirect("/")
     return redirect("/")
 

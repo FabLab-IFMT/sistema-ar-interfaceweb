@@ -1,15 +1,20 @@
-from .models import Event
+from django.db.models import Count
+from django.utils import timezone
+from .models import Action, Event
 
 def pending_events_count(request):
-    """
-    Adiciona a contagem de eventos pendentes ao contexto global para administradores
-    """
-    context = {
-        'global_pending_count': 0
-    }
+    """Fornece contagem de eventos pendentes para o layout geral"""
+    context = {}
     
-    # Verificar se o usuário está autenticado e é staff
+    # Só adicionar para usuários staff
     if request.user.is_authenticated and request.user.is_staff:
-        context['global_pending_count'] = Event.objects.filter(approved=False).count()
+        context['pending_events_count'] = Event.objects.filter(approved=False).count()
+        
+        # Adicionar contagem de erros recentes (últimos 7 dias)
+        one_week_ago = timezone.now().date() - timezone.timedelta(days=7)
+        context['recent_errors_count'] = Action.objects.filter(
+            date__gte=one_week_ago,
+            severity__in=['error', 'critical']
+        ).count()
     
     return context

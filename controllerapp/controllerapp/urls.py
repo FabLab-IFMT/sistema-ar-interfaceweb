@@ -16,7 +16,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('about/', views.about, name='about'),
     path('projects/', views.projects, name='projects'),
-    path('users/', include('users.urls')),
+    path('users/', include('users.urls')),  # Garante que o app users está incluído
     path('logs/', include('logs.urls')),
     path('painelar/', include('Controle_ar.urls')),
     path('options/', include('options.urls')),

@@ -3,11 +3,13 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils import timezone
 from django.urls import reverse
+from django.db.models import Count
 from datetime import datetime, timedelta, date
 import calendar
 from .models import Action, Event, LabSchedule
 from .scripts import FormattedAction
 from .forms import EventForm, VisitRequestForm
+from .utils import log_user_action
 from Email_notificacoes.models import enviar_email_solicitacao_enviada, enviar_email_solicitacao_aprovada
 
 def staff_check(user):
@@ -16,20 +18,60 @@ def staff_check(user):
 # Views para logs (acesso apenas para staff)
 @user_passes_test(staff_check)
 def logs_list(request):
-    dates = []
-
-    for action in Action.objects.all():
-        if action.date not in dates:
-            dates.append(action.date)
-
-    return render(request, 'logs/logs_list.html', {'dates': dates})
+    # Obter datas distintas com ações, ordenadas por data decrescente
+    # Também contamos o número de ações por data e o nível mais alto de severidade
+    dates_with_stats = Action.objects.values('date')\
+        .annotate(count=Count('id'))\
+        .order_by('-date')
+    
+    # Para cada data, verificamos o nível máximo de severidade
+    for date_stat in dates_with_stats:
+        # Verificar se há erros críticos
+        if Action.objects.filter(date=date_stat['date'], severity='critical').exists():
+            date_stat['max_severity'] = 'critical'
+        # Verificar se há erros
+        elif Action.objects.filter(date=date_stat['date'], severity='error').exists():
+            date_stat['max_severity'] = 'error'
+        # Verificar se há alertas de segurança
+        elif Action.objects.filter(date=date_stat['date'], severity='security').exists():
+            date_stat['max_severity'] = 'security'
+        # Verificar se há avisos
+        elif Action.objects.filter(date=date_stat['date'], severity='warning').exists():
+            date_stat['max_severity'] = 'warning'
+        # Se não, é informativo
+        else:
+            date_stat['max_severity'] = 'info'
+    
+    return render(request, 'logs/logs_list.html', {'dates_with_stats': dates_with_stats})
 
 @user_passes_test(staff_check)
 def logs_datepage(request, day, month, year):
-    actions = [FormattedAction(action) for action in Action.objects.all().order_by('time') if action.date == date(year, month, day)]    
+    # Filtrar por severidade se fornecido
+    severity = request.GET.get('severity')
+    
+    actions_query = Action.objects.filter(date=date(year, month, day))
+    
+    if severity:
+        actions_query = actions_query.filter(severity=severity)
+    
+    # Ordenar por hora e formatar
+    actions = [FormattedAction(action) for action in actions_query.order_by('time')]
     current_date = date(year, month, day)
-
-    return render(request, 'logs/logs_datepage.html', {'actions': actions, 'date': current_date})
+    
+    # Estatísticas para este dia
+    stats = {
+        'total': actions_query.count(),
+        'errors': actions_query.filter(severity__in=['error', 'critical']).count(),
+        'warnings': actions_query.filter(severity='warning').count(),
+        'security': actions_query.filter(severity='security').count(),
+    }
+    
+    return render(request, 'logs/logs_datepage.html', {
+        'actions': actions, 
+        'date': current_date,
+        'stats': stats,
+        'active_severity': severity,
+    })
 
 # Views para Agenda (acesso apenas para usuários logados)
 @login_required

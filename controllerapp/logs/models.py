@@ -3,14 +3,36 @@ from django.utils.translation import gettext_lazy as _
 from users.models import CustomUser
 
 class Action(models.Model):
+    class SeverityLevel(models.TextChoices):
+        INFO = 'info', _('Informação')
+        WARNING = 'warning', _('Atenção')
+        ERROR = 'error', _('Erro')
+        CRITICAL = 'critical', _('Crítico')
+        SECURITY = 'security', _('Segurança')
+    
     author = models.CharField(max_length=255)
     type = models.CharField(max_length=255)
     description = models.TextField()
     date = models.DateField()
     time = models.TimeField()
+    url = models.CharField(max_length=255, blank=True, null=True)
+    severity = models.CharField(
+        max_length=20,
+        choices=SeverityLevel.choices,
+        default=SeverityLevel.INFO
+    )
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True, null=True)
     
     def __str__(self):
         return f"{self.type} - {self.date} {self.time}"
+    
+    class Meta:
+        ordering = ['date', 'time']
+        indexes = [
+            models.Index(fields=['date']),
+            models.Index(fields=['severity']),
+        ]
 
 class Event(models.Model):
     class EventType(models.TextChoices):

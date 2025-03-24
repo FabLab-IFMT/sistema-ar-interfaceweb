@@ -1,20 +1,247 @@
 {% extends 'layout.html' %}
 
 {% block title %}
-    Ações em {{date}}
+    Logs de {{ date|date:"d/m/Y" }}
 {% endblock %}
 
-{% block content%}
-    <h1 style="margin-bottom: 20px;">Ações realizadas em {{date}}</h1>
-    {% for action in actions %}
-        <div class="card border-primary mb-3" style="max-width: 30rem; margin-left: 10px">
-            <div class="card-header">
-                {{action.time}} por {{action.author}}
-            </div>
-            <div class="card-body">
-                <h4 class="card-title">{{action.type}}</h4>
-                <p class="card-text">{{action.description}}</p>
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-gradient-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-calendar-day me-2"></i> 
+                            Atividades do dia {{ date|date:"d/m/Y" }} 
+                            <small class="text-white-50">({{ date|date:"l"|title }})</small>
+                        </h4>
+                        <a href="{% url 'logs:index' %}" class="btn btn-outline-light">
+                            <i class="fas fa-arrow-left me-1"></i> Voltar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Painel de estatísticas -->
+                    <div class="row gx-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="card shadow-sm border-primary h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="text-primary mb-0"><i class="fas fa-file-alt fa-2x"></i></h5>
+                                    <h6 class="mt-2 mb-0">Total de Atividades</h6>
+                                    <h2 class="mt-2 mb-0">{{ stats.total }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        {% if stats.errors > 0 %}
+                        <div class="col-md-3">
+                            <div class="card shadow-sm border-danger h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="text-danger mb-0"><i class="fas fa-exclamation-triangle fa-2x"></i></h5>
+                                    <h6 class="mt-2 mb-0">Erros</h6>
+                                    <h2 class="mt-2 mb-0">{{ stats.errors }}</h2>
+                                </div>
+                                <div class="card-footer bg-light p-2 text-center">
+                                    <a href="?severity=error" class="btn btn-sm btn-outline-danger w-100 {% if active_severity == 'error' %}active{% endif %}">
+                                        <i class="fas fa-filter me-1"></i> Filtrar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if stats.security > 0 %}
+                        <div class="col-md-3">
+                            <div class="card shadow-sm border-dark h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="text-dark mb-0"><i class="fas fa-shield-alt fa-2x"></i></h5>
+                                    <h6 class="mt-2 mb-0">Segurança</h6>
+                                    <h2 class="mt-2 mb-0">{{ stats.security }}</h2>
+                                </div>
+                                <div class="card-footer bg-light p-2 text-center">
+                                    <a href="?severity=security" class="btn btn-sm btn-outline-dark w-100 {% if active_severity == 'security' %}active{% endif %}">
+                                        <i class="fas fa-filter me-1"></i> Filtrar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if stats.warnings > 0 %}
+                        <div class="col-md-3">
+                            <div class="card shadow-sm border-warning h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="text-warning mb-0"><i class="fas fa-exclamation-circle fa-2x"></i></h5>
+                                    <h6 class="mt-2 mb-0">Alertas</h6>
+                                    <h2 class="mt-2 mb-0">{{ stats.warnings }}</h2>
+                                </div>
+                                <div class="card-footer bg-light p-2 text-center">
+                                    <a href="?severity=warning" class="btn btn-sm btn-outline-warning w-100 {% if active_severity == 'warning' %}active{% endif %}">
+                                        <i class="fas fa-filter me-1"></i> Filtrar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if active_severity %}
+                    <div class="alert alert-info d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-filter me-2"></i> Mostrando resultados filtrados por severidade: 
+                            {% if active_severity == 'error' %}
+                                <strong>Erros</strong>
+                            {% elif active_severity == 'security' %}
+                                <strong>Segurança</strong>
+                            {% elif active_severity == 'warning' %}
+                                <strong>Alertas</strong>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'logs:datepage' day=date.day month=date.month year=date.year %}" 
+                           class="btn btn-sm btn-secondary">
+                            <i class="fas fa-times me-1"></i> Limpar Filtro
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Timeline de atividades -->
+                    <div class="timeline">
+                        {% if actions %}
+                            {% for action in actions %}
+                                <div class="timeline-item mb-4">
+                                    <div class="timeline-badge bg-{{ action.get_severity_class }}">
+                                        {% if action.severity == 'error' or action.severity == 'critical' %}
+                                            <i class="fas fa-times-circle text-white"></i>
+                                        {% elif action.severity == 'warning' %}
+                                            <i class="fas fa-exclamation-circle text-white"></i>
+                                        {% elif action.severity == 'security' %}
+                                            <i class="fas fa-shield-alt text-white"></i>
+                                        {% else %}
+                                            <i class="fas fa-info-circle text-white"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card shadow-sm border-{% if action.is_error %}danger{% elif action.is_warning %}warning{% elif action.is_security %}dark{% else %}primary{% endif %}">
+                                        <div class="card-header d-flex justify-content-between align-items-center {% if action.is_error %}bg-danger text-white{% elif action.is_warning %}bg-warning{% elif action.is_security %}bg-dark text-white{% else %}bg-light{% endif %}">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    <h5 class="mb-0">{{ action.time }}</h5>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0">{{ action.type }}</h6>
+                                                    <small>Usuário: {{ action.author }}</small>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                {% if action.severity == 'error' %}
+                                                    <span class="badge bg-danger text-white">Erro</span>
+                                                {% elif action.severity == 'critical' %}
+                                                    <span class="badge bg-danger text-white">Erro Crítico</span>
+                                                {% elif action.severity == 'warning' %}
+                                                    <span class="badge bg-warning text-dark">Atenção</span>
+                                                {% elif action.severity == 'security' %}
+                                                    <span class="badge bg-dark text-white">Segurança</span>
+                                                {% else %}
+                                                    <span class="badge bg-primary">Informação</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="description mb-3">
+                                                        <h6 class="fw-bold mb-2">Descrição</h6>
+                                                        <p class="mb-0">{{ action.description|linebreaksbr }}</p>
+                                                    </div>
+                                                    
+                                                    <div class="row g-3">
+                                                        {% if action.url %}
+                                                        <div class="col-md-6">
+                                                            <div class="details-item">
+                                                                <h6 class="text-muted mb-1"><i class="fas fa-link me-1"></i> URL</h6>
+                                                                <code>{{ action.url }}</code>
+                                                            </div>
+                                                        </div>
+                                                        {% endif %}
+                                                        
+                                                        {% if action.ip_address %}
+                                                        <div class="col-md-6">
+                                                            <div class="details-item">
+                                                                <h6 class="text-muted mb-1"><i class="fas fa-network-wired me-1"></i> Endereço IP</h6>
+                                                                <code>{{ action.ip_address }}</code>
+                                                            </div>
+                                                        </div>
+                                                        {% endif %}
+                                                        
+                                                        {% if action.user_agent %}
+                                                        <div class="col-12">
+                                                            <div class="details-item">
+                                                                <h6 class="text-muted mb-1"><i class="fas fa-laptop me-1"></i> User Agent</h6>
+                                                                <small class="text-muted">{{ action.user_agent }}</small>
+                                                            </div>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Nenhuma atividade encontrada para esta data {% if active_severity %}com o filtro selecionado{% endif %}.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
-    {% endfor %}
-{% endblock%}
+    </div>
+</div>
+
+<style>
+/* Estilo para a timeline */
+.timeline {
+    position: relative;
+    padding: 0;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+    left: 22px;
+    margin-left: -1px;
+    z-index: 0;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 60px;
+}
+
+.timeline-badge {
+    position: absolute;
+    left: 15px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    text-align: center;
+    z-index: 1;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+}
+
+/* Estilo para os cartões de detalhes */
+.details-item {
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+</style>
+{% endblock %}
