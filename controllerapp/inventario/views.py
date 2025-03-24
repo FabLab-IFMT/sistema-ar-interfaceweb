@@ -112,9 +112,16 @@ def item_create(request):
     if request.method == 'POST':
         form = ItemForm(request.POST, request.FILES)
         if form.is_valid():
-            item = form.save()
-            messages.success(request, f'Item {item.nome} adicionado com sucesso!')
-            return redirect('inventario:item_detail', pk=item.pk)
+            try:
+                item = form.save()
+                messages.success(request, f'Item {item.nome} adicionado com sucesso!')
+                return redirect('inventario:dashboard')  # Redirecionando para o dashboard
+            except Exception as e:
+                messages.error(request, f'Erro ao salvar o item: {str(e)}')
+                # Mesmo com erro, continue e renderize o formulário novamente
+        else:
+            # Simplificar a exibição de erros para evitar possíveis problemas
+            messages.error(request, "Há erros no formulário. Por favor, verifique os campos abaixo.")
     else:
         form = ItemForm()
     
@@ -122,7 +129,13 @@ def item_create(request):
         'form': form,
         'title': 'Adicionar Novo Item',
     }
-    return render(request, 'inventario/item_form.html', context)
+    
+    # Garantir que o template existe, caso contrário, redirecionar para o dashboard
+    try:
+        return render(request, 'inventario/item_form.html', context)
+    except Exception as e:
+        messages.error(request, f'Erro ao renderizar o formulário: {str(e)}')
+        return redirect('inventario:dashboard')
 
 @staff_member_required
 def item_update(request, pk):
@@ -164,7 +177,7 @@ def item_delete(request, pk):
 @staff_member_required
 def categoria_list(request):
     """Lista todas as categorias"""
-    categorias = Categoria.objects.annotate(num_itens=Count('itens'))
+    categorias = Categoria.objects.annotate(total_itens=Count('itens'))
     
     context = {
         'categorias': categorias,
