@@ -1,0 +1,367 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+  {{ projeto.titulo }} - Projetos FABLAB
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'projetos:projeto_lista' %}">Projetos</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ projeto.titulo }}</li>
+        </ol>
+    </nav>
+
+    <!-- Header do projeto -->
+    <div class="project-header mb-5">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold text-primary">{{ projeto.titulo }}</h1>
+                <p class="lead">{{ projeto.descricao_curta }}</p>
+                
+                <div class="d-flex flex-wrap align-items-center gap-3 mt-4">
+                    <div class="status-badge 
+                    {% if projeto.status == 'concluido' %}bg-success{% endif %}
+                    {% if projeto.status == 'em_andamento' %}bg-primary{% endif %}
+                    {% if projeto.status == 'planejado' %}bg-info{% endif %}
+                    {% if projeto.status == 'cancelado' %}bg-secondary{% endif %}">
+                        {{ projeto.get_status_display }}
+                    </div>
+                    
+                    <div class="project-date">
+                        <i class="far fa-calendar-alt me-1"></i> Início: {{ projeto.data_inicio|date:"d/m/Y" }}
+                        {% if projeto.data_conclusao %}
+                            <span class="mx-2">|</span>
+                            <i class="far fa-calendar-check me-1"></i> Conclusão: {{ projeto.data_conclusao|date:"d/m/Y" }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="project-tags mt-3">
+                    {% for tag in projeto.tags.all %}
+                        <a href="{% url 'projetos:projeto_lista' %}?tag={{ tag.slug }}" class="tag-badge">{{ tag.nome }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-4 text-center text-md-end mt-4 mt-md-0">
+                <!-- Links externos do projeto -->
+                <div class="external-links">
+                    {% if projeto.link_github %}
+                        <a href="{{ projeto.link_github }}" target="_blank" class="btn btn-dark me-2">
+                            <i class="fab fa-github me-1"></i> GitHub
+                        </a>
+                    {% endif %}
+                    {% if projeto.link_video %}
+                        <a href="{{ projeto.link_video }}" target="_blank" class="btn btn-danger me-2">
+                            <i class="fab fa-youtube me-1"></i> Vídeo
+                        </a>
+                    {% endif %}
+                    {% if projeto.link_documentacao %}
+                        <a href="{{ projeto.link_documentacao }}" target="_blank" class="btn btn-info me-2">
+                            <i class="fas fa-book me-1"></i> Documentação
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Conteúdo do projeto -->
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Imagem principal -->
+            <div class="project-main-image mb-4">
+                <img src="{{ projeto.imagem.url }}" class="img-fluid rounded shadow" alt="{{ projeto.titulo }}" onerror="this.src='https://via.placeholder.com/800x400?text=Imagem+do+Projeto'">
+            </div>
+            
+            <!-- Descrição do projeto -->
+            <div class="project-description bg-white p-4 rounded shadow mb-4">
+                <h3 class="border-bottom pb-2 mb-4">Sobre o projeto</h3>
+                <div class="rich-text">
+                    {{ projeto.descricao|linebreaks }}
+                </div>
+                
+                <!-- Imagens adicionais em galeria -->
+                {% if projeto.imagens_adicionais.all %}
+                    <div class="project-gallery mt-5">
+                        <h3 class="border-bottom pb-2 mb-4">Galeria</h3>
+                        <div class="row g-3">
+                            {% for imagem in projeto.imagens_adicionais.all %}
+                                <div class="col-6 col-md-4">
+                                    <a href="{{ imagem.imagem.url }}" class="gallery-item" data-lightbox="project-gallery" data-title="{{ imagem.legenda|default:imagem.titulo }}">
+                                        <img src="{{ imagem.imagem.url }}" class="img-fluid rounded" alt="{{ imagem.titulo }}">
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Informações sobre a equipe -->
+            <div class="project-team bg-white p-4 rounded shadow mb-4">
+                <h3 class="border-bottom pb-2 mb-3">Equipe</h3>
+                
+                {% if projeto.responsavel %}
+                    <div class="mb-4">
+                        <h5 class="text-primary mb-3">Responsável</h5>
+                        <div class="d-flex align-items-center">
+                            <div class="team-avatar me-3">
+                                {% if projeto.responsavel.foto %}
+                                    <img src="{{ projeto.responsavel.foto.url }}" class="img-fluid rounded-circle" alt="{{ projeto.responsavel }}">
+                                {% else %}
+                                    <div class="avatar-placeholder">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h6 class="mb-1">{{ projeto.responsavel.get_full_name }}</h6>
+                                {% if projeto.responsavel.email %}
+                                    <p class="text-muted small mb-0">
+                                        <i class="fas fa-envelope me-1"></i> {{ projeto.responsavel.email }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if projeto.participantes.all %}
+                    <div>
+                        <h5 class="text-primary mb-3">Participantes</h5>
+                        <ul class="list-unstyled">
+                            {% for participante in projeto.participantes.all %}
+                                <li class="mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="team-avatar-sm me-2">
+                                            {% if participante.foto %}
+                                                <img src="{{ participante.foto.url }}" class="img-fluid rounded-circle" alt="{{ participante }}">
+                                            {% else %}
+                                                <div class="avatar-placeholder-sm">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <span>{{ participante.get_full_name }}</span>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Projetos relacionados -->
+            {% if projetos_relacionados %}
+                <div class="related-projects bg-white p-4 rounded shadow">
+                    <h3 class="border-bottom pb-2 mb-3">Projetos Relacionados</h3>
+                    <div class="list-group">
+                        {% for projeto_rel in projetos_relacionados %}
+                            <a href="{% url 'projetos:projeto_detalhe' projeto_rel.slug %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex align-items-center">
+                                    <div class="related-project-image me-3">
+                                        <img src="{{ projeto_rel.imagem.url }}" class="img-fluid rounded" alt="{{ projeto_rel.titulo }}" onerror="this.src='https://via.placeholder.com/50x50?text=P'">
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">{{ projeto_rel.titulo }}</h6>
+                                        <p class="text-muted small mb-0">{{ projeto_rel.get_status_display }}</p>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Seção de Contato e Dúvidas - Simplificada -->
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="contact-section bg-light p-4 rounded shadow-sm">
+                    <h3 class="border-bottom pb-2 mb-3"><i class="fas fa-envelope-open-text me-2 text-primary"></i> Dúvidas sobre este projeto?</h3>
+                    
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <p class="mb-3">Tem interesse em saber mais detalhes sobre este projeto ou gostaria de implementar algo semelhante?</p>
+                            <p>Entre em contato com {% if projeto.responsavel %}{{ projeto.responsavel.get_full_name }}{% else %}nossa equipe{% endif %} para obter mais informações.</p>
+                            
+                            <div class="contact-details mt-3">
+                                <p class="mb-1">
+                                    <i class="fas fa-envelope text-primary me-2"></i> Envie um email para: 
+                                    <a href="{% if projeto.responsavel and projeto.responsavel.email %}mailto:{{ projeto.responsavel.email }}{% else %}mailto:fablab@ifmt.edu.br{% endif %}?subject=Dúvida sobre projeto: {{ projeto.titulo }}">
+                                        <strong>{% if projeto.responsavel and projeto.responsavel.email %}{{ projeto.responsavel.email }}{% else %}fablab@ifmt.edu.br{% endif %}</strong>
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mt-4 mt-md-0">
+                            <div class="contact-illustration">
+                                <i class="fas fa-comments text-primary" style="font-size: 5rem; opacity: 0.2;"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="fas fa-info-circle me-2"></i> Você também pode visitar o laboratório para conhecer este e outros projetos. <a href="{% url 'logs:request_visit' %}" class="alert-link">Agende uma visita aqui</a>.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Inicialização de lightbox para a galeria (se existir)
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar se existe uma biblioteca de lightbox instalada
+        if (window.lightbox) {
+            lightbox.option({
+                'resizeDuration': 200,
+                'wrapAround': true
+            });
+        }
+    });
+</script>
+{% endblock %}
+
+{% block head %}
+<style>
+    /* Estilos para página de detalhes do projeto */
+    .project-header {
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 1rem;
+        border-radius: 50rem;
+        color: #fff;
+        white-space: nowrap;
+    }
+    
+    .project-date {
+        font-size: 0.95rem;
+        color: #666;
+    }
+    
+    .project-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .tag-badge {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: var(--bs-primary);
+        padding: 5px 15px;
+        border-radius: 50rem;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .tag-badge:hover {
+        background-color: var(--bs-primary);
+        color: white;
+    }
+    
+    .external-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+    
+    .project-main-image img {
+        width: 100%;
+        max-height: 500px;
+        object-fit: cover;
+    }
+    
+    .rich-text {
+        font-size: 1.05rem;
+        line-height: 1.7;
+    }
+    
+    .rich-text p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .gallery-item {
+        display: block;
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+    
+    .gallery-item img {
+        transition: transform 0.3s ease;
+    }
+    
+    .gallery-item:hover img {
+        transform: scale(1.05);
+    }
+    
+    .team-avatar, .avatar-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+    
+    .team-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .avatar-placeholder {
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        font-size: 1.5rem;
+    }
+    
+    .team-avatar-sm, .avatar-placeholder-sm {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+    
+    .avatar-placeholder-sm {
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        font-size: 1rem;
+    }
+    
+    .related-project-image {
+        width: 60px;
+        height: 60px;
+        overflow: hidden;
+    }
+    
+    .related-project-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+</style>
+{% endblock %}

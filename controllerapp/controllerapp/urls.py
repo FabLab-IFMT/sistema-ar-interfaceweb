@@ -15,8 +15,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('about/', views.about, name='about'),
-    path('projects/', views.projects, name='projects'),
-    path('users/', include('users.urls')),  # Garante que o app users está incluído
+    path('projects/', include('projetos.urls')),  # Adicionamos os URLs dos projetos
+    path('users/', include('users.urls')),
     path('logs/', include('logs.urls')),
     path('painelar/', include('Controle_ar.urls')),
     path('options/', include('options.urls')),
@@ -36,5 +36,5 @@ urlpatterns += [
     path('teste-403/', lambda request: permission_denied(request, Exception("Teste de erro 403"))),
     path('teste-404/', lambda request: page_not_found(request, Exception("Teste de erro 404"))),
     path('teste-500/', lambda request: server_error(request)),
-    path('erro-teste/', lambda request: 1/0),  # Isso gerará um erro 500
+    path('erro-teste/', lambda request: 1/0),  
 ]

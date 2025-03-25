@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'acesso_e_ponto',
     'Email_notificacoes',
     'inventario', 
+    'projetos',
 ]
 
 MIDDLEWARE = [
