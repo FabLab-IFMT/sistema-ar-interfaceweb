@@ -16,23 +16,38 @@
   </div>
   {% endif %}
 
-  <!-- Hero Section com carrossel principal -->
-  <div class="hero-section position-relative">
-    <!-- Carrossel principal - Banner rotativo da página inicial -->
-    <div id="mainCarousel" class="carousel slide hero-carousel" data-bs-ride="carousel">
-      <!-- Indicadores - Pontos de navegação do carrossel -->
-      <div class="carousel-indicators">
-        {% for image in carousel_images %}
-          <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="{{ forloop.counter0 }}" 
-                {% if forloop.first %}class="active" aria-current="true"{% endif %} 
-                aria-label="Slide {{ forloop.counter }}"></button>
-        {% empty %}
-          <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active" 
-                aria-current="true" aria-label="Slide 1"></button>
-          <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-          <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
-        {% endfor %}
-      </div>
+
+  <!-- 
+    #     #   #####    #####  
+    #     #  #     #  #     # 
+    #     #  #        #       
+    #######   #####   #       
+    #     #        #  #       
+    #     #  #     #  #     # 
+    #     #   #####    #####  
+    
+    Feito por Henrique Severino da Cunha
+  -->
+
+
+  <!--SITE FEITO POR HENRIQUE SEVERINO DA CUNHA-->
+
+  <!-- Carrossel principal - Banner rotativo da página inicial -->
+  <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
+    <!-- Indicadores - Pontos de navegação do carrossel -->
+    <div class="carousel-indicators">
+      {% for image in carousel_images %}
+        <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="{{ forloop.counter0 }}" 
+              {% if forloop.first %}class="active" aria-current="true"{% endif %} 
+              aria-label="Slide {{ forloop.counter }}"></button>
+      {% empty %}
+        <!-- Indicadores padrão caso não haja imagens cadastradas -->
+        <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active" 
+              aria-current="true" aria-label="Slide 1"></button>
+        <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+        <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+      {% endfor %}
+    </div>
 
       <!-- Itens do Carrossel -->
       <div class="carousel-inner">
