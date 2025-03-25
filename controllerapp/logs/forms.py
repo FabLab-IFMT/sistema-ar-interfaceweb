@@ -91,11 +91,6 @@ class VisitRequestForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Definir tipo de evento como 'visit' por padrão (oculto no formulário)
-        self.fields['event_type'] = forms.CharField(
-            widget=forms.HiddenInput(),
-            initial=Event.EventType.VISIT
-        )
         
         # Valores iniciais para data e hora
         now = timezone.now()

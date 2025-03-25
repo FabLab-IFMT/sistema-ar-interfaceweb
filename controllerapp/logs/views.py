@@ -188,6 +188,9 @@ def agenda_request_visit(request):
             event.start_time = form.start_datetime
             event.end_time = form.end_datetime
             
+            # Definir explicitamente o tipo de evento como visita
+            event.event_type = Event.EventType.VISIT
+            
             # O usuário logado é o criador do evento
             if request.user.is_authenticated:
                 event.created_by = request.user
