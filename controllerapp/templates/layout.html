@@ -270,7 +270,9 @@
                 <li><a class="nav-link" href="{% url 'options:equipamentos' %}"><i class="fas fa-tools me-2"></i>Equipamentos</a></li>
                 <li><a class="nav-link" href="{% url 'options:servicos' %}"><i class="fas fa-cogs me-2"></i>Serviços</a></li>
                 <li><a class="nav-link" href="{% url 'options:noticias' %}"><i class="fas fa-newspaper me-2"></i>Notícias</a></li>
+                {% if user.is_staff %}
                 <li><a class="nav-link" href="{% url 'logs:request_visit' %}"><i class="fas fa-users me-2"></i>Visitas</a></li>
+                {% endif %}
                 <li><a class="nav-link" href="{% url 'logs:agenda_home' %}"><i class="fas fa-calendar-alt me-2"></i>Reservas</a></li>
                 <li><a class="nav-link" href="{% url 'options:membros' %}"><i class="fas fa-id-badge me-2"></i>Membros</a></li>
                 {% comment %}
@@ -280,6 +282,15 @@
                 {% endcomment %}
               </ul>
             </li>
+            
+            <!-- Link de visitas para usuários não-administradores -->
+            {% if not user.is_staff %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'logs:request_visit' %}">
+                <i class="fas fa-users me-1"></i> Visitas
+              </a>
+            </li>
+            {% endif %}
             
             <!-- Links disponíveis apenas para usuários autenticados -->
             {% if user.is_authenticated %}
