@@ -3,7 +3,12 @@ from django.http import HttpResponse
 from django.utils import timezone
 from datetime import timedelta
 
-# Removed duplicate function definition of home
+# Importe o modelo CarouselImage e o novo modelo Noticia
+from Controle_ar.models import CarouselImage
+from options.models import Noticia
+# Nova importação para os eventos e projetos
+from logs.models import Event
+from projetos.models import Projeto  # Importe o modelo de Projeto
 
 def toggle_theme(request):
     """View para alternar entre tema claro e escuro."""
@@ -31,15 +36,8 @@ def about(request):
     return render(request, 'about.html', {'theme': theme})
 
 def projects(request):
-    """View para a página de projetos."""
-    theme = get_theme(request)
-    return render(request, 'projects.html', {'theme': theme})
-
-# Importe o modelo CarouselImage e o novo modelo Noticia
-from Controle_ar.models import CarouselImage
-from options.models import Noticia
-# Nova importação para os eventos
-from logs.models import Event
+    """View para redirecionar para a página de projetos."""
+    return redirect('projetos:projeto_lista')
 
 def home(request):
     # Busca apenas imagens ativas do carrossel
@@ -47,6 +45,9 @@ def home(request):
     
     # Busca notícias marcadas para exibir na página inicial
     noticias_home = Noticia.objects.filter(publicado=True, mostrar_na_home=True)[:3]
+    
+    # Buscar projetos marcados para exibição na home
+    projetos_destaque = Projeto.objects.filter(publicado=True, mostrar_na_home=True)[:4]
     
     # Buscar próximos eventos (apenas aprovados e futuros)
     now = timezone.now()
@@ -67,11 +68,12 @@ def home(request):
         'carousel_images': carousel_images,
         'noticias': noticias_home,
         'tem_noticias': noticias_home.exists(),  # Para verificar se há notícias
+        'projetos_destaque': projetos_destaque,  # Adicionamos os projetos ao contexto
+        'tem_projetos': projetos_destaque.exists(),  # Para verificar se há projetos
         'proximos_eventos': proximos_eventos,
         'tem_eventos': proximos_eventos.exists(),
         'debug': debug,
         'theme': theme,
-        # Outras variáveis de contexto que possam existir...
     }
     
     return render(request, 'home.html', context)

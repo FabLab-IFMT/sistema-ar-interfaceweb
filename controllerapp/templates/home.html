@@ -16,7 +16,7 @@
   </div>
   {% endif %}
 
-  <!-- Hero Section com carrossel e chamada à ação -->
+  <!-- Hero Section com carrossel principal -->
   <div class="hero-section position-relative">
     <!-- Carrossel principal - Banner rotativo da página inicial -->
     <div id="mainCarousel" class="carousel slide hero-carousel" data-bs-ride="carousel">
@@ -87,28 +87,10 @@
         <span class="visually-hidden">Próximo</span>
       </button>
     </div>
-    
-    <!-- Hero overlay com CTA -->
-    <div class="hero-overlay">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-8 col-lg-6 mx-auto text-center">
-            <div class="hero-box bg-white bg-opacity-90 p-4 rounded-3 shadow">
-              <h1 class="display-5 fw-bold mb-3 text-primary">Liberte sua criatividade</h1>
-              <p class="lead mb-4">Equipamentos de última geração, mentoria especializada e uma comunidade vibrante estão esperando por você.</p>
-              <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                <a href="{% url 'logs:request_visit' %}" class="btn btn-primary btn-lg px-4 gap-3 pulse-button">Agende uma visita</a>
-                <a href="{% url 'options:equipamentos' %}" class="btn btn-outline-primary btn-lg px-4">Ver equipamentos</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
-
+  
   <!-- O que oferecemos - Cards interativos -->
-  <div class="container mt-5 pt-5">
+  <div class="container mt-5 pt-3">
     <div class="row text-center">
       <div class="col-12 mb-5">
         <span class="badge bg-primary text-white px-3 py-2 mb-2">NOSSO ESPAÇO</span>
@@ -168,76 +150,120 @@
     </div>
   </div>
 
-  <!-- Projetos em destaque (carousel de cards) -->
+  <!-- Sobre o laboratório - Seção informativa -->
   <div class="container-fluid bg-light py-5 mt-5">
     <div class="container">
-      <div class="row mb-4 text-center">
-        <div class="col">
-          <span class="badge bg-primary text-white px-3 py-2 mb-2">PROJETOS</span>
-          <h2 class="display-5 fw-bold">Projetos em <span class="text-primary">Destaque</span></h2>
-          <p class="lead col-lg-8 mx-auto">Conheça alguns dos projetos desenvolvidos em nosso laboratório</p>
+      <div class="row align-items-center">
+        <div class="col-lg-6 order-lg-2">
+          <div class="p-lg-4">
+            <img src="{% static 'images/lab-photo.jpg' %}" class="img-fluid rounded-4 shadow" 
+                 alt="Interior do laboratório" onerror="this.src='https://via.placeholder.com/600x400?text=FabLab+IFMT'">
+          </div>
+        </div>
+        <div class="col-lg-6 order-lg-1 mt-4 mt-lg-0">
+          <span class="badge bg-primary text-white px-3 py-2 mb-2">QUEM SOMOS</span>
+          <h2 class="display-5 fw-bold mb-4">Conheça o <span class="text-primary">FabLab IFMT</span></h2>
+          <p class="lead mb-4">O Laboratório de Fabricação Digital do IFMT é um espaço colaborativo dedicado à inovação, aprendizagem e desenvolvimento de projetos tecnológicos.</p>
+          <ul class="feature-list">
+            <li><i class="fas fa-check-circle text-primary"></i> Parte da rede mundial de laboratórios de fabricação digital</li>
+            <li><i class="fas fa-check-circle text-primary"></i> Equipamentos modernos para prototipagem rápida</li>
+            <li><i class="fas fa-check-circle text-primary"></i> Professores e técnicos especializados para orientação</li>
+            <li><i class="fas fa-check-circle text-primary"></i> Aberto à comunidade acadêmica e parcerias externas</li>
+          </ul>
+          <a href="{% url 'about' %}" class="btn btn-primary mt-3">Saiba mais sobre nós</a>
         </div>
       </div>
-      
-      <div class="project-carousel">
-        <div class="row">
-          <div class="col-12">
-            <div class="owl-carousel">
-              <!-- Projeto 1 -->
-              <div class="project-card">
-                <img src="{% static 'images/project1.jpg' %}" class="project-img" alt="Projeto 1" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto+1'">
-                <div class="project-content">
-                  <h4>Braço Robótico</h4>
-                  <p>Projeto de robótica com controle via Arduino usando impressão 3D e componentes eletrônicos.</p>
-                  <div class="project-tags">
-                    <span>Robótica</span>
-                    <span>Impressão 3D</span>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Projeto 2 -->
-              <div class="project-card">
-                <img src="{% static 'images/project2.jpg' %}" class="project-img" alt="Projeto 2" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto+2'">
-                <div class="project-content">
-                  <h4>Estufa Automatizada</h4>
-                  <p>Sistema de monitoramento e controle de temperatura e umidade para estufas agrícolas.</p>
-                  <div class="project-tags">
-                    <span>IoT</span>
-                    <span>Automação</span>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Projeto 3 -->
-              <div class="project-card">
-                <img src="{% static 'images/project3.jpg' %}" class="project-img" alt="Projeto 3" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto+3'">
-                <div class="project-content">
-                  <h4>Cadeira Ergonômica</h4>
-                  <p>Design e prototipação de cadeira ergonômica com materiais sustentáveis.</p>
-                  <div class="project-tags">
-                    <span>Design</span>
-                    <span>Sustentabilidade</span>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Projeto 4 -->
-              <div class="project-card">
-                <img src="{% static 'images/project4.jpg' %}" class="project-img" alt="Projeto 4" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto+4'">
-                <div class="project-content">
-                  <h4>Smart Home</h4>
-                  <p>Sistema integrado para automação residencial com interface controlada por aplicativo.</p>
-                  <div class="project-tags">
-                    <span>IoT</span>
-                    <span>Mobile</span>
-                  </div>
-                </div>
+    </div>
+  </div>
+
+  <!-- Projetos em destaque - apenas os marcados como destaque -->
+  <div class="container py-5 mt-3">
+    <div class="row mb-4 text-center">
+      <div class="col">
+        <span class="badge bg-primary text-white px-3 py-2 mb-2">PROJETOS</span>
+        <h2 class="display-5 fw-bold">Projetos em <span class="text-primary">Destaque</span></h2>
+        <p class="lead col-lg-8 mx-auto">Conheça alguns dos projetos desenvolvidos em nosso laboratório</p>
+      </div>
+    </div>
+    
+    <div class="row g-4">
+      {% for projeto in projetos_destaque %}
+        <div class="col-md-6 col-lg-3">
+          <div class="project-card h-100">
+            <img src="{{ projeto.imagem.url }}" class="project-img" alt="{{ projeto.titulo }}" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto'">
+            <div class="project-content">
+              <h4>{{ projeto.titulo }}</h4>
+              <p>{{ projeto.descricao_curta|truncatechars:100 }}</p>
+              <div class="project-tags">
+                {% for tag in projeto.tags.all %}
+                  <span>{{ tag.nome }}</span>
+                {% endfor %}
               </div>
             </div>
           </div>
         </div>
-      </div>
+      {% empty %}
+        <!-- Projetos padrão caso não haja projetos cadastrados -->
+        <div class="col-md-6 col-lg-3">
+          <div class="project-card h-100">
+            <img src="{% static 'images/project1.jpg' %}" class="project-img" alt="Projeto 1" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto+1'">
+            <div class="project-content">
+              <h4>Braço Robótico</h4>
+              <p>Projeto de robótica com controle via Arduino usando impressão 3D e componentes eletrônicos.</p>
+              <div class="project-tags">
+                <span>Robótica</span>
+                <span>Impressão 3D</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="project-card h-100">
+            <img src="{% static 'images/project2.jpg' %}" class="project-img" alt="Projeto 2" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto+2'">
+            <div class="project-content">
+              <h4>Estufa Automatizada</h4>
+              <p>Sistema de monitoramento e controle de temperatura e umidade para estufas agrícolas.</p>
+              <div class="project-tags">
+                <span>IoT</span>
+                <span>Automação</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="project-card h-100">
+            <img src="{% static 'images/project3.jpg' %}" class="project-img" alt="Projeto 3" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto+3'">
+            <div class="project-content">
+              <h4>Cadeira Ergonômica</h4>
+              <p>Design e prototipação de cadeira ergonômica com materiais sustentáveis.</p>
+              <div class="project-tags">
+                <span>Design</span>
+                <span>Sustentabilidade</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="project-card h-100">
+            <img src="{% static 'images/project4.jpg' %}" class="project-img" alt="Projeto 4" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto+4'">
+            <div class="project-content">
+              <h4>Smart Home</h4>
+              <p>Sistema integrado para automação residencial com interface controlada por aplicativo.</p>
+              <div class="project-tags">
+                <span>IoT</span>
+                <span>Mobile</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    
+    <div class="text-center mt-4">
+      <a href="{% url 'projetos:projeto_lista' %}" class="btn btn-outline-primary btn-lg">Ver todos os projetos</a>
     </div>
   </div>
 
@@ -362,93 +388,7 @@
   </div>
   {% endif %}
 
-  <!-- Depoimentos (com slider) -->
-  <div class="container py-5 mt-5">
-    <div class="row mb-4 text-center">
-      <div class="col">
-        <span class="badge bg-primary text-white px-3 py-2 mb-2">EXPERIÊNCIAS</span>
-        <h2 class="display-5 fw-bold">O que dizem sobre <span class="text-primary">nós</span></h2>
-        <p class="lead col-lg-8 mx-auto">Conheça as experiências de quem já utilizou nosso laboratório</p>
-      </div>
-    </div>
-    
-    <div class="testimonial-slider">
-      <div class="row">
-        <div class="col-lg-8 mx-auto">
-          <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner">
-              <!-- Testimonial 1 -->
-              <div class="carousel-item active">
-                <div class="testimonial-card">
-                  <div class="testimonial-content">
-                    <i class="fas fa-quote-left fa-2x text-primary mb-3"></i>
-                    <p class="testimonial-text">Com o suporte do FabLab, consegui desenvolver meu projeto de TCC utilizando impressão 3D. O resultado superou todas as expectativas e me ajudou a conquistar uma excelente avaliação.</p>
-                    <div class="testimonial-user">
-                      <div class="testimonial-image">
-                        <img src="https://placehold.co/60x60?text=M" alt="Maria">
-                      </div>
-                      <div class="testimonial-info">
-                        <h5>Maria Silva</h5>
-                        <p>Estudante de Engenharia</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Testimonial 2 -->
-              <div class="carousel-item">
-                <div class="testimonial-card">
-                  <div class="testimonial-content">
-                    <i class="fas fa-quote-left fa-2x text-primary mb-3"></i>
-                    <p class="testimonial-text">O espaço do FabLab proporcionou o ambiente perfeito para o desenvolvimento do nosso protótipo. A equipe de suporte foi fundamental para resolver problemas técnicos que encontramos no caminho.</p>
-                    <div class="testimonial-user">
-                      <div class="testimonial-image">
-                        <img src="https://placehold.co/60x60?text=J" alt="João">
-                      </div>
-                      <div class="testimonial-info">
-                        <h5>João Pereira</h5>
-                        <p>Professor de Mecatrônica</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Testimonial 3 -->
-              <div class="carousel-item">
-                <div class="testimonial-card">
-                  <div class="testimonial-content">
-                    <i class="fas fa-quote-left fa-2x text-primary mb-3"></i>
-                    <p class="testimonial-text">Graças ao workshop de eletrônica oferecido pelo FabLab, consegui aprender as habilidades necessárias para iniciar meu próprio projeto de domótica. Recomendo a todos os interessados em tecnologia.</p>
-                    <div class="testimonial-user">
-                      <div class="testimonial-image">
-                        <img src="https://placehold.co/60x60?text=A" alt="Ana">
-                      </div>
-                      <div class="testimonial-info">
-                        <h5>Ana Oliveira</h5>
-                        <p>Estudante de Computação</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Controles do carrossel -->
-            <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
-              <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
-              <i class="fas fa-chevron-right"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Call to Action -->
+  <!-- Call to Action Final -->
   <div class="cta-section mt-5">
     <div class="container">
       <div class="row">
@@ -566,22 +506,17 @@
       
       observer.observe(statsSection);
     }
-    
-    // Simulação do carrossel de projetos (seria melhor com uma biblioteca real como Owl Carousel ou Swiper)
-    // Este é um placeholder e necessitaria da incorporação de uma biblioteca externa completa
-    console.log("Projetos carrossel simulado - considera adicionar uma biblioteca como Owl Carousel");
   });
 </script>
 {% endblock %}
 
 {% block head %}
 <style>
-  /* Estilos para a nova página inicial mais dinâmica */
+  /* Estilos para a página inicial atualizada */
   
   /* === Hero Section === */
   .hero-section {
     position: relative;
-    margin-bottom: 30px;
   }
   
   .hero-carousel .carousel-item {
@@ -598,33 +533,13 @@
     text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
   }
   
-  .hero-overlay {
-    position: absolute;
-    bottom: -30px;
-    left: 0;
-    right: 0;
+  /* === Banner CTA === */
+  .cta-banner {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border-left: 6px solid #0a58ca;
+    margin-top: -20px;
+    position: relative;
     z-index: 10;
-  }
-  
-  .hero-box {
-    border-top: 5px solid var(--bs-primary);
-  }
-  
-  /* Botão com efeito de pulsar */
-  .pulse-button {
-    animation: pulse 2s infinite;
-  }
-  
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.7);
-    }
-    70% {
-      box-shadow: 0 0 0 10px rgba(13, 110, 253, 0);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
-    }
   }
   
   /* === Feature Cards === */
@@ -671,15 +586,34 @@
     font-weight: 600;
   }
   
+  /* === Sobre o laboratório === */
+  .feature-list {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 20px;
+  }
+  
+  .feature-list li {
+    margin-bottom: 12px;
+    padding-left: 30px;
+    position: relative;
+    font-size: 1.1rem;
+  }
+  
+  .feature-list li i {
+    position: absolute;
+    left: 0;
+    top: 4px;
+  }
+  
   /* === Project Cards === */
   .project-card {
     background-color: #fff;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    margin: 15px;
     transition: all 0.3s ease;
-    height: 380px;
+    height: 100%;
   }
   
   .project-card:hover {
@@ -834,77 +768,6 @@
     color: white;
   }
   
-  /* === Testimonials === */
-  .testimonial-card {
-    background-color: #fff;
-    border-radius: 10px;
-    padding: 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    margin: 20px 0;
-  }
-  
-  .testimonial-content {
-    position: relative;
-  }
-  
-  .testimonial-text {
-    font-size: 1.1rem;
-    line-height: 1.7;
-    margin-bottom: 20px;
-    font-style: italic;
-  }
-  
-  .testimonial-user {
-    display: flex;
-    align-items: center;
-  }
-  
-  .testimonial-image img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--bs-primary);
-  }
-  
-  .testimonial-info {
-    margin-left: 15px;
-  }
-  
-  .testimonial-info h5 {
-    margin-bottom: 0;
-  }
-  
-  .testimonial-info p {
-    color: #666;
-    margin-bottom: 0;
-  }
-  
-  .carousel-control-prev,
-  .carousel-control-next {
-    background-color: #fff;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    top: 50%;
-    transform: translateY(-50%);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  }
-  
-  .carousel-control-prev {
-    left: -60px;
-  }
-  
-  .carousel-control-next {
-    right: -60px;
-  }
-  
-  .carousel-control-prev i,
-  .carousel-control-next i {
-    color: var(--bs-primary);
-    font-size: 1rem;
-  }
-  
   /* === CTA Section === */
   .cta-section {
     background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
@@ -920,8 +783,8 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: url('{% static "images/pattern.png" %}') repeat;
-    opacity: 0.1;
+    background-image: url('data:image/svg+xml,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" fill="rgba(255,255,255,0.05)"/></svg>');
+    opacity: 0.3;
   }
   
   /* === Events Timeline === */
@@ -1012,12 +875,8 @@
       height: 500px;
     }
     
-    .carousel-control-prev {
-      left: -20px;
-    }
-    
-    .carousel-control-next {
-      right: -20px;
+    .cta-banner .col-lg-4 {
+      text-align: center !important;
     }
   }
   
@@ -1026,10 +885,8 @@
       height: 400px;
     }
     
-    .hero-overlay {
-      position: relative;
-      bottom: 0;
-      margin-top: 30px;
+    .cta-banner {
+      margin-top: 0;
     }
   }
 </style>

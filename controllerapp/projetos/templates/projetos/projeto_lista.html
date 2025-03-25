@@ -1,0 +1,239 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+  Projetos - FABLAB IFMT
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Cabeçalho da página -->
+        <div class="col-12 mb-4">
+            <h1 class="display-4 fw-bold text-primary">Projetos</h1>
+            <p class="lead">Explore os projetos desenvolvidos no FabLab IFMT</p>
+            <hr class="my-4">
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Sidebar com filtros -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Filtros</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Filtro por status -->
+                    <h6 class="border-bottom pb-2 mb-3">Status</h6>
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input filter-status" type="radio" name="statusFilter" id="allStatus" value="all" {% if not status_ativo %}checked{% endif %}>
+                            <label class="form-check-label" for="allStatus">
+                                Todos
+                            </label>
+                        </div>
+                        {% for status_value, status_label in status_opcoes %}
+                            <div class="form-check">
+                                <input class="form-check-input filter-status" type="radio" name="statusFilter" id="{{ status_value }}" 
+                                       value="{{ status_value }}" {% if status_ativo == status_value %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ status_value }}">
+                                    {{ status_label }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Filtro por tags -->
+                    <h6 class="border-bottom pb-2 mb-3">Categorias</h6>
+                    <div class="mb-3">
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{% url 'projetos:projeto_lista' %}" class="badge bg-light text-dark text-decoration-none mb-2 {% if not tag_ativa %}border border-primary{% endif %}">
+                                Todas
+                            </a>
+                            {% for tag in tags %}
+                                <a href="{% url 'projetos:projeto_lista' %}?tag={{ tag.slug }}" 
+                                   class="badge bg-light text-dark text-decoration-none mb-2 {% if tag_ativa == tag.slug %}border border-primary{% endif %}">
+                                    {{ tag.nome }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lista de projetos -->
+        <div class="col-md-9">
+            <div class="row g-4">
+                {% for projeto in projetos %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="project-card h-100">
+                            <img src="{{ projeto.imagem.url }}" class="project-img" alt="{{ projeto.titulo }}" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto'">
+                            <div class="project-content">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h4 class="mb-0">{{ projeto.titulo }}</h4>
+                                    <span class="status-badge 
+                                        {% if projeto.status == 'concluido' %}bg-success{% endif %}
+                                        {% if projeto.status == 'em_andamento' %}bg-primary{% endif %}
+                                        {% if projeto.status == 'planejado' %}bg-info{% endif %}
+                                        {% if projeto.status == 'cancelado' %}bg-secondary{% endif %}">
+                                        {{ projeto.get_status_display }}
+                                    </span>
+                                </div>
+                                <p>{{ projeto.descricao_curta|truncatechars:100 }}</p>
+                                <div class="project-tags">
+                                    {% for tag in projeto.tags.all %}
+                                        <span>{{ tag.nome }}</span>
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-3">
+                                    <a href="{% url 'projetos:projeto_detalhe' projeto.slug %}" class="btn btn-sm btn-outline-primary">Ver detalhes</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info text-center py-5">
+                            <i class="fas fa-info-circle fa-3x mb-3"></i>
+                            <h4 class="alert-heading">Nenhum projeto encontrado</h4>
+                            <p>Não existem projetos cadastrados com os filtros selecionados.</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Paginação -->
+            {% if projetos.paginator.num_pages > 1 %}
+                <nav class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        {% if projetos.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if tag_ativa %}&tag={{ tag_ativa }}{% endif %}{% if status_ativo %}&status={{ status_ativo }}{% endif %}">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ projetos.previous_page_number }}{% if tag_ativa %}&tag={{ tag_ativa }}{% endif %}{% if status_ativo %}&status={{ status_ativo }}{% endif %}">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in projetos.paginator.page_range %}
+                            {% if projetos.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > projetos.number|add:'-3' and num < projetos.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if tag_ativa %}&tag={{ tag_ativa }}{% endif %}{% if status_ativo %}&status={{ status_ativo }}{% endif %}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if projetos.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ projetos.next_page_number }}{% if tag_ativa %}&tag={{ tag_ativa }}{% endif %}{% if status_ativo %}&status={{ status_ativo }}{% endif %}">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ projetos.paginator.num_pages }}{% if tag_ativa %}&tag={{ tag_ativa }}{% endif %}{% if status_ativo %}&status={{ status_ativo }}{% endif %}">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filtro de status
+        const statusFilters = document.querySelectorAll('.filter-status');
+        statusFilters.forEach(filter => {
+            filter.addEventListener('change', function() {
+                if (this.checked) {
+                    let url = new URL(window.location.href);
+                    if (this.value === 'all') {
+                        url.searchParams.delete('status');
+                    } else {
+                        url.searchParams.set('status', this.value);
+                    }
+                    window.location.href = url.toString();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block head %}
+<style>
+    /* Estilos para a página de projetos */
+    .project-card {
+        background-color: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .project-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+    
+    .project-img {
+        height: 200px;
+        width: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .project-card:hover .project-img {
+        transform: scale(1.05);
+    }
+    
+    .project-content {
+        padding: 20px;
+    }
+    
+    .project-tags {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 15px;
+        gap: 5px;
+    }
+    
+    .project-tags span {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: var(--bs-primary);
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+    
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 50rem;
+        color: #fff;
+        white-space: nowrap;
+    }
+    
+    .filter-status {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
