@@ -66,6 +66,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'logs.context_processors.pending_events_count',  # Novo context processor
+                'users.context_processors.registration_requests_count',  # Adicione o context processor para solicitações de registro
             ],
         },
     },

@@ -1,0 +1,109 @@
+{% extends 'layout.html' %}
+
+{% block title %}Autorização de Usuários{% endblock %}
+
+{% block head %}
+<style>
+    .auth-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .request-card {
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .request-card .card-header {
+        background-color: #f8f9fa;
+        font-weight: bold;
+    }
+    .pending-badge {
+        background-color: #ffc107;
+    }
+    .no-requests {
+        padding: 50px;
+        text-align: center;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        margin: 30px 0;
+    }
+    .actions {
+        display: flex;
+        gap: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1 class="mb-4">Autorização de Novos Usuários</h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title"><i class="fas fa-info-circle"></i> Sobre a Autorização</h5>
+            <p class="card-text">
+                Aqui você gerencia solicitações de novos usuários. Revise as informações antes de aprovar ou rejeitar o acesso.
+            </p>
+            <p class="mb-0">
+                <span class="badge bg-warning">{{ pending_requests|length }} solicitação(ões) pendente(s)</span>
+            </p>
+        </div>
+    </div>
+    
+    {% if pending_requests %}
+        {% for request in pending_requests %}
+            <div class="card request-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fas fa-user-plus me-2"></i>Solicitação #{{ request.id }}
+                    </span>
+                    <span class="badge pending-badge">Pendente</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Nome:</strong> {{ request.first_name }} {{ request.last_name }}</p>
+                            <p><strong>Email:</strong> {{ request.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Matrícula:</strong> {{ request.id_number }}</p>
+                            <p><strong>Data de solicitação:</strong> {{ request.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end actions mt-3">
+                        <form method="post" action="{% url 'users:reject_registration' request.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times-circle me-1"></i> Rejeitar
+                            </button>
+                        </form>
+                        
+                        <form method="post" action="{% url 'users:approve_registration' request.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check-circle me-1"></i> Aprovar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-requests">
+            <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+            <h3>Não há solicitações pendentes</h3>
+            <p class="text-muted">Todas as solicitações de registro foram processadas.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

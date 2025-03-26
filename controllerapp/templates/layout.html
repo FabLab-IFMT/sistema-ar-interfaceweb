@@ -232,6 +232,17 @@
           text-align: center;
         }
       }
+
+      /* Animação para o badge piscando */
+      @keyframes badge-blink {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+      }
+      
+      .badge-blink {
+        animation: badge-blink 1.5s infinite;
+      }
     </style>
   </head>
 
@@ -298,10 +309,7 @@
               <a class="nav-link agenda-with-notification" href="{% url 'logs:agenda_home' %}">
                 <i class="fas fa-calendar-check me-1"></i> Agenda
                 {% if user.is_staff and global_pending_count > 0 %}
-                  <span class="notification-indicator">
-                    <span class="notification-dot" title="{{ global_pending_count }} solicitações pendentes"></span>
-                  </span>
-                  <small class="badge bg-danger ms-1">{{ global_pending_count }}</small>
+                  <small class="badge bg-danger ms-1 badge-blink">{{ global_pending_count }}</small>
                 {% endif %}
               </a>
             </li>
@@ -340,6 +348,18 @@
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'Controle_ar:automacao_home' %}">
                   <i class="fas fa-robot me-1"></i> Automação
+                </a>
+              </li>
+            {% endif %}
+            
+            <!-- Autorização de usuários (apenas para superusuários) -->
+            {% if user.is_authenticated and user.is_superuser %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'users:pending_registrations' %}">
+                  <i class="fas fa-user-check me-1"></i> Autorizações
+                  {% if registration_pending_count > 0 %}
+                    <small class="badge bg-warning ms-1 badge-blink">{{ registration_pending_count }}</small>
+                  {% endif %}
                 </a>
               </li>
             {% endif %}

@@ -70,6 +70,11 @@
             <form action="{% url 'users:register' %}" method="post">
                 {% csrf_token %}
                 <h1 class="text-center mb-4">Registrar um usuário</h1>
+                
+                <!-- Explicação sobre o processo de verificação -->
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle me-2"></i> Após o registro, sua conta precisará ser aprovada por um administrador antes de você poder acessar o sistema.
+                </div>
 
                 <div>
                     <label for="id_id" class="form-label"><b>Número de Matrícula</b></label>
