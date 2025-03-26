@@ -359,6 +359,9 @@
                     <a href="{% url 'logs:agenda_create_event' %}" class="btn btn-primary">
                         <i class="fas fa-plus-circle me-2"></i> Agendar Evento
                     </a>
+                    <a href="{% url 'acesso_e_ponto:my_access_history' %}" class="btn btn-outline-success ms-2">
+                        <i class="fas fa-clock me-2"></i> Meus Acessos
+                    </a>
                 {% endif %}
                 <a href="{% url 'logs:request_visit' %}" class="btn btn-outline-primary ms-2">
                     <i class="fas fa-calendar-check me-2"></i> Solicitar Visita
@@ -640,6 +643,16 @@
                                 <span class="badge bg-danger mt-1">{{ pending_count }} pendente(s)</span>
                             {% endif %}
                             {% endwith %}
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'acesso_e_ponto:dashboard' %}" class="admin-action mb-3">
+                        <div class="admin-icon">
+                            <i class="fas fa-user-clock"></i>
+                        </div>
+                        <div>
+                            <strong>Controle de Ponto</strong>
+                            <div class="small text-muted">Monitorar registros de acesso</div>
                         </div>
                     </a>
                     

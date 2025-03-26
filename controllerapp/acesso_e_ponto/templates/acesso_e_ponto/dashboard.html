@@ -1,0 +1,591 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% load duration_filters %}
+
+{% block title %}
+    {% if is_superuser %}Dashboard de Controle de Ponto{% else %}Meu Controle de Ponto{% endif %} - FabLab
+{% endblock %}
+
+{% block head %}
+<style>
+    .header-section {
+        background-color: #f8f9fa;
+        padding: 2rem 0;
+        position: relative;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .card {
+        border-radius: 12px;
+        border: none;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+    
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .stats-card {
+        border-left: 4px solid transparent;
+    }
+    
+    .stats-primary {
+        border-left-color: #007bff;
+    }
+    
+    .stats-success {
+        border-left-color: #28a745;
+    }
+    
+    .stats-warning {
+        border-left-color: #ffc107;
+    }
+    
+    .stats-danger {
+        border-left-color: #dc3545;
+    }
+    
+    .stats-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .progress {
+        height: 0.8rem;
+        border-radius: 0.8rem;
+        background-color: rgba(0,0,0,0.05);
+    }
+    
+    .user-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+    }
+    
+    .avatar-blue { background-color: #007bff; }
+    .avatar-green { background-color: #28a745; }
+    .avatar-orange { background-color: #fd7e14; }
+    .avatar-purple { background-color: #6f42c1; }
+    .avatar-red { background-color: #dc3545; }
+    .avatar-teal { background-color: #20c997; }
+    
+    .presence-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+    
+    .presence-active {
+        background-color: #28a745;
+        box-shadow: 0 0 0 rgba(40, 167, 69, 0.4);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+        }
+    }
+    
+    .user-list-item {
+        transition: all 0.2s;
+        border-left: 4px solid transparent;
+        cursor: pointer;
+    }
+    
+    .user-list-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(5px);
+    }
+    
+    .user-list-item.active-user {
+        border-left-color: #28a745;
+    }
+    
+    .user-progress-bar {
+        height: 6px;
+        width: 100%;
+        border-radius: 3px;
+        background-color: rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    
+    .user-progress {
+        height: 100%;
+    }
+    
+    .progress-warning {
+        background-color: #ffc107;
+    }
+    
+    .progress-danger {
+        background-color: #dc3545;
+    }
+    
+    .progress-success {
+        background-color: #28a745;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="header-section">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1>{% if is_superuser %}Dashboard de Controle de Ponto{% else %}Meu Controle de Ponto{% endif %}</h1>
+                <p class="text-muted">
+                    {% if is_superuser %}
+                    Monitore a presença e carga horária dos usuários do FabLab
+                    {% else %}
+                    Visualize seu histórico de acessos e carga horária
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-calendar-alt me-2"></i> Voltar para Agenda
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container mb-5">
+    <!-- Estatísticas Gerais -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stats-card stats-success">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-success-subtle text-success me-3">
+                            <i class="fas fa-users fa-lg"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-0">
+                                {% if is_superuser %}Usuários Presentes{% else %}Status{% endif %}
+                            </h6>
+                            <h2 class="mb-0">
+                                {% if is_superuser %}
+                                    {{ active_sessions|length }}
+                                {% else %}
+                                    {% if active_sessions %}Presente{% else %}Ausente{% endif %}
+                                {% endif %}
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card stats-primary">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-primary-subtle text-primary me-3">
+                            <i class="fas fa-door-open fa-lg"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-0">Acessos Hoje</h6>
+                            <h2 class="mb-0">{{ today_sessions }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card stats-warning">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-warning-subtle text-warning me-3">
+                            <i class="fas fa-clock fa-lg"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-0">Horas Esta Semana</h6>
+                            <h2 class="mb-0">{{ total_hours|floatformat:1 }}h</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Usuários Presentes (visible only for superuser) / Sessão Ativa (for normal admin) -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-check text-success me-2"></i>
+                        {% if is_superuser %}
+                            Usuários Presentes
+                            <span class="badge bg-success ms-2">{{ active_sessions|length }} online</span>
+                        {% else %}
+                            Minha Sessão Atual
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if is_superuser %}
+                        {% if active_sessions %}
+                            <div class="list-group list-group-flush">
+                                {% for session in active_sessions %}
+                                    <div class="list-group-item p-3 d-flex justify-content-between align-items-center user-list-item active-user">
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar avatar-{{ forloop.counter|divisibleby:"6"|yesno:"blue,green,orange,purple,red,teal" }} me-3">
+                                                {{ session.user.first_name|first }}{{ session.user.last_name|first }}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">{{ session.user.first_name }} {{ session.user.last_name }}</h6>
+                                                <div class="small text-muted">
+                                                    <i class="far fa-id-card me-1"></i> {{ session.user.id }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="mb-1">
+                                                <span class="badge bg-light text-dark">
+                                                    <i class="far fa-clock me-1"></i> 
+                                                    {{ session.entry_time|time:"H:i" }}
+                                                </span>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="presence-indicator presence-active me-2"></div>
+                                                <a href="{% url 'acesso_e_ponto:user_access_history' session.user.id %}" class="text-decoration-none">
+                                                    Ver Detalhes
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="display-1 text-muted mb-3">
+                                    <i class="fas fa-users-slash"></i>
+                                </div>
+                                <h4 class="text-muted mb-3">Nenhum usuário presente no momento</h4>
+                                <p class="text-muted">
+                                    Os usuários aparecerão aqui quando registrarem entrada no laboratório
+                                </p>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <!-- Para admin normal: mostrar seu status atual -->
+                        {% if active_sessions %}
+                            <div class="text-center py-4">
+                                <div class="display-1 text-success mb-3">
+                                    <i class="fas fa-user-check"></i>
+                                </div>
+                                <h4 class="text-success mb-3">Você está presente no laboratório</h4>
+                                {% with session=active_sessions.0 %}
+                                <div class="row justify-content-center">
+                                    <div class="col-md-8">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <p class="mb-1"><strong>Entrada:</strong> {{ session.entry_time|date:"d/m/Y H:i" }}</p>
+                                                <div id="active-duration" class="fs-4 mb-3">Calculando...</div>
+                                                <script>
+                                                    // Atualiza a duração da sessão ativa em tempo real
+                                                    function updateActiveDuration() {
+                                                        const entryTime = new Date('{{ session.entry_time|date:"c" }}');
+                                                        const now = new Date();
+                                                        const diff = Math.floor((now - entryTime) / 1000); // em segundos
+                                                        
+                                                        const hours = Math.floor(diff / 3600);
+                                                        const minutes = Math.floor((diff % 3600) / 60);
+                                                        const seconds = diff % 60;
+                                                        
+                                                        document.getElementById('active-duration').textContent = 
+                                                            `Tempo no laboratório: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                                                    }
+                                                    
+                                                    // Atualiza a cada segundo
+                                                    setInterval(updateActiveDuration, 1000);
+                                                    updateActiveDuration(); // Chamada inicial
+                                                </script>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endwith %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <div class="display-1 text-muted mb-3">
+                                    <i class="fas fa-user-slash"></i>
+                                </div>
+                                <h4 class="text-muted mb-3">Você não está no laboratório</h4>
+                                <p class="text-muted">
+                                    Passe seu cartão no leitor ao entrar no laboratório para registrar sua presença
+                                </p>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Ações Rápidas - modificadas para cada tipo de usuário -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt text-warning me-2"></i>
+                        Ações Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if is_superuser %}
+                            <div class="col-md-6 mb-3">
+                                <a href="{% url 'admin:acesso_e_ponto_weeklyrequiredhours_changelist' %}" class="btn btn-outline-primary w-100 py-3">
+                                    <i class="fas fa-sliders-h mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    Configurar Carga Horária
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="{% url 'admin:acesso_e_ponto_session_changelist' %}" class="btn btn-outline-warning w-100 py-3">
+                                    <i class="fas fa-history mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    Histórico de Sessões
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="{% url 'admin:acesso_e_ponto_timelog_changelist' %}" class="btn btn-outline-success w-100 py-3">
+                                    <i class="fas fa-list-alt mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    Registros de Ponto
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="{% url 'admin:users_card_changelist' %}" class="btn btn-outline-info w-100 py-3">
+                                    <i class="fas fa-id-card mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    Gerenciar Cartões
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="col-md-6 mb-3">
+                                <a href="{% url 'acesso_e_ponto:my_access_history' %}" class="btn btn-outline-primary w-100 py-3">
+                                    <i class="fas fa-history mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    Meu Histórico
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-success w-100 py-3">
+                                    <i class="fas fa-calendar-alt mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    Ver Agenda
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="{% url 'admin:acesso_e_ponto_timelog_changelist' %}" class="btn btn-outline-info w-100 py-3">
+                                    <i class="fas fa-list-alt mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    Meus Registros
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="{% url 'admin:acesso_e_ponto_session_changelist' %}" class="btn btn-outline-warning w-100 py-3">
+                                    <i class="fas fa-clock mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    Minhas Sessões
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status de Carga Horária -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tasks text-primary me-2"></i>
+                        {% if is_superuser %}
+                            Progresso de Carga Horária
+                        {% else %}
+                            Meu Progresso Semanal
+                        {% endif %}
+                    </h5>
+                    {% if is_superuser %}
+                    <div>
+                        <select class="form-select form-select-sm" id="filter-status">
+                            <option value="all">Todos os usuários</option>
+                            <option value="pending">Pendentes</option>
+                            <option value="completed">Completos</option>
+                            <option value="active">Presentes agora</option>
+                        </select>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% if users_status %}
+                            {% for user_status in users_status %}
+                                <div class="user-item list-group-item p-3 user-list-item {% if user_status.is_active %}active-user{% endif %}" 
+                                     data-status="{% if user_status.percentage >= 100 %}completed{% else %}pending{% endif %}{% if user_status.is_active %} active{% endif %}">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar avatar-{{ forloop.counter|divisibleby:"6"|yesno:"blue,green,orange,purple,red,teal" }} me-3">
+                                                {{ user_status.user.first_name|first }}{{ user_status.user.last_name|first }}
+                                            </div>
+                                            <div>
+                                                <div class="d-flex align-items-center">
+                                                    <h6 class="mb-0">
+                                                        {% if is_superuser %}
+                                                            {{ user_status.user.first_name }} {{ user_status.user.last_name }}
+                                                        {% else %}
+                                                            Minha carga horária
+                                                        {% endif %}
+                                                    </h6>
+                                                    {% if user_status.is_active %}
+                                                        <div class="presence-indicator presence-active ms-2"></div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="small text-muted">
+                                                    {% if is_superuser %}
+                                                        {{ user_status.user.id }}
+                                                    {% else %}
+                                                        Semana atual
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            {% if is_superuser %}
+                                            <a href="{% url 'acesso_e_ponto:user_access_history' user_status.user.id %}" class="btn btn-sm btn-light">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="small">{{ user_status.completed|floatformat:1 }}h de {{ user_status.required }}h</span>
+                                        <span class="small">{{ user_status.percentage }}%</span>
+                                    </div>
+
+                                    <div class="user-progress-bar">
+                                        <div class="user-progress 
+                                            {% if user_status.percentage < 50 %}progress-danger
+                                            {% elif user_status.percentage < 80 %}progress-warning
+                                            {% else %}progress-success{% endif %}" 
+                                            style="width: {{ user_status.percentage }}%">
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="text-muted">
+                                    {% if is_superuser %}
+                                        Nenhum usuário com carga horária definida
+                                    {% else %}
+                                        Você não tem carga horária definida
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Histórico recente só para usuário normal -->
+            {% if not is_superuser %}
+            <div class="card mt-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history text-secondary me-2"></i>
+                        Meus Acessos Recentes
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% with session_list=users_status.0.user.sessions.all|slice:":5" %}
+                    <div class="list-group list-group-flush">
+                        {% for session in session_list %}
+                        <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="small fw-bold">{{ session.entry_time|date:"d/m/Y" }}</div>
+                                <div class="small text-muted">
+                                    {{ session.entry_time|time:"H:i" }} - 
+                                    {% if session.exit_time %}
+                                        {{ session.exit_time|time:"H:i" }}
+                                    {% else %}
+                                        Presente
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div>
+                                {% if session.duration %}
+                                    <span class="badge bg-light text-dark">
+                                        {% with seconds=session.duration.total_seconds %}
+                                            {{ seconds|format_duration }}
+                                        {% endwith %}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-success">Ativo</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4">
+                            <div class="text-muted">Nenhum acesso registrado recentemente</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="p-3 text-center">
+                        <a href="{% url 'acesso_e_ponto:my_access_history' %}" class="btn btn-sm btn-outline-primary">
+                            Ver histórico completo
+                        </a>
+                    </div>
+                    {% endwith %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if is_superuser %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filtrar usuários por status
+        const filterSelect = document.getElementById('filter-status');
+        const userItems = document.querySelectorAll('.user-item');
+        
+        filterSelect.addEventListener('change', function() {
+            const selectedValue = this.value;
+            
+            userItems.forEach(item => {
+                if (selectedValue === 'all') {
+                    item.style.display = 'block';
+                } else {
+                    if (item.dataset.status.includes(selectedValue)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}
