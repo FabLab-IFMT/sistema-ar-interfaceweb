@@ -7,7 +7,10 @@ from django.contrib.auth.hashers import make_password
 from .models import CustomUser, Card, RegistrationRequest
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from logs.utils import log_user_action
-from django.http import Http404
+from django.http import Http404, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
+import json
 
 def login_view(request): 
     if request.method == "POST": 
@@ -170,7 +173,134 @@ def reject_registration(request, request_id):
     
     return redirect('users:pending_registrations')
 
-# Podemos remover esta função já que usamos o context processor agora
-# def get_pending_count():
-#     """Função auxiliar para contar solicitações pendentes"""
-#     return RegistrationRequest.objects.filter(status='pending').count()
+@login_required
+@user_passes_test(is_superuser)
+def card_registration(request):
+    """Interface para administradores cadastrarem cartões via ESP32"""
+    context = {
+        'waiting_for_card': False,
+        'selected_user': None
+    }
+    
+    # Se houver uma sessão de leitura em andamento, recuperar o estado
+    if 'card_registration_user_id' in request.session:
+        user_id = request.session['card_registration_user_id']
+        try:
+            user = CustomUser.objects.get(id=user_id)
+            context['waiting_for_card'] = True
+            context['selected_user'] = user
+        except CustomUser.DoesNotExist:
+            # Limpa a sessão se o usuário não existir
+            if 'card_registration_user_id' in request.session:
+                del request.session['card_registration_user_id']
+    
+    return render(request, 'users/card_registration.html', context)
+
+@login_required
+@user_passes_test(is_superuser)
+def start_card_reading(request, user_id):
+    """Inicia o processo de leitura de cartão para um usuário específico"""
+    user = get_object_or_404(CustomUser, id=user_id)
+    
+    # Salva o ID do usuário na sessão
+    request.session['card_registration_user_id'] = user_id
+    
+    messages.success(request, f"Leitura iniciada para {user.first_name} {user.last_name}. Aproxime o cartão do leitor.")
+    return redirect('users:card_registration')
+
+@login_required
+@user_passes_test(is_superuser)
+def cancel_card_reading(request):
+    """Cancela o processo de leitura de cartão"""
+    if 'card_registration_user_id' in request.session:
+        del request.session['card_registration_user_id']
+    
+    messages.info(request, "Leitura de cartão cancelada.")
+    return redirect('users:card_registration')
+
+@csrf_exempt
+def check_reading_status(request):
+    """API para o ESP32 verificar se deve iniciar a leitura de cartão"""
+    reading_active = False
+    
+    # Verifica se há uma sessão ativa de leitura de cartão
+    from django.contrib.sessions.models import Session
+    for session in Session.objects.all():
+        session_data = session.get_decoded()
+        if 'card_registration_user_id' in session_data:
+            reading_active = True
+            break
+    
+    return JsonResponse({
+        "reading_active": reading_active,
+        "mode": "registration"
+    })
+
+@csrf_exempt
+def register_card(request):
+    """API para o ESP32 enviar o código do cartão lido para registro"""
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            card_number = data.get("card_number")
+            
+            if not card_number:
+                return JsonResponse({"success": False, "message": "Número do cartão não enviado"}, status=400)
+            
+            # Verifica se o cartão já está cadastrado
+            if Card.objects.filter(card_number=card_number).exists():
+                return JsonResponse({
+                    "success": False, 
+                    "message": "Este cartão já está cadastrado para outro usuário."
+                })
+            
+            # Procura por uma sessão com registro de cartão em andamento
+            from django.contrib.sessions.models import Session
+            user_id = None
+            
+            for session in Session.objects.all():
+                session_data = session.get_decoded()
+                if 'card_registration_user_id' in session_data:
+                    user_id = session_data['card_registration_user_id']
+                    session_key = session.session_key
+                    break
+            
+            if user_id:
+                try:
+                    user = CustomUser.objects.get(id=user_id)
+                    
+                    # Remove cartão anterior se existir
+                    Card.objects.filter(user=user).delete()
+                    
+                    # Cria o novo cartão
+                    Card.objects.create(user=user, card_number=card_number)
+                    
+                    # Limpa a sessão
+                    session = Session.objects.get(session_key=session_key)
+                    session_data = session.get_decoded()
+                    if 'card_registration_user_id' in session_data:
+                        del session_data['card_registration_user_id']
+                        session.session_data = session_data
+                        session.save()
+                    
+                    return JsonResponse({
+                        "success": True, 
+                        "message": f"Cartão registrado com sucesso para {user.first_name} {user.last_name}",
+                        "user_name": f"{user.first_name} {user.last_name}",
+                        "user_id": user.id
+                    })
+                except CustomUser.DoesNotExist:
+                    return JsonResponse({
+                        "success": False, 
+                        "message": "Usuário não encontrado"
+                    })
+            else:
+                return JsonResponse({
+                    "success": False, 
+                    "message": "Nenhum processo de registro de cartão em andamento"
+                })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({"success": False, "message": "Erro ao processar JSON"}, status=400)
+    
+    return JsonResponse({"success": False, "message": "Método não permitido"}, status=405)

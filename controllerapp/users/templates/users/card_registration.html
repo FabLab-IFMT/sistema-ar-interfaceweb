@@ -1,0 +1,355 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+    Cadastrar Cartões - FabLab
+{% endblock %}
+
+{% block head %}
+<style>
+    .header-section {
+        background-color: #f8f9fa;
+        padding: 2rem 0;
+        position: relative;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .card {
+        border-radius: 12px;
+        border: none;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+    
+    .pulse {
+        box-shadow: 0 0 0 rgba(40, 167, 69, 0.4);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+        }
+    }
+    
+    .user-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+    }
+    
+    .avatar-blue { background-color: #007bff; }
+    .avatar-green { background-color: #28a745; }
+    .avatar-orange { background-color: #fd7e14; }
+    .avatar-purple { background-color: #6f42c1; }
+    .avatar-red { background-color: #dc3545; }
+    .avatar-teal { background-color: #20c997; }
+    
+    #userResults {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .user-result-item {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .user-result-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .card-reading-indicator {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background-color: #28a745;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="header-section">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Cadastro de Cartões RFID</h1>
+            <a href="{% url 'admin:users_card_changelist' %}" class="btn btn-outline-primary">
+                <i class="fas fa-list me-2"></i>Ver Todos os Cartões
+            </a>
+        </div>
+    </div>
+</section>
+
+<div class="container mb-5">
+    <div class="row">
+        <div class="col-lg-6">
+            <!-- Painel de busca de usuários -->
+            {% if not waiting_for_card %}
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Selecionar Usuário</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="userSearch" class="form-label">Buscar Usuário</label>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" id="userSearch" 
+                                       placeholder="Digite nome, sobrenome ou matrícula">
+                                <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">
+                                A busca começará após digitar pelo menos 3 caracteres
+                            </small>
+                        </div>
+                        
+                        <!-- Resultados da busca -->
+                        <div id="userResults" class="list-group mt-3"></div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Painel de leitura de cartão -->
+            <div class="card {% if waiting_for_card %}border border-success{% endif %}">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        {% if waiting_for_card %}
+                            <div class="d-flex align-items-center">
+                                <div class="card-reading-indicator pulse me-2"></div>
+                                Leitura de Cartão em Andamento
+                            </div>
+                        {% else %}
+                            Leitura de Cartão
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if waiting_for_card and selected_user %}
+                        <div class="alert alert-info">
+                            <p class="mb-0">
+                                <strong>Usuário selecionado:</strong> 
+                                {{ selected_user.first_name }} {{ selected_user.last_name }} ({{ selected_user.id }})
+                            </p>
+                            <p class="mb-0 mt-2">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Aproxime o cartão do leitor. O cartão será vinculado a este usuário.
+                            </p>
+                        </div>
+                        
+                        <div id="statusMessage"></div>
+                        
+                        <div class="text-center py-4">
+                            <div class="spinner-grow text-success" role="status">
+                                <span class="visually-hidden">Aguardando leitura...</span>
+                            </div>
+                            <h5 class="mt-3">Aguardando leitura do cartão...</h5>
+                            <p class="text-muted">O ESP32 está no modo de leitura de cartão.</p>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'users:cancel_card_reading' %}" class="btn btn-danger">
+                                <i class="fas fa-times me-2"></i>Cancelar Leitura
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-id-card fa-4x text-muted mb-3"></i>
+                            <h5>Nenhuma leitura em andamento</h5>
+                            <p class="text-muted">Selecione um usuário para iniciar a leitura do cartão.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Instruções e logs -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Instruções</h5>
+                </div>
+                <div class="card-body">
+                    <ol class="mb-0">
+                        <li class="mb-2">Busque e selecione o usuário para o qual deseja cadastrar um cartão</li>
+                        <li class="mb-2">Clique em "Iniciar Leitura" para o usuário selecionado</li>
+                        <li class="mb-2">Aproxime o cartão RFID do leitor conectado ao ESP32</li>
+                        <li class="mb-2">O sistema vinculará automaticamente o cartão ao usuário</li>
+                        <li>Caso o usuário já tenha um cartão cadastrado, o novo cartão substituirá o anterior</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <!-- Últimos cartões cadastrados -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Últimos Cartões Cadastrados</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="recentCards">
+                        <div class="text-center py-4 text-muted" id="noRecentCards">
+                            Nenhum cartão cadastrado recentemente
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        let typingTimer;
+        let doneTypingInterval = 500; // meio segundo
+        
+        // Busca de usuários
+        $("#userSearch").on('keyup', function() {
+            clearTimeout(typingTimer);
+            
+            const query = $(this).val().trim();
+            if (query.length < 3) {
+                $("#userResults").html('');
+                return;
+            }
+            
+            typingTimer = setTimeout(function() {
+                searchUsers(query);
+            }, doneTypingInterval);
+        });
+        
+        $("#searchButton").on('click', function() {
+            const query = $("#userSearch").val().trim();
+            if (query.length >= 3) {
+                searchUsers(query);
+            }
+        });
+        
+        function searchUsers(query) {
+            $.ajax({
+                url: "/admin/users/customuser/search/",
+                data: { q: query },
+                dataType: "json",
+                success: function(data) {
+                    displaySearchResults(data);
+                },
+                error: function(xhr, status, error) {
+                    $("#userResults").html(
+                        `<div class="alert alert-danger">Erro ao buscar usuários: ${error}</div>`
+                    );
+                }
+            });
+        }
+        
+        function displaySearchResults(users) {
+            const resultsDiv = $("#userResults");
+            resultsDiv.empty();
+            
+            if (users.length === 0) {
+                resultsDiv.html('<div class="alert alert-info">Nenhum usuário encontrado</div>');
+                return;
+            }
+            
+            for (const user of users) {
+                let avatarText = "";
+                if (user.first_name && user.last_name) {
+                    avatarText = user.first_name.charAt(0) + user.last_name.charAt(0);
+                } else {
+                    avatarText = user.id.substring(0, 2);
+                }
+                
+                const avatarClass = ['blue', 'green', 'orange', 'purple', 'red', 'teal'][Math.floor(Math.random() * 6)];
+                
+                const cardBadge = user.has_card ? 
+                    `<span class="badge bg-success ms-2">Cartão Cadastrado</span>` : 
+                    `<span class="badge bg-secondary ms-2">Sem Cartão</span>`;
+                
+                resultsDiv.append(`
+                    <a href="{% url 'users:start_card_reading' user_id='000' %}".replace('000', user.id) 
+                       class="list-group-item list-group-item-action user-result-item">
+                        <div class="d-flex align-items-center">
+                            <div class="user-avatar avatar-${avatarClass} me-3">${avatarText}</div>
+                            <div>
+                                <h6 class="mb-0">${user.first_name} ${user.last_name} ${cardBadge}</h6>
+                                <small class="text-muted">${user.id}</small>
+                            </div>
+                        </div>
+                    </a>
+                `);
+            }
+        }
+        
+        // Verificar status de leitura quando em modo de espera
+        {% if waiting_for_card %}
+            checkForCardRegistration();
+            
+            function checkForCardRegistration() {
+                $.ajax({
+                    url: "/users/cards/check-registration/",
+                    dataType: "json",
+                    success: function(data) {
+                        if (data.success) {
+                            showSuccessMessage(data.message, data.user_name, data.user_id);
+                        } else {
+                            // Continuar verificando
+                            setTimeout(checkForCardRegistration, 2000);
+                        }
+                    },
+                    error: function() {
+                        // Em caso de erro, continuar tentando
+                        setTimeout(checkForCardRegistration, 5000);
+                    }
+                });
+            }
+            
+            function showSuccessMessage(message, userName, userId) {
+                $("#statusMessage").html(`
+                    <div class="alert alert-success">
+                        <h5><i class="fas fa-check-circle me-2"></i>Sucesso!</h5>
+                        <p>${message}</p>
+                        <div class="mt-3">
+                            <a href="{% url 'users:card_registration' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Cadastrar Outro Cartão
+                            </a>
+                            <a href="/admin/users/customuser/${userId}/change/" class="btn btn-outline-secondary ms-2">
+                                <i class="fas fa-user me-2"></i>Ver Usuário
+                            </a>
+                        </div>
+                    </div>
+                `);
+                
+                // Adicionar ao histórico recente
+                $("#noRecentCards").hide();
+                $("#recentCards").prepend(`
+                    <div class="list-group-item p-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${userName}</strong>
+                                <div class="small text-muted">Agora</div>
+                            </div>
+                            <span class="badge bg-success">Cadastrado</span>
+                        </div>
+                    </div>
+                `);
+            }
+        {% endif %}
+    });
+</script>
+{% endblock %}
+{% endblock %}
