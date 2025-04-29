@@ -1,66 +1,471 @@
 {% extends 'layout.html' %}
+{% load static %}
 
 {% block title %}
-    Lista de Equipamentos
+    Equipamentos do Laboratório
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .equipment-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    height: 100%;
+  }
+  
+  .equipment-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .filter-btn.active {
+    background-color: #0d6efd !important;
+    color: white !important;
+  }
+  
+  .modal-container img {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  .badge-corner {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  .search-input {
+    border-radius: 20px;
+    padding-left: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' class='bi bi-search' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 15px center;
+  }
+  
+  .tech-specs {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  .equipment-details {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .equipment-details::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #0d6efd, #6610f2);
+  }
+  
+  .modal .btn-close-white {
+    filter: brightness(0) invert(1);
+  }
+  
+  .brand-badge {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(0,0,0,0.6);
+    color: white;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-top-right-radius: 8px;
+  }
+  
+  .parameter-item {
+    border-left: 3px solid #0d6efd;
+    padding-left: 10px;
+    margin-bottom: 8px;
+  }
+  
+  .responsavel-card {
+    transition: transform 0.2s;
+  }
+  
+  .responsavel-card:hover {
+    transform: translateY(-3px);
+  }
+  
+  @media (max-width: 768px) {
+    .equipment-card .card-title {
+      font-size: 1.1rem;
+    }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <div class="row">
+<!-- Header Section -->
+<div class="bg-light py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="display-4 fw-bold text-primary">Equipamentos do Laboratório</h1>
+        <p class="lead text-muted">
+          No FabLab, disponibilizamos as melhores ferramentas para prototipagem e fabricação digital.
+        </p>
+        <p class="mb-0">
+          Nosso objetivo é proporcionar um ambiente de aprendizado prático e colaborativo, onde a tecnologia 
+          e a criatividade se unem para transformar ideias em realidade.
+        </p>
+      </div>
+      <div class="col-md-4 d-none d-md-block">
+        <img src="{% static 'img/equipments.svg' %}" alt="Ilustração de equipamentos" class="img-fluid" 
+             onerror="this.style.display='none'">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container py-5">
+  <!-- Search and Filter Section -->
+  <div class="row mb-4">
+    <div class="col-md-6 mb-3 mb-md-0">
+      <div class="input-group">
+        <input type="text" id="searchEquipment" class="form-control search-input" 
+               placeholder="Buscar equipamentos...">
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="d-flex justify-content-md-end">
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-outline-primary filter-btn active" data-filter="all">
+            Todos
+          </button>
+          <button type="button" class="btn btn-outline-success filter-btn" data-filter="ativo">
+            Ativos
+          </button>
+          <button type="button" class="btn btn-outline-danger filter-btn" data-filter="desativado">
+            Desativados
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Counter Info -->
+  <div class="row mb-4">
     <div class="col-12">
-      <h1 class="mb-3">Materias do laboratório</h1>
-      <p>
-        No FabLab, buscamos oferecer aos nossos membros as melhores ferramentas para prototipagem e fabricação digital. 
-        Contamos com uma variedade de máquinas, desde fresadoras CNC até impressoras 3D e cortadoras a laser, permitindo 
-        que estudantes, pesquisadores e entusiastas desenvolvam projetos inovadores.
-      </p>
-      <p>
-        Nosso objetivo é proporcionar um ambiente de aprendizado prático e colaborativo, onde a tecnologia e a criatividade 
-        se unem para transformar ideias em realidade. Abaixo, você pode conferir a lista de equipamentos disponíveis, suas 
-        especificações e detalhes de uso.
-        <br>
-        <br>
+      <p id="equipment-counter" class="text-muted">
+        Exibindo <span id="showing-count">{{ materiais|length }}</span> de <span id="total-count">{{ materiais|length }}</span> equipamentos
       </p>
     </div>
-    <hr>
   </div>
-  <div class="row">
+
+  <!-- Equipment Cards -->
+  <div class="row row-cols-1 row-cols-md-3 g-4" id="equipment-container">
     {% for material in materiais %}
-    <div class="col-md-4 mb-3">
-      <div class="card">
-        <img src="{{ material.imagem_do_material.url }}" class="card-img-top" alt="{{ material.Nome_do_meterial }}" style="height: 200px; object-fit: cover;">
-        <div class="card-body">
-          <h5 class="card-title">{{ material.Nome_do_meterial }}</h5>
-          <p class="card-text">
-            {{ material.descrição_do_material|slice:":15" }}{% if material.descrição_do_material|length > 15 %}...{% endif %}
+    <div class="col equipment-item" data-status="{{ material.situacao }}">
+      <div class="card equipment-card shadow-sm {% if material.situacao == 'desativado' %}border-danger{% endif %}">
+        <div class="position-relative">
+          <img src="{{ material.imagem_do_material.url }}" class="card-img-top" alt="{{ material.nome_do_material }}" 
+               style="height: 220px; object-fit: cover;">
+          
+          <div class="badge-corner">
+            {% if material.situacao == 'desativado' %}
+            <span class="badge bg-danger">Desativado</span>
+            {% else %}
+            <span class="badge bg-success">Ativo</span>
+            {% endif %}
+          </div>
+          
+          {% if material.marca %}
+          <div class="brand-badge">
+            {{ material.marca }} {{ material.modelo }}
+          </div>
+          {% endif %}
+        </div>
+        
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">{{ material.nome_do_material }}</h5>
+          
+          {% if material.outras_denominacoes %}
+          <p class="card-text small text-muted mb-1">
+            Também conhecido como: {{ material.outras_denominacoes }}
           </p>
-          <!-- Botão para abrir o modal -->
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal{{ material.id }}">
-            Ver mais
-          </button>
+          {% endif %}
+          
+          <p class="card-text small mb-3">
+            {{ material.descricao_do_material|slice:":100" }}{% if material.descricao_do_material|length > 100 %}...{% endif %}
+          </p>
+          
+          <div class="mt-auto pt-2">
+            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modal{{ material.id }}">
+              <i class="fas fa-info-circle me-1"></i> Ver detalhes
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Modal para o material -->
     <div class="modal fade" id="modal{{ material.id }}" tabindex="-1" aria-labelledby="modalLabel{{ material.id }}" aria-hidden="true">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalLabel{{ material.id }}">{{ material.Nome_do_meterial }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          <div class="modal-header {% if material.situacao == 'desativado' %}bg-danger text-white{% else %}bg-primary text-white{% endif %}">
+            <h5 class="modal-title" id="modalLabel{{ material.id }}">
+              <i class="{% if material.situacao == 'desativado' %}fas fa-times-circle{% else %}fas fa-check-circle{% endif %} me-2"></i>
+              {{ material.nome_do_material }}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
           </div>
-          <div class="modal-body">
-            <img src="{{ material.imagem_do_material.url }}" class="img-fluid mb-3" alt="{{ material.Nome_do_meterial }}">
-            <p class="text-break">{{ material.descrição_do_material }}</p>
+          
+          <div class="modal-body equipment-details">
+            <div class="row">
+              <!-- Coluna de Imagem e Responsáveis -->
+              <div class="col-md-5 modal-container">
+                <div class="position-relative mb-3">
+                  <img src="{{ material.imagem_do_material.url }}" class="img-fluid" alt="{{ material.nome_do_material }}">
+                  <div class="position-absolute top-0 end-0 m-2">
+                    {% if material.situacao == 'ativo' %}
+                    <span class="badge bg-success fs-6 px-3 py-2">Ativo</span>
+                    {% else %}
+                    <span class="badge bg-danger fs-6 px-3 py-2">Desativado</span>
+                    {% endif %}
+                  </div>
+                </div>
+                
+                {% if material.responsaveis.exists %}
+                <div class="card mt-3 border-0 shadow-sm">
+                  <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                      <i class="fas fa-user-cog me-2"></i> Responsáveis pelo Equipamento
+                    </h6>
+                  </div>
+                  <div class="card-body p-3">
+                    <ul class="list-unstyled mb-0">
+                      {% for responsavel in material.responsaveis.all %}
+                      <li class="d-flex align-items-center responsavel-card p-2 {% if not forloop.last %}mb-2{% endif %}">
+                        {% if responsavel.foto %}
+                        <img src="{{ responsavel.foto.url }}" alt="{{ responsavel.nome }}" 
+                             class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" 
+                             style="width: 40px; height: 40px;">
+                          {{ responsavel.nome|slice:":1" }}
+                        </div>
+                        {% endif %}
+                        <div>
+                          <strong>{{ responsavel.nome }}</strong>
+                          <br><small class="text-muted">{{ responsavel.cargo }}</small>
+                          {% if responsavel.email %}
+                          <br><small><a href="mailto:{{ responsavel.email }}" class="text-decoration-none">
+                            <i class="fas fa-envelope me-1"></i>{{ responsavel.email }}
+                          </a></small>
+                          {% endif %}
+                        </div>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+              
+              <!-- Coluna de Especificações -->
+              <div class="col-md-7">
+                <div class="tech-specs p-3 mb-4">
+                  <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-clipboard-list me-2 text-primary"></i>
+                    Especificações Técnicas
+                  </h5>
+                  
+                  <div class="row g-3">
+                    {% if material.outras_denominacoes %}
+                    <div class="col-12">
+                      <div class="parameter-item">
+                        <strong class="d-block">Outras denominações</strong>
+                        {{ material.outras_denominacoes }}
+                      </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="col-md-6">
+                      <div class="parameter-item">
+                        <strong class="d-block">Marca</strong>
+                        {{ material.marca }}
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                      <div class="parameter-item">
+                        <strong class="d-block">Modelo</strong>
+                        {{ material.modelo }}
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                      <div class="parameter-item">
+                        <strong class="d-block">Fabricante</strong>
+                        {{ material.fabricante }}
+                      </div>
+                    </div>
+                    
+                    {% if material.ano_aquisicao %}
+                    <div class="col-md-6">
+                      <div class="parameter-item">
+                        <strong class="d-block">Ano de aquisição</strong>
+                        {{ material.ano_aquisicao }}
+                      </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if material.link_fabricante %}
+                    <div class="col-12 mt-2">
+                      <a href="{{ material.link_fabricante }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-external-link-alt me-1"></i> Visitar site do fabricante
+                      </a>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+                
+                {% if material.parametros %}
+                <div class="tech-specs p-3 mb-4">
+                  <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-cogs me-2 text-primary"></i>
+                    Parâmetros Técnicos
+                  </h5>
+                  <div class="bg-white p-3 rounded">
+                    {{ material.parametros|linebreaks }}
+                  </div>
+                </div>
+                {% endif %}
+                
+                <div class="tech-specs p-3">
+                  <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-file-alt me-2 text-primary"></i>
+                    Descrição
+                  </h5>
+                  <div class="bg-white p-3 rounded">
+                    {{ material.descricao_do_material|linebreaks }}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+          
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="fas fa-times me-1"></i> Fechar
+            </button>
+            {% if material.link_fabricante %}
+            <a href="{{ material.link_fabricante }}" class="btn btn-primary" target="_blank">
+              <i class="fas fa-external-link-alt me-1"></i> Site do fabricante
+            </a>
+            {% endif %}
           </div>
         </div>
       </div>
     </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i> Nenhum equipamento cadastrado no momento.
+      </div>
+    </div>
     {% endfor %}
   </div>
+  
+  <!-- No Results Message -->
+  <div id="no-results" class="row mt-4 hidden">
+    <div class="col-12">
+      <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i> Nenhum equipamento corresponde aos critérios de busca.
+      </div>
+    </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Elementos do DOM
+    const searchInput = document.getElementById('searchEquipment');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const equipmentItems = document.querySelectorAll('.equipment-item');
+    const noResults = document.getElementById('no-results');
+    const showingCount = document.getElementById('showing-count');
+    const totalCount = document.getElementById('total-count');
+    
+    // Função para filtrar equipamentos
+    function filterEquipments() {
+      const searchValue = searchInput.value.toLowerCase();
+      const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+      
+      let visibleCount = 0;
+      
+      equipmentItems.forEach(item => {
+        const equipmentName = item.querySelector('.card-title').textContent.toLowerCase();
+        const equipmentDesc = item.querySelector('.card-text').textContent.toLowerCase();
+        const equipmentStatus = item.dataset.status;
+        
+        const matchesSearch = equipmentName.includes(searchValue) || equipmentDesc.includes(searchValue);
+        const matchesFilter = activeFilter === 'all' || activeFilter === equipmentStatus;
+        
+        if (matchesSearch && matchesFilter) {
+          item.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+      
+      // Atualizar contador e mostrar mensagem se não houver resultados
+      showingCount.textContent = visibleCount;
+      
+      if (visibleCount === 0) {
+        noResults.classList.remove('hidden');
+      } else {
+        noResults.classList.add('hidden');
+      }
+    }
+    
+    // Event listeners
+    searchInput.addEventListener('input', filterEquipments);
+    
+    filterButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        // Remover classe ativa de todos os botões
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+        // Adicionar classe ativa ao botão clicado
+        this.classList.add('active');
+        // Filtrar equipamentos
+        filterEquipments();
+      });
+    });
+    
+    // Animação de entrada para os cards
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }, entry.target.dataset.index * 100);
+        }
+      });
+    });
+    
+    equipmentItems.forEach((item, index) => {
+      item.style.opacity = '0';
+      item.style.transform = 'translateY(20px)';
+      item.style.transition = 'opacity 0.5s, transform 0.5s';
+      item.dataset.index = index;
+      observer.observe(item);
+    });
+  });
+</script>
 {% endblock %}
