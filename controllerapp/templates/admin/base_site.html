@@ -170,14 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Adicionar efeito de highlight nos cabeçalhos de tabela
-    document.querySelectorAll('thead th').forEach(th => {
-        if (!th.classList.contains('action-checkbox-column')) {
-            const highlight = document.createElement('div');
-            highlight.className = 'header-highlight';
-            th.appendChild(highlight);
-        }
-    });
+    // REMOVIDO: Todo o código relacionado aos highlights de cabeçalho de tabela foi removido
     
     // Transformar status em badges coloridos
     document.querySelectorAll('td.field-status, td.field-situacao').forEach(cell => {

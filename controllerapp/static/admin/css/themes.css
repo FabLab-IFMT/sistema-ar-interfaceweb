@@ -267,3 +267,41 @@ body.dark-theme .status-badge.status-pending,
     background-color: #c27803;
     color: white;
 }
+
+/* Correção para o efeito de hover nos cabeçalhos de tabela */
+thead th {
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+thead th::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+}
+
+thead th:hover::after {
+    transform: scaleX(1);
+}
+
+/* Garantir que o conteúdo permaneça sempre visível */
+thead th a, 
+thead th span,
+thead th div,
+thead th * {
+    position: relative;
+    z-index: 3;
+}
+
+/* Desativar qualquer elemento de highlight que possa existir */
+.header-highlight {
+    display: none !important;
+}

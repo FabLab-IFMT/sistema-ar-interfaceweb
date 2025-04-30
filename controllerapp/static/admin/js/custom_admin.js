@@ -717,42 +717,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Adicionar efeito de "curso" nos cabeçalhos da tabela
-    document.querySelectorAll('thead th').forEach(th => {
-        if (!th.classList.contains('action-checkbox-column')) {
-            th.style.position = 'relative';
-            th.style.overflow = 'hidden';
-            
-            th.addEventListener('mouseenter', function() {
-                const highlight = document.createElement('div');
-                highlight.style.position = 'absolute';
-                highlight.style.bottom = '0';
-                highlight.style.left = '0';
-                highlight.style.width = '100%';
-                highlight.style.height = '2px';
-                highlight.style.background = 'linear-gradient(90deg, #7c3aed, #06b6d4)';
-                highlight.style.transform = 'translateX(-100%)';
-                highlight.style.transition = 'transform 0.3s';
-                
-                this.appendChild(highlight);
-                
-                setTimeout(() => {
-                    highlight.style.transform = 'translateX(0)';
-                }, 10);
-            });
-            
-            th.addEventListener('mouseleave', function() {
-                const highlight = this.querySelector('div');
-                if (highlight) {
-                    highlight.style.transform = 'translateX(100%)';
-                    setTimeout(() => {
-                        highlight.remove();
-                    }, 300);
-                }
-            });
-        }
-    });
-    
     // Adicionar efeito de digitação para títulos de cabeçalho de seções
     document.querySelectorAll('fieldset h2, .module h2').forEach(h2 => {
         const originalText = h2.textContent;
