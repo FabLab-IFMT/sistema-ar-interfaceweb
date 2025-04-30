@@ -6,12 +6,25 @@ from django.utils.text import slugify
 
 # Create your models here.
 class Material(models.Model):
-    Nome_do_meterial = models.CharField(max_length=100)
+    nome_do_material = models.CharField(max_length=100)  # Corrigido de Nome_do_meterial
+    outras_denominacoes = models.CharField(max_length=200, blank=True, null=True)
+    marca = models.CharField(max_length=100, default='')
+    modelo = models.CharField(max_length=100, default='')
+    ano_aquisicao = models.PositiveIntegerField(null=True, blank=True)
+    fabricante = models.CharField(max_length=100, default='')
+    link_fabricante = models.URLField(blank=True, null=True)
     imagem_do_material = models.ImageField(upload_to='materials/')
-    descrição_do_material = models.TextField()
+    descricao_do_material = models.TextField()  # Corrigido de descrição_do_material
+    parametros = models.TextField(help_text="Potência, Capacidade, Área de impressão...", blank=True, null=True)
+    responsaveis = models.ManyToManyField('Membro', related_name='equipamentos_responsavel', blank=True)
+    situacao = models.CharField(
+        max_length=10, 
+        choices=[('ativo', 'Ativo'), ('desativado', 'Desativado')], 
+        default='ativo'
+    )
 
     def __str__(self):
-        return self.Nome_do_meterial
+        return self.nome_do_material
 
 class Membro(models.Model):
     nome = models.CharField(max_length=100)

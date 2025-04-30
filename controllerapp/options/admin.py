@@ -2,7 +2,23 @@ from django.contrib import admin
 from .models import Material, Membro, CategoriaServico, Servico, ProjetoExemplo, SolicitacaoInteresse, Noticia, Hashtag
 
 # Register your models here.
-admin.site.register(Material)
+@admin.register(Material)
+class MaterialAdmin(admin.ModelAdmin):
+    list_display = ('nome_do_material', 'marca', 'modelo', 'situacao')  # Atualizado de Nome_do_meterial
+    list_filter = ('situacao', 'marca', 'ano_aquisicao')
+    search_fields = ('nome_do_material', 'outras_denominacoes', 'marca', 'modelo')  # Atualizado de Nome_do_meterial
+    filter_horizontal = ('responsaveis',)
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('nome_do_material', 'outras_denominacoes', 'descricao_do_material', 'imagem_do_material', 'situacao')
+        }),  # Atualizado de Nome_do_meterial e descrição_do_material
+        ('Especificações Técnicas', {
+            'fields': ('marca', 'modelo', 'fabricante', 'ano_aquisicao', 'link_fabricante', 'parametros')
+        }),
+        ('Responsabilidade', {
+            'fields': ('responsaveis',)
+        }),
+    )
 
 @admin.register(Membro)
 class MembroAdmin(admin.ModelAdmin):
