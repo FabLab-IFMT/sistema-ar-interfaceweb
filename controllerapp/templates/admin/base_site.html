@@ -1,0 +1,216 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('FabLab Admin') }}{% endblock %}
+
+{% block extrastyle %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<!-- Arquivo de tema unificado -->
+<link rel="stylesheet" href="{% static 'admin/css/themes.css' %}">
+<style>
+/* Tema base para FabLab Admin - Apenas estilos gerais que não dependem de tema */
+:root {
+    --border-radius: 8px;
+}
+
+/* Base Styling */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+/* Header Styling */
+#header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: var(--header-fg);
+    padding: 16px 40px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 10;
+    overflow: hidden;
+}
+
+#header::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+    background-size: 600% 600%;
+    animation: gradient 6s linear infinite;
+    z-index: 1;
+}
+
+@keyframes gradient { 
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+#branding h1, #branding h1 a:link, #branding h1 a:visited {
+    color: var(--header-fg);
+    font-weight: 600;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+#branding h1 a:hover {
+    text-decoration: none;
+}
+
+.brand-img {
+    margin-right: 12px;
+    filter: brightness(0) invert(1);
+    transition: transform 0.3s ease;
+}
+
+#branding h1 a:hover .brand-img {
+    transform: scale(1.1);
+}
+
+/* User Tools */
+#user-tools {
+    padding: 0;
+    font-size: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+#user-tools a {
+    border: none;
+    padding: 7px 15px;
+    border-radius: 6px;
+    background-color: rgba(255,255,255,0.15);
+    transition: all 0.3s ease;
+    color: var(--header-fg);
+}
+
+#user-tools a:hover {
+    background-color: rgba(255,255,255,0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    text-decoration: none;
+}
+
+/* Remover o botão de toggle de tema antigo se existir */
+#theme-toggle, .theme-toggle {
+    display: none !important;
+}
+
+/* Resto dos estilos, usando apenas classes e propriedades que não interferem no tema */
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}" class="brand">
+        <img src="{% static 'img/logo.png' %}" alt="FabLab" height="30" class="brand-img" onerror="this.style.display='none'">
+        <span>FabLab Admin</span>
+    </a>
+</h1>
+{% endblock %}
+
+{% block extrahead %}
+<script src="{% static 'admin/js/custom_admin.js' %}" defer></script>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block footer %}
+<div id="footer">
+    <div class="container">
+        <p>FabLab - Sistema de Gestão do Laboratório © {% now "Y" %}</p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Ícones para os módulos
+    const appsIcons = {
+        'Acesso_e_ponto': '<i class="fas fa-door-open"></i>',
+        'Acesso e ponto': '<i class="fas fa-fingerprint"></i>',
+        'Admin': '<i class="fas fa-tools"></i>',
+        'Authentication and Authorization': '<i class="fas fa-user-shield"></i>',
+        'Autenticação e autorização': '<i class="fas fa-user-shield"></i>',
+        'Controle_ar': '<i class="fas fa-wind"></i>',
+        'Controle ar': '<i class="fas fa-wind"></i>',
+        'Email_notificacoes': '<i class="fas fa-envelope"></i>',
+        'Email notificacoes': '<i class="fas fa-envelope"></i>',
+        'Inventario': '<i class="fas fa-boxes-stacked"></i>',
+        'Inventário': '<i class="fas fa-boxes-stacked"></i>',
+        'Logs': '<i class="fas fa-clipboard-list"></i>',
+        'Options': '<i class="fas fa-sliders"></i>',
+        'Projetos': '<i class="fas fa-lightbulb"></i>',
+        'Users': '<i class="fas fa-users"></i>'
+    };
+
+    // Adicionar ícones aos módulos
+    document.querySelectorAll('.app .app-name').forEach(function(element) {
+        const appName = element.textContent.trim();
+        
+        for (const [key, icon] of Object.entries(appsIcons)) {
+            if (appName.includes(key)) {
+                element.innerHTML = icon + ' ' + appName;
+                break;
+            }
+        }
+    });
+    
+    // Linhas alternadas nas tabelas
+    document.querySelectorAll('tbody tr').forEach(function(row, index) {
+        if (index % 2 === 0) {
+            row.style.backgroundColor = 'rgba(26, 95, 180, 0.03)';
+        }
+    });
+    
+    // Adicionar efeito de highlight nos cabeçalhos de tabela
+    document.querySelectorAll('thead th').forEach(th => {
+        if (!th.classList.contains('action-checkbox-column')) {
+            const highlight = document.createElement('div');
+            highlight.className = 'header-highlight';
+            th.appendChild(highlight);
+        }
+    });
+    
+    // Transformar status em badges coloridos
+    document.querySelectorAll('td.field-status, td.field-situacao').forEach(cell => {
+        const status = cell.textContent.trim().toLowerCase();
+        const badgeClass = status.includes('ativ') ? 'status-active' : 
+                          status.includes('desativ') ? 'status-inactive' : 
+                          status.includes('pend') ? 'status-pending' : '';
+        
+        if (badgeClass && !cell.innerHTML.includes('status-badge')) {
+            cell.innerHTML = `<span class="status-badge ${badgeClass}">${cell.textContent.trim()}</span>`;
+        }
+    });
+    
+    // Botão fechar para mensagens
+    document.querySelectorAll('.messagelist li').forEach(function(message) {
+        const closeBtn = document.createElement('span');
+        closeBtn.innerHTML = '&times;';
+        closeBtn.style.marginLeft = 'auto';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.style.fontWeight = 'bold';
+        closeBtn.style.fontSize = '18px';
+        
+        closeBtn.addEventListener('click', function() {
+            message.style.opacity = '0';
+            message.style.transform = 'translateY(-10px)';
+            message.style.transition = 'opacity 0.3s, transform 0.3s';
+            setTimeout(() => {
+                message.remove();
+            }, 300);
+        });
+        
+        message.appendChild(closeBtn);
+    });
+});
+</script>
+{% endblock %}
