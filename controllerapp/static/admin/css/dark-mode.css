@@ -1,0 +1,250 @@
+/* Estilos para o modo escuro do Admin */
+@media (prefers-color-scheme: dark) {
+    /* Variáveis CSS para o modo escuro */
+    :root {
+        --primary: #3584e4;
+        --primary-light: #5096ed; 
+        --primary-dark: #1a5fb4;
+        --primary-fg: #ffffff;
+        --secondary: #5096ed;
+        --accent: #f8e45c;
+        --accent-light: #f9e975;
+        --accent-dark: #f5c211;
+        --body-bg: #1c1c1c;
+        --body-fg: #e0e0e0;
+        --header-bg: #121212;
+        --header-fg: #ffffff;
+        --selected-bg: #2b2b2b;
+        --selected-fg: #3584e4;
+        --link-fg: #5096ed;
+        --link-hover: #78b0f2;
+        --success: #57e696;
+        --warning: #ff9233;
+        --error: #ff4545;
+        --card-bg: #242424;
+        --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        --card-shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.3);
+        --border-color: #404040;
+        --input-bg: #303030;
+        --input-border: #404040;
+        --input-color: #e0e0e0;
+        --table-header-bg: #242424;
+        --table-header-fg: #5096ed;
+        --table-border: #404040;
+        --table-row-odd: rgba(255, 255, 255, 0.03);
+        --table-row-hover: #2b2b2b;
+    }
+
+    /* Estilos gerais */
+    body, 
+    #container,
+    .module, 
+    .form-row, 
+    .submit-row,
+    #changelist-filter,
+    .paginator,
+    .calendarbox,
+    .clockbox {
+        background-color: var(--body-bg);
+        color: var(--body-fg);
+    }
+
+    /* Links */
+    a:link, a:visited, a {
+        color: var(--link-fg);
+    }
+
+    a:hover, a:focus {
+        color: var(--link-hover);
+    }
+
+    /* Cabeçalho */
+    #header {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        color: var(--header-fg);
+    }
+
+    .module h2, .module caption {
+        background: linear-gradient(45deg, var(--primary), var(--primary-light));
+        color: var(--header-fg);
+    }
+
+    /* Tabelas */
+    thead th {
+        background-color: var(--table-header-bg);
+        color: var(--table-header-fg);
+        border-color: var(--border-color);
+    }
+
+    tr.row1 {
+        background-color: var(--body-bg);
+    }
+
+    tr.row2 {
+        background-color: var(--table-row-odd);
+    }
+
+    tbody tr:hover {
+        background-color: var(--selected-bg);
+    }
+
+    td, th {
+        border-color: var(--border-color);
+    }
+
+    /* Formulários */
+    input, textarea, select {
+        background-color: var(--input-bg);
+        color: var(--input-color);
+        border-color: var(--input-border);
+    }
+
+    .button, input[type=submit], input[type=button] {
+        background: linear-gradient(to right, var(--primary), var(--secondary));
+        color: white;
+    }
+
+    .button:hover, input[type=submit]:hover, input[type=button]:hover {
+        background: linear-gradient(to right, var(--primary-dark), var(--primary));
+    }
+
+    .button.default, input[type=submit].default {
+        background: linear-gradient(to right, var(--accent-dark), var(--accent));
+    }
+
+    .button.default:hover, input[type=submit].default:hover {
+        background: linear-gradient(to right, var(--accent), var(--accent-light));
+    }
+
+    /* Filtros laterais */
+    #changelist-filter {
+        background-color: var(--card-bg);
+    }
+
+    #changelist-filter h2 {
+        background-color: var(--primary);
+    }
+
+    #changelist-filter a, #changelist-filter li {
+        color: var(--body-fg);
+    }
+
+    #changelist-filter a:hover {
+        color: var(--link-hover);
+    }
+
+    #changelist-filter a:focus {
+        color: var(--link-hover);
+    }
+
+    /* Inlines */
+    .inline-group {
+        background-color: var(--card-bg);
+    }
+
+    .inline-related fieldset {
+        background-color: var(--card-bg);
+    }
+
+    /* Calendário */
+    .calendar {
+        background-color: var(--card-bg);
+    }
+
+    .calendar caption {
+        background: var(--primary);
+        color: var(--primary-fg);
+    }
+
+    .calendar td, .calendar th {
+        background-color: var(--card-bg);
+        color: var(--body-fg);
+    }
+
+    .calendar td a {
+        background-color: var(--selected-bg);
+    }
+
+    .calendar td.selected a {
+        background-color: var(--primary);
+        color: var(--primary-fg);
+    }
+
+    /* Correções adicionais */
+    .paginator a, .paginator span.this-page {
+        background-color: var(--card-bg);
+        color: var(--link-fg);
+        border-color: var(--border-color);
+    }
+
+    .paginator span.this-page {
+        background-color: var(--primary);
+        color: var(--primary-fg);
+    }
+
+    .help {
+        color: #a3a3a3;
+    }
+
+    .aligned label {
+        color: var(--body-fg);
+    }
+
+    #id_password, #id_password1, #id_password2 {
+        color: var(--input-color);
+        background-color: var(--input-bg);
+    }
+    
+    .status-badge.status-active {
+        background-color: #057a55;
+        color: white;
+    }
+    
+    .status-badge.status-inactive {
+        background-color: #9b1c1c;
+        color: white;
+    }
+    
+    .status-badge.status-pending {
+        background-color: #c27803;
+        color: white;
+    }
+}
+
+/* Suporte para forçar o modo escuro via classe */
+body.dark-mode {
+    --primary: #3584e4;
+    --primary-light: #5096ed; 
+    --primary-dark: #1a5fb4;
+    --primary-fg: #ffffff;
+    --secondary: #5096ed;
+    --accent: #f8e45c;
+    --accent-light: #f9e975;
+    --accent-dark: #f5c211;
+    --body-bg: #1c1c1c;
+    --body-fg: #e0e0e0;
+    --header-bg: #121212;
+    --header-fg: #ffffff;
+    --selected-bg: #2b2b2b;
+    --selected-fg: #3584e4;
+    --link-fg: #5096ed;
+    --link-hover: #78b0f2;
+    --success: #57e696;
+    --warning: #ff9233;
+    --error: #ff4545;
+    --card-bg: #242424;
+    --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    --card-shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.3);
+    --border-color: #404040;
+    --input-bg: #303030;
+    --input-border: #404040;
+    --input-color: #e0e0e0;
+    --table-header-bg: #242424;
+    --table-header-fg: #5096ed;
+    --table-border: #404040;
+    --table-row-odd: rgba(255, 255, 255, 0.03);
+    --table-row-hover: #2b2b2b;
+    
+    background-color: var(--body-bg);
+    color: var(--body-fg);
+}
