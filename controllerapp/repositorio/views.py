@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django.db import models  # Adicionando a importação necessária
 
 from .models import Resource, ResourceCategory, ResourceComment, ResourceFile
 from .forms import ResourceForm, ResourceCommentForm
@@ -17,73 +18,60 @@ import mimetypes
 @login_required
 def index(request):
     """Página inicial do repositório de recursos"""
-    # Buscar categorias para o menu lateral
-    categories = ResourceCategory.objects.all()
-    
-    # Buscar recursos destacados
-    featured_resources = Resource.objects.filter(featured=True).order_by('-created_at')
-    
-    # Se o usuário estiver logado, mostrar recursos visíveis para ele
-    if request.user.is_authenticated:
-        if request.user.is_superuser:
-            # Superusuários vêem tudo
-            resources = Resource.objects.all()
-        else:
-            # Usuários comuns vêem recursos públicos, recursos de times se forem staff, e recursos de projetos dos quais são membros
-            projects_as_member = Projeto.objects.filter(
-                Q(responsavel=request.user) | Q(participantes=request.user)
-            )
-            
-            resources = Resource.objects.filter(
-                Q(visibility='public') |
-                (Q(visibility='members') & Q(project__in=projects_as_member)) |
-                (Q(visibility='team') & Q(request.user.is_staff))
-            )
-    else:
-        # Para visitantes, só mostrar recursos públicos
-        resources = Resource.objects.filter(visibility='public')
-    
-    # Aplicar filtros
-    category_slug = request.GET.get('category')
-    resource_type = request.GET.get('type')
-    project_id = request.GET.get('project')
+    # Filtros e ordenação
+    category_filter = request.GET.get('category')
+    type_filter = request.GET.get('type')
     search_query = request.GET.get('q')
+    sort_by = request.GET.get('sort', '-created_at')  # Padrão: mais recentes primeiro
     
-    if category_slug:
-        category = get_object_or_404(ResourceCategory, slug=category_slug)
-        resources = resources.filter(category=category)
-        
-    if resource_type:
-        resources = resources.filter(resource_type=resource_type)
-        
-    if project_id:
-        project = get_object_or_404(Projeto, id=project_id)
-        resources = resources.filter(project=project)
-        
+    # Busca de recursos
+    if request.user.is_superuser:
+        # Superusuários veem todos os recursos
+        resources = Resource.objects.all()
+    else:
+        # Usuários normais veem apenas recursos públicos e os que têm permissão
+        # Corrigindo o problema aqui - não podemos usar condições booleanas diretas
+        resources = Resource.objects.filter(
+            # Recursos públicos OU recursos onde o usuário é membro do projeto
+            models.Q(visibility='public') | 
+            models.Q(project__responsavel=request.user) |
+            models.Q(project__participantes=request.user)
+        ).distinct()
+    
+    # Aplicar filtros adicionais
+    if category_filter:
+        try:
+            category = ResourceCategory.objects.get(slug=category_filter)
+            resources = resources.filter(category=category)
+        except ResourceCategory.DoesNotExist:
+            pass
+    
+    if type_filter:
+        resources = resources.filter(resource_type=type_filter)
+    
     if search_query:
         resources = resources.filter(
-            Q(title__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(tags__icontains=search_query)
+            models.Q(title__icontains=search_query) |
+            models.Q(description__icontains=search_query) |
+            models.Q(tags__icontains=search_query)
         )
     
-    # Ordenar por mais recentes
-    resources = resources.order_by('-created_at')
+    # Ordenar os resultados
+    resources = resources.order_by(sort_by)
     
     # Paginação
-    paginator = Paginator(resources, 12)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    paginator = Paginator(resources, 12)  # 12 recursos por página
+    page = request.GET.get('page')
+    resources_page = paginator.get_page(page)
     
+    # Contexto da página
     context = {
-        'categories': categories,
-        'featured_resources': featured_resources[:4],
-        'resources': page_obj,
+        'resources': resources_page,
+        'categories': ResourceCategory.objects.all(),
         'resource_types': Resource.RESOURCE_TYPES,
-        'selected_category': category_slug,
-        'selected_type': resource_type,
-        'selected_project': project_id,
-        'search_query': search_query,
+        'selected_category': category_filter,
+        'selected_type': type_filter,
+        'search_query': search_query
     }
     
     return render(request, 'repositorio/index.html', context)
