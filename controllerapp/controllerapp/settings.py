@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'Email_notificacoes',
     'inventario', 
     'projetos',
+    'canva',  # Adicionar o app do quadro Kanban
 ]
 
 MIDDLEWARE = [
