@@ -276,27 +276,26 @@
                 <!-- Lista de arquivos -->
                 <div class="file-list-container">
                     <ul class="file-list">
-                        {% if resource.file %}
-                        <!-- Arquivo principal -->
-                        <li class="file-item">
-                            <div class="file-icon {% if resource.is_image %}img{% elif resource.is_document %}doc{% elif resource.is_audio %}audio{% elif resource.is_video %}video{% elif resource.is_code %}code{% else %}text{% endif %}">
-                                {% if resource.is_image %}
+                        {% for file in resource.resource_files.all %}
+                        <li class="file-item" id="file-item-{{ file.id }}">
+                            <div class="file-icon {% if file.is_image %}img{% elif file.is_document %}doc{% elif file.is_audio %}audio{% elif file.is_video %}video{% elif file.is_code %}code{% else %}text{% endif %}">
+                                {% if file.is_image %}
                                     <i class="fas fa-file-image"></i>
-                                {% elif resource.file_extension == '.pdf' %}
+                                {% elif file.file_extension == '.pdf' %}
                                     <i class="fas fa-file-pdf"></i>
-                                {% elif resource.file_extension in '.doc,.docx' %}
+                                {% elif file.file_extension in '.doc,.docx' %}
                                     <i class="fas fa-file-word"></i>
-                                {% elif resource.file_extension in '.xls,.xlsx' %}
+                                {% elif file.file_extension in '.xls,.xlsx' %}
                                     <i class="fas fa-file-excel"></i>
-                                {% elif resource.file_extension in '.ppt,.pptx' %}
+                                {% elif file.file_extension in '.ppt,.pptx' %}
                                     <i class="fas fa-file-powerpoint"></i>
-                                {% elif resource.is_audio %}
+                                {% elif file.is_audio %}
                                     <i class="fas fa-file-audio"></i>
-                                {% elif resource.is_video %}
+                                {% elif file.is_video %}
                                     <i class="fas fa-file-video"></i>
-                                {% elif resource.is_code %}
+                                {% elif file.is_code %}
                                     <i class="fas fa-file-code"></i>
-                                {% elif resource.file_extension in '.zip,.rar,.7z' %}
+                                {% elif file.file_extension in '.zip,.rar,.7z' %}
                                     <i class="fas fa-file-archive"></i>
                                 {% else %}
                                     <i class="fas fa-file-alt"></i>
@@ -304,77 +303,80 @@
                             </div>
                             
                             <div class="file-info">
-                                <div class="file-name">{{ resource.filename }}</div>
+                                <div class="file-name">{{ file.title }}</div>
                                 <div class="file-meta">
-                                    {% if resource.file_size %}
-                                        {{ resource.file_size|filesizeformat }} • 
+                                    {% if file.file_size %}
+                                        {{ file.file_size|filesizeformat }} • 
                                     {% endif %}
-                                    {% if resource.file_extension %}
-                                        {{ resource.file_extension|upper }} •
+                                    {% if file.file_extension %}
+                                        {{ file.file_extension|upper }} •
                                     {% endif %}
-                                    Adicionado em {{ resource.created_at|date:"d/m/Y" }}
+                                    Adicionado em {{ file.upload_date|date:"d/m/Y" }}
                                 </div>
                             </div>
                             
                             <div class="file-actions">
-                                <a href="{{ resource.file.url }}" class="btn btn-primary" download>
+                                <a href="{% url 'repositorio:download_file' file_id=file.id %}" class="btn btn-primary" download>
                                     <i class="fas fa-download me-1"></i> Baixar
                                 </a>
-                            </div>
-                        </li>
-                        {% endif %}
-                        
-                        {% if resource.external_url %}
-                        <!-- Link externo -->
-                        <li class="file-item">
-                            <div class="file-icon link">
-                                <i class="fas fa-link"></i>
-                            </div>
-                            
-                            <div class="file-info">
-                                <div class="file-name">Link externo</div>
-                                <div class="file-meta">
-                                    {{ resource.external_url|truncatechars:50 }}
-                                </div>
-                            </div>
-                            
-                            <div class="file-actions">
-                                <a href="{{ resource.external_url }}" class="btn btn-outline-primary" target="_blank">
-                                    <i class="fas fa-external-link-alt me-1"></i> Acessar
-                                </a>
-                            </div>
-                        </li>
-                        {% endif %}
-                        
-                        {% if resource.text_content %}
-                        <!-- Conteúdo de texto -->
-                        <li class="file-item">
-                            <div class="file-icon text">
-                                <i class="fas fa-file-alt"></i>
-                            </div>
-                            
-                            <div class="file-info">
-                                <div class="file-name">Conteúdo de texto</div>
-                                <div class="file-meta">
-                                    {{ resource.text_content|truncatechars:100 }}
-                                </div>
-                            </div>
-                            
-                            <div class="file-actions">
-                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#textContentModal">
-                                    <i class="fas fa-eye me-1"></i> Visualizar
+                                {% if can_edit %}
+                                <button type="button" class="btn btn-outline-danger btn-sm ms-2" 
+                                       onclick="deleteFile({{ file.id }}, '{{ file.title|escapejs }}')">
+                                    <i class="fas fa-trash"></i>
                                 </button>
+                                {% endif %}
                             </div>
                         </li>
-                        {% endif %}
-                        
-                        {% if not resource.file and not resource.external_url and not resource.text_content %}
+                        {% empty %}
                         <li class="text-center p-4 text-muted">
                             <i class="fas fa-info-circle me-2"></i> Nenhum arquivo disponível para download.
+                            {% if can_edit %}
+                            <p class="mt-2">
+                                <a href="{% url 'repositorio:resource_edit' slug=resource.slug %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus"></i> Adicionar arquivos
+                                </a>
+                            </p>
+                            {% endif %}
                         </li>
-                        {% endif %}
+                        {% endfor %}
                     </ul>
                 </div>
+                
+                <!-- Mostrar texto, URL externa, etc. -->
+                {% if resource.external_url %}
+                <!-- Link externo -->
+                <div class="mt-4">
+                    <h3 class="h5 mb-3">Link Externo</h3>
+                    <div class="file-item">
+                        <div class="file-icon link">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        
+                        <div class="file-info">
+                            <div class="file-name">Link externo</div>
+                            <div class="file-meta">
+                                {{ resource.external_url }}
+                            </div>
+                        </div>
+                        
+                        <div class="file-actions">
+                            <a href="{{ resource.external_url }}" class="btn btn-outline-primary" target="_blank">
+                                <i class="fas fa-external-link-alt me-1"></i> Acessar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if resource.text_content %}
+                <!-- Conteúdo de texto -->
+                <div class="mt-4">
+                    <h3 class="h5 mb-3">Conteúdo de Texto</h3>
+                    <div class="card p-3">
+                        <pre class="mb-0">{{ resource.text_content }}</pre>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             
             <!-- Seção de comentários -->
@@ -457,12 +459,12 @@
                 {% if resource.file %}
                 <div class="sidebar-section">
                     <h4>Download</h4>
-                    <a href="{{ resource.file.url }}" class="btn btn-success w-100" download>
+                    <a href="{% url 'repositorio:download_file' file_id=resource.main_file.id %}" class="btn btn-success w-100" download>
                         <i class="fas fa-download me-2"></i> Baixar arquivo
                     </a>
-                    {% if resource.file_size %}
+                    {% if resource.main_file.file_size %}
                     <p class="text-muted mt-2 mb-0 text-center">
-                        Tamanho: {{ resource.file_size|filesizeformat }}
+                        Tamanho: {{ resource.main_file.file_size|filesizeformat }}
                     </p>
                     {% endif %}
                 </div>
@@ -606,6 +608,47 @@
                     location.reload();
                 } else {
                     alert('Erro ao excluir comentário');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao processar a solicitação');
+            });
+        }
+    }
+
+    // Função para excluir um arquivo específico
+    function deleteFile(fileId, fileName) {
+        if (confirm(`Tem certeza que deseja excluir o arquivo "${fileName}"?`)) {
+            fetch(`/repositorio/arquivo/${fileId}/excluir/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Remover o item da lista visualmente
+                    document.getElementById(`file-item-${fileId}`).remove();
+                    
+                    // Se não houver mais arquivos, mostrar mensagem
+                    const fileList = document.querySelector('.file-list');
+                    if (fileList.children.length === 0) {
+                        fileList.innerHTML = `<li class="text-center p-4 text-muted">
+                            <i class="fas fa-info-circle me-2"></i> Nenhum arquivo disponível para download.
+                            {% if can_edit %}
+                            <p class="mt-2">
+                                <a href="{% url 'repositorio:resource_edit' slug=resource.slug %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus"></i> Adicionar arquivos
+                                </a>
+                            </p>
+                            {% endif %}
+                        </li>`;
+                    }
+                } else {
+                    alert('Erro ao excluir arquivo');
                 }
             })
             .catch(error => {

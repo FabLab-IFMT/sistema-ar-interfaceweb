@@ -1,14 +1,16 @@
 from django import forms
-from .models import Resource, ResourceComment
+from .models import Resource, ResourceComment, ResourceFile
 from django.core.exceptions import ValidationError
 import os
 
 class ResourceForm(forms.ModelForm):
     """Formulário para criar/editar recursos"""
     
+    # Observe que não há mais um campo files aqui
+    
     class Meta:
         model = Resource
-        fields = ['title', 'description', 'resource_type', 'category', 'visibility', 'featured', 'tags', 'file', 'text_content', 'external_url']
+        fields = ['title', 'description', 'resource_type', 'category', 'visibility', 'featured', 'tags', 'text_content', 'external_url']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
             'text_content': forms.Textarea(attrs={'rows': 10, 'class': 'code-editor'}),
@@ -29,49 +31,18 @@ class ResourceForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         resource_type = cleaned_data.get('resource_type')
-        file = cleaned_data.get('file')
         text_content = cleaned_data.get('text_content')
         external_url = cleaned_data.get('external_url')
         
-        # Verificar se o campo apropriado está preenchido com base no tipo de recurso
-        if resource_type == 'document' and not file:
-            raise ValidationError("Um arquivo é necessário para recursos do tipo Documento.")
+        # Verificações específicas são agora baseadas apenas no tipo de recurso
+        # e não mais na presença de arquivos, pois os arquivos são processados separadamente
         
-        if resource_type == 'image' and not file:
-            raise ValidationError("Um arquivo é necessário para recursos do tipo Imagem.")
-            
-        if resource_type == 'video' and not (file or external_url):
-            raise ValidationError("Um arquivo ou URL externa é necessária para recursos do tipo Vídeo.")
-            
-        if resource_type == 'audio' and not (file or external_url):
-            raise ValidationError("Um arquivo ou URL externa é necessária para recursos do tipo Áudio.")
-            
-        if resource_type == 'code' and not (file or text_content):
-            raise ValidationError("Um arquivo ou conteúdo de texto é necessário para recursos do tipo Código.")
-            
         if resource_type == 'text' and not text_content:
-            raise ValidationError("Conteúdo de texto é necessário para recursos do tipo Texto.")
+            self.add_error('text_content', "Conteúdo de texto é necessário para recursos do tipo Texto.")
             
         if resource_type == 'link' and not external_url:
-            raise ValidationError("Uma URL externa é necessária para recursos do tipo Link.")
+            self.add_error('external_url', "Uma URL externa é necessária para recursos do tipo Link.")
             
-        # Validar tipos de arquivo
-        if file:
-            ext = os.path.splitext(file.name)[1].lower()
-            
-            # Validar por tipo de recurso
-            if resource_type == 'image' and ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
-                raise ValidationError("O arquivo deve ser uma imagem válida (jpg, png, gif, webp).")
-                
-            if resource_type == 'document' and ext not in ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt']:
-                raise ValidationError("O arquivo deve ser um documento válido (pdf, doc, docx, xls, xlsx, ppt, pptx, txt).")
-                
-            if resource_type == 'video' and ext not in ['.mp4', '.webm', '.ogg', '.mov']:
-                raise ValidationError("O arquivo deve ser um vídeo válido (mp4, webm, ogg, mov).")
-                
-            if resource_type == 'audio' and ext not in ['.mp3', '.wav', '.ogg', '.m4a']:
-                raise ValidationError("O arquivo deve ser um áudio válido (mp3, wav, ogg, m4a).")
-                
         return cleaned_data
         
     def save(self, commit=True):

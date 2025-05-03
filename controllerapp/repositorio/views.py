@@ -1,16 +1,20 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden, JsonResponse, Http404
+from django.http import HttpResponseForbidden, JsonResponse, Http404, HttpResponse
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from .models import Resource, ResourceCategory, ResourceComment
+from .models import Resource, ResourceCategory, ResourceComment, ResourceFile
 from .forms import ResourceForm, ResourceCommentForm
 from projetos.models import Projeto
 
+import os
+import mimetypes
+
+@login_required
 def index(request):
     """Página inicial do repositório de recursos"""
     # Buscar categorias para o menu lateral
@@ -84,6 +88,7 @@ def index(request):
     
     return render(request, 'repositorio/index.html', context)
 
+@login_required
 def project_resources(request, project_slug):
     """Mostra recursos de um projeto específico"""
     project = get_object_or_404(Projeto, slug=project_slug)
@@ -160,6 +165,7 @@ def project_resources(request, project_slug):
     
     return render(request, 'repositorio/project_resources.html', context)
 
+@login_required
 def resource_detail(request, slug):
     """Mostra detalhes de um recurso específico"""
     resource = get_object_or_404(Resource, slug=slug)
@@ -236,9 +242,19 @@ def resource_create(request, project_slug=None):
     
     # Processar formulário
     if request.method == 'POST':
-        form = ResourceForm(request.POST, request.FILES, project=project, user=request.user)
+        form = ResourceForm(request.POST, project=project, user=request.user)
         if form.is_valid():
             resource = form.save()
+            
+            # Processar os arquivos enviados - agora diretamente do request.FILES
+            files = request.FILES.getlist('files')
+            for file in files:
+                ResourceFile.objects.create(
+                    resource=resource,
+                    file=file,
+                    # O título será definido automaticamente pelo nome do arquivo no método save do modelo
+                )
+            
             messages.success(request, "Recurso criado com sucesso!")
             return redirect('repositorio:resource_detail', slug=resource.slug)
     else:
@@ -264,14 +280,23 @@ def resource_edit(request, slug):
     # Processar formulário
     if request.method == 'POST':
         form = ResourceForm(
-            request.POST, 
-            request.FILES,
+            request.POST,
             instance=resource,
             project=resource.project, 
             user=request.user
         )
         if form.is_valid():
             resource = form.save()
+            
+            # Processar os arquivos enviados - da mesma forma que na criação
+            files = request.FILES.getlist('files')
+            for file in files:
+                ResourceFile.objects.create(
+                    resource=resource,
+                    file=file,
+                    # O título será definido automaticamente pelo nome do arquivo
+                )
+            
             messages.success(request, "Recurso atualizado com sucesso!")
             return redirect('repositorio:resource_detail', slug=resource.slug)
     else:
@@ -322,3 +347,125 @@ def comment_delete(request, comment_id):
     
     messages.success(request, "Comentário excluído com sucesso!")
     return redirect('repositorio:resource_detail', slug=resource_slug)
+
+# Adicionar nova view para excluir arquivos individuais
+@login_required
+@require_POST
+def resource_file_delete(request, file_id):
+    """Excluir um arquivo específico de um recurso"""
+    resource_file = get_object_or_404(ResourceFile, id=file_id)
+    resource = resource_file.resource
+    
+    # Verificar permissão para excluir
+    if not resource.can_edit(request.user):
+        return HttpResponseForbidden("Você não tem permissão para excluir arquivos deste recurso")
+    
+    # Excluir o arquivo
+    resource_file.delete()
+    
+    # Retornar JSON para solicitações AJAX
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'success'})
+    
+    messages.success(request, "Arquivo excluído com sucesso!")
+    return redirect('repositorio:resource_detail', slug=resource.slug)
+
+@login_required
+def download_file(request, file_id):
+    """Download de arquivo com verificação de permissão"""
+    file_obj = get_object_or_404(ResourceFile, id=file_id)
+    resource = file_obj.resource
+    
+    # Verificar permissão para baixar o arquivo
+    if not resource.can_view(request.user):
+        return HttpResponseForbidden("Você não tem permissão para baixar este arquivo.")
+    
+    # Verificar se o arquivo existe fisicamente
+    file_path = file_obj.file.path
+    if not os.path.exists(file_path):
+        raise Http404("O arquivo solicitado não está disponível.")
+    
+    # Determinar o tipo MIME do arquivo ou usar um genérico
+    content_type, encoding = mimetypes.guess_type(file_path)
+    if not content_type:
+        content_type = 'application/octet-stream'
+    
+    # Abrir o arquivo e prepará-lo para download
+    with open(file_path, 'rb') as f:
+        response = HttpResponse(f.read(), content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_path)}"'
+        return response
+
+@login_required
+def add_comment(request, resource_id):
+    """Adiciona um comentário a um recurso"""
+    resource = get_object_or_404(Resource, id=resource_id)
+    
+    # Verificar se o usuário tem permissão para ver este recurso
+    if not resource.can_view(request.user):
+        return HttpResponseForbidden("Você não tem permissão para comentar neste recurso.")
+    
+    if request.method == 'POST':
+        comment_text = request.POST.get('text')
+        
+        if comment_text and comment_text.strip():
+            # Criar o comentário
+            comment = ResourceComment.objects.create(
+                resource=resource,
+                user=request.user,
+                text=comment_text
+            )
+            
+            # Verificar se é uma requisição AJAX
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'success',
+                    'comment': {
+                        'id': comment.id,
+                        'text': comment.text,
+                        'user': f"{comment.user.first_name} {comment.user.last_name}",
+                        'created_at': comment.created_at.strftime('%d/%m/%Y %H:%M')
+                    }
+                })
+            
+            messages.success(request, "Comentário adicionado com sucesso!")
+        else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'O comentário não pode estar vazio'
+                }, status=400)
+            
+            messages.error(request, "O comentário não pode estar vazio.")
+    
+    # Redirecionar de volta para a página do recurso
+    return redirect('repositorio:resource_detail', slug=resource.slug)
+
+@login_required
+@require_POST
+def delete_comment(request, comment_id):
+    """Excluir um comentário"""
+    comment = get_object_or_404(ResourceComment, id=comment_id)
+    resource = comment.resource
+    
+    # Verificar permissão: o próprio autor, responsável pelo projeto ou superusuário
+    if (request.user == comment.user or 
+        request.user == resource.project.responsavel or 
+        request.user.is_superuser):
+        
+        comment.delete()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success'})
+        
+        messages.success(request, "Comentário excluído com sucesso!")
+        return redirect('repositorio:resource_detail', slug=resource.slug)
+    
+    # Não tem permissão
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Você não tem permissão para excluir este comentário'
+        }, status=403)
+    
+    return HttpResponseForbidden("Você não tem permissão para excluir este comentário.")

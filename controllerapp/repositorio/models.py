@@ -31,10 +31,25 @@ def resource_file_path(instance, filename):
     """Define o caminho onde o arquivo será salvo"""
     # Obter a extensão do arquivo
     ext = filename.split('.')[-1]
-    # Criar um nome de arquivo baseado no slug do recurso
-    filename = f"{instance.slug}.{ext}"
+    
+    # Se o ResourceFile tem relação com Resource, use o slug do recurso
+    if hasattr(instance, 'resource') and instance.resource:
+        resource_slug = instance.resource.slug
+        project_slug = instance.resource.project.slug
+    else:  # Caso seja o arquivo principal do Resource
+        resource_slug = instance.slug
+        project_slug = instance.project.slug
+    
+    # Preservar o nome original do arquivo se não houver título definido
+    if hasattr(instance, 'title') and instance.title and instance.title != filename:
+        filename_base = slugify(instance.title)
+        filename = f"{filename_base}.{ext}"
+    else:
+        # Limpar o nome do arquivo para evitar caracteres problemáticos
+        filename = filename.replace(' ', '_').lower()
+    
     # Retornar o caminho completo
-    return os.path.join('recursos', instance.project.slug, instance.get_resource_type_display().lower(), filename)
+    return os.path.join('recursos', project_slug, resource_slug, filename)
 
 class Resource(models.Model):
     """Modelo base para todos os recursos"""
@@ -63,12 +78,7 @@ class Resource(models.Model):
     project = models.ForeignKey(Projeto, on_delete=models.CASCADE, related_name='resources')
     visibility = models.CharField('Visibilidade', max_length=20, choices=VISIBILITY_CHOICES, default='members')
     
-    # Campos de arquivo (para arquivos físicos)
-    file = models.FileField('Arquivo', upload_to=resource_file_path, blank=True, null=True)
-    file_size = models.PositiveIntegerField('Tamanho do arquivo (bytes)', blank=True, null=True)
-    file_type = models.CharField('Tipo de arquivo', max_length=100, blank=True)
-    
-    # Campos para conteúdo de texto
+    # Campo para conteúdo de texto
     text_content = models.TextField('Conteúdo de texto', blank=True)
     
     # Campo para links externos
@@ -100,55 +110,16 @@ class Resource(models.Model):
                 counter += 1
             self.slug = slug
             
-        # Atualizar informações do arquivo se um arquivo for fornecido
-        if self.file and not self.file_size:
-            self.file_size = self.file.size
-            self.file_type = self.file.name.split('.')[-1]
-            
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
         return reverse('repositorio:resource_detail', args=[self.slug])
     
     @property
-    def filename(self):
-        return os.path.basename(self.file.name) if self.file else None
-    
-    @property
-    def file_extension(self):
-        if self.file:
-            return os.path.splitext(self.file.name)[1].lower()
-        return None
-        
-    @property
-    def is_image(self):
-        if self.file_extension:
-            return self.file_extension in ['.jpg', '.jpeg', '.png', '.gif', '.webp']
-        return False
-    
-    @property
-    def is_document(self):
-        if self.file_extension:
-            return self.file_extension in ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx']
-        return False
-    
-    @property
-    def is_code(self):
-        if self.file_extension:
-            return self.file_extension in ['.py', '.js', '.html', '.css', '.java', '.c', '.cpp', '.php']
-        return False
-        
-    @property
-    def is_audio(self):
-        if self.file_extension:
-            return self.file_extension in ['.mp3', '.wav', '.ogg', '.m4a']
-        return False
-        
-    @property
-    def is_video(self):
-        if self.file_extension:
-            return self.file_extension in ['.mp4', '.webm', '.ogg', '.mov']
-        return False
+    def main_file(self):
+        """Retorna o arquivo principal (primeiro arquivo)"""
+        files = self.resource_files.all()
+        return files.first() if files.exists() else None
     
     def can_view(self, user):
         """Verifica se o usuário tem permissão para visualizar este recurso"""
@@ -198,6 +169,77 @@ class Resource(models.Model):
             return True
             
         # Em todos os outros casos, não tem permissão
+        return False
+
+class ResourceFile(models.Model):
+    """Arquivos associados a um recurso (permitindo múltiplos arquivos)"""
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name='resource_files')
+    title = models.CharField('Título', max_length=200, blank=True, help_text='Se em branco, será usado o nome do arquivo')
+    file = models.FileField('Arquivo', upload_to=resource_file_path)
+    file_size = models.PositiveIntegerField('Tamanho do arquivo (bytes)', blank=True, null=True)
+    file_type = models.CharField('Tipo de arquivo', max_length=100, blank=True)
+    upload_date = models.DateTimeField('Data de upload', auto_now_add=True)
+    
+    class Meta:
+        verbose_name = 'Arquivo de Recurso'
+        verbose_name_plural = 'Arquivos de Recursos'
+        ordering = ['upload_date']
+    
+    def __str__(self):
+        return self.title or os.path.basename(self.file.name)
+        
+    def save(self, *args, **kwargs):
+        # Se não houver título, usar o nome do arquivo
+        if not self.title and self.file:
+            self.title = os.path.basename(self.file.name)
+            
+        # Atualizar informações do arquivo
+        if self.file and not self.file_size:
+            self.file_size = self.file.size
+            self.file_type = self.file.name.split('.')[-1]
+            
+        super().save(*args, **kwargs)
+        
+    @property
+    def filename(self):
+        """Nome do arquivo sem o caminho"""
+        return os.path.basename(self.file.name) if self.file else None
+    
+    @property
+    def file_extension(self):
+        """Extensão do arquivo"""
+        if self.file:
+            return os.path.splitext(self.file.name)[1].lower()
+        return None
+        
+    @property
+    def is_image(self):
+        if self.file_extension:
+            return self.file_extension in ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+        return False
+    
+    @property
+    def is_document(self):
+        if self.file_extension:
+            return self.file_extension in ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx']
+        return False
+    
+    @property
+    def is_code(self):
+        if self.file_extension:
+            return self.file_extension in ['.py', '.js', '.html', '.css', '.java', '.c', '.cpp', '.php']
+        return False
+        
+    @property
+    def is_audio(self):
+        if self.file_extension:
+            return self.file_extension in ['.mp3', '.wav', '.ogg', '.m4a']
+        return False
+        
+    @property
+    def is_video(self):
+        if self.file_extension:
+            return self.file_extension in ['.mp4', '.webm', '.ogg', '.mov']
         return False
 
 class ResourceComment(models.Model):
