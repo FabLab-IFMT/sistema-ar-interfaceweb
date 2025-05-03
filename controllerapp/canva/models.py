@@ -41,6 +41,7 @@ class KanbanCard(models.Model):
     data_inicio = models.DateField(null=True, blank=True)
     prazo = models.DateField(null=True, blank=True)
     data_conclusao = models.DateField(null=True, blank=True)
+    visivel = models.BooleanField(default=True, help_text="Se marcado, o card será visível no quadro")
     
     # Campos adicionais para monitoramento
     progresso = models.PositiveSmallIntegerField(default=0, help_text="Progresso em percentual (0-100)")

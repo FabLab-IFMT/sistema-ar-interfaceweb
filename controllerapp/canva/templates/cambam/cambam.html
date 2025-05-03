@@ -767,6 +767,43 @@
         </div>
     </div>
 </div>
+
+<!-- Adicionando o Modal de Edição de Coluna -->
+<div class="modal fade" id="editColumnModal" tabindex="-1" aria-labelledby="editColumnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editColumnModalLabel">Editar Coluna</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editColumnForm">
+                    <input type="hidden" id="editColumnId" name="column_id">
+                    
+                    <div class="mb-3">
+                        <label for="editColumnName" class="form-label">Nome da Coluna</label>
+                        <input type="text" class="form-control" id="editColumnName" name="nome" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editColumnColor" class="form-label">Cor de fundo</label>
+                        <input type="color" class="form-control form-control-color" id="editColumnColor" name="cor" value="#f8f9fa" title="Escolha uma cor">
+                        <div class="form-text">Pré-visualização da cor da coluna</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="card p-2" id="colorPreview" style="height: 50px; background-color: #f8f9fa;">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="updateColumnBtn">Salvar alterações</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -783,10 +820,213 @@
         let currentFilters = {
             project: 'all',
             priority: 'all',
-            user: 'all'
+            user: 'all',
+            visibility: 'visible'  // Novo filtro de visibilidade
         };
         let isDragging = false;
         let lastClickTime = 0;
+        
+        // Inicialização dos filtros
+        initFilters();
+        
+        // Inicialização do Drag and Drop
+        initDragAndDrop();
+        
+        // Função para inicializar os filtros
+        function initFilters() {
+            // Filtro por projeto
+            document.querySelectorAll('[data-filter-project]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const projectFilter = this.dataset.filterProject;
+                    applyFilter('project', projectFilter);
+                    document.getElementById('filterProjects').textContent = this.textContent.trim();
+                });
+            });
+            
+            // Filtro por prioridade
+            document.querySelectorAll('[data-filter-priority]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const priorityFilter = this.dataset.filterPriority;
+                    applyFilter('priority', priorityFilter);
+                    document.getElementById('filterPriority').textContent = this.textContent.trim();
+                });
+            });
+            
+            // Filtro por usuário
+            document.querySelectorAll('[data-filter-user]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const userFilter = this.dataset.filterUser;
+                    applyFilter('user', userFilter);
+                    document.getElementById('filterUsers').textContent = this.textContent.trim();
+                });
+            });
+            
+            // Limpar filtros
+            document.getElementById('clearFilters').addEventListener('click', function() {
+                currentFilters = {
+                    project: 'all',
+                    priority: 'all',
+                    user: 'all',
+                    visibility: currentFilters.visibility
+                };
+                applyAllFilters();
+                // Resetar textos dos dropdowns
+                document.getElementById('filterProjects').innerHTML = '<i class="fas fa-folder me-1"></i> Projetos';
+                document.getElementById('filterPriority').innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Prioridade';
+                if (document.getElementById('filterUsers')) {
+                    document.getElementById('filterUsers').innerHTML = '<i class="fas fa-user me-1"></i> Usuário';
+                }
+            });
+            
+            // Aplicar filtros ao carregar a página
+            applyAllFilters();
+        }
+        
+        // Função para aplicar um filtro específico
+        function applyFilter(filterType, value) {
+            currentFilters[filterType] = value;
+            applyAllFilters();
+        }
+        
+        // Função para aplicar todos os filtros
+        function applyAllFilters() {
+            const cards = document.querySelectorAll('.kanban-card');
+            
+            cards.forEach(card => {
+                // Começa assumindo que o card deve ser visível
+                let isVisible = true;
+                
+                // Filtro de projeto
+                if (currentFilters.project !== 'all') {
+                    if (currentFilters.project === 'none') {
+                        isVisible = isVisible && (!card.dataset.cardProject || card.dataset.cardProject === 'none');
+                    } else {
+                        isVisible = isVisible && (card.dataset.cardProject === currentFilters.project);
+                    }
+                }
+                
+                // Filtro de prioridade
+                if (currentFilters.priority !== 'all') {
+                    isVisible = isVisible && (card.dataset.cardPriority === currentFilters.priority);
+                }
+                
+                // Filtro de usuário
+                if (currentFilters.user !== 'all') {
+                    isVisible = isVisible && (card.dataset.cardUser === currentFilters.user);
+                }
+                
+                // Aplicar a visibilidade
+                card.style.display = isVisible ? 'block' : 'none';
+            });
+            
+            // Atualizar os contadores das colunas
+            updateColumnCounters();
+        }
+        
+        // Event listeners para editar coluna
+        document.querySelectorAll('[data-bs-target="#editColumnModal"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const columnId = this.dataset.columnId;
+                const columnName = this.dataset.columnName;
+                const columnColor = this.dataset.columnColor;
+                
+                document.getElementById('editColumnId').value = columnId;
+                document.getElementById('editColumnName').value = columnName;
+                document.getElementById('editColumnColor').value = columnColor;
+                document.getElementById('colorPreview').style.backgroundColor = columnColor;
+            });
+        });
+        
+        // Pré-visualização da cor da coluna
+        document.getElementById('editColumnColor').addEventListener('input', function() {
+            document.getElementById('colorPreview').style.backgroundColor = this.value;
+        });
+        
+        // Event listener para salvar alterações na coluna
+        document.getElementById('updateColumnBtn').addEventListener('click', function() {
+            updateColumn();
+        });
+        
+        function updateColumn() {
+            const form = document.getElementById('editColumnForm');
+            const columnId = document.getElementById('editColumnId').value;
+            
+            // Coletar dados do formulário
+            const formData = {
+                nome: document.getElementById('editColumnName').value,
+                cor: document.getElementById('editColumnColor').value
+            };
+            
+            fetch(`/cambam/column/${columnId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Fechar modal e atualizar a coluna visualmente
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editColumnModal'));
+                    modal.hide();
+                    showStatus('Coluna atualizada com sucesso!', 'success');
+                    
+                    // Atualizar a aparência da coluna
+                    const column = document.querySelector(`.kanban-column[data-column-id="${columnId}"]`);
+                    column.style.backgroundColor = formData.cor;
+                    column.querySelector('h3').textContent = formData.nome;
+                } else {
+                    showStatus(`Erro ao atualizar coluna: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showStatus(`Erro ao atualizar coluna: ${error.message}`, 'error');
+            });
+        }
+        
+        // Adicione o checkboxe para mostrar/ocultar cards ocultos no topo dos controles
+        const kanbanControls = document.querySelector('.kanban-filters');
+        if (kanbanControls) {
+            const toggleVisibilityHtml = `
+                <div class="form-check form-switch ms-2">
+                    <input class="form-check-input" type="checkbox" id="showHiddenCards">
+                    <label class="form-check-label" for="showHiddenCards">
+                        Mostrar cards ocultos
+                    </label>
+                </div>
+            `;
+            kanbanControls.insertAdjacentHTML('beforeend', toggleVisibilityHtml);
+            
+            // Event listener para o toggle de visibilidade
+            document.getElementById('showHiddenCards').addEventListener('change', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                if (this.checked) {
+                    urlParams.set('mostrar_ocultos', '1');
+                } else {
+                    urlParams.delete('mostrar_ocultos');
+                }
+                
+                window.location.search = urlParams.toString();
+            });
+            
+            // Se estamos mostrando cards ocultos, marcar o checkbox
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mostrar_ocultos') === '1') {
+                document.getElementById('showHiddenCards').checked = true;
+            }
+        }
         
         // Inicialização do Drag and Drop
         initDragAndDrop();
@@ -1278,6 +1518,16 @@
             });
         });
         
+        // Adicionar event listener para excluir coluna
+        document.querySelectorAll('.delete-column').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const columnId = this.dataset.columnId;
+                showDeleteConfirmation('column', columnId, 'esta coluna');
+            });
+        });
+        
         // Function to show delete confirmation modal
         function showDeleteConfirmation(type, id, message) {
             deleteType = type;
@@ -1333,6 +1583,44 @@
             .catch(error => {
                 console.error('Erro ao excluir card:', error);
                 showStatus(`Erro ao excluir card: ${error.message}`, 'error');
+            });
+        }
+        
+        // Adicionar função para excluir coluna
+        function deleteColumn(columnId) {
+            fetch(`/cambam/column/${columnId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken()
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Fechar modal de confirmação
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+                    modal.hide();
+                    
+                    // Remover a coluna do DOM ou recarregar a página
+                    const column = document.querySelector(`.kanban-column[data-column-id="${columnId}"]`);
+                    if (column) {
+                        column.remove();
+                        showStatus('Coluna removida com sucesso!', 'success');
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    showStatus(`Erro ao excluir coluna: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao excluir coluna:', error);
+                showStatus(`Erro ao excluir coluna: ${error.message}`, 'error');
             });
         }
     });

@@ -15,6 +15,7 @@ urlpatterns = [
     
     # APIs para manipulação das colunas (apenas superuser)
     path('column/add/', views.add_column, name='add_column'),
+    path('column/<int:column_id>/', views.edit_column, name='edit_column'),  # Nova URL
     path('column/<int:column_id>/delete/', views.delete_column, name='delete_column'),
     path('column/reorder/', views.reorder_columns, name='reorder_columns'),
 ]

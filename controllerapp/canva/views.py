@@ -27,14 +27,19 @@ def kanban_view(request):
             KanbanColumn.objects.create(**coluna_data)
         colunas = KanbanColumn.objects.all()
     
+    # Determinar se deve mostrar cards ocultos
+    mostrar_ocultos = request.GET.get('mostrar_ocultos') == '1'
+    
     # Filtrar os cards que o usuário pode ver
     for coluna in colunas:
+        cards_query = coluna.cards.filter(visivel=True) if not mostrar_ocultos else coluna.cards.all()
+        
         if request.user.is_superuser:
-            # Superusuário vê todos os cards
-            coluna.cards_filtrados = coluna.cards.all()
+            # Superusuário vê todos os cards (visíveis ou todos, dependendo do parâmetro)
+            coluna.cards_filtrados = cards_query
         else:
             # Usuário comum vê apenas seus cards (como responsável ou membro)
-            coluna.cards_filtrados = coluna.cards.filter(
+            coluna.cards_filtrados = cards_query.filter(
                 models.Q(responsavel=request.user) | models.Q(membros=request.user)
             ).distinct()
     
@@ -240,6 +245,11 @@ def card_details(request, card_id):
                 card.descricao = data.get('descricao', card.descricao)
                 card.prioridade = data.get('prioridade', card.prioridade)
                 
+                # Atualizar visibilidade
+                visivel = data.get('visivel')
+                if visivel is not None:
+                    card.visivel = visivel == True or visivel == 'true' or visivel == '1'
+                
                 # Atualizações adicionais (apenas para superusers ou responsável)
                 if request.user.is_superuser or request.user == card.responsavel:
                     # Atualizar responsável
@@ -367,3 +377,32 @@ def reorder_columns(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
     
     return JsonResponse({'status': 'error', 'message': 'Método inválido'})
+
+# Adiciona nova função para editar coluna
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def edit_column(request, column_id):
+    """Edita uma coluna existente (apenas superusuário)"""
+    if request.method == 'POST':
+        try:
+            coluna = get_object_or_404(KanbanColumn, id=column_id)
+            data = json.loads(request.body)
+            
+            # Atualizar dados da coluna
+            coluna.nome = data.get('nome', coluna.nome)
+            coluna.cor = data.get('cor', coluna.cor)
+            coluna.save()
+            
+            return JsonResponse({
+                'status': 'success',
+                'coluna': {
+                    'id': coluna.id,
+                    'nome': coluna.nome,
+                    'cor': coluna.cor
+                }
+            })
+            
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    
+    return JsonResponse({'status': 'error', 'message': 'Método não permitido'})
