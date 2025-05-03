@@ -1,0 +1,1637 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Quadro de Atividades{% endblock %}
+
+{% block head %}
+<style>
+    .kanban-container {
+        display: flex;
+        overflow-x: auto;
+        min-height: 70vh;
+        padding-bottom: 1rem;
+        gap: 1rem;
+        padding: 1rem;
+        /* Melhorar a experiência de rolagem */
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0,0,0,0.2) rgba(0,0,0,0.05);
+    }
+    
+    .kanban-container::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .kanban-container::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.05);
+        border-radius: 4px;
+    }
+    
+    .kanban-container::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.2);
+        border-radius: 4px;
+    }
+    
+    .kanban-column {
+        min-width: 300px;
+        max-width: 300px;
+        margin-right: 0; /* Removido margin-right e adicionado gap acima */
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .kanban-column:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        transform: translateY(-3px);
+    }
+    
+    .column-header {
+        padding: 1.2rem;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+        position: relative;
+        border-radius: 12px 12px 0 0;
+        transition: background-color 0.2s;
+    }
+    
+    .column-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        display: inline-block;
+        color: #333;
+        text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+    }
+    
+    .column-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.1);
+        border-radius: 20px;
+        padding: 2px 10px;
+        font-size: 0.85rem;
+        margin-left: 8px;
+        font-weight: 600;
+        transition: background-color 0.3s;
+        min-width: 28px;
+        height: 24px;
+    }
+    
+    .column-body {
+        flex-grow: 1;
+        min-height: 50px;
+        padding: 1rem;
+        overflow-y: auto;
+        max-height: 70vh;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0,0,0,0.2) rgba(0,0,0,0.05);
+        transition: background-color 0.3s ease;
+    }
+    
+    .column-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .column-body::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.03);
+        border-radius: 3px;
+    }
+    
+    .column-body::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.15);
+        border-radius: 3px;
+    }
+    
+    .kanban-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        cursor: grab;
+        position: relative;
+        transition: all 0.25s ease;
+        border-left: 4px solid transparent;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .kanban-card:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        transform: translateY(-3px);
+    }
+    
+    .kanban-card:active {
+        cursor: grabbing;
+        transform: translateY(-5px) rotate(1deg);
+    }
+    
+    /* Estilos de borda com cores para prioridades */
+    .kanban-card[data-card-priority="baixa"] {
+        border-left-color: #28a745;
+    }
+    
+    .kanban-card[data-card-priority="media"] {
+        border-left-color: #ffc107;
+    }
+    
+    .kanban-card[data-card-priority="alta"] {
+        border-left-color: #fd7e14;
+    }
+    
+    .kanban-card[data-card-priority="urgente"] {
+        border-left-color: #dc3545;
+    }
+    
+    .card-title {
+        font-weight: 600;
+        margin-bottom: 0.8rem;
+        padding-right: 25px;
+        word-break: break-word;
+        line-height: 1.3;
+        color: #333;
+        font-size: 1.05rem;
+    }
+    
+    .card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 15px;
+        font-size: 0.8rem;
+        gap: 8px;
+    }
+    
+    .card-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-right: 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .priority-baixa {
+        background-color: rgba(40, 167, 69, 0.15);
+        color: #155724;
+    }
+    
+    .priority-media {
+        background-color: rgba(255, 193, 7, 0.15);
+        color: #856404;
+    }
+    
+    .priority-alta {
+        background-color: rgba(253, 126, 20, 0.15);
+        color: #8a3c02;
+    }
+    
+    .priority-urgente {
+        background-color: rgba(220, 53, 69, 0.15);
+        color: #721c24;
+        font-weight: 600;
+    }
+    
+    .priority-urgente::before {
+        content: "⚠️ ";
+        margin-right: 3px;
+    }
+    
+    .card-actions {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+    
+    .kanban-card:hover .card-actions {
+        opacity: 1;
+    }
+    
+    .card-actions button {
+        color: #6c757d;
+        transition: color 0.2s;
+    }
+    
+    .card-actions button:hover {
+        color: #343a40;
+    }
+    
+    .dragging {
+        opacity: 0.7;
+        transform: rotate(2deg);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+        cursor: grabbing;
+    }
+    
+    .ghost-card {
+        background-color: rgba(13, 110, 253, 0.05);
+        border: 2px dashed rgba(13, 110, 253, 0.3);
+        height: 80px;
+    }
+    
+    .kanban-add-card {
+        width: 100%;
+        padding: 0.7rem;
+        text-align: center;
+        border: 2px dashed rgba(0,0,0,0.15);
+        border-radius: 8px;
+        margin-top: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #6c757d;
+        font-weight: 500;
+        background: rgba(255,255,255,0.7);
+    }
+    
+    .kanban-add-card:hover {
+        background: rgba(13, 110, 253, 0.05);
+        border-color: rgba(13, 110, 253, 0.3);
+        color: #0d6efd;
+    }
+    
+    .kanban-add-column {
+        min-width: 300px;
+        max-width: 300px;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 2px dashed rgba(0,0,0,0.1);
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: rgba(255,255,255,0.8);
+        margin-right: 0;
+    }
+    
+    .kanban-add-column:hover {
+        background: rgba(13, 110, 253, 0.05);
+        border-color: rgba(13, 110, 253, 0.3);
+        transform: translateY(-3px);
+    }
+    
+    .kanban-add-column i {
+        transition: transform 0.3s;
+    }
+    
+    .kanban-add-column:hover i {
+        transform: scale(1.2);
+        color: #0d6efd;
+    }
+    
+    .card-modal .modal-header,
+    .column-modal .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 3px solid #0d6efd;
+    }
+    
+    .card-dropzone {
+        min-height: 30px;
+        transition: background-color 0.3s;
+    }
+    
+    .card-dropzone.highlight {
+        background-color: rgba(13, 110, 253, 0.08);
+        animation: pulse-light 1.5s infinite;
+    }
+    
+    @keyframes pulse-light {
+        0% { background-color: rgba(13, 110, 253, 0.08); }
+        50% { background-color: rgba(13, 110, 253, 0.15); }
+        100% { background-color: rgba(13, 110, 253, 0.08); }
+    }
+    
+    .card-assignee {
+        display: flex;
+        align-items: center;
+        margin-right: 0;
+        padding: 2px 10px;
+        background-color: rgba(108, 117, 125, 0.1);
+        border-radius: 50px;
+    }
+    
+    .card-assignee img, .card-assignee i {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        margin-right: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .card-project {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 10px;
+        border-radius: 50px;
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .card-project i {
+        margin-right: 4px;
+        font-size: 0.9em;
+    }
+    
+    .kanban-controls {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    }
+    
+    .kanban-filters {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+    }
+    
+    .kanban-filters .dropdown-toggle {
+        border-radius: 50px;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .kanban-actions .btn {
+        border-radius: 50px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
+    /* Efeito de indicação de movimento */
+    @keyframes move-indicator {
+        0%, 100% { background-position: 0% 0%; }
+        50% { background-position: 100% 0%; }
+    }
+    
+    .moving-card-indicator {
+        background: linear-gradient(90deg, 
+                  rgba(13, 110, 253, 0.1),
+                  rgba(13, 110, 253, 0.2),
+                  rgba(13, 110, 253, 0.1));
+        background-size: 200% 100%;
+        animation: move-indicator 1.5s infinite;
+    }
+
+    /* Impedir efeitos hover durante o arrasto */
+    .dragging-active .kanban-card:not(.dragging):hover {
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+        transform: none !important;
+    }
+    
+    /* Estilo específico para o card sendo arrastado */
+    .kanban-card.dragging {
+        opacity: 0.8;
+        transform: rotate(2deg) !important;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+        cursor: grabbing;
+        pointer-events: none;
+        z-index: 1000;
+    }
+
+    /* Corrigir piscadas durante o arrasto */
+    .card-dropzone.highlight {
+        background-color: rgba(13, 110, 253, 0.08) !important;
+    }
+    
+    /* Tornar o indicador de ghost card mais visível */
+    .ghost-card {
+        background-color: rgba(13, 110, 253, 0.08);
+        border: 2px dashed rgba(13, 110, 253, 0.5);
+        pointer-events: none;
+        height: 80px;
+        margin-bottom: 1rem;
+    }
+    
+    /* Cursor de arrastar para cards */
+    .kanban-card {
+        cursor: grab;
+    }
+    .kanban-card:active {
+        cursor: grabbing;
+    }
+
+    /* Classe para impedir eventos hover/click durante arrasto */
+    .disable-pointer-events {
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-6 fw-bold">Quadro de Atividades dos Projetos</h1>
+            <p class="text-muted">Gerencie e acompanhe seus projetos e tarefas de forma visual</p>
+        </div>
+    </div>
+
+    <!-- Controles e filtros -->
+    <div class="kanban-controls">
+        <div class="kanban-filters">
+            <!-- Filtro por projeto -->
+            {% if projetos %}
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterProjects" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-folder me-1"></i> Projetos
+                </button>
+                <ul class="dropdown-menu shadow" aria-labelledby="filterProjects">
+                    <li><a class="dropdown-item" href="#" data-filter-project="all">Todos os projetos</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    {% for projeto in projetos %}
+                    <li><a class="dropdown-item" href="#" data-filter-project="{{ projeto.id }}">{{ projeto.titulo }}</a></li>
+                    {% endfor %}
+                    <li><a class="dropdown-item" href="#" data-filter-project="none">Sem projeto</a></li>
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Filtro por prioridade -->
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterPriority" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-exclamation-circle me-1"></i> Prioridade
+                </button>
+                <ul class="dropdown-menu shadow" aria-labelledby="filterPriority">
+                    <li><a class="dropdown-item" href="#" data-filter-priority="all">Todas as prioridades</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#" data-filter-priority="urgente">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Urgente
+                    </a></li>
+                    <li><a class="dropdown-item text-warning" href="#" data-filter-priority="alta">
+                        <i class="fas fa-arrow-up me-1"></i> Alta
+                    </a></li>
+                    <li><a class="dropdown-item text-primary" href="#" data-filter-priority="media">
+                        <i class="fas fa-equals me-1"></i> Média
+                    </a></li>
+                    <li><a class="dropdown-item text-success" href="#" data-filter-priority="baixa">
+                        <i class="fas fa-arrow-down me-1"></i> Baixa
+                    </a></li>
+                </ul>
+            </div>
+
+            <!-- Filtro por usuário (apenas para superuser) -->
+            {% if user.is_superuser and usuarios %}
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterUsers" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-user me-1"></i> Usuário
+                </button>
+                <ul class="dropdown-menu shadow" aria-labelledby="filterUsers">
+                    <li><a class="dropdown-item" href="#" data-filter-user="all">Todos os usuários</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    {% for usuario in usuarios %}
+                    <li><a class="dropdown-item" href="#" data-filter-user="{{ usuario.id }}">{{ usuario.first_name }} {{ usuario.last_name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <!-- Botão para limpar filtros -->
+            <button class="btn btn-outline-dark" id="clearFilters">
+                <i class="fas fa-times-circle me-1"></i> Limpar filtros
+            </button>
+        </div>
+
+        <!-- Botões de ação -->
+        <div class="kanban-actions">
+            {% if user.is_superuser %}
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addColumnModal">
+                <i class="fas fa-plus me-1"></i> Nova Coluna
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Container principal do Kanban -->
+    <div class="kanban-container">
+        <!-- Colunas do Kanban -->
+        {% for coluna in colunas %}
+        <div class="kanban-column" data-column-id="{{ coluna.id }}" style="background-color: {{ coluna.cor }};">
+            <div class="column-header">
+                <h3>{{ coluna.nome }}</h3>
+                <span class="column-count">{{ coluna.cards_filtrados|length }}</span>
+                {% if user.is_superuser %}
+                <div class="dropdown float-end">
+                    <button class="btn btn-sm btn-link text-dark p-0" type="button" id="dropdownColumn{{ coluna.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownColumn{{ coluna.id }}">
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editColumnModal" data-column-id="{{ coluna.id }}" data-column-name="{{ coluna.nome }}" data-column-color="{{ coluna.cor }}">
+                            <i class="fas fa-edit me-2"></i> Editar coluna
+                        </a></li>
+                        <li><a class="dropdown-item text-danger delete-column" href="#" data-column-id="{{ coluna.id }}">
+                            <i class="fas fa-trash-alt me-2"></i> Excluir coluna
+                        </a></li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            <div class="column-body card-dropzone" data-column-id="{{ coluna.id }}">
+                <!-- Cards da coluna -->
+                {% for card in coluna.cards_filtrados %}
+                <div class="kanban-card" 
+                     data-card-id="{{ card.id }}" 
+                     data-card-project="{% if card.projeto %}{{ card.projeto.id }}{% else %}none{% endif %}" 
+                     data-card-priority="{{ card.prioridade }}"
+                     data-card-user="{% if card.responsavel %}{{ card.responsavel.id }}{% endif %}">
+                    <div class="card-title">{{ card.titulo }}</div>
+                    <div class="card-tag priority-{{ card.prioridade }}">{{ card.get_prioridade_display }}</div>
+                    <div class="card-meta">
+                        {% if card.responsavel %}
+                        <div class="card-assignee">
+                            <i class="fas fa-user-circle"></i>
+                            <span>{{ card.responsavel.first_name }}</span>
+                        </div>
+                        {% endif %}
+                        {% if card.projeto %}
+                        <div class="card-project" title="{{ card.projeto.titulo }}">
+                            <i class="fas fa-folder me-1"></i> {{ card.projeto.titulo|truncatechars:20 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-actions">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-link p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><a class="dropdown-item view-card" href="#" data-card-id="{{ card.id }}">
+                                    <i class="fas fa-eye me-2"></i> Ver detalhes
+                                </a></li>
+                                {% if user.is_superuser or user == card.responsavel %}
+                                <li><a class="dropdown-item edit-card" href="#" data-card-id="{{ card.id }}">
+                                    <i class="fas fa-edit me-2"></i> Editar
+                                </a></li>
+                                {% endif %}
+                                {% if user.is_superuser or user == card.criado_por %}
+                                <li><a class="dropdown-item text-danger delete-card" href="#" data-card-id="{{ card.id }}">
+                                    <i class="fas fa-trash-alt me-2"></i> Excluir
+                                </a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Botão para adicionar card -->
+            <div class="kanban-add-card" data-bs-toggle="modal" data-bs-target="#addCardModal" data-column-id="{{ coluna.id }}">
+                <i class="fas fa-plus me-1"></i> Adicionar Card
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Botão para adicionar coluna (apenas superuser) -->
+        {% if user.is_superuser %}
+        <div class="kanban-add-column" data-bs-toggle="modal" data-bs-target="#addColumnModal">
+            <div class="text-center">
+                <i class="fas fa-plus mb-2 fs-4"></i>
+                <div>Adicionar Coluna</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Status indicator panel -->
+    <div class="alert alert-info mt-4 d-none" id="statusIndicator">
+        <i class="fas fa-info-circle me-2"></i>
+        <span id="statusMessage">Carregando...</span>
+    </div>
+</div>
+
+<!-- Modal para adicionar card -->
+<div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCardModalLabel">Adicionar Novo Card</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCardForm">
+                    <input type="hidden" id="cardColumn" name="coluna" value="">
+                    
+                    <div class="mb-3">
+                        <label for="cardTitle" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="cardTitle" name="titulo" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cardDescription" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="cardDescription" name="descricao" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cardPriority" class="form-label">Prioridade</label>
+                        <select class="form-select" id="cardPriority" name="prioridade">
+                            <option value="baixa">Baixa</option>
+                            <option value="media" selected>Média</option>
+                            <option value="alta">Alta</option>
+                            <option value="urgente">Urgente</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cardProject" class="form-label">Projeto</label>
+                        <select class="form-select" id="cardProject" name="projeto">
+                            <option value="">Sem projeto</option>
+                            {% for projeto in projetos %}
+                            <option value="{{ projeto.id }}">{{ projeto.titulo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    {% if user.is_superuser and usuarios %}
+                    <div class="mb-3">
+                        <label class="form-label">Membros</label>
+                        <div class="card p-3">
+                            {% for usuario in usuarios %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="{{ usuario.id }}" id="usuario{{ usuario.id }}" name="membros">
+                                <label class="form-check-label" for="usuario{{ usuario.id }}">
+                                    {{ usuario.first_name }} {{ usuario.last_name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveCardBtn">
+                    <i class="fas fa-save me-1"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar/visualizar card -->
+<div class="modal fade" id="editCardModal" tabindex="-1" aria-labelledby="editCardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCardModalLabel">Detalhes do Card</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCardForm">
+                    <input type="hidden" id="editCardId" name="card_id">
+                    
+                    <!-- Conteúdo do formulário será carregado dinamicamente -->
+                    <div id="editCardContent">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                {% if user.is_superuser or user.is_staff %}
+                <button type="button" class="btn btn-primary" id="updateCardBtn">Salvar alterações</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para adicionar coluna -->
+<div class="modal fade" id="addColumnModal" tabindex="-1" aria-labelledby="addColumnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addColumnModalLabel">Adicionar Nova Coluna</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addColumnForm">
+                    <div class="mb-3">
+                        <label for="columnName" class="form-label">Nome da Coluna</label>
+                        <input type="text" class="form-control" id="columnName" name="nome" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="columnColor" class="form-label">Cor de fundo</label>
+                        <input type="color" class="form-control form-control-color" id="columnColor" name="cor" value="#f8f9fa" title="Escolha uma cor">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveColumnBtn">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmação de exclusão -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmDeleteMessage">Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Adicionando o Modal de Edição de Coluna -->
+<div class="modal fade" id="editColumnModal" tabindex="-1" aria-labelledby="editColumnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editColumnModalLabel">Editar Coluna</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editColumnForm">
+                    <input type="hidden" id="editColumnId" name="column_id">
+                    
+                    <div class="mb-3">
+                        <label for="editColumnName" class="form-label">Nome da Coluna</label>
+                        <input type="text" class="form-control" id="editColumnName" name="nome" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editColumnColor" class="form-label">Cor de fundo</label>
+                        <input type="color" class="form-control form-control-color" id="editColumnColor" name="cor" value="#f8f9fa" title="Escolha uma cor">
+                        <div class="form-text">Pré-visualização da cor da coluna</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="card p-2" id="colorPreview" style="height: 50px; background-color: #f8f9fa;">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="updateColumnBtn">Salvar alterações</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Variáveis globais
+        let draggingCard = null;
+        let deleteTarget = null;
+        let deleteType = null;
+        let dropTargetColumn = null;
+        let dragStartColumn = null;
+        let cardHeight = null;
+        let ghostCard = null;
+        let currentFilters = {
+            project: 'all',
+            priority: 'all',
+            user: 'all',
+            visibility: 'visible'  // Novo filtro de visibilidade
+        };
+        let isDragging = false;
+        let lastClickTime = 0;
+        
+        // Inicialização dos filtros
+        initFilters();
+        
+        // Inicialização do Drag and Drop
+        initDragAndDrop();
+        
+        // Função para inicializar os filtros
+        function initFilters() {
+            // Filtro por projeto
+            document.querySelectorAll('[data-filter-project]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const projectFilter = this.dataset.filterProject;
+                    applyFilter('project', projectFilter);
+                    document.getElementById('filterProjects').textContent = this.textContent.trim();
+                });
+            });
+            
+            // Filtro por prioridade
+            document.querySelectorAll('[data-filter-priority]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const priorityFilter = this.dataset.filterPriority;
+                    applyFilter('priority', priorityFilter);
+                    document.getElementById('filterPriority').textContent = this.textContent.trim();
+                });
+            });
+            
+            // Filtro por usuário
+            document.querySelectorAll('[data-filter-user]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const userFilter = this.dataset.filterUser;
+                    applyFilter('user', userFilter);
+                    document.getElementById('filterUsers').textContent = this.textContent.trim();
+                });
+            });
+            
+            // Limpar filtros
+            document.getElementById('clearFilters').addEventListener('click', function() {
+                currentFilters = {
+                    project: 'all',
+                    priority: 'all',
+                    user: 'all',
+                    visibility: currentFilters.visibility
+                };
+                applyAllFilters();
+                // Resetar textos dos dropdowns
+                document.getElementById('filterProjects').innerHTML = '<i class="fas fa-folder me-1"></i> Projetos';
+                document.getElementById('filterPriority').innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Prioridade';
+                if (document.getElementById('filterUsers')) {
+                    document.getElementById('filterUsers').innerHTML = '<i class="fas fa-user me-1"></i> Usuário';
+                }
+            });
+            
+            // Aplicar filtros ao carregar a página
+            applyAllFilters();
+        }
+        
+        // Função para aplicar um filtro específico
+        function applyFilter(filterType, value) {
+            currentFilters[filterType] = value;
+            applyAllFilters();
+        }
+        
+        // Função para aplicar todos os filtros
+        function applyAllFilters() {
+            const cards = document.querySelectorAll('.kanban-card');
+            
+            cards.forEach(card => {
+                // Começa assumindo que o card deve ser visível
+                let isVisible = true;
+                
+                // Filtro de projeto
+                if (currentFilters.project !== 'all') {
+                    if (currentFilters.project === 'none') {
+                        isVisible = isVisible && (!card.dataset.cardProject || card.dataset.cardProject === 'none');
+                    } else {
+                        isVisible = isVisible && (card.dataset.cardProject === currentFilters.project);
+                    }
+                }
+                
+                // Filtro de prioridade
+                if (currentFilters.priority !== 'all') {
+                    isVisible = isVisible && (card.dataset.cardPriority === currentFilters.priority);
+                }
+                
+                // Filtro de usuário
+                if (currentFilters.user !== 'all') {
+                    isVisible = isVisible && (card.dataset.cardUser === currentFilters.user);
+                }
+                
+                // Aplicar a visibilidade
+                card.style.display = isVisible ? 'block' : 'none';
+            });
+            
+            // Atualizar os contadores das colunas
+            updateColumnCounters();
+        }
+        
+        // Event listeners para editar coluna
+        document.querySelectorAll('[data-bs-target="#editColumnModal"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const columnId = this.dataset.columnId;
+                const columnName = this.dataset.columnName;
+                const columnColor = this.dataset.columnColor;
+                
+                document.getElementById('editColumnId').value = columnId;
+                document.getElementById('editColumnName').value = columnName;
+                document.getElementById('editColumnColor').value = columnColor;
+                document.getElementById('colorPreview').style.backgroundColor = columnColor;
+            });
+        });
+        
+        // Pré-visualização da cor da coluna
+        document.getElementById('editColumnColor').addEventListener('input', function() {
+            document.getElementById('colorPreview').style.backgroundColor = this.value;
+        });
+        
+        // Event listener para salvar alterações na coluna
+        document.getElementById('updateColumnBtn').addEventListener('click', function() {
+            updateColumn();
+        });
+        
+        function updateColumn() {
+            const form = document.getElementById('editColumnForm');
+            const columnId = document.getElementById('editColumnId').value;
+            
+            // Coletar dados do formulário
+            const formData = {
+                nome: document.getElementById('editColumnName').value,
+                cor: document.getElementById('editColumnColor').value
+            };
+            
+            fetch(`/cambam/column/${columnId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Fechar modal e atualizar a coluna visualmente
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editColumnModal'));
+                    modal.hide();
+                    showStatus('Coluna atualizada com sucesso!', 'success');
+                    
+                    // Atualizar a aparência da coluna
+                    const column = document.querySelector(`.kanban-column[data-column-id="${columnId}"]`);
+                    column.style.backgroundColor = formData.cor;
+                    column.querySelector('h3').textContent = formData.nome;
+                } else {
+                    showStatus(`Erro ao atualizar coluna: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showStatus(`Erro ao atualizar coluna: ${error.message}`, 'error');
+            });
+        }
+        
+        // Adicione o checkboxe para mostrar/ocultar cards ocultos no topo dos controles
+        const kanbanControls = document.querySelector('.kanban-filters');
+        if (kanbanControls) {
+            const toggleVisibilityHtml = `
+                <div class="form-check form-switch ms-2">
+                    <input class="form-check-input" type="checkbox" id="showHiddenCards">
+                    <label class="form-check-label" for="showHiddenCards">
+                        Mostrar cards ocultos
+                    </label>
+                </div>
+            `;
+            kanbanControls.insertAdjacentHTML('beforeend', toggleVisibilityHtml);
+            
+            // Event listener para o toggle de visibilidade
+            document.getElementById('showHiddenCards').addEventListener('change', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                if (this.checked) {
+                    urlParams.set('mostrar_ocultos', '1');
+                } else {
+                    urlParams.delete('mostrar_ocultos');
+                }
+                
+                window.location.search = urlParams.toString();
+            });
+            
+            // Se estamos mostrando cards ocultos, marcar o checkbox
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mostrar_ocultos') === '1') {
+                document.getElementById('showHiddenCards').checked = true;
+            }
+        }
+        
+        // Inicialização do Drag and Drop
+        initDragAndDrop();
+        
+        // Event listeners para adicionar card
+        document.querySelectorAll('.kanban-add-card').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const columnId = this.dataset.columnId;
+                document.getElementById('cardColumn').value = columnId;
+            });
+        });
+        
+        // Event listener para salvar novo card
+        document.getElementById('saveCardBtn').addEventListener('click', function() {
+            saveCard();
+        });
+        
+        // Event listener para duplo clique nos cards
+        document.querySelectorAll('.kanban-card').forEach(card => {
+            card.addEventListener('dblclick', function(e) {
+                if (isDragging) return;  // Evitar ação durante arrasto
+                
+                e.preventDefault();
+                e.stopPropagation();
+                const cardId = this.dataset.cardId;
+                openCardDetails(cardId, false);
+            });
+        });
+        
+        // Event listener para visualizar card (botão)
+        document.querySelectorAll('.view-card').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const cardId = this.dataset.cardId;
+                openCardDetails(cardId, false);
+            });
+        });
+        
+        // Event listener para editar card
+        document.querySelectorAll('.edit-card').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const cardId = this.dataset.cardId;
+                openCardDetails(cardId, true);
+            });
+        });
+        
+        // Event listener para salvar alterações no card
+        document.getElementById('updateCardBtn').addEventListener('click', function() {
+            updateCard();
+        });
+        
+        // Funções
+        
+        function initDragAndDrop() {
+            const cards = document.querySelectorAll('.kanban-card');
+            const dropzones = document.querySelectorAll('.card-dropzone');
+            
+            // Configurar os cards como arrastáveis
+            cards.forEach(card => {
+                card.setAttribute('draggable', true);
+                
+                card.addEventListener('dragstart', function(e) {
+                    // Impedir arrasto se clicou em um botão ou link
+                    if (e.target.closest('.card-actions')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    isDragging = true;
+                    draggingCard = this;
+                    dragStartColumn = this.closest('.column-body');
+                    
+                    // Definir dados para transferência
+                    e.dataTransfer.setData('text/plain', this.dataset.cardId);
+                    
+                    // Criar e guardar os dados da altura para o card fantasma
+                    cardHeight = this.offsetHeight;
+                    
+                    // Configurar efeitos visuais após pequeno delay
+                    setTimeout(() => {
+                        this.classList.add('dragging');
+                        if (dragStartColumn) {
+                            dragStartColumn.classList.add('moving-card-indicator');
+                        }
+                    }, 10);
+                });
+                
+                card.addEventListener('dragend', function() {
+                    isDragging = false;
+                    this.classList.remove('dragging');
+                    
+                    // Remover o ghost card se existir
+                    if (ghostCard && ghostCard.parentNode) {
+                        ghostCard.parentNode.removeChild(ghostCard);
+                    }
+                    
+                    // Remover indicadores visuais
+                    if (dragStartColumn) {
+                        dragStartColumn.classList.remove('moving-card-indicator');
+                    }
+                    
+                    dropzones.forEach(dropzone => {
+                        dropzone.classList.remove('highlight');
+                    });
+                    
+                    // Limpar as variáveis
+                    draggingCard = null;
+                    dropTargetColumn = null;
+                    dragStartColumn = null;
+                    cardHeight = null;
+                    ghostCard = null;
+                });
+                
+                // Prevenir que os botões de ação iniciem o drag and drop
+                const actionButtons = card.querySelectorAll('.card-actions button, .card-actions a');
+                actionButtons.forEach(button => {
+                    button.addEventListener('mousedown', e => {
+                        e.stopPropagation();
+                    });
+                });
+            });
+            
+            // Configurar as zonas de soltura
+            dropzones.forEach(dropzone => {
+                dropzone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    
+                    if (!draggingCard) return;
+                    
+                    this.classList.add('highlight');
+                    dropTargetColumn = this;
+                    
+                    // Posição do ponteiro
+                    const rect = this.getBoundingClientRect();
+                    const y = e.clientY - rect.top;
+                    
+                    // Encontrar o elemento após o qual vamos inserir o card
+                    const afterElement = getDragAfterElement(this, e.clientY);
+                    
+                    // Se existe um ghost card anterior, removê-lo
+                    if (ghostCard && ghostCard.parentNode) {
+                        ghostCard.parentNode.removeChild(ghostCard);
+                    }
+                    
+                    // Criar ghost card para indicação visual
+                    ghostCard = document.createElement('div');
+                    ghostCard.classList.add('kanban-card', 'ghost-card');
+                    ghostCard.style.height = `${cardHeight}px`;
+                    
+                    if (afterElement) {
+                        this.insertBefore(ghostCard, afterElement);
+                    } else {
+                        this.appendChild(ghostCard);
+                    }
+                });
+                
+                dropzone.addEventListener('dragleave', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    // Verificar se o mouse realmente deixou esse elemento
+                    if (
+                        e.clientX < rect.left ||
+                        e.clientX >= rect.right ||
+                        e.clientY < rect.top ||
+                        e.clientY >= rect.bottom
+                    ) {
+                        this.classList.remove('highlight');
+                        
+                        // Remover o ghost card quando sair da zona
+                        if (ghostCard && ghostCard.parentNode === this) {
+                            ghostCard.parentNode.removeChild(ghostCard);
+                            ghostCard = null;
+                        }
+                    }
+                });
+                
+                dropzone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    
+                    // Obter o card ID do dataTransfer
+                    const cardId = e.dataTransfer.getData('text/plain');
+                    
+                    if (!cardId || !draggingCard) {
+                        return;
+                    }
+                    
+                    const columnId = this.dataset.columnId;
+                    this.classList.remove('highlight');
+                    
+                    // Remover o ghost card
+                    if (ghostCard && ghostCard.parentNode) {
+                        ghostCard.parentNode.removeChild(ghostCard);
+                        ghostCard = null;
+                    }
+                    
+                    // Inserir o card na nova posição
+                    const afterElement = getDragAfterElement(this, e.clientY);
+                    
+                    if (afterElement) {
+                        this.insertBefore(draggingCard, afterElement);
+                    } else {
+                        this.appendChild(draggingCard);
+                    }
+                    
+                    // Calcular nova ordem
+                    const newOrder = Array.from(this.querySelectorAll('.kanban-card:not(.ghost-card)')).indexOf(draggingCard);
+                    
+                    // Mostrar status de movimentação
+                    showStatus('Movendo card... aguarde', 'info');
+                    
+                    // Atualizar no servidor
+                    moveCard(cardId, columnId, newOrder);
+                });
+            });
+        }
+        
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.kanban-card:not(.dragging):not(.ghost-card)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+        
+        // Obter CSRF token de forma confiável
+        function getCsrfToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]') ? 
+                   document.querySelector('[name=csrfmiddlewaretoken]').value : 
+                   '{{ csrf_token }}';
+        }
+        
+        function openCardDetails(cardId, editable) {
+            document.getElementById('editCardId').value = cardId;
+            document.getElementById('editCardContent').innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            `;
+            
+            // Mostrar ou esconder o botão de salvar
+            const updateBtn = document.getElementById('updateCardBtn');
+            if (updateBtn) {
+                updateBtn.style.display = editable ? 'block' : 'none';
+            }
+            
+            // Abrir o modal
+            const modal = new bootstrap.Modal(document.getElementById('editCardModal'));
+            modal.show();
+            
+            // Carregar os detalhes do card com a URL correta e CSRF token
+            fetch(`/cambam/card/${cardId}/`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCsrfToken()
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                return response.text();
+            })
+            .then(html => {
+                document.getElementById('editCardContent').innerHTML = html;
+                
+                // Desabilitar campos se não for editável
+                if (!editable) {
+                    const form = document.getElementById('editCardForm');
+                    if (form) {
+                        form.querySelectorAll('input, textarea, select').forEach(el => {
+                            el.setAttribute('disabled', 'disabled');
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar detalhes do card:', error);
+                document.getElementById('editCardContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Erro ao carregar detalhes:</strong> ${error.message}
+                    </div>
+                `;
+            });
+        }
+        
+        function moveCard(cardId, columnId, newOrder) {
+            showStatus('Movendo card... aguarde', 'info');
+            
+            fetch('/cambam/card/move/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    card_id: cardId,
+                    coluna_id: columnId,
+                    ordem: newOrder
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    updateColumnCounters();
+                    showStatus('Card movido com sucesso!', 'success');
+                } else {
+                    showStatus(`Erro ao mover card: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao mover card:', error);
+                showStatus(`Erro ao mover card: ${error.message}`, 'error');
+            });
+        }
+        
+        function updateCard() {
+            const form = document.getElementById('editCardForm');
+            const cardId = document.getElementById('editCardId').value;
+            
+            // Coletar dados do formulário
+            const formData = new FormData(form);
+            const data = {};
+            
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+            
+            // Adicionar explicitamente o estado do checkbox de visibilidade
+            const visibleCheckbox = document.getElementById('editCardVisible');
+            if (visibleCheckbox) {
+                data.visivel = visibleCheckbox.checked;
+            }
+            
+            // Coletar membros
+            if (document.querySelectorAll('input[name="membros"]').length > 0) {
+                const membros_ids = [];
+                document.querySelectorAll('input[name="membros"]:checked').forEach(checkbox => {
+                    membros_ids.push(checkbox.value);
+                });
+                data.membros_ids = membros_ids;
+            }
+            
+            fetch(`/cambam/card/${cardId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Fechar modal e recarregar a página
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editCardModal'));
+                    modal.hide();
+                    showStatus('Card atualizado com sucesso!', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showStatus(`Erro ao atualizar card: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao atualizar card:', error);
+                showStatus(`Erro ao atualizar card: ${error.message}`, 'error');
+            });
+        }
+        
+        function saveCard() {
+            showStatus('Salvando card... aguarde', 'info');
+            
+            const form = document.getElementById('addCardForm');
+            const formData = new FormData(form);
+            
+            // Coletar membros
+            const membros = [];
+            document.querySelectorAll('input[name="membros"]:checked').forEach(checkbox => {
+                membros.push(checkbox.value);
+            });
+            
+            const data = {
+                titulo: formData.get('titulo'),
+                descricao: formData.get('descricao'),
+                coluna: formData.get('coluna'),
+                projeto: formData.get('projeto') || null,
+                prioridade: formData.get('prioridade'),
+                membros: membros
+            };
+            
+            fetch('/cambam/card/add/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Fechar modal e recarregar a página para mostrar o novo card
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addCardModal'));
+                    modal.hide();
+                    form.reset();
+                    showStatus('Card adicionado com sucesso!', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showStatus(`Erro ao criar card: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao salvar card:', error);
+                showStatus(`Erro ao salvar card: ${error.message}`, 'error');
+            });
+        }
+        
+        function updateColumnCounters() {
+            document.querySelectorAll('.kanban-column').forEach(column => {
+                const visibleCards = column.querySelectorAll('.kanban-card:not([style*="display: none"])').length;
+                column.querySelector('.column-count').textContent = visibleCards;
+                
+                // Animação para enfatizar a mudança
+                const countEl = column.querySelector('.column-count');
+                countEl.classList.add('bg-primary', 'text-white');
+                setTimeout(() => countEl.classList.remove('bg-primary', 'text-white'), 1000);
+            });
+        }
+        
+        function showStatus(message, type) {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            statusIndicator.classList.remove('d-none', 'alert-info', 'alert-success', 'alert-danger');
+            
+            switch(type) {
+                case 'success':
+                    statusIndicator.classList.add('alert-success');
+                    break;
+                case 'error':
+                    statusIndicator.classList.add('alert-danger');
+                    break;
+                case 'info':
+                default:
+                    statusIndicator.classList.add('alert-info');
+            }
+            
+            statusMessage.textContent = message;
+            
+            if (type !== 'info') {
+                setTimeout(() => {
+                    if (!statusIndicator.classList.contains('d-none')) {
+                        statusIndicator.classList.add('d-none');
+                    }
+                }, 3000);
+            }
+        }
+        
+        // Adicionar CSRF token para todas as requisições AJAX
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]') ? 
+                         document.querySelector('[name=csrfmiddlewaretoken]').value : 
+                         '{{ csrf_token }}';
+
+        // Event listener para excluir card
+        document.querySelectorAll('.delete-card').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const cardId = this.dataset.cardId;
+                showDeleteConfirmation('card', cardId, 'este card');
+            });
+        });
+        
+        // Adicionar event listener para excluir coluna
+        document.querySelectorAll('.delete-column').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const columnId = this.dataset.columnId;
+                showDeleteConfirmation('column', columnId, 'esta coluna');
+            });
+        });
+        
+        // Function to show delete confirmation modal
+        function showDeleteConfirmation(type, id, message) {
+            deleteType = type;
+            deleteTarget = id;
+            
+            document.getElementById('confirmDeleteMessage').textContent = 
+                `Tem certeza que deseja excluir ${message}? Esta ação não pode ser desfeita.`;
+            
+            const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+            modal.show();
+        }
+        
+        // Event listener para confirmação de exclusão
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (deleteType === 'card') {
+                deleteCard(deleteTarget);
+            } else if (deleteType === 'column') {
+                deleteColumn(deleteTarget);
+            }
+        });
+
+        function deleteCard(cardId) {
+            fetch(`/cambam/card/${cardId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken()
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Fechar modal e remover card do DOM
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+                    modal.hide();
+                    
+                    const card = document.querySelector(`.kanban-card[data-card-id="${cardId}"]`);
+                    if (card) {
+                        card.remove();
+                        updateColumnCounters();
+                        showStatus('Card removido com sucesso!', 'success');
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    showStatus(`Erro ao excluir card: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao excluir card:', error);
+                showStatus(`Erro ao excluir card: ${error.message}`, 'error');
+            });
+        }
+        
+        // Adicionar função para excluir coluna
+        function deleteColumn(columnId) {
+            fetch(`/cambam/column/${columnId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken()
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Fechar modal de confirmação
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+                    modal.hide();
+                    
+                    // Remover a coluna do DOM ou recarregar a página
+                    const column = document.querySelector(`.kanban-column[data-column-id="${columnId}"]`);
+                    if (column) {
+                        column.remove();
+                        showStatus('Coluna removida com sucesso!', 'success');
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    showStatus(`Erro ao excluir coluna: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao excluir coluna:', error);
+                showStatus(`Erro ao excluir coluna: ${error.message}`, 'error');
+            });
+        }
+    });
+</script>
+
+<!-- Adicionar CSRF token para AJAX -->
+{% csrf_token %}
+{% endblock %}

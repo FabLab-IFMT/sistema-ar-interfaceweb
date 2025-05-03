@@ -15,7 +15,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('about/', views.about, name='about'),
-    path('projects/', include('projetos.urls')),  # Adicionamos os URLs dos projetos
+    path('projects/', include('projetos.urls')),
     path('users/', include('users.urls')),
     path('logs/', include('logs.urls')),
     path('painelar/', include('Controle_ar.urls')),
@@ -23,6 +23,7 @@ urlpatterns = [
     path('acesso_e_ponto/', include('acesso_e_ponto.urls')),
     path('toggle-theme/', views.toggle_theme, name='toggle_theme'),
     path('inventario/', include('inventario.urls')),
+    path('cambam/', include('canva.urls')),  # Adicionar URLs do quadro Kanban
 ]
 
 # Adicionar URLs para mídia - mesmo com DEBUG=False para uso local
