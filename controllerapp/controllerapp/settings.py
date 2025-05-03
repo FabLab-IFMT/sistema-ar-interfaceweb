@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'Email_notificacoes',
     'inventario', 
     'projetos',
+    'canva',  # App do quadro Kanban
+    'repositorio',  # Novo app de repositório
 ]
 
 MIDDLEWARE = [
