@@ -319,10 +319,9 @@
               </a>
               <ul class="drop-down">
                 <li><a class="nav-link" href="{% url 'projetos:projeto_lista' %}"><i class="fas fa-list me-2"></i>Lista de Projetos</a></li>
-                <li><a class="nav-link" href="https://github.com/FabLab-IFMT" target="_blank"><i class="fab fa-github me-2"></i>Repositório</a></li>
                 {% if user.is_authenticated %}
-                <!-- Atualizar nome para "Quadro de Atividades" -->
                 <li><a class="nav-link" href="{% url 'canva:kanban' %}"><i class="fas fa-tasks me-2"></i>Quadro de Atividades</a></li>
+                <li><a class="nav-link" href="{% url 'repositorio:index' %}"><i class="fas fa-archive me-2"></i>Repositório de Projetos</a></li>
                 {% endif %}
               </ul>
             </li>

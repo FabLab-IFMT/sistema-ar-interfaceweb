@@ -1,0 +1,437 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% load repository_tags %}
+
+{% block title %}Repositório - {{ project.titulo }}{% endblock %}
+
+{% block head %}
+<style>
+  .project-header {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  }
+  
+  .project-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    margin-right: 20px;
+  }
+  
+  .project-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .project-status {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    border-radius: 50rem;
+    color: #fff;
+    font-size: 0.8rem;
+    margin-right: 10px;
+  }
+  
+  .resource-card {
+    transition: all 0.3s ease;
+    height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  }
+  
+  .resource-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  }
+  
+  .resource-icon {
+    font-size: 2.5rem;
+    color: #0d6efd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    background-color: rgba(13, 110, 253, 0.1);
+  }
+  
+  .resource-content {
+    padding: 1.5rem;
+  }
+  
+  .featured-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(255, 193, 7, 0.9);
+    color: #212529;
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .resource-type {
+    color: #6c757d;
+    font-size: 0.825rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .resource-title {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+    font-size: 1.1rem;
+  }
+  
+  .resource-meta {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #6c757d;
+    font-size: 0.825rem;
+  }
+  
+  .visibility-icon {
+    color: #0d6efd;
+  }
+  
+  .resource-tag {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .category-menu {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+  }
+  
+  .category-menu h5 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #212529;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.75rem;
+  }
+  
+  .category-menu ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  .category-menu li {
+    margin-bottom: 0.5rem;
+  }
+  
+  .category-menu a {
+    display: flex;
+    align-items: center;
+    color: #495057;
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+  }
+  
+  .category-menu a:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+  }
+  
+  .category-menu a.active {
+    background-color: #0d6efd;
+    color: #fff;
+  }
+  
+  .category-menu i {
+    margin-right: 0.75rem;
+    width: 20px;
+    text-align: center;
+  }
+  
+  .project-resources-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'projetos:projeto_lista' %}">Projetos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'projetos:projeto_detalhe' project.slug %}">{{ project.titulo }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Repositório de Materiais</li>
+    </ol>
+  </nav>
+
+  <!-- Header com informações do projeto -->
+  <div class="project-header mb-4">
+    <div class="d-flex align-items-center">
+      <div class="project-image">
+        {% if project.imagem %}
+        <img src="{{ project.imagem.url }}" alt="{{ project.titulo }}">
+        {% else %}
+        <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+          <i class="fas fa-project-diagram fa-2x text-secondary"></i>
+        </div>
+        {% endif %}
+      </div>
+      <div>
+        <h1 class="h2 mb-0">{{ project.titulo }}</h1>
+        <p class="text-muted mb-2">{{ project.descricao_curta }}</p>
+        <div>
+          <span class="project-status 
+                    {% if project.status == 'concluido' %}bg-success{% endif %}
+                    {% if project.status == 'em_andamento' %}bg-primary{% endif %}
+                    {% if project.status == 'planejado' %}bg-info{% endif %}
+                    {% if project.status == 'cancelado' %}bg-secondary{% endif %}">
+            {{ project.get_status_display }}
+          </span>
+          <span class="text-muted">
+            <i class="far fa-calendar-alt"></i> Iniciado em {{ project.data_inicio|date:"d/m/Y" }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Sidebar com filtros e categorias -->
+    <div class="col-lg-3">
+      <!-- Opções de filtro -->
+      <div class="category-menu">
+        <h5>Filtros</h5>
+        
+        <!-- Form de busca -->
+        <form action="{% url 'repositorio:project_resources' project_slug=project.slug %}" method="get" class="mb-4">
+          <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Buscar recursos..." value="{{ search_query|default:'' }}">
+            <button class="btn btn-outline-primary" type="submit">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </form>
+        
+        <!-- Filtro por tipo -->
+        <h6 class="fw-bold mb-2">Tipo de Material</h6>
+        <ul class="mb-4">
+          <li>
+            <a href="{% url 'repositorio:project_resources' project_slug=project.slug %}" {% if not selected_type %}class="active"{% endif %}>
+              <i class="fas fa-th-large"></i> Todos os tipos
+            </a>
+          </li>
+          {% for type_code, type_name in resource_types %}
+          <li>
+            <a href="{% url 'repositorio:project_resources' project_slug=project.slug %}?type={{ type_code }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+              {% if selected_type == type_code %}class="active"{% endif %}>
+              <i class="fas {% if type_code == 'document' %}fa-file-alt{% elif type_code == 'image' %}fa-image{% elif type_code == 'video' %}fa-video{% elif type_code == 'audio' %}fa-music{% elif type_code == 'code' %}fa-code{% elif type_code == 'text' %}fa-align-left{% elif type_code == 'link' %}fa-link{% else %}fa-file{% endif %}"></i>
+              {{ type_name }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        
+        <!-- Categorias -->
+        {% if categories %}
+        <h6 class="fw-bold mb-2">Categorias</h6>
+        <ul>
+          <li>
+            <a href="{% url 'repositorio:project_resources' project_slug=project.slug %}{% if selected_type %}?type={{ selected_type }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+              {% if not selected_category %}class="active"{% endif %}>
+              <i class="fas fa-layer-group"></i> Todas as categorias
+            </a>
+          </li>
+          {% for category in categories %}
+          <li>
+            <a href="{% url 'repositorio:project_resources' project_slug=project.slug %}?category={{ category.slug }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+              {% if selected_category == category.slug %}class="active"{% endif %}>
+              <i class="fas {{ category.icon|default:'fa-folder' }}"></i> {{ category.name }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      
+      <!-- Botão para criar novo recurso (apenas para membros do projeto) -->
+      {% if is_member %}
+      <div class="d-grid gap-2">
+        <a href="{% url 'repositorio:project_resource_create' project_slug=project.slug %}" class="btn btn-primary">
+          <i class="fas fa-plus-circle me-2"></i> Adicionar Material
+        </a>
+      </div>
+      {% endif %}
+    </div>
+    
+    <!-- Conteúdo principal -->
+    <div class="col-lg-9">
+      <div class="project-resources-header">
+        <h2 class="h4">
+          {% if search_query %}
+            Resultados para "{{ search_query }}"
+          {% elif selected_category %}
+            Categoria: {{ selected_category|title }}
+          {% elif selected_type %}
+            Tipo: {{ selected_type|title }}
+          {% else %}
+            Materiais do Projeto
+          {% endif %}
+        </h2>
+        
+        <div>
+          <a href="{% url 'projetos:projeto_detalhe' project.slug %}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Voltar para o Projeto
+          </a>
+        </div>
+      </div>
+      
+      {% if resources %}
+      <div class="row g-4">
+        {% for resource in resources %}
+        <div class="col-md-6 col-xl-4">
+          <div class="resource-card position-relative h-100">
+            {% if resource.featured %}<span class="featured-badge"><i class="fas fa-star me-1"></i> Destaque</span>{% endif %}
+            
+            {% if resource.is_image and resource.file %}
+            <!-- Prévia para imagens -->
+            <div class="resource-image" style="height: 150px; overflow: hidden;">
+              <img src="{{ resource.file.url }}" alt="{{ resource.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            {% else %}
+            <!-- Ícone para outros tipos -->
+            <div class="resource-icon">
+              {% if resource.resource_type == 'document' %}
+                <i class="fas fa-file-alt"></i>
+              {% elif resource.resource_type == 'image' %}
+                <i class="fas fa-image"></i>
+              {% elif resource.resource_type == 'video' %}
+                <i class="fas fa-video"></i>
+              {% elif resource.resource_type == 'audio' %}
+                <i class="fas fa-music"></i>
+              {% elif resource.resource_type == 'code' %}
+                <i class="fas fa-code"></i>
+              {% elif resource.resource_type == 'text' %}
+                <i class="fas fa-align-left"></i>
+              {% elif resource.resource_type == 'link' %}
+                <i class="fas fa-link"></i>
+              {% else %}
+                <i class="fas fa-file"></i>
+              {% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="resource-content">
+              <div class="resource-type">{{ resource.get_resource_type_display }}</div>
+              <h3 class="resource-title">{{ resource.title }}</h3>
+              <p>{{ resource.description|truncatechars:80 }}</p>
+              
+              {% if resource.tags %}
+              <div class="mb-3">
+                {% for tag in resource.tags|split:"," %}
+                  <span class="resource-tag">{{ tag|trim }}</span>
+                {% endfor %}
+              </div>
+              {% endif %}
+              
+              <div class="resource-meta">
+                <span>
+                  <i class="fas {% if resource.visibility == 'public' %}fa-globe{% elif resource.visibility == 'members' %}fa-users{% else %}fa-user-shield{% endif %} visibility-icon me-1"></i>
+                  {{ resource.get_visibility_display }}
+                </span>
+                <span>
+                  <i class="far fa-calendar-alt me-1"></i> {{ resource.created_at|date:"d/m/Y" }}
+                </span>
+              </div>
+              
+              <div class="mt-3 d-grid">
+                <a href="{{ resource.get_absolute_url }}" class="btn btn-outline-primary btn-sm">Ver Detalhes</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      
+      <!-- Paginação -->
+      {% if resources.has_other_pages %}
+      <div class="mt-4">
+        <nav aria-label="Navegação de páginas">
+          <ul class="pagination justify-content-center">
+            {% if resources.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ resources.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+              <a class="page-link" href="#" tabindex="-1"><span aria-hidden="true">&laquo;</span></a>
+            </li>
+            {% endif %}
+            
+            {% for num in resources.paginator.page_range %}
+              {% if resources.number == num %}
+                <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+              {% elif num > resources.number|add:'-3' and num < resources.number|add:'3' %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">
+                    {{ num }}
+                  </a>
+                </li>
+              {% endif %}
+            {% endfor %}
+            
+            {% if resources.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ resources.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+              <a class="page-link" href="#" tabindex="-1"><span aria-hidden="true">&raquo;</span></a>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+      {% endif %}
+      
+      {% else %}
+      <!-- Mensagem quando não há recursos -->
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        Nenhum material encontrado para este projeto.
+        {% if is_member %}
+          <a href="{% url 'repositorio:project_resource_create' project_slug=project.slug %}" class="alert-link">Adicione o primeiro material</a>.
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

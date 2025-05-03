@@ -1,0 +1,130 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Selecionar Projeto{% endblock %}
+
+{% block head %}
+<style>
+    .project-card {
+        transition: all 0.3s;
+        height: 100%;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        border-color: var(--bs-primary);
+    }
+    
+    .project-image {
+        height: 160px;
+        overflow: hidden;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .project-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .project-default-icon {
+        font-size: 3rem;
+        color: rgba(0,0,0,0.2);
+    }
+    
+    .project-info {
+        padding: 1.5rem;
+    }
+    
+    .project-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+    
+    .project-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    .project-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'repositorio:index' %}">Repositório</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Selecionar Projeto</li>
+                </ol>
+            </nav>
+            <h1 class="display-6 fw-bold">Selecionar Projeto</h1>
+            <p class="lead">Escolha a qual projeto você deseja adicionar um novo recurso</p>
+            <hr class="my-4">
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for project in projects %}
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'repositorio:project_resource_create' project_slug=project.slug %}" class="text-decoration-none">
+                <div class="project-card">
+                    <div class="project-image">
+                        {% if project.imagem %}
+                        <img src="{{ project.imagem.url }}" alt="{{ project.titulo }}">
+                        {% else %}
+                        <div class="project-default-icon">
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="project-info">
+                        <h3 class="project-title">{{ project.titulo }}</h3>
+                        <p class="project-description">{{ project.descricao_curta|default:project.descricao|truncatechars:100 }}</p>
+                        <div class="project-meta">
+                            <span>
+                                <i class="fas fa-calendar-alt me-1"></i> Início: {{ project.data_inicio|date:"d/m/Y" }}
+                            </span>
+                            <span class="badge {% if project.status == 'concluido' %}bg-success{% elif project.status == 'em_andamento' %}bg-primary{% elif project.status == 'planejado' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ project.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Não há projetos disponíveis para você. Consulte um administrador para ser adicionado a um projeto.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <a href="{% url 'repositorio:index' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Voltar ao repositório
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -24,6 +24,7 @@ urlpatterns = [
     path('toggle-theme/', views.toggle_theme, name='toggle_theme'),
     path('inventario/', include('inventario.urls')),
     path('cambam/', include('canva.urls')),  # Adicionar URLs do quadro Kanban
+    path('repositorio/', include('repositorio.urls')),  # Adicionar URLs do repositório
 ]
 
 # Adicionar URLs para mídia - mesmo com DEBUG=False para uso local
