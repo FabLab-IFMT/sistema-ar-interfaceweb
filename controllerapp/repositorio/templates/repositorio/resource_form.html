@@ -1,0 +1,435 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+    {% if creating %}Adicionar Recurso{% else %}Editar Recurso{% endif %}
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/theme/dracula.min.css">
+<style>
+    .resource-form-container {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .resource-type-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .type-card {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .type-card:hover {
+        border-color: #0d6efd;
+        transform: translateY(-3px);
+    }
+    
+    .type-card.active {
+        border-color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+    
+    .type-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+    
+    .type-card i {
+        font-size: 2rem;
+        color: #6c757d;
+        margin-bottom: 10px;
+        display: block;
+    }
+    
+    .type-card.active i {
+        color: #0d6efd;
+    }
+    
+    .type-card-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .code-editor {
+        font-family: monospace;
+        height: 300px;
+        border-radius: 8px;
+    }
+    
+    .resource-info {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .resource-project {
+        font-size: 1.2rem;
+        color: #0d6efd;
+        margin-bottom: 10px;
+    }
+    
+    .visibility-options {
+        margin: 20px 0;
+    }
+    
+    .visibility-option {
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .visibility-option:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .visibility-radio {
+        margin-right: 10px;
+    }
+    
+    .visibility-description {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    
+    .visibility-icon {
+        font-size: 1.5rem;
+        margin-right: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'repositorio:index' %}">Repositório</a></li>
+            {% if project %}
+                <li class="breadcrumb-item"><a href="{% url 'repositorio:project_resources' project_slug=project.slug %}">{{ project.titulo }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">
+                {% if creating %}Adicionar Recurso{% else %}Editar {{ form.instance.title }}{% endif %}
+            </li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-6 fw-bold mb-4">
+                {% if creating %}
+                    <i class="fas fa-plus-circle text-primary me-2"></i> Adicionar Novo Recurso
+                {% else %}
+                    <i class="fas fa-edit text-primary me-2"></i> Editar Recurso
+                {% endif %}
+            </h1>
+            
+            {% if project %}
+            <div class="resource-info mb-4">
+                <div class="resource-project">
+                    <i class="fas fa-folder me-2"></i> Projeto: {{ project.titulo }}
+                </div>
+                <p class="mb-0">{{ project.descricao_curta }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="resource-form-container">
+                <form method="post" enctype="multipart/form-data" id="resourceForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Título do Recurso</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.title.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Descrição</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.description.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Descreva brevemente o conteúdo do recurso</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label d-block">Tipo de Recurso</label>
+                        
+                        <div class="resource-type-selector">
+                            {% for value, text in form.fields.resource_type.choices %}
+                            <label class="type-card {% if form.initial.resource_type == value %}active{% endif %}">
+                                <input type="radio" name="resource_type" value="{{ value }}" 
+                                       {% if form.initial.resource_type == value %}checked{% endif %}
+                                       class="resource-type-radio">
+                                
+                                {% if value == 'document' %}
+                                    <i class="fas fa-file-alt"></i>
+                                {% elif value == 'image' %}
+                                    <i class="fas fa-image"></i>
+                                {% elif value == 'video' %}
+                                    <i class="fas fa-video"></i>
+                                {% elif value == 'audio' %}
+                                    <i class="fas fa-music"></i>
+                                {% elif value == 'code' %}
+                                    <i class="fas fa-code"></i>
+                                {% elif value == 'text' %}
+                                    <i class="fas fa-align-left"></i>
+                                {% elif value == 'link' %}
+                                    <i class="fas fa-link"></i>
+                                {% else %}
+                                    <i class="fas fa-file"></i>
+                                {% endif %}
+                                
+                                <span class="type-card-label">{{ text }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        
+                        {% if form.resource_type.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.resource_type.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4 resource-content-section" id="fileSection">
+                        <label for="{{ form.file.id_for_label }}" class="form-label">Arquivo</label>
+                        {{ form.file }}
+                        {% if form.file.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.file.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Arquivos permitidos dependem do tipo de recurso selecionado</div>
+                    </div>
+                    
+                    <div class="mb-4 resource-content-section" id="textContentSection">
+                        <label for="{{ form.text_content.id_for_label }}" class="form-label">Conteúdo de Texto</label>
+                        {{ form.text_content }}
+                        {% if form.text_content.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.text_content.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4 resource-content-section" id="externalUrlSection">
+                        <label for="{{ form.external_url.id_for_label }}" class="form-label">URL Externa</label>
+                        {{ form.external_url }}
+                        {% if form.external_url.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.external_url.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Insira o link completo, começando com http:// ou https://</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">Categoria</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.category.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.tags.id_for_label }}" class="form-label">Tags</label>
+                        {{ form.tags }}
+                        {% if form.tags.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.tags.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Separe as tags com vírgulas</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label d-block">Visibilidade</label>
+                        
+                        <div class="visibility-options">
+                            {% for value, text in form.fields.visibility.choices %}
+                            <label class="visibility-option">
+                                <input type="radio" name="visibility" value="{{ value }}" 
+                                       {% if form.initial.visibility == value %}checked{% endif %}
+                                       class="visibility-radio">
+                                
+                                <span class="visibility-icon">
+                                    {% if value == 'public' %}
+                                        <i class="fas fa-globe"></i>
+                                    {% elif value == 'members' %}
+                                        <i class="fas fa-users"></i>
+                                    {% elif value == 'team' %}
+                                        <i class="fas fa-user-shield"></i>
+                                    {% endif %}
+                                </span>
+                                
+                                <div>
+                                    <div class="visibility-label">{{ text }}</div>
+                                    <div class="visibility-description">
+                                        {% if value == 'public' %}
+                                            Qualquer pessoa pode ver este recurso, mesmo sem estar logada.
+                                        {% elif value == 'members' %}
+                                            Somente membros e participantes do projeto podem ver este recurso.
+                                        {% elif value == 'team' %}
+                                            Somente a equipe interna (administradores) pode ver este recurso.
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        
+                        {% if form.visibility.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.visibility.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4 form-check">
+                        {{ form.featured }}
+                        <label class="form-check-label" for="{{ form.featured.id_for_label }}">Destacar este recurso</label>
+                        <div class="form-text">Recursos destacados são exibidos na página inicial do repositório</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% if project %}{% url 'repositorio:project_resources' project_slug=project.slug %}{% else %}{% url 'repositorio:index' %}{% endif %}" class="btn btn-light btn-lg me-md-2">
+                            <i class="fas fa-times me-2"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-2"></i> {% if creating %}Adicionar Recurso{% else %}Salvar Alterações{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/mode/css/css.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar CodeMirror para o campo de texto_content se existir
+        const textContentField = document.querySelector('.code-editor');
+        if (textContentField) {
+            const editor = CodeMirror.fromTextArea(textContentField, {
+                lineNumbers: true,
+                mode: 'javascript',
+                theme: 'dracula',
+                tabSize: 2,
+                indentWithTabs: false,
+                lineWrapping: true
+            });
+        }
+        
+        // Seleciona cards de tipo de recurso
+        const typeCards = document.querySelectorAll('.type-card');
+        typeCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove active de todos
+                typeCards.forEach(c => c.classList.remove('active'));
+                
+                // Marca este como ativo
+                this.classList.add('active');
+                
+                // Marca o radio button
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+                
+                // Mostra/oculta as seções adequadas
+                updateVisibleSections(radio.value);
+            });
+        });
+        
+        // Inicializa as seções visíveis com base no tipo selecionado
+        const selectedType = document.querySelector('input[name="resource_type"]:checked');
+        if (selectedType) {
+            updateVisibleSections(selectedType.value);
+        }
+        
+        // Função para mostrar/ocultar seções com base no tipo selecionado
+        function updateVisibleSections(resourceType) {
+            const fileSection = document.getElementById('fileSection');
+            const textContentSection = document.getElementById('textContentSection');
+            const externalUrlSection = document.getElementById('externalUrlSection');
+            
+            // Oculta todas as seções por padrão
+            fileSection.style.display = 'none';
+            textContentSection.style.display = 'none';
+            externalUrlSection.style.display = 'none';
+            
+            // Mostra as seções adequadas com base no tipo
+            switch (resourceType) {
+                case 'document':
+                case 'image':
+                    fileSection.style.display = 'block';
+                    break;
+                    
+                case 'video':
+                case 'audio':
+                    fileSection.style.display = 'block';
+                    externalUrlSection.style.display = 'block';
+                    break;
+                    
+                case 'code':
+                    fileSection.style.display = 'block';
+                    textContentSection.style.display = 'block';
+                    break;
+                    
+                case 'text':
+                    textContentSection.style.display = 'block';
+                    break;
+                    
+                case 'link':
+                    externalUrlSection.style.display = 'block';
+                    break;
+                    
+                case 'other':
+                    fileSection.style.display = 'block';
+                    textContentSection.style.display = 'block';
+                    externalUrlSection.style.display = 'block';
+                    break;
+            }
+        }
+    });
+</script>
+{% endblock %}

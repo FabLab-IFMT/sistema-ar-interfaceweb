@@ -1,0 +1,618 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% load repository_tags %}
+
+{% block title %}{{ resource.title }}{% endblock %}
+
+{% block head %}
+<style>
+    .resource-header {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .resource-title {
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: #343a40;
+    }
+    
+    .resource-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .resource-tag {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+    
+    .resource-content {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .resource-description {
+        margin-bottom: 1.5rem;
+        color: #495057;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+    
+    .file-list-container {
+        margin-top: 1.5rem;
+    }
+    
+    .file-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .file-item {
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+    
+    .file-item:hover {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
+    
+    .file-icon {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+    }
+    
+    .file-icon.doc { color: #4285f4; }
+    .file-icon.img { color: #34a853; }
+    .file-icon.pdf { color: #ea4335; }
+    .file-icon.audio { color: #fbbc05; }
+    .file-icon.video { color: #ff6d01; }
+    .file-icon.code { color: #9c27b0; }
+    .file-icon.text { color: #607d8b; }
+    .file-icon.zip { color: #795548; }
+    .file-icon.link { color: #00bcd4; }
+    
+    .file-info {
+        flex-grow: 1;
+    }
+    
+    .file-name {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    .file-meta {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .file-actions {
+        display: flex;
+        align-items: center;
+    }
+    
+    .file-actions .btn {
+        margin-left: 0.5rem;
+    }
+    
+    .visibility-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        color: #fff;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .visibility-public { background-color: #28a745; }
+    .visibility-members { background-color: #fd7e14; }
+    .visibility-team { background-color: #dc3545; }
+    
+    .featured-badge {
+        background-color: #ffc107;
+        color: #212529;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .featured-badge i { margin-right: 0.25rem; }
+    
+    .resource-sidebar {
+        position: sticky;
+        top: 1rem;
+    }
+    
+    .sidebar-section {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .sidebar-section h4 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #212529;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .resource-info li {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .resource-info li:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .comments-section {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'repositorio:index' %}">Repositório</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'repositorio:project_resources' project_slug=resource.project.slug %}">{{ resource.project.titulo }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ resource.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Conteúdo principal -->
+        <div class="col-lg-8">
+            <!-- Cabeçalho do recurso -->
+            <div class="resource-header">
+                <h1 class="resource-title">{{ resource.title }}</h1>
+                
+                <div class="resource-meta">
+                    <span class="visibility-badge 
+                        {% if resource.visibility == 'public' %}visibility-public{% endif %}
+                        {% if resource.visibility == 'members' %}visibility-members{% endif %}
+                        {% if resource.visibility == 'team' %}visibility-team{% endif %}">
+                        <i class="fas {% if resource.visibility == 'public' %}fa-globe{% elif resource.visibility == 'members' %}fa-users{% else %}fa-user-shield{% endif %} me-1"></i>
+                        {{ resource.get_visibility_display }}
+                    </span>
+                    
+                    <span class="text-muted">
+                        <i class="far fa-calendar me-1"></i> 
+                        Criado em {{ resource.created_at|date:"d/m/Y H:i" }}
+                    </span>
+                    
+                    <span class="text-muted">
+                        <i class="far fa-folder me-1"></i>
+                        <a href="{% url 'repositorio:project_resources' project_slug=resource.project.slug %}" class="text-decoration-none">
+                            {{ resource.project.titulo }}
+                        </a>
+                    </span>
+                    
+                    {% if resource.category %}
+                    <span class="text-muted">
+                        <i class="far fa-bookmark me-1"></i> {{ resource.category.name }}
+                    </span>
+                    {% endif %}
+                    
+                    {% if resource.created_by %}
+                    <span class="text-muted">
+                        <i class="far fa-user me-1"></i> {{ resource.created_by.first_name }} {{ resource.created_by.last_name }}
+                    </span>
+                    {% endif %}
+                    
+                    {% if resource.featured %}
+                    <span class="featured-badge">
+                        <i class="fas fa-star"></i> Destacado
+                    </span>
+                    {% endif %}
+                </div>
+                
+                {% if resource.description %}
+                <div class="resource-description">
+                    {{ resource.description|linebreaks }}
+                </div>
+                {% endif %}
+                
+                {% if resource.tags %}
+                <div>
+                    {% for tag in resource.tags|split:"," %}
+                        <span class="resource-tag">{{ tag|trim }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Conteúdo do recurso -->
+            <div class="resource-content">
+                <h2 class="h4 mb-4">Arquivos</h2>
+                
+                <!-- Lista de arquivos -->
+                <div class="file-list-container">
+                    <ul class="file-list">
+                        {% if resource.file %}
+                        <!-- Arquivo principal -->
+                        <li class="file-item">
+                            <div class="file-icon {% if resource.is_image %}img{% elif resource.is_document %}doc{% elif resource.is_audio %}audio{% elif resource.is_video %}video{% elif resource.is_code %}code{% else %}text{% endif %}">
+                                {% if resource.is_image %}
+                                    <i class="fas fa-file-image"></i>
+                                {% elif resource.file_extension == '.pdf' %}
+                                    <i class="fas fa-file-pdf"></i>
+                                {% elif resource.file_extension in '.doc,.docx' %}
+                                    <i class="fas fa-file-word"></i>
+                                {% elif resource.file_extension in '.xls,.xlsx' %}
+                                    <i class="fas fa-file-excel"></i>
+                                {% elif resource.file_extension in '.ppt,.pptx' %}
+                                    <i class="fas fa-file-powerpoint"></i>
+                                {% elif resource.is_audio %}
+                                    <i class="fas fa-file-audio"></i>
+                                {% elif resource.is_video %}
+                                    <i class="fas fa-file-video"></i>
+                                {% elif resource.is_code %}
+                                    <i class="fas fa-file-code"></i>
+                                {% elif resource.file_extension in '.zip,.rar,.7z' %}
+                                    <i class="fas fa-file-archive"></i>
+                                {% else %}
+                                    <i class="fas fa-file-alt"></i>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="file-info">
+                                <div class="file-name">{{ resource.filename }}</div>
+                                <div class="file-meta">
+                                    {% if resource.file_size %}
+                                        {{ resource.file_size|filesizeformat }} • 
+                                    {% endif %}
+                                    {% if resource.file_extension %}
+                                        {{ resource.file_extension|upper }} •
+                                    {% endif %}
+                                    Adicionado em {{ resource.created_at|date:"d/m/Y" }}
+                                </div>
+                            </div>
+                            
+                            <div class="file-actions">
+                                <a href="{{ resource.file.url }}" class="btn btn-primary" download>
+                                    <i class="fas fa-download me-1"></i> Baixar
+                                </a>
+                            </div>
+                        </li>
+                        {% endif %}
+                        
+                        {% if resource.external_url %}
+                        <!-- Link externo -->
+                        <li class="file-item">
+                            <div class="file-icon link">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            
+                            <div class="file-info">
+                                <div class="file-name">Link externo</div>
+                                <div class="file-meta">
+                                    {{ resource.external_url|truncatechars:50 }}
+                                </div>
+                            </div>
+                            
+                            <div class="file-actions">
+                                <a href="{{ resource.external_url }}" class="btn btn-outline-primary" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i> Acessar
+                                </a>
+                            </div>
+                        </li>
+                        {% endif %}
+                        
+                        {% if resource.text_content %}
+                        <!-- Conteúdo de texto -->
+                        <li class="file-item">
+                            <div class="file-icon text">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            
+                            <div class="file-info">
+                                <div class="file-name">Conteúdo de texto</div>
+                                <div class="file-meta">
+                                    {{ resource.text_content|truncatechars:100 }}
+                                </div>
+                            </div>
+                            
+                            <div class="file-actions">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#textContentModal">
+                                    <i class="fas fa-eye me-1"></i> Visualizar
+                                </button>
+                            </div>
+                        </li>
+                        {% endif %}
+                        
+                        {% if not resource.file and not resource.external_url and not resource.text_content %}
+                        <li class="text-center p-4 text-muted">
+                            <i class="fas fa-info-circle me-2"></i> Nenhum arquivo disponível para download.
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Seção de comentários -->
+            <div class="comments-section">
+                <h2 class="h4 mb-4">Comentários ({{ comments|length }})</h2>
+                
+                {% if comments %}
+                <div class="comments-list">
+                    {% for comment in comments %}
+                    <div class="comment">
+                        <div class="comment-header">
+                            <div class="comment-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="comment-user">{{ comment.user.first_name }} {{ comment.user.last_name }}</div>
+                            <div class="comment-date">{{ comment.created_at|date:"d/m/Y H:i" }}</div>
+                            
+                            {% if user.is_superuser or user == comment.user or user == resource.project.responsavel %}
+                            <div class="ms-auto">
+                                <button class="btn btn-sm btn-outline-danger" 
+                                       onclick="deleteComment({{ comment.id }})">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="comment-content">{{ comment.text }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="no-comments">
+                    <i class="far fa-comments me-2"></i> Nenhum comentário ainda. Seja o primeiro a comentar!
+                </div>
+                {% endif %}
+                
+                {% if user.is_authenticated %}
+                <div class="comment-form mt-4">
+                    <h5 class="mb-3">Adicionar comentário</h5>
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ comment_form.text }}
+                        </div>
+                        <button type="submit" name="comment-submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i> Enviar comentário
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle me-2"></i> Você precisa estar logado para comentar.
+                    <a href="{% url 'users:login' %}" class="btn btn-primary btn-sm ms-2">Login</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sidebar com informações e ações -->
+        <div class="col-lg-4">
+            <div class="resource-sidebar">
+                {% if can_edit %}
+                <div class="sidebar-section">
+                    <h4>Ações</h4>
+                    <div class="resource-actions">
+                        <a href="{% url 'repositorio:resource_edit' slug=resource.slug %}" class="btn btn-primary w-100">
+                            <i class="fas fa-edit me-2"></i> Editar recurso
+                        </a>
+                        <button onclick="confirmDelete()" class="btn btn-outline-danger w-100 mt-2">
+                            <i class="fas fa-trash-alt me-2"></i> Excluir recurso
+                        </button>
+                        
+                        <form id="delete-form" method="post" action="{% url 'repositorio:resource_delete' slug=resource.slug %}" class="d-none">
+                            {% csrf_token %}
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if resource.file %}
+                <div class="sidebar-section">
+                    <h4>Download</h4>
+                    <a href="{{ resource.file.url }}" class="btn btn-success w-100" download>
+                        <i class="fas fa-download me-2"></i> Baixar arquivo
+                    </a>
+                    {% if resource.file_size %}
+                    <p class="text-muted mt-2 mb-0 text-center">
+                        Tamanho: {{ resource.file_size|filesizeformat }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <div class="sidebar-section">
+                    <h4>Informações</h4>
+                    <ul class="list-unstyled resource-info">
+                        <li>
+                            <span class="resource-info-label">Tipo</span>
+                            <span class="resource-info-value">{{ resource.get_resource_type_display }}</span>
+                        </li>
+                        {% if resource.category %}
+                        <li>
+                            <span class="resource-info-label">Categoria</span>
+                            <span class="resource-info-value">{{ resource.category.name }}</span>
+                        </li>
+                        {% endif %}
+                        <li>
+                            <span class="resource-info-label">Visibilidade</span>
+                            <span class="resource-info-value">{{ resource.get_visibility_display }}</span>
+                        </li>
+                        <li>
+                            <span class="resource-info-label">Criado em</span>
+                            <span class="resource-info-value">{{ resource.created_at|date:"d/m/Y" }}</span>
+                        </li>
+                        <li>
+                            <span class="resource-info-label">Atualizado em</span>
+                            <span class="resource-info-value">{{ resource.updated_at|date:"d/m/Y" }}</span>
+                        </li>
+                        {% if resource.created_by %}
+                        <li>
+                            <span class="resource-info-label">Autor</span>
+                            <span class="resource-info-value">{{ resource.created_by.first_name }} {{ resource.created_by.last_name }}</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h4>Projeto</h4>
+                    <div class="d-flex align-items-center mb-3">
+                        {% if resource.project.imagem %}
+                        <img src="{{ resource.project.imagem.url }}" alt="{{ resource.project.titulo }}" 
+                             class="img-fluid rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-light rounded d-flex align-items-center justify-content-center me-3" 
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-project-diagram fa-2x text-secondary"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h5 class="mb-0 h6">{{ resource.project.titulo }}</h5>
+                            <span class="badge 
+                                {% if resource.project.status == 'concluido' %}bg-success
+                                {% elif resource.project.status == 'em_andamento' %}bg-primary
+                                {% elif resource.project.status == 'planejado' %}bg-info
+                                {% else %}bg-secondary{% endif %}">
+                                {{ resource.project.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <a href="{% url 'projetos:projeto_detalhe' resource.project.slug %}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fas fa-info-circle me-1"></i> Ver detalhes do projeto
+                    </a>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h4>Recursos do projeto</h4>
+                    <a href="{% url 'repositorio:project_resources' project_slug=resource.project.slug %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-folder-open me-2"></i> Ver todos os recursos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para conteúdo de texto -->
+<div class="modal fade" id="textContentModal" tabindex="-1" aria-labelledby="textContentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="textContentModalLabel">{{ resource.title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre style="white-space: pre-wrap;">{{ resource.text_content }}</pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmação de exclusão -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Confirmar exclusão</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Tem certeza que deseja excluir este recurso? Esta ação não pode ser desfeita.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" onclick="submitDelete()">Excluir</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Funções para confirmação e exclusão
+    function confirmDelete() {
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+    
+    function submitDelete() {
+        document.getElementById('delete-form').submit();
+    }
+    
+    function deleteComment(commentId) {
+        if (confirm('Tem certeza que deseja excluir este comentário?')) {
+            fetch(`/repositorio/comentario/${commentId}/excluir/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    alert('Erro ao excluir comentário');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao processar a solicitação');
+            });
+        }
+    }
+</script>
+{% endblock %}
