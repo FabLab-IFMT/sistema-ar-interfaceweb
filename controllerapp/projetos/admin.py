@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Projeto, ProjetoTag, ProjetoImagem
+from .models import Projeto, ProjetoTag, ProjetoImagem, ComentarioProjeto
 
 class ProjetoImagemInline(admin.TabularInline):
     model = ProjetoImagem
@@ -56,3 +56,32 @@ class ProjetoImagemAdmin(admin.ModelAdmin):
     list_display = ('titulo', 'ordem')
     list_editable = ('ordem',)
     search_fields = ('titulo', 'legenda')
+
+class ComentarioRespostaInline(admin.TabularInline):
+    model = ComentarioProjeto
+    fk_name = 'comentario_pai'
+    extra = 1
+    fields = ['autor', 'texto', 'aprovado', 'destacado']
+    verbose_name = "Resposta"
+    verbose_name_plural = "Respostas"
+
+@admin.register(ComentarioProjeto)
+class ComentarioProjetoAdmin(admin.ModelAdmin):
+    list_display = ('projeto', 'autor', 'texto_truncado', 'is_resposta', 'aprovado', 'destacado', 'data_criacao')
+    list_filter = ('aprovado', 'destacado', 'data_criacao')
+    search_fields = ('texto', 'autor__username', 'autor__first_name', 'autor__last_name', 'projeto__titulo')
+    date_hierarchy = 'data_criacao'
+    list_editable = ('aprovado', 'destacado')
+    inlines = [ComentarioRespostaInline]
+    
+    def texto_truncado(self, obj):
+        """Retorna uma versão truncada do texto do comentário"""
+        return obj.texto[:100] + '...' if len(obj.texto) > 100 else obj.texto
+    texto_truncado.short_description = 'Texto'
+    
+    def get_queryset(self, request):
+        """Mostra apenas comentários principais (não respostas) na listagem principal"""
+        qs = super().get_queryset(request)
+        if request.path.endswith('/change/'):
+            return qs
+        return qs.filter(comentario_pai__isnull=True)
