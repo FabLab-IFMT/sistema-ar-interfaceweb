@@ -11,7 +11,7 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'projetos:projeto_lista' %}">Projetos</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'projetos:lista' %}">Projetos</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ projeto.titulo }}</li>
         </ol>
     </nav>
@@ -43,7 +43,7 @@
                 
                 <div class="project-tags mt-3">
                     {% for tag in projeto.tags.all %}
-                        <a href="{% url 'projetos:projeto_lista' %}?tag={{ tag.slug }}" class="tag-badge">{{ tag.nome }}</a>
+                        <a href="{% url 'projetos:lista' %}?tag={{ tag.slug }}" class="tag-badge">{{ tag.nome }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -169,7 +169,7 @@
                     <h3 class="border-bottom pb-2 mb-3">Projetos Relacionados</h3>
                     <div class="list-group">
                         {% for projeto_rel in projetos_relacionados %}
-                            <a href="{% url 'projetos:projeto_detalhe' projeto_rel.slug %}" class="list-group-item list-group-item-action">
+                            <a href="{% url 'projetos:detalhe' projeto_rel.slug %}" class="list-group-item list-group-item-action">
                                 <div class="d-flex align-items-center">
                                     <div class="related-project-image me-3">
                                         <img src="{{ projeto_rel.imagem.url }}" class="img-fluid rounded" alt="{{ projeto_rel.titulo }}" onerror="this.src='https://via.placeholder.com/50x50?text=P'">

@@ -1,0 +1,541 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Perfil do Usuário{% endblock %}
+
+{% block head %}
+<style>
+    .profile-header {
+        background-color: #f8f9fa;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background-color: #007bff;
+        color: #fff;
+        font-size: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 2rem;
+    }
+    
+    .card {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+    
+    .card-header {
+        background-color: #fff;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding: 1rem 1.5rem;
+    }
+    
+    .nav-tabs {
+        border-bottom: none;
+    }
+    
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: #6c757d;
+    }
+    
+    .nav-tabs .nav-link.active {
+        border-color: #007bff;
+        color: #007bff;
+        background-color: transparent;
+    }
+    
+    .project-card {
+        transition: transform 0.3s;
+        height: 100%;
+    }
+    
+    .project-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .notification-item {
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+    }
+    
+    .notification-item:hover {
+        background-color: rgba(0,0,0,0.02);
+    }
+    
+    .notification-unread {
+        border-left-color: #007bff;
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+    
+    .badge-status {
+        padding: 0.5rem 0.8rem;
+    }
+    
+    .progress {
+        height: 0.8rem;
+        border-radius: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="profile-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <div class="profile-avatar">
+                    {{ user.first_name|first }}{{ user.last_name|first }}
+                </div>
+                <div>
+                    <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+                    {% if is_staff %}
+                        <span class="badge bg-primary">Membro da Equipe</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Usuário</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if is_owner %}
+                <div>
+                    <a href="{% url 'users:edit_profile' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-user-edit me-2"></i>Editar Perfil
+                    </a>
+                    <a href="{% url 'users:change_password' %}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-key me-2"></i>Alterar Senha
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<div class="container mb-5">
+    <!-- Tabs para diferentes seções -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info-tab-pane" type="button" role="tab" aria-controls="info-tab-pane" aria-selected="true">
+                        <i class="fas fa-user me-2"></i>Informações
+                    </button>
+                </li>
+                {% if is_staff %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects-tab-pane" type="button" role="tab" aria-controls="projects-tab-pane" aria-selected="false">
+                        <i class="fas fa-project-diagram me-2"></i>Projetos
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="services-tab" data-bs-toggle="tab" data-bs-target="#services-tab-pane" type="button" role="tab" aria-controls="services-tab-pane" aria-selected="false">
+                        <i class="fas fa-tools me-2"></i>Serviços
+                    </button>
+                </li>
+                {% endif %}
+                {% if is_owner %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications-tab-pane" type="button" role="tab" aria-controls="notifications-tab-pane" aria-selected="false">
+                        <i class="fas fa-bell me-2"></i>Notificações
+                        <span class="badge bg-danger rounded-pill">3</span>
+                    </button>
+                </li>
+                {% endif %}
+                {% if is_owner or is_staff %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity-tab-pane" type="button" role="tab" aria-controls="activity-tab-pane" aria-selected="false">
+                        <i class="fas fa-chart-line me-2"></i>Atividade
+                    </button>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="profileTabsContent">
+                <!-- Aba de Informações -->
+                <div class="tab-pane fade show active" id="info-tab-pane" role="tabpanel" aria-labelledby="info-tab" tabindex="0">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <h4 class="mb-4">Informações Pessoais</h4>
+                            <div class="mb-3">
+                                <label class="fw-bold">Nome:</label>
+                                <p>{{ user.first_name }} {{ user.last_name }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold">Email:</label>
+                                <p>{{ user.email }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold">Matrícula:</label>
+                                <p>{{ user.id }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold">Data de Registro:</label>
+                                <p>{{ user.date_joined|date:"d/m/Y" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <h4 class="mb-4">Acesso</h4>
+                            
+                            <!-- Status de Acesso (se tiver sistema de ponto) -->
+                            {% if is_staff %}
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Status de Acesso</h5>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span>Progresso Semanal</span>
+                                            <span>65%</span>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 65%" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <small class="text-muted">13h de 20h concluídas esta semana</small>
+                                    </div>
+                                    <a href="{% url 'acesso_e_ponto:my_access_history' %}" class="btn btn-sm btn-primary">Ver Histórico Completo</a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Nível de Acesso -->
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Nível de Acesso</h5>
+                                    {% if user.is_superuser %}
+                                        <span class="badge bg-danger mb-2">Administrador</span>
+                                        <p class="text-muted small">Acesso completo ao sistema e funções administrativas.</p>
+                                    {% elif user.is_staff %}
+                                        <span class="badge bg-primary mb-2">Membro da Equipe</span>
+                                        <p class="text-muted small">Acesso a recursos restritos e gerenciamento de conteúdo.</p>
+                                    {% else %}
+                                        <span class="badge bg-secondary mb-2">Usuário</span>
+                                        <p class="text-muted small">Acesso a recursos básicos do sistema.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Aba de Projetos (Apenas para membros da equipe) -->
+                {% if is_staff %}
+                <div class="tab-pane fade" id="projects-tab-pane" role="tabpanel" aria-labelledby="projects-tab" tabindex="0">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4>Meus Projetos</h4>
+                        <a href="{% url 'projetos:lista' %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-1"></i> Ver Todos
+                        </a>
+                    </div>
+                    
+                    <div class="row g-3">
+                        {% if projetos %}
+                            {% for projeto in projetos %}
+                                <div class="col-md-6">
+                                    <div class="card project-card h-100">
+                                        {% if projeto.imagem %}
+                                            <img src="{{ projeto.imagem.url }}" class="card-img-top" alt="{{ projeto.titulo }}">
+                                        {% else %}
+                                            <div class="bg-light text-center py-4">
+                                                <i class="fas fa-project-diagram fa-3x text-muted"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ projeto.titulo }}</h5>
+                                            <p class="card-text text-muted">{{ projeto.descricao|truncatewords:20 }}</p>
+                                            
+                                            <div class="mb-3">
+                                                <span class="badge bg-{{ projeto.status_color }}">{{ projeto.status_display }}</span>
+                                                <small class="text-muted ms-2">Atualizado em {{ projeto.updated_at|date:"d/m/Y" }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-white">
+                                            <a href="{% url 'projetos:detalhe' projeto.slug %}" class="btn btn-sm btn-outline-primary">Ver Detalhes</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Você ainda não está vinculado a nenhum projeto.
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Aba de Serviços (Apenas para membros da equipe) -->
+                <div class="tab-pane fade" id="services-tab-pane" role="tabpanel" aria-labelledby="services-tab" tabindex="0">
+                    <h4 class="mb-4">Meus Serviços</h4>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">Serviços Atribuídos</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if servicos %}
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Serviço</th>
+                                                <th>Solicitante</th>
+                                                <th>Data</th>
+                                                <th>Status</th>
+                                                <th>Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for servico in servicos %}
+                                                <tr>
+                                                    <td>{{ servico.nome }}</td>
+                                                    <td>{{ servico.solicitante }}</td>
+                                                    <td>{{ servico.data|date:"d/m/Y" }}</td>
+                                                    <td>
+                                                        <span class="badge badge-status bg-{{ servico.status_color }}">
+                                                            {{ servico.status_display }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <a href="#" class="btn btn-sm btn-outline-primary">Ver</a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Você não tem serviços atribuídos no momento.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">Equipamentos Responsável</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if equipamentos %}
+                                <div class="row row-cols-1 row-cols-md-2 g-3">
+                                    {% for equip in equipamentos %}
+                                        <div class="col">
+                                            <div class="card h-100">
+                                                {% if equip.imagem %}
+                                                    <img src="{{ equip.imagem.url }}" class="card-img-top" alt="{{ equip.nome }}">
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <h5 class="card-title">{{ equip.nome }}</h5>
+                                                    <p class="card-text text-muted small">{{ equip.descricao|truncatewords:10 }}</p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="badge bg-{{ equip.status_color }}">{{ equip.status_display }}</span>
+                                                        <a href="#" class="btn btn-sm btn-outline-primary">Gerenciar</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Você não é responsável por nenhum equipamento.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Aba de Notificações (Apenas para o próprio usuário) -->
+                {% if is_owner %}
+                <div class="tab-pane fade" id="notifications-tab-pane" role="tabpanel" aria-labelledby="notifications-tab" tabindex="0">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4>Minhas Notificações</h4>
+                        <button class="btn btn-sm btn-outline-primary" id="markAllAsRead">
+                            <i class="fas fa-check-double me-1"></i> Marcar Todas como Lidas
+                        </button>
+                    </div>
+                    
+                    <div class="list-group">
+                        <div class="list-group-item notification-item notification-unread p-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">Solicitação de Agendamento Aprovada</h6>
+                                    <p class="mb-1 text-muted small">Sua solicitação de acesso à impressora 3D foi aprovada para 15/05/2025.</p>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">Há 2 horas</small>
+                                    <div>
+                                        <span class="badge bg-success">Nova</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-group-item notification-item notification-unread p-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">Devolução de Material Pendente</h6>
+                                    <p class="mb-1 text-muted small">O prazo para devolução do kit Arduino expira em 2 dias.</p>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">Há 1 dia</small>
+                                    <div>
+                                        <span class="badge bg-warning text-dark">Alerta</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-group-item notification-item notification-unread p-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">Novo Workshop Disponível</h6>
+                                    <p class="mb-1 text-muted small">Workshop de Introdução à Robótica será realizado no dia 20/05/2025.</p>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">Há 3 dias</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-group-item notification-item p-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">Material Emprestado</h6>
+                                    <p class="mb-1 text-muted small">Você retirou 2 unidades de Filamento PLA no dia 01/05/2025.</p>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">Há 1 semana</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-group-item notification-item p-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">Conta Aprovada</h6>
+                                    <p class="mb-1 text-muted small">Sua conta foi aprovada por um administrador. Bem-vindo ao FabLab!</p>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">Há 1 mês</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Aba de Atividades (Para o próprio usuário ou staff) -->
+                {% if is_owner or is_staff %}
+                <div class="tab-pane fade" id="activity-tab-pane" role="tabpanel" aria-labelledby="activity-tab" tabindex="0">
+                    <h4 class="mb-4">Histórico de Atividades</h4>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Registros de Acesso</h5>
+                            <a href="{% url 'acesso_e_ponto:my_access_history' %}" class="btn btn-sm btn-outline-primary">Ver Todos</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% if acessos %}
+                                    {% for acesso in acessos %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <p class="mb-1">{{ acesso.tipo_display }}</p>
+                                                    <small class="text-muted">{{ acesso.data|date:"d/m/Y H:i" }}</small>
+                                                </div>
+                                                <span class="badge bg-{{ acesso.tipo_color }}">{{ acesso.duracao }}</span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="list-group-item text-center py-4">
+                                        <div class="text-muted">Nenhum registro de acesso encontrado.</div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">Uso de Equipamentos</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Equipamento</th>
+                                            <th>Data</th>
+                                            <th>Duração</th>
+                                            <th>Projeto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if equipamento_usos %}
+                                            {% for uso in equipamento_usos %}
+                                                <tr>
+                                                    <td>{{ uso.equipamento }}</td>
+                                                    <td>{{ uso.data|date:"d/m/Y" }}</td>
+                                                    <td>{{ uso.duracao }}</td>
+                                                    <td>{{ uso.projeto|default:"N/A" }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="4" class="text-center py-3 text-muted">Nenhum registro de uso de equipamentos.</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Marcar todas as notificações como lidas
+        const markAllButton = document.getElementById('markAllAsRead');
+        if (markAllButton) {
+            markAllButton.addEventListener('click', function() {
+                const unreadItems = document.querySelectorAll('.notification-unread');
+                unreadItems.forEach(item => {
+                    item.classList.remove('notification-unread');
+                    const badgeEl = item.querySelector('.badge.bg-success');
+                    if (badgeEl) {
+                        badgeEl.remove();
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

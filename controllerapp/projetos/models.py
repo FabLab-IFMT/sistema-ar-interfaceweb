@@ -76,7 +76,7 @@ class Projeto(models.Model):
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
-        return reverse('projetos:projeto_detalhe', args=[self.slug])
+        return reverse('projetos:detalhe', args=[self.slug])
 
 class ProjetoImagem(models.Model):
     """Imagens adicionais para os projetos"""

@@ -1,13 +1,24 @@
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth import login, logout, get_user_model
+from django.contrib.auth import login, logout, get_user_model, update_session_auth_hash
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from .models import CustomUser, Card, RegistrationRequest
-from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from .forms import CustomUserCreationForm, CustomAuthenticationForm, ProfileUpdateForm, CustomPasswordChangeForm
 from logs.utils import log_user_action
 from django.http import Http404
+from django.db import models
+from projetos.models import Projeto
+from canva.models import KanbanCard
+from logs.models import Event
+from options.models import Membro
+from inventario.models import Emprestimo
+from acesso_e_ponto.models import Session
+from django.db.models import Q
+from django.utils import timezone
+from datetime import timedelta
+from django.contrib.auth.forms import PasswordChangeForm
 
 def login_view(request): 
     if request.method == "POST": 
@@ -170,7 +181,121 @@ def reject_registration(request, request_id):
     
     return redirect('users:pending_registrations')
 
-# Podemos remover esta função já que usamos o context processor agora
-# def get_pending_count():
-#     """Função auxiliar para contar solicitações pendentes"""
-#     return RegistrationRequest.objects.filter(status='pending').count()
+@login_required
+def profile(request, user_id=None):
+    # Se user_id for fornecido, exibe o perfil desse usuário
+    # Se não, exibe o perfil do usuário logado
+    if user_id and request.user.is_staff:
+        profile_user = get_object_or_404(CustomUser, id=user_id)
+        is_self = False
+    else:
+        profile_user = request.user
+        is_self = True
+        
+    # Verifica se é um membro da equipe (usando o app options.Membro)
+    is_team_member = False
+    membro = None
+    try:
+        from options.models import Membro
+        try:
+            membro = Membro.objects.get(email=profile_user.email)
+            is_team_member = True
+        except Membro.DoesNotExist:
+            pass
+    except ImportError:
+        pass
+    
+    # Busca projetos relacionados a este usuário
+    projetos = []
+    try:
+        from projetos.models import Projeto
+        projetos = Projeto.objects.filter(
+            Q(responsavel=profile_user) | Q(participantes=profile_user)
+        ).distinct()
+    except ImportError:
+        pass
+    
+    # Busca tarefas do kanban relacionadas a este usuário
+    kanban_cards = []
+    try:
+        from canva.models import Card
+        kanban_cards = Card.objects.filter(usuario_responsavel=profile_user)
+    except ImportError:
+        pass
+    
+    # Busca eventos agendados relacionados a este usuário
+    eventos = []
+    try:
+        from logs.models import Event
+        eventos = Event.objects.filter(
+            Q(created_by=profile_user) | Q(participants=profile_user),
+            start_time__gte=timezone.now()
+        ).order_by('start_time')[:5]
+    except ImportError:
+        pass
+    
+    # Busca sessões de acesso recentes
+    sessoes_recentes = []
+    try:
+        from acesso_e_ponto.models import Session
+        sessoes_recentes = Session.objects.filter(
+            user=profile_user
+        ).order_by('-entry_time')[:5]
+    except ImportError:
+        pass
+    
+    # Busca empréstimos ativos (se for o próprio usuário ou admin)
+    emprestimos_ativos = []
+    if is_self or request.user.is_staff:
+        try:
+            from inventario.models import Emprestimo
+            emprestimos_ativos = Emprestimo.objects.filter(
+                usuario=profile_user,
+                data_devolucao__isnull=True
+            ).order_by('-data_emprestimo')
+        except ImportError:
+            pass
+    
+    # Se for o próprio usuário, mostra formulário de edição
+    if is_self:
+        if request.method == 'POST':
+            form = ProfileUpdateForm(request.POST, instance=profile_user)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Seu perfil foi atualizado com sucesso.')
+                return redirect('users:profile')
+        else:
+            form = ProfileUpdateForm(instance=profile_user)
+    else:
+        form = None
+    
+    context = {
+        'profile_user': profile_user,
+        'is_self': is_self,
+        'is_team_member': is_team_member,
+        'membro': membro,
+        'form': form,
+        'projetos': projetos,
+        'kanban_cards': kanban_cards,
+        'eventos': eventos,
+        'sessoes_recentes': sessoes_recentes,
+        'emprestimos_ativos': emprestimos_ativos,
+    }
+    
+    return render(request, 'users/profile.html', context)
+
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Mantém o usuário logado
+            messages.success(request, 'Sua senha foi alterada com sucesso!')
+            return redirect('users:profile')
+        else:
+            messages.error(request, 'Por favor, corrija os erros abaixo.')
+    else:
+        form = PasswordChangeForm(request.user)
+    
+    return render(request, 'users/change_password.html', {'form': form})

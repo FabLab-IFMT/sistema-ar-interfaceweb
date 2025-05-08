@@ -15,7 +15,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('about/', views.about, name='about'),
-    path('projects/', include('projetos.urls')),
+    path('projetos/', include('projetos.urls')),  # Atualizado para português
     path('users/', include('users.urls')),
     path('logs/', include('logs.urls')),
     path('painelar/', include('Controle_ar.urls')),

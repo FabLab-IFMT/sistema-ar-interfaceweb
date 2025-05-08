@@ -37,7 +37,7 @@ def about(request):
 
 def projects(request):
     """View para redirecionar para a página de projetos."""
-    return redirect('projetos:projeto_lista')
+    return redirect('projetos:lista')
 
 def home(request):
     # Busca apenas imagens ativas do carrossel
