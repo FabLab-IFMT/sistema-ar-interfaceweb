@@ -11,7 +11,7 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'projetos:projeto_lista' %}">Projetos</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'projetos:lista' %}">Projetos</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ projeto.titulo }}</li>
         </ol>
     </nav>
@@ -43,7 +43,7 @@
                 
                 <div class="project-tags mt-3">
                     {% for tag in projeto.tags.all %}
-                        <a href="{% url 'projetos:projeto_lista' %}?tag={{ tag.slug }}" class="tag-badge">{{ tag.nome }}</a>
+                        <a href="{% url 'projetos:lista' %}?tag={{ tag.slug }}" class="tag-badge">{{ tag.nome }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -105,6 +105,150 @@
                         </div>
                     </div>
                 {% endif %}
+            </div>
+            
+            <!-- Nova seção de comentários -->
+            <div class="project-comments bg-white p-4 rounded shadow">
+                <h3 class="border-bottom pb-2 mb-4">
+                    <i class="fas fa-comments text-primary me-2"></i>
+                    Comentários e Discussão
+                    <span class="badge bg-secondary ms-2">{{ comentarios.count }}</span>
+                </h3>
+                
+                <!-- Formulário para novo comentário -->
+                {% if user.is_authenticated %}
+                    <div class="comment-form mb-4">
+                        <form id="comment-form" action="{% url 'projetos:adicionar_comentario' projeto.id %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="comentario_pai" value="" id="comentario_pai_id">
+                            
+                            <div class="mb-3">
+                                <label for="comment-text" class="form-label">Deixe seu comentário</label>
+                                <textarea class="form-control" id="comment-text" name="texto" 
+                                          rows="3" placeholder="Compartilhe suas ideias ou faça perguntas sobre este projeto..."></textarea>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div id="reply-info" class="text-muted small d-none">
+                                    <i class="fas fa-reply me-1"></i> Respondendo a: <span id="reply-to-name"></span>
+                                    <button type="button" class="btn btn-sm text-danger border-0 cancel-reply">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </button>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="far fa-paper-plane me-1"></i> Enviar Comentário
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <a href="{% url 'users:login' %}?next={{ request.path }}">Faça login</a> para participar da discussão.
+                    </div>
+                {% endif %}
+                
+                <!-- Lista de comentários -->
+                <div class="comments-list">
+                    {% if comentarios %}
+                        {% for comentario in comentarios %}
+                            <div class="comment-item {% if comentario.destacado %}featured-comment{% endif %}" id="comment-{{ comentario.id }}">
+                                <div class="d-flex">
+                                    <div class="comment-avatar me-3">
+                                        {% if comentario.autor.foto %}
+                                            <img src="{{ comentario.autor.foto.url }}" class="rounded-circle" alt="{{ comentario.autor.get_full_name }}" width="50" height="50">
+                                        {% else %}
+                                            <div class="default-avatar rounded-circle d-flex align-items-center justify-content-center">
+                                                {{ comentario.autor.first_name|first }}{{ comentario.autor.last_name|first }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="comment-content flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div>
+                                                <h6 class="mb-0">{{ comentario.autor.get_full_name }}</h6>
+                                                <span class="text-muted small">{{ comentario.data_criacao|date:"d/m/Y H:i" }}</span>
+                                                {% if comentario.destacado %}
+                                                    <span class="badge bg-warning ms-2">Destacado</span>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                {% if user.is_authenticated %}
+                                                    <button class="btn btn-sm text-primary reply-btn border-0" 
+                                                            data-comment-id="{{ comentario.id }}" 
+                                                            data-author="{{ comentario.autor.get_full_name }}">
+                                                        <i class="fas fa-reply"></i> Responder
+                                                    </button>
+                                                {% endif %}
+                                                {% if user == comentario.autor or user.is_staff %}
+                                                    <form class="d-inline delete-comment-form" action="{% url 'projetos:excluir_comentario' comentario.id %}" method="post">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm text-danger border-0 delete-comment-btn">
+                                                            <i class="fas fa-trash-alt"></i> Excluir
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="comment-text mb-2">
+                                            {{ comentario.texto|linebreaks }}
+                                        </div>
+                                        
+                                        <!-- Respostas ao comentário -->
+                                        {% if comentario.respostas.all %}
+                                            <div class="comment-replies mt-3">
+                                                {% for resposta in comentario.respostas.all|dictsort:"data_criacao" %}
+                                                    {% if resposta.aprovado %}
+                                                        <div class="reply-item" id="comment-{{ resposta.id }}">
+                                                            <div class="d-flex">
+                                                                <div class="comment-avatar me-2">
+                                                                    {% if resposta.autor.foto %}
+                                                                        <img src="{{ resposta.autor.foto.url }}" class="rounded-circle" alt="{{ resposta.autor.get_full_name }}" width="35" height="35">
+                                                                    {% else %}
+                                                                        <div class="default-avatar rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                                                            {{ resposta.autor.first_name|first }}{{ resposta.autor.last_name|first }}
+                                                                        </div>
+                                                                    {% endif %}
+                                                                </div>
+                                                                <div class="reply-content flex-grow-1">
+                                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                        <div>
+                                                                            <h6 class="mb-0 fs-6">{{ resposta.autor.get_full_name }}</h6>
+                                                                            <span class="text-muted small">{{ resposta.data_criacao|date:"d/m/Y H:i" }}</span>
+                                                                        </div>
+                                                                        <div>
+                                                                            {% if user == resposta.autor or user.is_staff %}
+                                                                                <form class="d-inline delete-comment-form" action="{% url 'projetos:excluir_comentario' resposta.id %}" method="post">
+                                                                                    {% csrf_token %}
+                                                                                    <button type="submit" class="btn btn-sm text-danger border-0 delete-comment-btn">
+                                                                                        <i class="fas fa-trash-alt"></i>
+                                                                                    </button>
+                                                                                </form>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="reply-text">
+                                                                        {{ resposta.texto|linebreaks }}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="far fa-comments fs-3 mb-2"></i>
+                                <p>Ainda não há comentários. Seja o primeiro a comentar!</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
         
@@ -169,7 +313,7 @@
                     <h3 class="border-bottom pb-2 mb-3">Projetos Relacionados</h3>
                     <div class="list-group">
                         {% for projeto_rel in projetos_relacionados %}
-                            <a href="{% url 'projetos:projeto_detalhe' projeto_rel.slug %}" class="list-group-item list-group-item-action">
+                            <a href="{% url 'projetos:detalhe' projeto_rel.slug %}" class="list-group-item list-group-item-action">
                                 <div class="d-flex align-items-center">
                                     <div class="related-project-image me-3">
                                         <img src="{{ projeto_rel.imagem.url }}" class="img-fluid rounded" alt="{{ projeto_rel.titulo }}" onerror="this.src='https://via.placeholder.com/50x50?text=P'">
@@ -235,6 +379,75 @@
                 'resizeDuration': 200,
                 'wrapAround': true
             });
+        }
+        
+        // Funcionalidade para resposta aos comentários
+        const replyBtns = document.querySelectorAll('.reply-btn');
+        const cancelReplyBtns = document.querySelectorAll('.cancel-reply');
+        const replyInfo = document.getElementById('reply-info');
+        const replyToName = document.getElementById('reply-to-name');
+        const commentParentInput = document.getElementById('comentario_pai_id');
+        const commentForm = document.getElementById('comment-form');
+        const commentText = document.getElementById('comment-text');
+        
+        // Configurar botões de resposta
+        if (replyBtns) {
+            replyBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const commentId = this.dataset.commentId;
+                    const authorName = this.dataset.author;
+                    
+                    // Configurar formulário para resposta
+                    commentParentInput.value = commentId;
+                    replyToName.textContent = authorName;
+                    replyInfo.classList.remove('d-none');
+                    
+                    // Focar no campo de texto e rolar até o formulário
+                    commentText.focus();
+                    commentForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+            });
+        }
+        
+        // Configurar botão para cancelar resposta
+        if (cancelReplyBtns) {
+            cancelReplyBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Resetar formulário
+                    commentParentInput.value = '';
+                    replyInfo.classList.add('d-none');
+                });
+            });
+        }
+        
+        // Confirmar exclusão de comentário
+        const deleteButtons = document.querySelectorAll('.delete-comment-btn');
+        if (deleteButtons) {
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    if (!confirm('Tem certeza que deseja excluir este comentário?')) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        }
+        
+        // Verificar se há um hash na URL para rolar até um comentário específico
+        if (window.location.hash && window.location.hash.startsWith('#comment-')) {
+            const commentId = window.location.hash;
+            const commentElement = document.querySelector(commentId);
+            
+            if (commentElement) {
+                setTimeout(() => {
+                    commentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    commentElement.classList.add('highlight-comment');
+                    
+                    // Remover destaque após alguns segundos
+                    setTimeout(() => {
+                        commentElement.classList.remove('highlight-comment');
+                    }, 3000);
+                }, 500);
+            }
         }
     });
 </script>
@@ -367,6 +580,95 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+    }
+    
+    /* Estilos para a seção de comentários */
+    .project-comments {
+        margin-top: 2rem;
+    }
+    
+    .comment-item {
+        padding: 1.25rem;
+        border-radius: 12px;
+        background-color: #f8f9fa;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .comment-item:hover {
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        transform: translateY(-3px);
+    }
+    
+    .featured-comment {
+        border-left: 4px solid #ffc107;
+        background-color: rgba(255, 193, 7, 0.05);
+    }
+    
+    .highlight-comment {
+        background-color: rgba(13, 110, 253, 0.1);
+        animation: pulse-highlight 2s;
+    }
+    
+    @keyframes pulse-highlight {
+        0% { background-color: rgba(13, 110, 253, 0.3); }
+        100% { background-color: rgba(13, 110, 253, 0.05); }
+    }
+    
+    .default-avatar {
+        width: 50px;
+        height: 50px;
+        background-color: var(--bs-primary);
+        color: white;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    
+    .comment-text {
+        white-space: pre-line;
+        line-height: 1.6;
+    }
+    
+    .comment-text p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .comment-replies {
+        margin-left: 2rem;
+        border-left: 2px solid rgba(0,0,0,0.1);
+        padding-left: 1.5rem;
+    }
+    
+    .reply-item {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .reply-btn:hover, .cancel-reply:hover {
+        text-decoration: underline;
+    }
+    
+    .delete-comment-btn:hover {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+    
+    /* Animação para novos comentários adicionados via AJAX */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .new-comment {
+        animation: fadeInUp 0.5s ease-out;
     }
 </style>
 {% endblock %}

@@ -11,4 +11,9 @@ urlpatterns = [
     path('pending-registrations/', views.pending_registrations, name='pending_registrations'),
     path('approve-registration/<int:request_id>/', views.approve_registration, name='approve_registration'),
     path('reject-registration/<int:request_id>/', views.reject_registration, name='reject_registration'),
+    
+    # Páginas de perfil de usuário
+    path('profile/', views.profile, name='profile'),  # Perfil do usuário logado
+    path('profile/<str:user_id>/', views.profile, name='user_profile'),  # Perfil de outro usuário
+    path('change-password/', views.change_password, name='change_password'),  # Alteração de senha
 ]

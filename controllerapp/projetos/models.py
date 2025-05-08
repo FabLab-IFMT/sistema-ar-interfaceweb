@@ -76,7 +76,7 @@ class Projeto(models.Model):
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
-        return reverse('projetos:projeto_detalhe', args=[self.slug])
+        return reverse('projetos:detalhe', args=[self.slug])
 
 class ProjetoImagem(models.Model):
     """Imagens adicionais para os projetos"""
@@ -93,4 +93,35 @@ class ProjetoImagem(models.Model):
     
     def __str__(self):
         return self.titulo
+
+class ComentarioProjeto(models.Model):
+    """Comentários em projetos com suporte a respostas"""
+    projeto = models.ForeignKey(Projeto, on_delete=models.CASCADE, related_name='comentarios')
+    autor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='comentarios_projeto')
+    texto = models.TextField()
+    
+    # Suporte para respostas aninhadas
+    comentario_pai = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, 
+                                      related_name='respostas')
+    
+    # Campos de status e moderação
+    aprovado = models.BooleanField(default=True)
+    destacado = models.BooleanField(default=False, help_text="Destacar este comentário")
+    
+    # Campos de sistema
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Comentário do Projeto'
+        verbose_name_plural = 'Comentários dos Projetos'
+        ordering = ['-data_criacao']
+    
+    def __str__(self):
+        return f'Comentário por {self.autor} em {self.projeto}'
+    
+    @property
+    def is_resposta(self):
+        """Verifica se este comentário é uma resposta"""
+        return self.comentario_pai is not None
 

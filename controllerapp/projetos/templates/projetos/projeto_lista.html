@@ -48,11 +48,11 @@
                     <h6 class="border-bottom pb-2 mb-3">Categorias</h6>
                     <div class="mb-3">
                         <div class="d-flex flex-wrap gap-2">
-                            <a href="{% url 'projetos:projeto_lista' %}" class="badge bg-light text-dark text-decoration-none mb-2 {% if not tag_ativa %}border border-primary{% endif %}">
+                            <a href="{% url 'projetos:lista' %}" class="badge bg-light text-dark text-decoration-none mb-2 {% if not tag_ativa %}border border-primary{% endif %}">
                                 Todas
                             </a>
                             {% for tag in tags %}
-                                <a href="{% url 'projetos:projeto_lista' %}?tag={{ tag.slug }}" 
+                                <a href="{% url 'projetos:lista' %}?tag={{ tag.slug }}" 
                                    class="badge bg-light text-dark text-decoration-none mb-2 {% if tag_ativa == tag.slug %}border border-primary{% endif %}">
                                     {{ tag.nome }}
                                 </a>
@@ -88,7 +88,7 @@
                                     {% endfor %}
                                 </div>
                                 <div class="mt-3">
-                                    <a href="{% url 'projetos:projeto_detalhe' projeto.slug %}" class="btn btn-sm btn-outline-primary">Ver detalhes</a>
+                                    <a href="{% url 'projetos:detalhe' projeto.slug %}" class="btn btn-sm btn-outline-primary">Ver detalhes</a>
                                 </div>
                             </div>
                         </div>

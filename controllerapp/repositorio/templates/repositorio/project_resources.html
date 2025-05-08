@@ -182,8 +182,8 @@
   <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'projetos:projeto_lista' %}">Projetos</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'projetos:projeto_detalhe' project.slug %}">{{ project.titulo }}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'projetos:lista' %}">Projetos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'projetos:detalhe' project.slug %}">{{ project.titulo }}</a></li>
       <li class="breadcrumb-item active" aria-current="page">Repositório de Materiais</li>
     </ol>
   </nav>
@@ -303,7 +303,7 @@
         </h2>
         
         <div>
-          <a href="{% url 'projetos:projeto_detalhe' project.slug %}" class="btn btn-outline-secondary btn-sm">
+          <a href="{% url 'projetos:detalhe' project.slug %}" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left me-1"></i> Voltar para o Projeto
           </a>
         </div>

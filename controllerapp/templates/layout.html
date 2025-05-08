@@ -314,16 +314,15 @@
             
             <!-- Menu de projetos -->
             <li class="nav-item project">
-              <a class="nav-link" {% if user.is_staff %}href="{% url 'projetos:projeto_lista' %}"{% endif %}>
-                <i class="fas fa-project-diagram me-1"></i> Projetos <i class="fas fa-caret-down ms-1"></i>
+              <a class="nav-link" {% if user.is_staff %}href="{% url 'projetos:lista' %}"{% endif %}>
+                <i class="fas fa-project-diagram me-1"></i> Projetos {% if not user.is_staff %}<i class="fas fa-lock ms-1 text-muted small"></i>{% endif %}
               </a>
-              <ul class="drop-down">
-                <li><a class="nav-link" href="{% url 'projetos:projeto_lista' %}"><i class="fas fa-list me-2"></i>Lista de Projetos</a></li>
-                {% if user.is_authenticated %}
-                <li><a class="nav-link" href="{% url 'canva:kanban' %}"><i class="fas fa-tasks me-2"></i>Quadro de Atividades</a></li>
-                <li><a class="nav-link" href="{% url 'repositorio:index' %}"><i class="fas fa-archive me-2"></i>Repositório de Projetos</a></li>
-                {% endif %}
+              {% if user.is_staff %}
+              <ul class="dropdown-menu">
+                <li><a class="nav-link" href="{% url 'projetos:lista' %}"><i class="fas fa-list me-2"></i>Lista de Projetos</a></li>
+                <!-- Outros links relacionados a projetos -->
               </ul>
+              {% endif %}
             </li>
             
             <!-- Link de inventário (apenas para administradores) -->
@@ -360,11 +359,41 @@
           <!-- Bloco de autenticação do usuário -->
           <div class="d-flex align-items-center">
             {% if user.is_authenticated %}
-              <div class="user-welcome text-light">
-                <span class="user-role">{% if user.is_staff %}👑{% endif %}</span>
-                <span>{{user.first_name}} {{user.last_name}}</span>
+              <div class="dropdown">
+                <div class="user-welcome text-light dropdown-toggle" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                  <span class="user-role">{% if user.is_staff %}👑{% endif %}</span>
+                  <span>{{user.first_name}} {{user.last_name}}</span>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                  <li>
+                    <a class="dropdown-item" href="{% url 'users:profile' %}">
+                      <i class="fas fa-user me-2"></i> Meu Perfil
+                    </a>
+                  </li>
+                  {% if user.is_staff %}
+                  <li>
+                    <a class="dropdown-item" href="{% url 'acesso_e_ponto:my_access_history' %}">
+                      <i class="fas fa-history me-2"></i> Histórico de Acessos
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'canva:kanban' %}">
+                      <i class="fas fa-tasks me-2"></i> Quadro Kanban
+                    </a>
+                  </li>
+                  {% endif %}
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <form action="{% url 'users:logout' %}" method="post" class="m-0 p-0">
+                      {% csrf_token %}
+                      <button class="dropdown-item text-danger" type="submit">
+                        <i class="fas fa-sign-out-alt me-2"></i> Sair
+                      </button>
+                    </form>
+                  </li>
+                </ul>
               </div>
-              <form action="{% url 'users:logout' %}" method="post">
+              <form action="{% url 'users:logout' %}" method="post" class="ms-3">
                 {% csrf_token %}
                 <button class="btn btn-outline-danger btn-sm" type="submit">
                   <i class="fas fa-sign-out-alt me-1"></i> Sair
