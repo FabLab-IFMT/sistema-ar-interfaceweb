@@ -1,0 +1,62 @@
+/* Estilos específicos para a página Sobre */
+.bg-primary.py-5 {
+  position: relative;
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+.rounded-circle {
+  object-fit: cover;
+}
+
+/* Estilos para seções */
+.historia-equipe {
+  margin-bottom: 3rem;
+}
+
+.equipe-membro {
+  margin-bottom: 1.5rem;
+}
+
+/* Estilos para os princípios */
+.principio-card {
+  height: 100%;
+  border: none;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.principio-icone {
+  padding: 1.5rem;
+  display: inline-block;
+  margin-bottom: 1rem;
+  border-radius: 50%;
+}
+
+/* Estilos para a galeria de fotos */
+.galeria-item {
+  margin-bottom: 2rem;
+}
+
+.galeria-item img {
+  height: 200px;
+  object-fit: cover;
+  transition: all 0.3s ease;
+}
+
+.galeria-item:hover img {
+  transform: scale(1.05);
+}
+
+/* Call to Action */
+.cta-section {
+  padding: 5rem 0;
+  text-align: center;
+}
