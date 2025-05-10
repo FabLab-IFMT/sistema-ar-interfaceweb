@@ -11,7 +11,12 @@ from logs.models import Action
 from logs.scripts import create_log
 from .models import Ar_condicionado, Comando_ar, LogOperacao
 
-ESP32_IP = '192.168.1.113'
+# Mapeamento de tags para IPs dos ESP32
+ESP32_IPS = {
+    'ar-sala-reunioes': '192.168.1.113',  # ESP32 original
+    'ar-sala-aula-1': '192.168.1.114',    # Novo ESP32
+    # Adicione mais dispositivos conforme necessário
+}
 
 # Função auxiliar para verificar se o usuário é administrador
 def is_admin(user):
@@ -27,18 +32,35 @@ def admin_required(view_func):
     return wrapper
 
 # Função para enviar comandos ao ESP32
-def enviar_comando_esp32(comando, params=None):
+def enviar_comando_esp32(comando, params=None, tag=None, ar_id=None):
     """
     Envia comandos HTTP ao ESP32.
     Parâmetros:
         comando: string com o comando (ligar, desligar, etc)
         params: dicionário com parâmetros adicionais
+        tag: tag do ar-condicionado (opcional se ar_id for fornecido)
+        ar_id: id do ar-condicionado (opcional se tag for fornecida)
     Retorno:
         Tupla (sucesso, mensagem)
         - sucesso: boolean indicando se o comando foi enviado com sucesso
         - mensagem: string com mensagem de sucesso ou erro
     """
-    url = f"http://{ESP32_IP}/{comando}"
+    # Se não foi fornecida uma tag, tenta obter da base de dados
+    if not tag and ar_id:
+        try:
+            ar = Ar_condicionado.objects.get(id=ar_id)
+            tag = ar.tag
+        except Ar_condicionado.DoesNotExist:
+            return False, "Ar-condicionado não encontrado"
+    
+    # Verifica se a tag está no dicionário de IPs
+    if tag not in ESP32_IPS:
+        return False, f"Tag '{tag}' não encontrada no mapeamento de IPs"
+    
+    # Obtém o IP correspondente à tag
+    ip = ESP32_IPS[tag]
+    url = f"http://{ip}/{comando}"
+    
     try:
         if params:
             response = requests.get(url, params=params, timeout=3)
@@ -56,8 +78,27 @@ def enviar_comando_esp32(comando, params=None):
 @admin_required
 def automacao_home(request):
     """Página inicial de automação com seleção de subsistemas"""
-    ar_count = Ar_condicionado.objects.count()
-    return render(request, 'Controle_ar/automacao_home.html', {'ar_count': ar_count})
+    ar_total = Ar_condicionado.objects.count()
+    ar_online = Ar_condicionado.objects.filter(online=True).count()
+    
+    # Buscar dados médios dos dispositivos online
+    temperatura_media = 0
+    consumo_total = 0
+    
+    ars_online = Ar_condicionado.objects.filter(online=True)
+    if ars_online.exists():
+        for ar in ars_online:
+            temperatura_media += ar.temperatura_ambiente if ar.temperatura_ambiente else 0
+            consumo_total += ar.consumo_atual if ar.consumo_atual else 0
+        
+        temperatura_media = round(temperatura_media / ars_online.count(), 1)
+    
+    return render(request, 'Controle_ar/automacao_home.html', {
+        'ar_count': ar_total,
+        'ar_online': ar_online,
+        'temperatura_media': temperatura_media,
+        'consumo_total': round(consumo_total, 2),
+    })
 
 @login_required
 @admin_required
@@ -123,7 +164,7 @@ def ligar_ar(request, ar_id):
     """Liga um ar-condicionado"""
     ar = get_object_or_404(Ar_condicionado, pk=ar_id)
     
-    sucesso, mensagem = enviar_comando_esp32('ligar')
+    sucesso, mensagem = enviar_comando_esp32('ligar', ar_id=ar_id)
     if sucesso:
         ar.estado = True
         ar.save()
@@ -153,7 +194,7 @@ def desligar_ar(request, ar_id):
     """Desliga um ar-condicionado"""
     ar = get_object_or_404(Ar_condicionado, pk=ar_id)
     
-    sucesso, mensagem = enviar_comando_esp32('desligar')
+    sucesso, mensagem = enviar_comando_esp32('desligar', ar_id=ar_id)
     if sucesso:
         ar.estado = False
         ar.save()
@@ -196,7 +237,7 @@ def ajustar_temperatura(request, ar_id):
         messages.warning(request, "Temperatura máxima permitida é 28°C")
     
     # Envia comando
-    sucesso, mensagem = enviar_comando_esp32('definir_temperatura', {'temp': nova_temp})
+    sucesso, mensagem = enviar_comando_esp32('definir_temperatura', {'temp': nova_temp}, ar_id=ar_id)
     
     if sucesso:
         # Atualiza a temperatura no banco
@@ -376,7 +417,7 @@ def verificar_status(request, ar_id):
     ar = get_object_or_404(Ar_condicionado, pk=ar_id)
     
     # Tenta obter status atual do ESP32
-    sucesso, mensagem = enviar_comando_esp32('status')
+    sucesso, mensagem = enviar_comando_esp32('status', ar_id=ar_id)
     
     if sucesso:
         ar.online = True
