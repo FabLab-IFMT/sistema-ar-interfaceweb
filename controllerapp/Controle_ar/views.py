@@ -78,8 +78,27 @@ def enviar_comando_esp32(comando, params=None, tag=None, ar_id=None):
 @admin_required
 def automacao_home(request):
     """Página inicial de automação com seleção de subsistemas"""
-    ar_count = Ar_condicionado.objects.count()
-    return render(request, 'Controle_ar/automacao_home.html', {'ar_count': ar_count})
+    ar_total = Ar_condicionado.objects.count()
+    ar_online = Ar_condicionado.objects.filter(online=True).count()
+    
+    # Buscar dados médios dos dispositivos online
+    temperatura_media = 0
+    consumo_total = 0
+    
+    ars_online = Ar_condicionado.objects.filter(online=True)
+    if ars_online.exists():
+        for ar in ars_online:
+            temperatura_media += ar.temperatura_ambiente if ar.temperatura_ambiente else 0
+            consumo_total += ar.consumo_atual if ar.consumo_atual else 0
+        
+        temperatura_media = round(temperatura_media / ars_online.count(), 1)
+    
+    return render(request, 'Controle_ar/automacao_home.html', {
+        'ar_count': ar_total,
+        'ar_online': ar_online,
+        'temperatura_media': temperatura_media,
+        'consumo_total': round(consumo_total, 2),
+    })
 
 @login_required
 @admin_required

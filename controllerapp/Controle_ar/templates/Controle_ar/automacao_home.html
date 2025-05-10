@@ -30,6 +30,28 @@
         padding: 5px 10px;
         font-size: 0.9rem;
     }
+    
+    .online-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    
+    .status-online {
+        background-color: #28a745;
+        box-shadow: 0 0 5px #28a745;
+    }
+    
+    .status-offline {
+        background-color: #dc3545;
+    }
 </style>
 {% endblock %}
 
@@ -54,7 +76,10 @@
                         <h3 class="card-title">Ar Condicionado</h3>
                         <p class="card-text mb-3">Controle de temperatura e status dos aparelhos de ar-condicionado</p>
                         <div class="feature-count">
-                            <strong>{{ ar_count }}</strong> aparelhos disponíveis
+                            <span class="online-status-badge">
+                                <span class="status-indicator {% if ar_online > 0 %}status-online{% else %}status-offline{% endif %}"></span>
+                                <strong>{{ ar_online }}</strong> de <strong>{{ ar_count }}</strong> aparelhos online
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -109,7 +134,7 @@
                                 </div>
                                 <div>
                                     <div class="small text-muted">Temperatura Média</div>
-                                    <h5>24°C</h5>
+                                    <h5>{{ temperatura_media|default:"--" }}°C</h5>
                                 </div>
                             </div>
                         </div>
@@ -120,18 +145,18 @@
                                 </div>
                                 <div>
                                     <div class="small text-muted">Consumo Atual</div>
-                                    <h5>2.1 kW/h</h5>
+                                    <h5>{{ consumo_total|default:"0.00" }} kW/h</h5>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="d-flex align-items-center">
                                 <div class="me-3">
-                                    <i class="fas fa-wifi fa-2x text-success"></i>
+                                    <i class="fas fa-wifi fa-2x {% if ar_online > 0 %}text-success{% else %}text-danger{% endif %}"></i>
                                 </div>
                                 <div>
                                     <div class="small text-muted">Dispositivos Online</div>
-                                    <h5>{{ ar_count }} / {{ ar_count }}</h5>
+                                    <h5>{{ ar_online }} / {{ ar_count }}</h5>
                                 </div>
                             </div>
                         </div>
