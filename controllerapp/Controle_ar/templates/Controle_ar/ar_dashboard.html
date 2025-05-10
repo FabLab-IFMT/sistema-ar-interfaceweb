@@ -1,0 +1,96 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Dashboard de Ar Condicionado - FabLab{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'controle_ar.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Controle de Ar Condicionado</h1>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
+    
+    <div class="row">
+        {% if ars %}
+            {% for ar in ars %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card ar-card h-100">
+                    <div class="ar-card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ ar.nome }}</h5>
+                            <span class="badge {% if ar.online %}badge-online{% else %}badge-offline{% endif %}">
+                                {{ ar.online|yesno:"Online,Offline" }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6 text-center mb-3">
+                                <div class="h3">{{ ar.temperatura }}°C</div>
+                                <div class="text-muted">Temperatura</div>
+                            </div>
+                            <div class="col-6 text-center mb-3">
+                                <div class="h3">{{ ar.modo_display }}</div>
+                                <div class="text-muted">Modo</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="mb-2">
+                                    <span class="text-muted">Status: </span>
+                                    <span class="fw-bold {% if ar.estado %}text-success{% else %}text-secondary{% endif %}">
+                                        {{ ar.estado|yesno:"Ligado,Desligado" }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="text-muted">Consumo: </span>
+                                    <span class="fw-bold">
+                                        {% if ar.estado and ar.online %}
+                                            {{ ar.consumo_atual|floatformat:2 }} kW/h
+                                        {% else %}
+                                            0.00 kW/h
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <a href="{% url 'Controle_ar:controlar_ar' ar.id %}" class="btn btn-ar-primary">
+                                <i class="fas fa-sliders-h me-1"></i> Controlar
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="far fa-clock me-1"></i>
+                            Última atualização: 
+                            {% if ar.ultimo_ping %}
+                                {{ ar.ultimo_ping|date:"d/m/Y H:i:s" }}
+                            {% else %}
+                                Nunca
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="fas fa-snowflake"></i>
+                    <h3>Nenhum ar-condicionado cadastrado</h3>
+                    <p class="text-muted">
+                        Não há aparelhos de ar-condicionado cadastrados no sistema.
+                        Entre em contato com o administrador para adicionar novos dispositivos.
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

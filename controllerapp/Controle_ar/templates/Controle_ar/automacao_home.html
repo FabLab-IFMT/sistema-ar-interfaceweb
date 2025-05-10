@@ -1,65 +1,140 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}
-    Automação - FabLab
+{% block title %}Sistema de Automação - FabLab{% endblock %}
+
+{% block head %}
+<style>
+    .automation-card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+        height: 100%;
+    }
+    
+    .automation-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    
+    .automation-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+    }
+    
+    .feature-count {
+        background-color: rgba(0,0,0,0.1);
+        border-radius: 20px;
+        padding: 5px 10px;
+        font-size: 0.9rem;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4 text-center">Sistema de Automação FabLab</h1>
-    <p class="lead text-center mb-5">Selecione o tipo de automação que deseja gerenciar</p>
-
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Sistema de Automação</h1>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
+    
     <div class="row">
-        <!-- Card Ar Condicionado -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
+        <!-- Ar Condicionado -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <a href="{% url 'Controle_ar:ar_dashboard' %}" class="text-decoration-none text-dark">
+                <div class="card automation-card">
+                    <div class="card-body text-center p-4">
+                        <div class="automation-icon text-primary">
+                            <i class="fas fa-snowflake"></i>
+                        </div>
+                        <h3 class="card-title">Ar Condicionado</h3>
+                        <p class="card-text mb-3">Controle de temperatura e status dos aparelhos de ar-condicionado</p>
+                        <div class="feature-count">
+                            <strong>{{ ar_count }}</strong> aparelhos disponíveis
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Iluminação (Placeholder para expansão futura) -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card automation-card bg-light">
+                <div class="card-body text-center p-4">
+                    <div class="automation-icon text-muted">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3 class="card-title text-muted">Iluminação</h3>
+                    <p class="card-text mb-3">Controle de iluminação das salas e espaços</p>
+                    <div class="feature-count text-muted">
+                        Em breve
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Acesso (Placeholder para expansão futura) -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card automation-card bg-light">
+                <div class="card-body text-center p-4">
+                    <div class="automation-icon text-muted">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <h3 class="card-title text-muted">Acesso</h3>
+                    <p class="card-text mb-3">Controle de acesso às portas e ambientes</p>
+                    <div class="feature-count text-muted">
+                        Em breve
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0"><i class="fas fa-wind me-2"></i>Ar Condicionado</h3>
+                    <h5 class="mb-0">Status do Sistema</h5>
                 </div>
                 <div class="card-body">
-                    <p class="card-text">Controle os sistemas de ar condicionado do laboratório, ajuste temperatura, modo e outras configurações.</p>
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <small class="text-muted">Dispositivos disponíveis: {{ ar_count|default:"0" }}</small>
-                        <a href="{% url 'Controle_ar:ar_dashboard' %}" class="btn btn-primary">
-                            <i class="fas fa-arrow-right me-1"></i> Acessar
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card Acesso -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h3 class="card-title mb-0"><i class="fas fa-key me-2"></i>Controle de Acesso</h3>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">Gerencie o sistema de controle de acesso, portas eletrônicas e registros de entrada/saída.</p>
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <small class="text-muted">Em desenvolvimento</small>
-                        <button class="btn btn-success" disabled>
-                            <i class="fas fa-arrow-right me-1"></i> Em breve
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card Iluminação -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-warning text-dark">
-                    <h3 class="card-title mb-0"><i class="fas fa-lightbulb me-2"></i>Iluminação</h3>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">Controle os sistemas de iluminação do laboratório, luzes individuais, grupos e programação.</p>
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <small class="text-muted">Em desenvolvimento</small>
-                        <button class="btn btn-warning" disabled>
-                            <i class="fas fa-arrow-right me-1"></i> Em breve
-                        </button>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-thermometer-half fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="small text-muted">Temperatura Média</div>
+                                    <h5>24°C</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-bolt fa-2x text-warning"></i>
+                                </div>
+                                <div>
+                                    <div class="small text-muted">Consumo Atual</div>
+                                    <h5>2.1 kW/h</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-wifi fa-2x text-success"></i>
+                                </div>
+                                <div>
+                                    <div class="small text-muted">Dispositivos Online</div>
+                                    <h5>{{ ar_count }} / {{ ar_count }}</h5>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -26,6 +26,32 @@ def admin_required(view_func):
         return view_func(request, *args, **kwargs)
     return wrapper
 
+# Função para enviar comandos ao ESP32
+def enviar_comando_esp32(comando, params=None):
+    """
+    Envia comandos HTTP ao ESP32.
+    Parâmetros:
+        comando: string com o comando (ligar, desligar, etc)
+        params: dicionário com parâmetros adicionais
+    Retorno:
+        Tupla (sucesso, mensagem)
+        - sucesso: boolean indicando se o comando foi enviado com sucesso
+        - mensagem: string com mensagem de sucesso ou erro
+    """
+    url = f"http://{ESP32_IP}/{comando}"
+    try:
+        if params:
+            response = requests.get(url, params=params, timeout=3)
+        else:
+            response = requests.get(url, timeout=3)
+        
+        if response.status_code == 200:
+            return True, response.text
+        else:
+            return False, f"Erro: {response.status_code} - {response.text}"
+    except requests.exceptions.RequestException as e:
+        return False, f"Erro de conexão: {str(e)}"
+
 @login_required
 @admin_required
 def automacao_home(request):
@@ -37,8 +63,26 @@ def automacao_home(request):
 @admin_required
 def ar_dashboard(request):
     """Exibe todos os ar-condicionados disponíveis para controle"""
-    ares = Ar_condicionado.objects.all()
-    return render(request, 'Controle_ar/dashboard.html', {'ares': ares})
+    try:
+        # Verifica status de todos os ar-condicionados
+        ars = Ar_condicionado.objects.all()
+        
+        # Tenta atualizar o status de conexão de cada ar (simulado por enquanto)
+        for ar in ars:
+            try:
+                # Tentativa de conexão com o ESP32 para verificar status
+                sucesso, _ = enviar_comando_esp32('status')
+                ar.online = sucesso
+                ar.ultimo_ping = timezone.now()
+                ar.save()
+            except:
+                ar.online = False
+                ar.save()
+        
+        return render(request, 'Controle_ar/ar_dashboard.html', {'ars': ars})
+    except Exception as e:
+        messages.error(request, f"Erro ao carregar dashboard: {str(e)}")
+        return redirect('home')
 
 # Renomear o método original dashboard para ar_dashboard e manter um redirecionamento por compatibilidade
 @login_required
@@ -50,109 +94,131 @@ def dashboard(request):
 @login_required
 @admin_required
 def controlar_ar(request, ar_id):
-    """Exibe a interface de controle para um ar-condicionado específico"""
-    ar = get_object_or_404(Ar_condicionado, id=ar_id)
+    """Página para controlar um ar-condicionado específico"""
+    ar = get_object_or_404(Ar_condicionado, pk=ar_id)
+    
+    # Se estiver online, tenta sincronizar status
+    if ar.online:
+        try:
+            sucesso, resposta = enviar_comando_esp32('status')
+            if sucesso:
+                # Aqui você pode analisar a resposta para atualizar o status no banco
+                # Exemplo: resposta = "Temperatura atual: 22°C.\nEstado: Ligado"
+                # Por enquanto, vamos simular:
+                ar.temperatura_ambiente = 25.0  # Valor simulado
+            else:
+                ar.online = False
+                ar.save()
+                messages.warning(request, "Dispositivo offline. Exibindo último estado conhecido.")
+        except:
+            ar.online = False
+            ar.save()
+            messages.warning(request, "Dispositivo offline. Exibindo último estado conhecido.")
+                
     return render(request, 'Controle_ar/controlar_ar.html', {'ar': ar})
 
 @login_required
 @admin_required
 def ligar_ar(request, ar_id):
-    """Liga o ar-condicionado"""
-    ar = get_object_or_404(Ar_condicionado, id=ar_id)
-    ar.estado = True
-    ar.save()
+    """Liga um ar-condicionado"""
+    ar = get_object_or_404(Ar_condicionado, pk=ar_id)
     
-    # Registrar comando para o ESP
-    Comando_ar.objects.create(
-        ar_condicionado=ar,
-        comando=f"ligar:{ar.temperatura}:{ar.modo}:{ar.velocidade}:{1 if ar.swing else 0}"
-    )
+    sucesso, mensagem = enviar_comando_esp32('ligar')
+    if sucesso:
+        ar.estado = True
+        ar.save()
+        
+        # Registra o comando e o log
+        Comando_ar.objects.create(
+            ar_condicionado=ar,
+            comando="ligar",
+            executado=True
+        )
+        
+        LogOperacao.objects.create(
+            ar_condicionado=ar,
+            operacao="Ligado",
+            usuario=request.user.username
+        )
+        
+        messages.success(request, f"Ar-condicionado {ar.nome} foi ligado com sucesso.")
+    else:
+        messages.error(request, f"Falha ao ligar o ar-condicionado: {mensagem}")
     
-    # Registrar no log
-    LogOperacao.objects.create(
-        ar_condicionado=ar,
-        operacao=f"Ligado - Temperatura: {ar.temperatura}°C, Modo: {ar.modo_display}, Velocidade: {ar.velocidade_display}",
-        usuario=f"{request.user.first_name} {request.user.last_name}"
-    )
-    
-    # Registrar no log geral
-    Action.objects.create(
-        author=f"{request.user.first_name} {request.user.last_name}",
-        type="Ar Condicionado",
-        description=f"Ligou o ar-condicionado {ar.nome}",
-        date=datetime.date.today(),
-        time=datetime.datetime.now().time()
-    )
-    
-    return redirect('Controle_ar:controlar_ar', ar_id=ar.id)
+    return redirect('Controle_ar:controlar_ar', ar_id=ar_id)
 
 @login_required
 @admin_required
 def desligar_ar(request, ar_id):
-    """Desliga o ar-condicionado"""
-    ar = get_object_or_404(Ar_condicionado, id=ar_id)
-    ar.estado = False
-    ar.save()
+    """Desliga um ar-condicionado"""
+    ar = get_object_or_404(Ar_condicionado, pk=ar_id)
     
-    # Registrar comando para o ESP
-    Comando_ar.objects.create(
-        ar_condicionado=ar,
-        comando="desligar"
-    )
+    sucesso, mensagem = enviar_comando_esp32('desligar')
+    if sucesso:
+        ar.estado = False
+        ar.save()
+        
+        # Registra o comando e o log
+        Comando_ar.objects.create(
+            ar_condicionado=ar,
+            comando="desligar",
+            executado=True
+        )
+        
+        LogOperacao.objects.create(
+            ar_condicionado=ar,
+            operacao="Desligado",
+            usuario=request.user.username
+        )
+        
+        messages.success(request, f"Ar-condicionado {ar.nome} foi desligado com sucesso.")
+    else:
+        messages.error(request, f"Falha ao desligar o ar-condicionado: {mensagem}")
     
-    # Registrar no log
-    LogOperacao.objects.create(
-        ar_condicionado=ar,
-        operacao="Desligado",
-        usuario=f"{request.user.first_name} {request.user.last_name}"
-    )
-    
-    # Registrar no log geral
-    Action.objects.create(
-        author=f"{request.user.first_name} {request.user.last_name}",
-        type="Ar Condicionado",
-        description=f"Desligou o ar-condicionado {ar.nome}",
-        date=datetime.date.today(),
-        time=datetime.datetime.now().time()
-    )
-    
-    return redirect('Controle_ar:controlar_ar', ar_id=ar.id)
+    return redirect('Controle_ar:controlar_ar', ar_id=ar_id)
 
 @login_required
 @admin_required
 def ajustar_temperatura(request, ar_id):
-    """Ajusta a temperatura do ar-condicionado"""
-    if request.method == "POST":
-        ar = get_object_or_404(Ar_condicionado, id=ar_id)
-        nova_temperatura = int(request.POST.get('temperatura', ar.temperatura))
+    """Ajusta a temperatura de um ar-condicionado"""
+    if request.method != 'POST':
+        return redirect('Controle_ar:controlar_ar', ar_id=ar_id)
+    
+    ar = get_object_or_404(Ar_condicionado, pk=ar_id)
+    nova_temp = int(request.POST.get('temperatura', ar.temperatura))
+    
+    # Verifica limites
+    if nova_temp < 17:
+        nova_temp = 17
+        messages.warning(request, "Temperatura mínima permitida é 17°C")
+    elif nova_temp > 28:
+        nova_temp = 28
+        messages.warning(request, "Temperatura máxima permitida é 28°C")
+    
+    # Envia comando
+    sucesso, mensagem = enviar_comando_esp32('definir_temperatura', {'temp': nova_temp})
+    
+    if sucesso:
+        # Atualiza a temperatura no banco
+        ar.temperatura = nova_temp
+        ar.save()
         
-        # Limitar a temperatura entre 16 e 30 graus
-        if 16 <= nova_temperatura <= 30:
-            ar.temperatura = nova_temperatura
-            ar.save()
-            
-            # Se o ar estiver ligado, enviar comando de ajuste
-            if ar.estado:
-                Comando_ar.objects.create(
-                    ar_condicionado=ar,
-                    comando=f"temperatura:{nova_temperatura}"
-                )
-            
-            # Registrar no log
-            LogOperacao.objects.create(
-                ar_condicionado=ar,
-                operacao=f"Temperatura ajustada para {nova_temperatura}°C",
-                usuario=f"{request.user.first_name} {request.user.last_name}"
-            )
-            
-            # Registrar no log geral
-            Action.objects.create(
-                author=f"{request.user.first_name} {request.user.last_name}",
-                type="Ar Condicionado",
-                description=f"Ajustou a temperatura do ar-condicionado {ar.nome} para {nova_temperatura}°C",
-                date=datetime.date.today(),
-                time=datetime.datetime.now().time()
-            )
+        # Registra o comando e o log
+        Comando_ar.objects.create(
+            ar_condicionado=ar,
+            comando=f"temperatura:{nova_temp}",
+            executado=True
+        )
+        
+        LogOperacao.objects.create(
+            ar_condicionado=ar,
+            operacao=f"Temperatura ajustada para {nova_temp}°C",
+            usuario=request.user.username
+        )
+        
+        messages.success(request, f"Temperatura ajustada para {nova_temp}°C")
+    else:
+        messages.error(request, f"Falha ao ajustar temperatura: {mensagem}")
     
     return redirect('Controle_ar:controlar_ar', ar_id=ar_id)
 
@@ -160,38 +226,25 @@ def ajustar_temperatura(request, ar_id):
 @admin_required
 def ajustar_modo(request, ar_id):
     """Ajusta o modo de operação do ar-condicionado"""
-    if request.method == "POST":
-        ar = get_object_or_404(Ar_condicionado, id=ar_id)
-        novo_modo = request.POST.get('modo', ar.modo)
-        
-        modos_validos = ["cold", "heat", "fan", "dry", "auto"]
-        if novo_modo in modos_validos:
-            ar.modo = novo_modo
-            ar.save()
-            
-            # Se o ar estiver ligado, enviar comando de ajuste
-            if ar.estado:
-                Comando_ar.objects.create(
-                    ar_condicionado=ar,
-                    comando=f"modo:{novo_modo}"
-                )
-            
-            # Registrar no log
-            LogOperacao.objects.create(
-                ar_condicionado=ar,
-                operacao=f"Modo alterado para {ar.modo_display}",
-                usuario=f"{request.user.first_name} {request.user.last_name}"
-            )
-            
-            # Registrar no log geral
-            Action.objects.create(
-                author=f"{request.user.first_name} {request.user.last_name}",
-                type="Ar Condicionado",
-                description=f"Alterou o modo do ar-condicionado {ar.nome} para {ar.modo_display}",
-                date=datetime.date.today(),
-                time=datetime.datetime.now().time()
-            )
+    if request.method != 'POST':
+        return redirect('Controle_ar:controlar_ar', ar_id=ar_id)
     
+    ar = get_object_or_404(Ar_condicionado, pk=ar_id)
+    modo = request.POST.get('modo')
+    
+    # No momento o ESP32 não tem endpoint para mudar o modo
+    # Então vamos apenas registrar a mudança no sistema
+    ar.modo = modo
+    ar.save()
+    
+    # Registrar log da operação
+    LogOperacao.objects.create(
+        ar_condicionado=ar,
+        operacao=f"Modo alterado para {ar.modo_display}",
+        usuario=request.user.username
+    )
+    
+    messages.success(request, f"Modo alterado para {ar.modo_display}")
     return redirect('Controle_ar:controlar_ar', ar_id=ar_id)
 
 @login_required
@@ -315,3 +368,35 @@ def api_status(request):
         'status': 'error',
         'message': 'Método não permitido'
     }, status=405)
+
+@login_required
+@admin_required
+def verificar_status(request, ar_id):
+    """Verifica o status atual do ar-condicionado via ESP32"""
+    ar = get_object_or_404(Ar_condicionado, pk=ar_id)
+    
+    # Tenta obter status atual do ESP32
+    sucesso, mensagem = enviar_comando_esp32('status')
+    
+    if sucesso:
+        ar.online = True
+        ar.ultimo_ping = timezone.now()
+        
+        # Em uma implementação completa, aqui seria feito o parsing da resposta
+        # Por enquanto, apenas atualiza o status no banco
+        # No futuro: analisar a mensagem para extrair temperatura, estado, etc
+        
+        ar.save()
+        return JsonResponse({
+            'status': 'success',
+            'online': True,
+            'message': mensagem
+        })
+    else:
+        ar.online = False
+        ar.save()
+        return JsonResponse({
+            'status': 'error',
+            'online': False,
+            'message': 'Dispositivo offline. Tentativa de conexão falhou.'
+        })

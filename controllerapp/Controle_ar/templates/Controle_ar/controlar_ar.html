@@ -1,259 +1,299 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}
-    Controle de Ar - {{ ar.nome }}
-{% endblock %}
+{% block title %}Controle de Ar Condicionado - {{ ar.nome }} - FabLab{% endblock %}
 
 {% block head %}
-<style>
-    .ar-status-card {
-        border-radius: 15px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-        margin-bottom: 20px;
-    }
-    
-    .ar-header {
-        border-radius: 15px 15px 0 0;
-        padding: 15px 20px;
-        color: white;
-    }
-    
-    .ar-header-on {
-        background: linear-gradient(135deg, #4CAF50, #2E7D32);
-    }
-    
-    .ar-header-off {
-        background: linear-gradient(135deg, #F44336, #B71C1C);
-    }
-    
-    .ar-offline {
-        background: linear-gradient(135deg, #9E9E9E, #424242);
-        opacity: 0.8;
-    }
-    
-    .ar-control-buttons {
-        margin: 15px 0;
-    }
-    
-    .ar-temperature {
-        font-size: 3rem;
-        font-weight: bold;
-        display: inline-block;
-        width: 100px;
-        text-align: center;
-    }
-    
-    .ar-control-group {
-        background-color: #f8f9fa;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 15px;
-    }
-    
-    .ar-mode-btn {
-        width: 100%;
-        margin-bottom: 10px;
-        padding: 10px 0;
-        border-radius: 8px;
-    }
-    
-    .ar-status-icon {
-        font-size: 2.5rem;
-        margin-right: 15px;
-    }
-    
-    .ar-fan-speed {
-        padding: 10px 0;
-    }
-    
-    .ar-swing-toggle {
-        padding: 10px 0;
-    }
-    
-    .sensor-data {
-        font-size: 0.9rem;
-        color: #666;
-        margin-bottom: 5px;
-    }
-    
-    .active-mode-btn {
-        border: 2px solid #007bff;
-        box-shadow: 0 0 5px rgba(0,123,255,0.5);
-    }
-    
-    .active-speed {
-        background-color: #007bff;
-        color: white;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'controle_ar.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="row">
         <div class="col-lg-8 mx-auto">
-            <!-- Card de Status do Ar -->
-            <div class="card ar-status-card">
-                <!-- Cabeçalho -->
-                <div class="ar-header {% if ar.estado %}ar-header-on{% else %}ar-header-off{% endif %} {% if not ar.online %}ar-offline{% endif %}">
-                    <div class="d-flex align-items-center">
-                        <div class="ar-status-icon">
-                            <i class="fas {% if ar.estado %}fa-power-off{% else %}fa-power-off{% endif %}"></i>
-                        </div>
+            <div class="card ar-status-card relative">
+                {% if not ar.online %}
+                <div class="offline-overlay">
+                    <i class="fas fa-wifi-slash fa-3x mb-3"></i>
+                    <h3>Dispositivo Offline</h3>
+                    <p class="mb-0">O dispositivo está desconectado.</p>
+                    <div class="mt-3">
+                        <a href="{% url 'Controle_ar:verificar_status' ar.id %}" class="btn btn-outline-light">
+                            <i class="fas fa-sync-alt me-1"></i> Verificar Conexão
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="ar-status-header">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="mb-0">{{ ar.nome }}</h3>
                         <div>
-                            <h2 class="mb-0">{{ ar.nome }}</h2>
-                            <p class="mb-0">
-                                {% if ar.online %}
-                                    {% if ar.estado %}
-                                        Ligado - Modo {{ ar.modo_display }}
-                                    {% else %}
-                                        Desligado
-                                    {% endif %}
-                                {% else %}
-                                    Dispositivo Offline
-                                {% endif %}
-                            </p>
+                            <span class="badge {% if ar.online %}badge-online{% else %}badge-offline{% endif %}">
+                                {{ ar.online|yesno:"Online,Offline" }}
+                            </span>
+                            {% if ar.online %}
+                                <i class="fas fa-signal ms-2"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row align-items-center">
+                        <div class="col-6 text-center">
+                            <div class="temperature-display">
+                                {{ ar.temperatura }}°C
+                            </div>
+                            <div class="text-white-50">Temperatura Configurada</div>
+                        </div>
+                        <div class="col-6 text-center">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <div class="ambient-temp px-3 py-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-thermometer-half me-2"></i>
+                                        <span class="h4 mb-0">{{ ar.temperatura_ambiente|default:"--" }}°C</span>
+                                    </div>
+                                    <div class="small mt-1">Temperatura Ambiente</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Corpo do card -->
                 <div class="card-body">
                     {% if ar.online %}
-                        <!-- Status e informações -->
-                        <div class="mb-4 text-center">
-                            <p class="sensor-data">
-                                <i class="fas fa-bolt"></i> Consumo atual: {{ ar.consumo_atual|floatformat:2 }} kW/h
-                                {% if ar.temperatura_ambiente %}
-                                    <i class="fas fa-thermometer-half ms-3"></i> Temperatura ambiente: {{ ar.temperatura_ambiente }}°C
-                                {% endif %}
-                            </p>
-                            <p class="sensor-data">Última atualização: {{ ar.ultima_alteracao|date:"d/m/Y H:i:s" }}</p>
-                        </div>
-                        
-                        <!-- Botões de ligar/desligar -->
-                        <div class="ar-control-buttons text-center">
-                            {% if ar.estado %}
-                                <a href="{% url 'Controle_ar:desligar_ar' ar.id %}" class="btn btn-danger btn-lg">
-                                    <i class="fas fa-power-off"></i> Desligar
-                                </a>
-                            {% else %}
-                                <a href="{% url 'Controle_ar:ligar_ar' ar.id %}" class="btn btn-success btn-lg">
-                                    <i class="fas fa-power-off"></i> Ligar
-                                </a>
-                            {% endif %}
-                        </div>
-                        
-                        <hr>
-                        
-                        <!-- Controles (visíveis apenas se o ar estiver ligado) -->
                         {% if ar.estado %}
-                            <!-- Controle de temperatura -->
+                            <form action="{% url 'Controle_ar:desligar_ar' ar.id %}" method="post" class="mb-4 text-center">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-ar-danger btn-lg">
+                                    <i class="fas fa-power-off me-2"></i> Desligar
+                                </button>
+                            </form>
+                            
+                            <!-- Controle de Temperatura -->
                             <div class="ar-control-group">
                                 <h4>Temperatura</h4>
-                                <div class="d-flex justify-content-center align-items-center">
-                                    <form action="{% url 'Controle_ar:ajustar_temperatura' ar.id %}" method="post" class="d-flex align-items-center">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <form action="{% url 'Controle_ar:ajustar_temperatura' ar.id %}" method="post" class="d-inline">
                                         {% csrf_token %}
-                                        <button type="submit" name="temperatura" value="{{ ar.temperatura|add:"-1" }}" class="btn btn-outline-primary" {% if ar.temperatura <= 16 %}disabled{% endif %}>
+                                        <input type="hidden" name="temperatura" value="{{ ar.temperatura|add:'-1' }}">
+                                        <button type="submit" class="temp-btn temp-btn-lg">
                                             <i class="fas fa-minus"></i>
                                         </button>
-                                        <span class="ar-temperature">{{ ar.temperatura }}°C</span>
-                                        <button type="submit" name="temperatura" value="{{ ar.temperatura|add:"1" }}" class="btn btn-outline-primary" {% if ar.temperatura >= 30 %}disabled{% endif %}>
+                                    </form>
+                                    
+                                    <div class="text-center">
+                                        <span class="display-4 fw-bold">{{ ar.temperatura }}°C</span>
+                                        <button type="button" class="btn btn-sm btn-outline-primary d-block mx-auto mt-2" data-bs-toggle="modal" data-bs-target="#defineTempModal">
+                                            <i class="fas fa-keyboard me-1"></i> Definir
+                                        </button>
+                                    </div>
+                                    
+                                    <form action="{% url 'Controle_ar:ajustar_temperatura' ar.id %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="temperatura" value="{{ ar.temperatura|add:'1' }}">
+                                        <button type="submit" class="temp-btn temp-btn-lg">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </form>
                                 </div>
                             </div>
                             
-                            <!-- Modo de operação -->
+                            <!-- Controle de Modo -->
                             <div class="ar-control-group">
                                 <h4>Modo</h4>
                                 <form action="{% url 'Controle_ar:ajustar_modo' ar.id %}" method="post">
                                     {% csrf_token %}
                                     <div class="row">
                                         <div class="col-4">
-                                            <button type="submit" name="modo" value="cold" class="btn btn-outline-info ar-mode-btn {% if ar.modo == 'cold' %}active-mode-btn{% endif %}">
+                                            <button type="submit" name="modo" value="cold" class="ar-mode-btn mode-cold {% if ar.modo == 'cold' %}active-mode-btn{% endif %}">
                                                 <i class="fas fa-snowflake"></i><br>Refrigeração
                                             </button>
                                         </div>
                                         <div class="col-4">
-                                            <button type="submit" name="modo" value="heat" class="btn btn-outline-danger ar-mode-btn {% if ar.modo == 'heat' %}active-mode-btn{% endif %}">
+                                            <button type="submit" name="modo" value="heat" class="ar-mode-btn mode-heat {% if ar.modo == 'heat' %}active-mode-btn{% endif %}">
                                                 <i class="fas fa-fire"></i><br>Aquecimento
                                             </button>
                                         </div>
                                         <div class="col-4">
-                                            <button type="submit" name="modo" value="fan" class="btn btn-outline-secondary ar-mode-btn {% if ar.modo == 'fan' %}active-mode-btn{% endif %}">
+                                            <button type="submit" name="modo" value="fan" class="ar-mode-btn mode-fan {% if ar.modo == 'fan' %}active-mode-btn{% endif %}">
                                                 <i class="fas fa-fan"></i><br>Ventilação
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="row mt-2">
-                                        <div class="col-6">
-                                            <button type="submit" name="modo" value="dry" class="btn btn-outline-primary ar-mode-btn {% if ar.modo == 'dry' %}active-mode-btn{% endif %}">
-                                                <i class="fas fa-tint"></i><br>Desumidificar
-                                            </button>
-                                        </div>
-                                        <div class="col-6">
-                                            <button type="submit" name="modo" value="auto" class="btn btn-outline-success ar-mode-btn {% if ar.modo == 'auto' %}active-mode-btn{% endif %}">
-                                                <i class="fas fa-magic"></i><br>Automático
-                                            </button>
-                                        </div>
-                                    </div>
                                 </form>
                             </div>
                             
-                            <!-- Velocidade do ventilador -->
+                            <!-- Controle de Velocidade -->
                             <div class="ar-control-group">
-                                <h4>Velocidade</h4>
+                                <h4>Velocidade do Ventilador</h4>
                                 <form action="{% url 'Controle_ar:ajustar_velocidade' ar.id %}" method="post">
                                     {% csrf_token %}
-                                    <div class="btn-group w-100 ar-fan-speed" role="group">
-                                        <button type="submit" name="velocidade" value="1" class="btn btn-outline-primary {% if ar.velocidade == 1 %}active-speed{% endif %}">
-                                            <i class="fas fa-wind"></i> Baixa
-                                        </button>
-                                        <button type="submit" name="velocidade" value="2" class="btn btn-outline-primary {% if ar.velocidade == 2 %}active-speed{% endif %}">
-                                            <i class="fas fa-wind"></i><i class="fas fa-wind"></i> Média
-                                        </button>
-                                        <button type="submit" name="velocidade" value="3" class="btn btn-outline-primary {% if ar.velocidade == 3 %}active-speed{% endif %}">
-                                            <i class="fas fa-wind"></i><i class="fas fa-wind"></i><i class="fas fa-wind"></i> Alta
-                                        </button>
-                                        <button type="submit" name="velocidade" value="4" class="btn btn-outline-primary {% if ar.velocidade == 4 %}active-speed{% endif %}">
-                                            <i class="fas fa-random"></i> Auto
-                                        </button>
+                                    <div class="row">
+                                        <div class="col-3">
+                                            <button type="submit" name="velocidade" value="1" class="ar-mode-btn {% if ar.velocidade == 1 %}active-mode-btn{% endif %}">
+                                                <i class="fas fa-wind opacity-25"></i><br>Baixa
+                                            </button>
+                                        </div>
+                                        <div class="col-3">
+                                            <button type="submit" name="velocidade" value="2" class="ar-mode-btn {% if ar.velocidade == 2 %}active-mode-btn{% endif %}">
+                                                <i class="fas fa-wind opacity-50"></i><br>Média
+                                            </button>
+                                        </div>
+                                        <div class="col-3">
+                                            <button type="submit" name="velocidade" value="3" class="ar-mode-btn {% if ar.velocidade == 3 %}active-mode-btn{% endif %}">
+                                                <i class="fas fa-wind"></i><br>Alta
+                                            </button>
+                                        </div>
+                                        <div class="col-3">
+                                            <button type="submit" name="velocidade" value="4" class="ar-mode-btn {% if ar.velocidade == 4 %}active-mode-btn{% endif %}">
+                                                <i class="fas fa-random"></i><br>Auto
+                                            </button>
+                                        </div>
                                     </div>
                                 </form>
                             </div>
                             
-                            <!-- Controle de Swing -->
+                            <!-- Outras funcionalidades -->
                             <div class="ar-control-group">
-                                <h4>Direção do Ar (Swing)</h4>
-                                <div class="ar-swing-toggle text-center">
-                                    <a href="{% url 'Controle_ar:toggle_swing' ar.id %}" class="btn {% if ar.swing %}btn-success{% else %}btn-outline-success{% endif %} btn-lg">
-                                        <i class="fas {% if ar.swing %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i> 
-                                        {% if ar.swing %}Swing Ativado{% else %}Swing Desativado{% endif %}
-                                    </a>
+                                <h4>Outras Funções</h4>
+                                <div class="d-flex">
+                                    <form action="{% url 'Controle_ar:toggle_swing' ar.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn {% if ar.swing %}btn-ar-primary{% else %}btn-outline-secondary{% endif %} me-2">
+                                            <i class="fas fa-exchange-alt me-1"></i> Swing {{ ar.swing|yesno:"ON,OFF" }}
+                                        </button>
+                                    </form>
                                 </div>
+                            </div>
+                            
+                        {% else %}
+                            <!-- Ar desligado -->
+                            <div class="text-center py-4">
+                                <div class="mb-4">
+                                    <i class="fas fa-power-off fa-5x text-secondary"></i>
+                                    <h4 class="mt-3">Ar Condicionado Desligado</h4>
+                                </div>
+                                <form action="{% url 'Controle_ar:ligar_ar' ar.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-ar-primary btn-lg pulse-animation">
+                                        <i class="fas fa-power-off me-2"></i> Ligar
+                                    </button>
+                                </form>
                             </div>
                         {% endif %}
                     {% else %}
-                        <!-- Mensagem de dispositivo offline -->
-                        <div class="alert alert-warning text-center">
-                            <h4><i class="fas fa-exclamation-triangle"></i> Dispositivo Offline</h4>
-                            <p>Este ar-condicionado não está conectado ao sistema. Verifique a conexão.</p>
-                            <p class="small">Última conexão: {% if ar.ultimo_ping %}{{ ar.ultimo_ping|date:"d/m/Y H:i:s" }}{% else %}Nunca conectado{% endif %}</p>
-                        </div>
+                        <!-- Dispositivo offline - conteúdo já coberto pelo overlay -->
                     {% endif %}
                 </div>
                 
-                <div class="card-footer text-center">
-                    <a href="{% url 'Controle_ar:dashboard' %}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Voltar para lista de dispositivos
-                    </a>
+                <div class="card-footer bg-light">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-chart-line text-primary fa-2x"></i>
+                                </div>
+                                <div>
+                                    <div class="small text-muted">Consumo Atual</div>
+                                    <div class="fw-bold">
+                                        {% if ar.online and ar.estado %}
+                                            {{ ar.consumo_atual|floatformat:2 }} kW/h
+                                        {% else %}
+                                            0.00 kW/h
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
+                                <div class="me-3">
+                                    <i class="fas fa-history text-success fa-2x"></i>
+                                </div>
+                                <div>
+                                    <div class="small text-muted">Última Atualização</div>
+                                    <div class="fw-bold">
+                                        {% if ar.ultimo_ping %}
+                                            {{ ar.ultimo_ping|date:"d/m/Y H:i:s" }}
+                                        {% else %}
+                                            Nunca
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-3">
+                <a href="{% url 'Controle_ar:ar_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Voltar
+                </a>
+                
+                <a href="{% url 'Controle_ar:verificar_status' ar.id %}" class="btn btn-ar-primary">
+                    <i class="fas fa-sync-alt me-1"></i> Atualizar Status
+                </a>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal para definir temperatura -->
+<div class="modal fade" id="defineTempModal" tabindex="-1" aria-labelledby="defineTempModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="defineTempModalLabel">Definir Temperatura</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <form id="definirTempForm" method="post" action="{% url 'Controle_ar:ajustar_temperatura' ar.id %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="temp" class="form-label">Temperatura desejada:</label>
+            <input type="number" class="form-control" name="temperatura" id="temp" value="{{ ar.temperatura }}" min="17" max="28" required>
+            <div class="form-text">Escolha uma temperatura entre 17°C e 28°C</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-ar-primary">Confirmar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Evita reenvio de formulário ao recarregar
+  if (window.history.replaceState) {
+    window.history.replaceState(null, null, window.location.href);
+  }
+  
+  // Fecha o modal imediatamente ao submeter o formulário
+  document.getElementById("definirTempForm").addEventListener("submit", function(e) {
+    var modalEl = document.getElementById("defineTempModal");
+    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.hide();
+  });
+  
+  // Verifica o status do ar-condicionado a cada 30 segundos se estiver online
+  {% if ar.online and ar.estado %}
+  function verificarStatus() {
+    fetch('{% url "Controle_ar:verificar_status" ar.id %}')
+      .then(response => response.json())
+      .then(data => {
+        if (!data.online) {
+          location.reload();
+        }
+      })
+      .catch(error => console.error('Erro ao verificar status:', error));
+  }
+  
+  setInterval(verificarStatus, 30000);
+  {% endif %}
+</script>
 {% endblock %}
