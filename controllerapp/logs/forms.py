@@ -130,3 +130,13 @@ class VisitRequestForm(forms.ModelForm):
             self.end_datetime = end_datetime
                 
         return cleaned_data
+
+class EventRejectForm(forms.Form):
+    """
+    Formulário para coletar o motivo da recusa de uma solicitação de evento/visita.
+    """
+    motivo = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+        label='Motivo da Recusa',
+        help_text='Explique por que a solicitação está sendo recusada. Esta informação será enviada por email ao solicitante.'
+    )

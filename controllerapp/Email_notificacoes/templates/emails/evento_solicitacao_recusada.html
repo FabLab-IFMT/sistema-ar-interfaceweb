@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitação Recusada - {{ evento.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #dc3545;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            padding: 10px 20px;
+            font-size: 12px;
+            text-align: center;
+            color: #666;
+            background-color: #eee;
+        }
+        .event-detail {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border-left: 3px solid #dc3545;
+        }
+        .event-info {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        .event-label {
+            font-weight: bold;
+            color: #555;
+            width: 120px;
+        }
+        .event-value {
+            flex-grow: 1;
+        }
+        .reject-box {
+            background-color: #f8d7da;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border-left: 5px solid #dc3545;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .reason-box {
+            background-color: #fff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .reason-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Solicitação Recusada</h2>
+    </div>
+    
+    <div class="content">
+        <p>Olá {{ evento.created_by.first_name }} {{ evento.created_by.last_name }},</p>
+        
+        <p>Infelizmente, sua solicitação para <strong>"{{ evento.title }}"</strong> foi <span class="badge">RECUSADA</span>.</p>
+        
+        <div class="reject-box">
+            <p><strong>Sua solicitação não pôde ser atendida neste momento.</strong></p>
+            <p>Abaixo está o motivo da recusa e os detalhes da sua solicitação.</p>
+        </div>
+        
+        <div class="reason-box">
+            <div class="reason-title">Motivo da recusa:</div>
+            <p>{{ motivo }}</p>
+        </div>
+        
+        <div class="event-detail">
+            <h3>Detalhes da solicitação:</h3>
+            <div class="event-info">
+                <div class="event-label">Tipo:</div>
+                <div class="event-value">{{ evento.get_event_type_display }}</div>
+            </div>
+            <div class="event-info">
+                <div class="event-label">Data:</div>
+                <div class="event-value">{{ evento.start_time|date:"d/m/Y" }}</div>
+            </div>
+            <div class="event-info">
+                <div class="event-label">Horário:</div>
+                <div class="event-value">{{ evento.start_time|date:"H:i" }} - {{ evento.end_time|date:"H:i" }}</div>
+            </div>
+            <div class="event-info">
+                <div class="event-label">Local:</div>
+                <div class="event-value">FabLab IFMT</div>
+            </div>
+        </div>
+        
+        <p>Se você tiver alguma dúvida ou quiser fazer uma nova solicitação, por favor entre em contato conosco ou faça uma nova solicitação pelo sistema.</p>
+        
+        <a href="http://localhost:8000/logs/agenda/solicitar-visita/" class="btn">Fazer Nova Solicitação</a>
+    </div>
+    
+    <div class="footer">
+        <p>Esta mensagem foi enviada automaticamente pelo sistema do FabLab IFMT.</p>
+        <p>© {% now "Y" %} FabLab IFMT. Todos os direitos reservados.</p>
+    </div>
+</body>
+</html>

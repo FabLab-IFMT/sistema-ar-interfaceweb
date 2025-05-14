@@ -8,9 +8,9 @@ from datetime import datetime, timedelta, date
 import calendar
 from .models import Action, Event, LabSchedule
 from .scripts import FormattedAction
-from .forms import EventForm, VisitRequestForm
+from .forms import EventForm, VisitRequestForm, EventRejectForm
 from .utils import log_user_action
-from Email_notificacoes.models import enviar_email_solicitacao_enviada, enviar_email_solicitacao_aprovada
+from Email_notificacoes.models import enviar_email_solicitacao_enviada, enviar_email_solicitacao_aprovada, enviar_email_solicitacao_recusada
 
 def staff_check(user):
     return user.is_staff
@@ -51,7 +51,7 @@ def logs_datepage(request, day, month, year):
     
     actions_query = Action.objects.filter(date=date(year, month, day))
     
-    if severity:
+    if (severity):
         actions_query = actions_query.filter(severity=severity)
     
     # Ordenar por hora e formatar
@@ -256,6 +256,13 @@ def agenda_approve_event(request, event_id):
 @user_passes_test(staff_check)
 def agenda_delete_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
+    
+    # Se o evento não está aprovado, consideramos como uma rejeição de solicitação
+    # e redirecionamos para a tela de rejeição para coletar o motivo
+    if not event.approved:
+        return redirect('logs:agenda_reject_event', event_id=event_id)
+    
+    # Se o evento já estava aprovado, apenas excluímos sem pedir motivo
     title = event.title
     event.delete()
     messages.success(request, f'O evento "{title}" foi excluído com sucesso!')
@@ -266,6 +273,61 @@ def agenda_delete_event(request, event_id):
         return redirect('logs:pending_events')
     else:
         return redirect('logs:agenda_home')
+
+@user_passes_test(staff_check)
+def agenda_reject_event(request, event_id):
+    """View para rejeitar uma solicitação de evento/visita e enviar email de notificação."""
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Verificar se o evento já está aprovado
+    if event.approved:
+        messages.error(request, "Não é possível rejeitar um evento já aprovado.")
+        return redirect('logs:agenda_home')
+    
+    referer_url = request.META.get('HTTP_REFERER', '')
+    
+    if request.method == 'POST':
+        form = EventRejectForm(request.POST)
+        if form.is_valid():
+            motivo = form.cleaned_data['motivo']
+            
+            # Enviar email de recusa antes de excluir o evento
+            try:
+                enviar_email_solicitacao_recusada(event, motivo)
+            except Exception as e:
+                # Registrar erro mas não impedir o fluxo
+                print(f"Erro ao enviar email de recusa: {e}")
+            
+            # Registrar a ação
+            action_type = 'Recusa de Solicitação'
+            action_desc = f"Rejeitou a solicitação '{event.title}' do usuário {event.created_by.first_name} {event.created_by.last_name}"
+            log_user_action(
+                user=request.user,
+                action_type=action_type,
+                description=action_desc,
+                severity='info',
+                request=request
+            )
+            
+            # Excluir o evento
+            title = event.title
+            event.delete()
+            
+            messages.success(request, f'A solicitação "{title}" foi recusada e o solicitante foi notificado.')
+            
+            # Verificar de onde veio a requisição para redirecionar
+            if 'pendentes' in referer_url:
+                return redirect('logs:pending_events')
+            else:
+                return redirect('logs:agenda_home')
+    else:
+        form = EventRejectForm()
+    
+    return render(request, 'logs/agenda_reject_event.html', {
+        'form': form,
+        'event': event,
+        'referer_url': referer_url
+    })
 
 @user_passes_test(staff_check)
 def pending_events(request):

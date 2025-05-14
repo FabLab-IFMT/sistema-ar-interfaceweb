@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }} - FabLab IFMT</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0 auto;">
+                    <!-- Cabeçalho -->
+                    <tr>
+                        <td align="center" style="background: linear-gradient(135deg, #6f42c1 0%, #4e2d92 100%); padding: 30px; border-radius: 8px 8px 0 0;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td width="80" align="left">
+                                        <img src="cid:logo_branco.png" alt="FabLab Logo" width="60" style="display: block;">
+                                    </td>
+                                    <td align="center">
+                                        <h1 style="color: white; font-size: 28px; font-weight: 700; margin: 0;">{{ titulo }}</h1>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Imagem da Notícia (se houver) -->
+                    {% if noticia.imagem %}
+                    <tr>
+                        <td align="center" style="padding: 20px 0 0 0;">
+                            <img src="cid:noticia_imagem.jpg" alt="{{ noticia.titulo }}" style="max-width: 100%; height: auto; border-radius: 4px;">
+                        </td>
+                    </tr>
+                    {% endif %}
+                    
+                    <!-- Conteúdo da Notícia -->
+                    <tr>
+                        <td style="padding: 30px 40px;">
+                            <h2 style="color: #4e2d92; margin-top: 0;">{{ noticia.titulo }}</h2>
+                            
+                            <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+                                <em>Publicado em {{ noticia.data_publicacao|date:"d/m/Y" }} {% if noticia.autor %} por {{ noticia.autor }} {% endif %}</em>
+                            </p>
+                            
+                            <div style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 25px;">
+                                {{ noticia.conteudo|safe }}
+                            </div>
+                            
+                            {% if noticia.hashtags.exists %}
+                            <div style="margin-bottom: 25px;">
+                                {% for tag in noticia.hashtags.all %}
+                                <span style="display: inline-block; background-color: #f0e6ff; padding: 5px 10px; margin-right: 5px; margin-bottom: 5px; border-radius: 20px; color: #6f42c1; font-size: 13px;">#{{ tag.nome }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            {% if noticia_url %}
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td align="center" style="padding: 15px 0;">
+                                        <table border="0" cellspacing="0" cellpadding="0">
+                                            <tr>
+                                                <td align="center" style="border-radius: 50px; background: linear-gradient(135deg, #6f42c1 0%, #4e2d92 100%); padding: 12px 28px;">
+                                                    <a href="{{ noticia_url }}" style="font-size: 16px; font-weight: 500; color: white; text-decoration: none; display: inline-block;">Continuar Lendo</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    
+                    <!-- Notícias Relacionadas -->
+                    {% if noticias_relacionadas %}
+                    <tr>
+                        <td style="padding: 0 40px 30px 40px;">
+                            <h3 style="color: #4e2d92; border-bottom: 1px solid #e0e0e0; padding-bottom: 10px;">Notícias Relacionadas</h3>
+                            
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                {% for noticia_rel in noticias_relacionadas %}
+                                <tr>
+                                    <td style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                                        <a href="{{ site_url }}{% url 'options:noticia_detalhe' noticia_rel.slug %}" style="display: block; color: #333; text-decoration: none;">
+                                            <h4 style="margin: 0 0 5px 0; font-size: 16px; color: #4e2d92;">{{ noticia_rel.titulo }}</h4>
+                                            <p style="margin: 0; font-size: 13px; color: #777;">{{ noticia_rel.data_publicacao|date:"d/m/Y" }}</p>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    
+                    <!-- Rodapé -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px; text-align: center; color: #6c757d; font-size: 12px; border-top: 1px solid #eaeaea; border-radius: 0 0 8px 8px;">
+                            <p style="margin: 5px 0;">© 2025 FabLab IFMT - Instituto Federal de Mato Grosso</p>
+                            <p style="margin: 5px 0;">Rua Zulmira Canavarros, 95, Centro, Cuiabá - MT, 78005-200</p>
+                            <p style="margin: 5px 0;">
+                                <a href="{{ unsubscribe_url }}" style="color: #6c757d; text-decoration: underline;">Cancelar inscrição</a> | 
+                                <a href="{{ preferences_url }}" style="color: #6c757d; text-decoration: underline;">Preferências de email</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

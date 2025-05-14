@@ -16,5 +16,6 @@ urlpatterns = [
     path('agenda/aprovar/<int:event_id>/', views.agenda_approve_event, name='approve_event'),  # Alias para URLs antigas
     path('agenda/excluir/<int:event_id>/', views.agenda_delete_event, name='agenda_delete_event'),
     path('agenda/excluir/<int:event_id>/', views.agenda_delete_event, name='delete_event'),  # Alias para URLs antigas
+    path('agenda/rejeitar/<int:event_id>/', views.agenda_reject_event, name='agenda_reject_event'),
     path('agenda/pendentes/', views.pending_events, name='pending_events'),
 ]

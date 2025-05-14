@@ -1,0 +1,118 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+    Recusar Solicitação - FabLab
+{% endblock %}
+
+{% block head %}
+    <style>
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-help-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        
+        .card-header {
+            font-weight: bold;
+        }
+        
+        .event-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .event-details {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        
+        .event-label {
+            font-weight: 500;
+            width: 130px;
+            color: #555;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="mb-0">Recusar Solicitação</h2>
+                </div>
+                <div class="card-body">
+                    <div class="event-info mb-4">
+                        <h4>Detalhes da Solicitação</h4>
+                        <div class="event-details">
+                            <div class="event-label">Título:</div>
+                            <div>{{ event.title }}</div>
+                        </div>
+                        <div class="event-details">
+                            <div class="event-label">Tipo:</div>
+                            <div>{{ event.get_event_type_display }}</div>
+                        </div>
+                        <div class="event-details">
+                            <div class="event-label">Solicitante:</div>
+                            <div>{{ event.created_by.first_name }} {{ event.created_by.last_name }}</div>
+                        </div>
+                        <div class="event-details">
+                            <div class="event-label">Data:</div>
+                            <div>{{ event.start_time|date:"d/m/Y" }}</div>
+                        </div>
+                        <div class="event-details">
+                            <div class="event-label">Horário:</div>
+                            <div>{{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}</div>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="form-group">
+                            <label for="{{ form.motivo.id_for_label }}">{{ form.motivo.label }}</label>
+                            {{ form.motivo }}
+                            {% if form.motivo.help_text %}
+                                <div class="form-help-text">{{ form.motivo.help_text }}</div>
+                            {% endif %}
+                            {% if form.motivo.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.motivo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Atenção:</strong> Esta ação não pode ser desfeita. Um email será enviado ao solicitante com o motivo da recusa.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">Recusar Solicitação</button>
+                            <a href="{% if referer_url %}{{ referer_url }}{% else %}{% url 'logs:agenda_home' %}{% endif %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
