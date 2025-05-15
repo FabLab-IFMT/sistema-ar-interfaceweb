@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from .models import AcessoGestao, ConfiguracaoSistema
+from .models import AcessoGestao, Configuracao
 from django.db.models import Q, Count
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -149,61 +149,9 @@ def monitoramento_sistema(request):
 @login_required
 @user_passes_test(is_gestao_authorized)
 def configuracoes_sistema(request):
-    """View para gerenciar as configurações do sistema"""
-    
-    # Separar configurações por categoria
-    categorias = {}
-    for categoria_code, categoria_nome in ConfiguracaoSistema.CATEGORIA_CHOICES:
-        # Filtrar configurações que apenas superusuários podem ver/editar
-        if not request.user.is_superuser:
-            configs = ConfiguracaoSistema.objects.filter(categoria=categoria_code, restrito=False)
-        else:
-            configs = ConfiguracaoSistema.objects.filter(categoria=categoria_code)
-            
-        if configs.exists():
-            categorias[categoria_code] = {
-                'nome': categoria_nome,
-                'configs': configs
-            }
-    
-    # Se há POST, estamos salvando configurações
-    if request.method == 'POST':
-        # Verificação de permissão adicional
-        if 'config_id' in request.POST and 'valor' in request.POST:
-            config_id = request.POST.get('config_id')
-            valor = request.POST.get('valor')
-            
-            try:
-                config = ConfiguracaoSistema.objects.get(id=config_id)
-                
-                # Verificar se o usuário tem permissão para editar esta configuração
-                if config.restrito and not request.user.is_superuser:
-                    messages.error(request, "Você não tem permissão para alterar esta configuração.")
-                    return redirect('gestao:configuracoes')
-                
-                # Validação básica de tipo
-                if config.tipo == 'numero':
-                    try:
-                        float(valor)  # Apenas verifica se é um número válido
-                    except ValueError:
-                        messages.error(request, f"O valor para {config.nome} deve ser um número.")
-                        return redirect('gestao:configuracoes')
-                
-                # Salvar a configuração
-                config.valor = valor
-                config.modificado_por = request.user
-                config.save()
-                
-                messages.success(request, f"Configuração '{config.nome}' atualizada com sucesso.")
-                
-            except ConfiguracaoSistema.DoesNotExist:
-                messages.error(request, "Configuração não encontrada.")
-        
-        return redirect('gestao:configuracoes')
-    
-    context = {
-        'titulo': 'Configurações do Sistema',
-        'categorias': categorias
-    }
-    
-    return render(request, 'gestao/configuracoes.html', context)
+    """
+    Página temporariamente indisponível.
+    Redireciona para o dashboard com mensagem informativa.
+    """
+    messages.info(request, "O módulo de Configurações do Sistema estará disponível em breve.")
+    return redirect('gestao:dashboard')

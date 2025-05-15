@@ -6,64 +6,39 @@
 {% block head %}
 <style>
   .config-card {
-    transition: all 0.3s ease;
-    border-radius: 10px;
+    transition: all 0.2s ease;
   }
   
   .config-card:hover {
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-  }
-  
-  .category-icon {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    border-radius: 50%;
-    color: white;
-    margin-right: 1rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   }
   
   .config-item {
-    transition: all 0.2s ease;
     border-left: 3px solid transparent;
-    padding-left: 15px;
+    padding: 15px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
   }
   
   .config-item:hover {
     border-left-color: #007bff;
-    background-color: rgba(0, 123, 255, 0.05);
-  }
-  
-  .config-restricted {
-    background-color: rgba(255, 193, 7, 0.1);
-  }
-  
-  .config-description {
-    font-size: 0.875rem;
-    color: #6c757d;
-  }
-  
-  .nav-pills .nav-link {
-    border-radius: 0;
-    border-left: 3px solid transparent;
+    background-color: rgba(0,0,0,0.03);
   }
   
   .nav-pills .nav-link.active {
-    background-color: rgba(0, 123, 255, 0.1);
-    color: #0d6efd;
-    border-left: 3px solid #0d6efd;
+    background-color: #007bff;
   }
   
-  .config-form {
-    max-width: 600px;
-  }
-  
-  .config-meta {
-    font-size: 0.8rem;
-    color: #6c757d;
+  .categoria-icon {
+    font-size: 1.2rem;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-right: 10px;
+    color: white;
   }
 </style>
 {% endblock %}
@@ -83,295 +58,148 @@
       <a href="{% url 'gestao:dashboard' %}" class="btn btn-outline-secondary">
         <i class="fas fa-arrow-left me-1"></i> Voltar
       </a>
-      {% if user.is_superuser %}
-      <button type="button" class="btn btn-primary ms-2" title="Adicionar nova configuração" data-bs-toggle="tooltip">
-        <i class="fas fa-plus-circle me-1"></i> Nova Configuração
-      </button>
-      {% endif %}
     </div>
   </div>
   
-  <div class="alert alert-info mb-4">
-    <div class="d-flex">
-      <div class="me-3">
-        <i class="fas fa-info-circle fa-2x"></i>
-      </div>
-      <div>
-        <h5 class="alert-heading">Configurações do Sistema</h5>
-        <p class="mb-0">Ajuste os parâmetros de funcionamento do sistema conforme as necessidades da sua instituição. As alterações podem afetar o comportamento geral do sistema.</p>
-        {% if user.is_superuser %}
-        <p class="mb-0 mt-2"><span class="badge bg-warning"><i class="fas fa-lock me-1"></i> Restrita</span> indica configurações que apenas superusuários podem modificar.</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-  
-  {% if categorias %}
   <div class="row">
-    <!-- Menu lateral de categorias -->
-    <div class="col-md-3 mb-4">
-      <div class="card">
-        <div class="card-header bg-white">
-          <h5 class="mb-0">Categorias</h5>
-        </div>
-        <div class="card-body p-0">
-          <div class="nav flex-column nav-pills">
-            {% for categoria_code, categoria in categorias.items %}
-              <a class="nav-link {% if forloop.first %}active{% endif %}" 
-                 href="#categoria-{{ categoria_code }}" 
-                 data-bs-toggle="pill" 
-                 role="tab">
+    <!-- Coluna de configurações -->
+    <div class="col-lg-8">
+      {% if configuracoes_por_categoria %}
+        <ul class="nav nav-pills mb-4" id="configTabs" role="tablist">
+          {% for categoria_code, categoria in configuracoes_por_categoria.items %}
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if forloop.first %}active{% endif %}" 
+                      id="tab-{{ categoria_code }}" 
+                      data-bs-toggle="pill" 
+                      data-bs-target="#tab-content-{{ categoria_code }}" 
+                      type="button" 
+                      role="tab" 
+                      aria-controls="tab-content-{{ categoria_code }}" 
+                      aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
                 <i class="{% if categoria_code == 'geral' %}fas fa-sliders-h
-                           {% elif categoria_code == 'email' %}fas fa-envelope
-                           {% elif categoria_code == 'acesso' %}fas fa-lock
-                           {% elif categoria_code == 'visual' %}fas fa-paint-brush
-                           {% elif categoria_code == 'integracoes' %}fas fa-plug
-                           {% elif categoria_code == 'armazenamento' %}fas fa-database
-                           {% elif categoria_code == 'logs' %}fas fa-history
-                           {% elif categoria_code == 'agendamento' %}fas fa-calendar
-                           {% elif categoria_code == 'projetos' %}fas fa-project-diagram
-                           {% elif categoria_code == 'inventario' %}fas fa-boxes
-                           {% elif categoria_code == 'avancado' %}fas fa-code
-                           {% else %}fas fa-cog{% endif %} me-2"></i>
+                          {% elif categoria_code == 'email' %}fas fa-envelope
+                          {% elif categoria_code == 'laboratorio' %}fas fa-flask
+                          {% elif categoria_code == 'sistema' %}fas fa-server
+                          {% elif categoria_code == 'acesso' %}fas fa-lock
+                          {% else %}fas fa-cog{% endif %} me-2"></i>
                 {{ categoria.nome }}
-              </a>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Configurações -->
-    <div class="col-md-9">
-      <div class="tab-content">
-        {% for categoria_code, categoria in categorias.items %}
-          <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
-               id="categoria-{{ categoria_code }}" role="tabpanel">
-            
-            <div class="card mb-4 config-card">
-              <div class="card-header bg-white d-flex align-items-center">
-                <div class="category-icon bg-{% if categoria_code == 'geral' %}primary
-                                       {% elif categoria_code == 'email' %}info
-                                       {% elif categoria_code == 'acesso' %}danger
-                                       {% elif categoria_code == 'visual' %}success
-                                       {% elif categoria_code == 'integracoes' %}warning
-                                       {% elif categoria_code == 'armazenamento' %}secondary
-                                       {% elif categoria_code == 'logs' %}dark
-                                       {% elif categoria_code == 'agendamento' %}primary
-                                       {% elif categoria_code == 'projetos' %}success
-                                       {% elif categoria_code == 'inventario' %}info
-                                       {% elif categoria_code == 'avancado' %}danger
-                                       {% else %}primary{% endif %}">
-                  <i class="{% if categoria_code == 'geral' %}fas fa-sliders-h
-                           {% elif categoria_code == 'email' %}fas fa-envelope
-                           {% elif categoria_code == 'acesso' %}fas fa-lock
-                           {% elif categoria_code == 'visual' %}fas fa-paint-brush
-                           {% elif categoria_code == 'integracoes' %}fas fa-plug
-                           {% elif categoria_code == 'armazenamento' %}fas fa-database
-                           {% elif categoria_code == 'logs' %}fas fa-history
-                           {% elif categoria_code == 'agendamento' %}fas fa-calendar
-                           {% elif categoria_code == 'projetos' %}fas fa-project-diagram
-                           {% elif categoria_code == 'inventario' %}fas fa-boxes
-                           {% elif categoria_code == 'avancado' %}fas fa-code
-                           {% else %}fas fa-cog{% endif %}"></i>
+              </button>
+            </li>
+          {% endfor %}
+        </ul>
+        
+        <div class="tab-content mb-4" id="configTabsContent">
+          {% for categoria_code, categoria in configuracoes_por_categoria.items %}
+            <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
+                 id="tab-content-{{ categoria_code }}" 
+                 role="tabpanel" 
+                 aria-labelledby="tab-{{ categoria_code }}">
+              
+              <div class="card config-card">
+                <div class="card-header bg-white">
+                  <h5 class="mb-0">{{ categoria.nome }}</h5>
                 </div>
-                <h5 class="mb-0">{{ categoria.nome }}</h5>
-              </div>
-              <div class="card-body">
-                <!-- Lista de configurações desta categoria -->
-                {% for config in categoria.configs %}
-                  <div class="config-item mb-4 p-3 rounded {% if config.restrito %}config-restricted{% endif %}">
-                    <form method="post" class="config-form" action="{% url 'gestao:configuracoes' %}">
-                      {% csrf_token %}
-                      <input type="hidden" name="config_id" value="{{ config.id }}">
-                      
-                      <div class="mb-3">
-                        <label class="form-label fw-bold">
-                          {{ config.nome }}
-                          {% if config.restrito %}
-                            <span class="badge bg-warning ms-2" title="Apenas superusuários podem modificar" data-bs-toggle="tooltip">
-                              <i class="fas fa-lock me-1"></i> Restrita
-                            </span>
-                          {% endif %}
-                        </label>
-                        
-                        <p class="config-description mb-3">{{ config.descricao }}</p>
-                        
-                        <!-- Diferentes tipos de campo baseados no tipo de configuração -->
-                        {% if config.tipo == 'booleano' %}
-                          <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="valor" 
-                                  id="config-{{ config.id }}" 
-                                  {% if config.valor|lower == 'true' or config.valor == '1' %}checked{% endif %}
-                                  {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
-                            <label class="form-check-label" for="config-{{ config.id }}">Ativado</label>
+                <div class="card-body">
+                  {% for config in categoria.configs %}
+                    <div class="config-item rounded">
+                      <form method="post" action="{% url 'gestao:configuracoes' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="config_id" value="{{ config.id }}">
+                        <div class="mb-3">
+                          <label for="config-{{ config.id }}" class="form-label fw-bold">{{ config.nome }}</label>
+                          <div class="text-muted small mb-2">{{ config.descricao }}</div>
+                          <div class="d-flex">
+                            <input type="text" class="form-control me-2" id="config-{{ config.id }}" name="valor" value="{{ config.valor|default:'' }}">
+                            <button type="submit" name="editar_config" class="btn btn-primary">
+                              <i class="fas fa-save"></i>
+                            </button>
+                            <button type="submit" name="excluir_config" class="btn btn-danger ms-2" onclick="return confirm('Tem certeza que deseja excluir esta configuração?')">
+                              <i class="fas fa-trash"></i>
+                            </button>
                           </div>
-                          
-                        {% elif config.tipo == 'texto' or config.tipo == 'url' or config.tipo == 'email' %}
-                          <input type="{% if config.tipo == 'email' %}email{% elif config.tipo == 'url' %}url{% else %}text{% endif %}" 
-                                class="form-control" 
-                                name="valor" 
-                                id="config-{{ config.id }}"
-                                value="{{ config.valor }}"
-                                {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
-                        
-                        {% elif config.tipo == 'numero' %}
-                          <input type="number" 
-                                class="form-control" 
-                                name="valor" 
-                                id="config-{{ config.id }}"
-                                value="{{ config.valor }}"
-                                {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
-                        
-                        {% elif config.tipo == 'cor' %}
-                          <input type="color" 
-                                class="form-control form-control-color" 
-                                name="valor" 
-                                id="config-{{ config.id }}"
-                                value="{{ config.valor }}"
-                                {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
-                        
-                        {% elif config.tipo == 'data' %}
-                          <input type="date" 
-                                class="form-control" 
-                                name="valor" 
-                                id="config-{{ config.id }}"
-                                value="{{ config.valor }}"
-                                {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
-                        
-                        {% elif config.tipo == 'hora' %}
-                          <input type="time" 
-                                class="form-control" 
-                                name="valor" 
-                                id="config-{{ config.id }}"
-                                value="{{ config.valor }}"
-                                {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
-                        
-                        {% elif config.tipo == 'senha' %}
-                          <input type="password" 
-                                class="form-control" 
-                                name="valor" 
-                                id="config-{{ config.id }}"
-                                value="{{ config.valor }}"
-                                {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
-                        
-                        {% elif config.tipo == 'json' %}
-                          <textarea class="form-control" 
-                                   name="valor" 
-                                   id="config-{{ config.id }}"
-                                   rows="4"
-                                   {% if config.restrito and not user.is_superuser %}disabled{% endif %}>{{ config.valor }}</textarea>
-                        {% else %}
-                          <textarea class="form-control" 
-                                   name="valor" 
-                                   id="config-{{ config.id }}"
-                                   rows="3"
-                                   {% if config.restrito and not user.is_superuser %}disabled{% endif %}>{{ config.valor }}</textarea>
-                        {% endif %}
-                      </div>
-                      
-                      <div class="d-flex justify-content-between align-items-center">
-                        {% if not config.restrito or user.is_superuser %}
-                          <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i> Salvar
-                          </button>
-                        {% else %}
-                          <div></div>
-                        {% endif %}
-                        
-                        <div class="config-meta">
-                          Última modificação: 
-                          {% if config.modificado_por %}
-                            {{ config.ultima_modificacao|date:"d/m/Y H:i" }} por {{ config.modificado_por.username }}
-                          {% else %}
-                            Nunca modificado
-                          {% endif %}
+                          <div class="text-muted mt-2 small">
+                            Última atualização: {{ config.data_atualizacao|date:"d/m/Y H:i" }}
+                          </div>
                         </div>
-                      </div>
-                    </form>
-                  </div>
-                {% endfor %}
+                      </form>
+                    </div>
+                  {% endfor %}
+                </div>
               </div>
             </div>
-          </div>
-        {% endfor %}
+          {% endfor %}
+        </div>
+        
+      {% else %}
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i> Nenhuma configuração encontrada. Use o formulário ao lado para adicionar configurações ao sistema.
+        </div>
+      {% endif %}
+    </div>
+    
+    <!-- Formulário para adicionar novas configurações -->
+    <div class="col-lg-4">
+      <div class="card config-card sticky-top" style="top: 20px;">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Nova Configuração</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{% url 'gestao:configuracoes' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="nome" class="form-label">Nome</label>
+              <input type="text" class="form-control" id="nome" name="nome" required>
+            </div>
+            <div class="mb-3">
+              <label for="descricao" class="form-label">Descrição</label>
+              <input type="text" class="form-control" id="descricao" name="descricao" required>
+            </div>
+            <div class="mb-3">
+              <label for="valor" class="form-label">Valor</label>
+              <input type="text" class="form-control" id="valor" name="valor">
+            </div>
+            <div class="mb-3">
+              <label for="categoria" class="form-label">Categoria</label>
+              <select class="form-select" id="categoria" name="categoria" required>
+                {% for categoria_code, categoria_nome in categorias %}
+                  <option value="{{ categoria_code }}">{{ categoria_nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" name="nova_config" class="btn btn-success w-100">
+              <i class="fas fa-plus me-2"></i>Adicionar Configuração
+            </button>
+          </form>
+        </div>
+      </div>
+      
+      <div class="card mt-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Sugestões</h5>
+        </div>
+        <div class="card-body">
+          <p class="small">Exemplos de configurações úteis para adicionar ao sistema:</p>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item small"><strong>Nome da Instituição</strong> - Nome exibido no sistema</li>
+            <li class="list-group-item small"><strong>Email para Contato</strong> - Email principal do laboratório</li>
+            <li class="list-group-item small"><strong>Horário de Funcionamento</strong> - Horários de funcionamento do laboratório</li>
+            <li class="list-group-item small"><strong>Período de Agendamento</strong> - Dias de antecedência para agendamentos</li>
+            <li class="list-group-item small"><strong>URL API Externa</strong> - Endereço de uma API externa para integração</li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
-  {% else %}
-  <div class="alert alert-warning">
-    <i class="fas fa-exclamation-triangle me-2"></i> Não há configurações disponíveis. 
-    {% if user.is_superuser %}
-      Clique em "Nova Configuração" para adicionar as primeiras configurações ao sistema.
-    {% else %}
-      Entre em contato com um administrador para configurar o sistema.
-    {% endif %}
-  </div>
-  {% endif %}
-  
-  <!-- Exemplos de configurações -->
-  {% if not categorias and user.is_superuser %}
-  <div class="card mt-4">
-    <div class="card-header bg-white">
-      <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i> Sugestões de Configurações</h5>
-    </div>
-    <div class="card-body">
-      <div class="alert alert-light">
-        <p class="mb-3">Você pode adicionar diversas configurações para personalizar o sistema:</p>
-        <ul class="list-group list-group-flush mb-3">
-          <li class="list-group-item"><strong>Nome da Instituição</strong> (geral) - Nome que aparece nos cabeçalhos do sistema</li>
-          <li class="list-group-item"><strong>Email para Contato</strong> (email) - Email exibido para contato</li>
-          <li class="list-group-item"><strong>Cor Primária</strong> (visual) - Cor principal do tema do sistema</li>
-          <li class="list-group-item"><strong>Período de Inatividade</strong> (acesso) - Minutos até encerrar sessão inativa</li>
-          <li class="list-group-item"><strong>Retenção de Logs</strong> (logs) - Dias que os logs ficam armazenados</li>
-          <li class="list-group-item"><strong>Manutenção Programada</strong> (avancado) - Data/hora da próxima manutenção</li>
-          <li class="list-group-item"><strong>SMTP Servidor</strong> (email) - Servidor para envio de emails</li>
-          <li class="list-group-item"><strong>Cadastro Automático</strong> (acesso) - Se novos usuários são aprovados automaticamente</li>
-          <li class="list-group-item"><strong>Localização do Laboratório</strong> (geral) - Endereço completo</li>
-          <li class="list-group-item"><strong>Horário de Funcionamento</strong> (geral) - Horários de funcionamento do laboratório</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Ativar tooltips do Bootstrap
+    // Ativar tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
       return new bootstrap.Tooltip(tooltipTriggerEl)
-    });
-    
-    // Tratar checkboxes de booleanos para submeter o valor correto
-    document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
-      checkbox.closest('form').addEventListener('submit', function() {
-        if (checkbox.disabled) return;
-        
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = checkbox.name;
-        hiddenInput.value = checkbox.checked ? 'true' : 'false';
-        this.appendChild(hiddenInput);
-        checkbox.disabled = true; // Desabilitar para não ser enviado
-      });
-    });
-    
-    // Validação para JSON
-    document.querySelectorAll('textarea').forEach(function(textarea) {
-      if (textarea.id.includes('json')) {
-        textarea.closest('form').addEventListener('submit', function(e) {
-          try {
-            JSON.parse(textarea.value);
-          } catch (error) {
-            e.preventDefault();
-            alert('O valor inserido não é um JSON válido. Por favor, corrija o formato.');
-          }
-        });
-      }
     });
   });
 </script>
