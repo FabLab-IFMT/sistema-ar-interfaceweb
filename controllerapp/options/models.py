@@ -73,6 +73,11 @@ class Servico(models.Model):
     ordem = models.PositiveIntegerField(default=0)
     data_cadastro = models.DateTimeField(auto_now_add=True)
     
+    # Novos campos personalizáveis
+    como_utilizar = models.TextField(blank=True, null=True, help_text="Passos de como utilizar este serviço (um por linha)")
+    aplicacoes = models.TextField(blank=True, null=True, help_text="Aplicações possíveis para este serviço (uma por linha)")
+    especificacoes = models.TextField(blank=True, null=True, help_text="Especificações técnicas do serviço/equipamento")
+    
     class Meta:
         ordering = ['ordem', 'nome']
         verbose_name = 'Serviço'
@@ -80,6 +85,18 @@ class Servico(models.Model):
     
     def __str__(self):
         return self.nome
+        
+    def get_como_utilizar_list(self):
+        """Retorna os passos de como utilizar como uma lista"""
+        if not self.como_utilizar:
+            return []
+        return [item.strip() for item in self.como_utilizar.split('\n') if item.strip()]
+        
+    def get_aplicacoes_list(self):
+        """Retorna as aplicações possíveis como uma lista"""
+        if not self.aplicacoes:
+            return []
+        return [item.strip() for item in self.aplicacoes.split('\n') if item.strip()]
 
 class ProjetoExemplo(models.Model):
     servico = models.ForeignKey(Servico, on_delete=models.CASCADE, related_name='exemplos')

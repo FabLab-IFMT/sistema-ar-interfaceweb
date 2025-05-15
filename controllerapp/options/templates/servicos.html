@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}Capacidades do Laboratório{% endblock %}
+{% block title %}Serviços do Laboratório{% endblock %}
 
 {% block head %}
 <style>
@@ -127,10 +127,10 @@
 <!-- Banner de serviços -->
 <div class="banner-overlay">
   <div class="container banner-content text-center">
-    <h1 class="display-4 mb-3 fw-bold">Capacidades do FABLAB</h1>
-    <p class="lead">Conheça as tecnologias e capacidades disponíveis em nosso laboratório para transformar suas ideias em realidade</p>
+    <h1 class="display-4 mb-3 fw-bold">Serviços do FABLAB</h1>
+    <p class="lead">Conheça as tecnologias e serviços disponíveis em nosso laboratório para transformar suas ideias em realidade</p>
     <div class="d-flex justify-content-center mt-4">
-      <a href="#categorias" class="btn btn-primary btn-lg">Explorar Capacidades</a>
+      <a href="#categorias" class="btn btn-primary btn-lg">Explorar Serviços</a>
     </div>
   </div>
 </div>
@@ -139,7 +139,7 @@
 {% if servicos_destaque %}
 <section class="mb-5">
   <div class="container">
-    <h2 class="text-center mb-4">Capacidades em Destaque</h2>
+    <h2 class="text-center mb-4">Serviços em Destaque</h2>
     <div class="row">
       {% for servico in servicos_destaque %}
       <div class="col-md-4 mb-4">
@@ -219,8 +219,8 @@
       {% else %}
         <div class="col-12 text-center">
           <div class="alert alert-info">
-            <h4>Nenhuma capacidade encontrada</h4>
-            <p>Não há capacidades disponíveis para esta categoria no momento.</p>
+            <h4>Nenhum serviço encontrado</h4>
+            <p>Não há serviços disponíveis para esta categoria no momento.</p>
           </div>
         </div>
       {% endif %}
@@ -282,7 +282,7 @@
             <div class="circle-icon mb-3 mx-auto">
               <i class="fas fa-search fa-2x text-primary"></i>
             </div>
-            <h5 class="card-title">1. Explore as Capacidades</h5>
+            <h5 class="card-title">1. Explore os Serviços</h5>
             <p class="card-text">Conheça as tecnologias e equipamentos disponíveis em nosso laboratório.</p>
           </div>
         </div>
@@ -325,60 +325,107 @@
 </section>
 
 <!-- FAQ - Perguntas Frequentes -->
-<section class="mb-5">
+<section class="mb-5 py-5 bg-light">
   <div class="container">
-    <h2 class="text-center mb-5">Perguntas Frequentes</h2>
+    <h2 class="text-center mb-2">Perguntas Frequentes</h2>
+    <p class="text-center text-muted mb-5">Tire suas dúvidas sobre o funcionamento do nosso laboratório</p>
     
-    <div class="accordion" id="accordionFAQ">
-      <div class="accordion-item">
-        <h3 class="accordion-header" id="headingOne">
-          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-            Quem pode utilizar o laboratório?
-          </button>
-        </h3>
-        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionFAQ">
-          <div class="accordion-body">
-            O FabLab está disponível principalmente para estudantes, professores e pesquisadores do IFMT. Visitantes externos podem acessar o laboratório mediante agendamento prévio e aprovação da coordenação. Grupos educacionais e parcerias institucionais também são bem-vindos.
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="accordion accordion-flush" id="accordionFAQ">
+          <div class="accordion-item rounded shadow-sm mb-3 border">
+            <h3 class="accordion-header" id="headingOne">
+              <button class="accordion-button rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                <i class="fas fa-user-friends me-3 text-primary"></i> Quem pode utilizar o laboratório?
+              </button>
+            </h3>
+            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionFAQ">
+              <div class="accordion-body">
+                O FabLab está disponível principalmente para estudantes, professores e pesquisadores do IFMT. Visitantes externos podem acessar o laboratório mediante agendamento prévio e aprovação da coordenação. Grupos educacionais e parcerias institucionais também são bem-vindos.
+              </div>
+            </div>
           </div>
+          
+          <div class="accordion-item rounded shadow-sm mb-3 border">
+            <h3 class="accordion-header" id="headingTwo">
+              <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                <i class="fas fa-coins me-3 text-primary"></i> O uso do laboratório é gratuito?
+              </button>
+            </h3>
+            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionFAQ">
+              <div class="accordion-body">
+                <p><strong>Sim, o uso do laboratório é totalmente gratuito!</strong> O FabLab IFMT oferece acesso gratuito aos seus equipamentos e recursos para todos os membros da comunidade acadêmica.</p>
+                <p>Apenas em casos específicos de projetos que necessitem de materiais especiais, o usuário poderá precisar fornecer esses materiais. Nossa equipe está sempre disponível para orientá-lo sobre as melhores opções.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="accordion-item rounded shadow-sm mb-3 border">
+            <h3 class="accordion-header" id="headingThree">
+              <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                <i class="fas fa-calendar-alt me-3 text-primary"></i> Como agendar o uso de um equipamento?
+              </button>
+            </h3>
+            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionFAQ">
+              <div class="accordion-body">
+                <p>Para agendar o uso de equipamentos, siga os passos abaixo:</p>
+                <ol>
+                  <li>Faça login no sistema com suas credenciais</li>
+                  <li>Acesse a seção "Agendamentos" no menu principal</li>
+                  <li>Selecione o equipamento desejado no calendário</li>
+                  <li>Escolha a data e horário disponíveis</li>
+                  <li>Preencha o formulário com os detalhes do seu projeto</li>
+                  <li>Aguarde a confirmação por email</li>
+                </ol>
+                <p class="mt-2 text-muted"><i class="fas fa-info-circle"></i> Novos usuários precisam passar primeiro pelo treinamento básico do equipamento.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="accordion-item rounded shadow-sm mb-3 border">
+            <h3 class="accordion-header" id="headingFour">
+              <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                <i class="fas fa-graduation-cap me-3 text-primary"></i> É necessário treinamento para usar os equipamentos?
+              </button>
+            </h3>
+            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionFAQ">
+              <div class="accordion-body">
+                <p><strong>Sim, é necessário treinamento.</strong> Para garantir a segurança de todos e a preservação dos equipamentos, exigimos que todos os usuários participem de um treinamento específico antes de utilizar qualquer equipamento.</p>
+                <p>Os treinamentos são:</p>
+                <ul>
+                  <li>Gratuitos e oferecidos regularmente</li>
+                  <li>Específicos para cada tipo de equipamento</li>
+                  <li>Práticos e teóricos, com certificação ao final</li>
+                </ul>
+                <p class="mt-2">
+                  <a href="#" class="btn btn-sm btn-outline-primary">Ver Calendário de Treinamentos</a>
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="accordion-item rounded shadow-sm mb-3 border">
+            <h3 class="accordion-header" id="headingFive">
+              <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                <i class="fas fa-clock me-3 text-primary"></i> Qual o horário de funcionamento do laboratório?
+              </button>
+            </h3>
+            <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#accordionFAQ">
+              <div class="accordion-body">
+                <div class="row">
+                  <div class="col-md-12">
+                    <p class="mb-0">Trabalhamos de segunda a sexta das 8h às 18h.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
         </div>
-      </div>
-      
-      <div class="accordion-item">
-        <h3 class="accordion-header" id="headingTwo">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-            Preciso pagar para utilizar os equipamentos?
-          </button>
-        </h3>
-        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionFAQ">
-          <div class="accordion-body">
-            Para estudantes e professores do IFMT, o uso dos equipamentos é gratuito para projetos acadêmicos. Custos de materiais específicos podem ser necessários. Para projetos externos ou parcerias, as condições são avaliadas caso a caso pela coordenação do laboratório.
-          </div>
-        </div>
-      </div>
-      
-      <div class="accordion-item">
-        <h3 class="accordion-header" id="headingThree">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-            Como agendar o uso de um equipamento?
-          </button>
-        </h3>
-        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionFAQ">
-          <div class="accordion-body">
-            Para agendar o uso de equipamentos, faça login no sistema, acesse a seção de agendamento e selecione o equipamento e horário desejados. Para novos usuários, é necessário primeiramente passar por um treinamento básico de segurança e uso do equipamento específico.
-          </div>
-        </div>
-      </div>
-      
-      <div class="accordion-item">
-        <h3 class="accordion-header" id="headingFour">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-            É necessário treinamento para usar os equipamentos?
-          </button>
-        </h3>
-        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionFAQ">
-          <div class="accordion-body">
-            Sim! Para garantir a segurança de todos e o bom uso dos equipamentos, é obrigatória a participação em um treinamento específico antes de utilizar qualquer equipamento do laboratório. Os treinamentos são oferecidos regularmente e podem ser agendados através do sistema.
-          </div>
+        
+        <div class="text-center mt-4">
+          <p class="text-muted">Ainda tem dúvidas?</p>
+          <a href="#" class="btn btn-primary">Entre em Contato</a>
         </div>
       </div>
     </div>
@@ -390,7 +437,7 @@
   <div class="container text-center">
     <h2 class="mb-4">Pronto para transformar sua ideia em realidade?</h2>
     <p class="lead mb-4">O FABLAB IFMT está à disposição para ajudar a concretizar seu projeto.</p>
-    <a href="#categorias" class="btn btn-light btn-lg">Explorar Capacidades</a>
+    <a href="#categorias" class="btn btn-light btn-lg">Explorar Serviços</a>
   </div>
 </section>
 {% endblock %}
