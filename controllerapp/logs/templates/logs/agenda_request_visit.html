@@ -35,6 +35,10 @@
             margin-bottom: 15px;
         }
     </style>
+    <!-- Adicionar jQuery se ainda não estiver sendo usado no layout principal -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- jQuery Mask Plugin para máscaras -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -232,6 +236,28 @@
         // Ajusta o tamanho da área de texto
         document.querySelectorAll('textarea').forEach(function(textarea) {
             textarea.rows = 5;
+        });
+        
+        // Aplicar máscaras aos campos
+        $(document).ready(function() {
+            // Máscara para telefone (suporta ambos os formatos: fixo e celular)
+            $('#{{ form.visitor_phone.id_for_label }}').mask('(00) 00000-0000', {
+                onKeyPress: function(phone, e, field, options) {
+                    // Ajusta dinamicamente entre número de telefone fixo e celular
+                    var masks = ['(00) 0000-00009', '(00) 00000-0000'];
+                    var mask = (phone.length > 14) ? masks[1] : masks[0];
+                    $('#{{ form.visitor_phone.id_for_label }}').mask(mask, options);
+                }
+            });
+            
+            // Destaca os campos obrigatórios
+            $('label').each(function() {
+                if ($(this).attr('for') && 
+                    !$(this).attr('for').includes('event_type') && 
+                    $(this).next('input, select, textarea').attr('required')) {
+                    $(this).append(' <span class="text-danger">*</span>');
+                }
+            });
         });
     });
 </script>

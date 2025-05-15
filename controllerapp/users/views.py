@@ -18,7 +18,16 @@ from acesso_e_ponto.models import Session
 from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
-from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.forms import PasswordChangeForm, PasswordResetForm
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail, BadHeaderError, EmailMultiAlternatives
+from django.conf import settings
+from django.utils.html import strip_tags
+from email.mime.image import MIMEImage
+import os
 
 def login_view(request): 
     if request.method == "POST": 
@@ -283,6 +292,67 @@ def profile(request, user_id=None):
     }
     
     return render(request, 'users/profile.html', context)
+
+def password_reset_request(request):
+    if request.method == "POST":
+        form = PasswordResetForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            users = CustomUser.objects.filter(email=email)
+            if users.exists():
+                for user in users:
+                    subject = "Solicitação de redefinição de senha"
+                    email_template_name = "users/password_reset_email.html"
+                    context = {
+                        "email": user.email,
+                        "domain": request.get_host(),
+                        "site_name": "FabLab IFMT",
+                        "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                        "user": user,
+                        "token": default_token_generator.make_token(user),
+                        "protocol": "https" if request.is_secure() else "http",
+                        "reset_url": f"{'https' if request.is_secure() else 'http'}://{request.get_host()}/users/password-reset-confirm/{urlsafe_base64_encode(force_bytes(user.pk))}/{default_token_generator.make_token(user)}/",
+                    }
+                    
+                    # HTML do email
+                    html_content = render_to_string(email_template_name, context)
+                    # Versão texto plano para clientes de email que não suportam HTML
+                    text_content = strip_tags(html_content)
+                    
+                    # Criando a mensagem com EmailMultiAlternatives
+                    from_email = settings.DEFAULT_FROM_EMAIL
+                    msg = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
+                    msg.attach_alternative(html_content, "text/html")
+                    msg.mixed_subtype = 'related'  # Importante para que as imagens embutidas funcionem
+                    
+                    # Caminho para a imagem da logo
+                    logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'logo_branco.png')
+                    
+                    # Anexar a imagem como uma incorporação
+                    if os.path.exists(logo_path):
+                        with open(logo_path, 'rb') as f:
+                            logo_data = f.read()
+                            logo_att = MIMEImage(logo_data)
+                            logo_att.add_header('Content-ID', '<logo_branco.png>')
+                            logo_att.add_header('Content-Disposition', 'inline', filename='logo_branco.png')
+                            msg.attach(logo_att)
+                            
+                    try:
+                        # Enviar o email
+                        msg.send()
+                    except BadHeaderError:
+                        messages.error(request, "Ocorreu um erro ao enviar o email. Por favor, tente novamente mais tarde.")
+                        return redirect("users:password_reset")
+                    except Exception as e:
+                        messages.error(request, f"Erro ao enviar email: {str(e)}. Por favor, tente novamente mais tarde.")
+                        return redirect("users:password_reset")
+                    
+            # Sempre redirecionamos para a página de sucesso, mesmo se o email não existir
+            # Isso evita que alguém descubra quais emails estão cadastrados
+            return redirect("users:password_reset_done")
+    else:
+        form = PasswordResetForm()
+    return render(request, "users/password_reset_form.html", {"form": form})
 
 @login_required
 def change_password(request):

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitação Recebida - {{ evento.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            padding: 10px 20px;
+            font-size: 12px;
+            text-align: center;
+            color: #666;
+            background-color: #eee;
+        }
+        .event-detail {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border-left: 3px solid #007bff;
+        }
+        .event-info {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        .event-label {
+            font-weight: bold;
+            color: #555;
+            width: 120px;
+        }
+        .event-value {
+            flex-grow: 1;
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border-left: 5px solid #007bff;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Solicitação Recebida</h2>
+    </div>
+    
+    <div class="content">
+        <p>Olá {{ evento.created_by.first_name }} {{ evento.created_by.last_name }},</p>
+        
+        <p>Sua solicitação para o evento <strong>"{{ evento.title }}"</strong> foi <span class="badge">RECEBIDA</span> com sucesso!</p>
+        
+        <div class="info-box">
+            <p><strong>O que acontece agora?</strong></p>
+            <p>Nossa equipe irá analisar sua solicitação e você receberá uma confirmação quando ela for aprovada.</p>
+            <p>O tempo médio de resposta é de até 24 horas em dias úteis.</p>
+        </div>
+        
+        <div class="event-detail">
+            <h3>Detalhes da solicitação:</h3>
+            <div class="event-info">
+                <div class="event-label">Tipo:</div>
+                <div class="event-value">{{ evento.get_event_type_display }}</div>
+            </div>
+            <div class="event-info">
+                <div class="event-label">Data de início:</div>
+                <div class="event-value">{{ evento.start_time|date:"d/m/Y H:i" }}</div>
+            </div>
+            <div class="event-info">
+                <div class="event-label">Data de término:</div>
+                <div class="event-value">{{ evento.end_time|date:"d/m/Y H:i" }}</div>
+            </div>
+            <div class="event-info">
+                <div class="event-label">Localização:</div>
+                <div class="event-value">FabLab IFMT</div>
+            </div>
+            <div class="event-info">
+                <div class="event-label">Status:</div>
+                <div class="event-value">Aguardando aprovação</div>
+            </div>
+        </div>
+        
+        <p>Para visualizar o status da sua solicitação, clique no botão abaixo:</p>
+        
+        <a href="http://localhost:8000/logs/agenda/" class="btn">Verificar Status</a>
+        
+        <p>Se você tiver alguma dúvida, entre em contato conosco respondendo a este email.</p>
+    </div>
+    
+    <div class="footer">
+        <p>Esta mensagem foi enviada automaticamente pelo sistema do FabLab IFMT.</p>
+        <p>© {% now "Y" %} FabLab IFMT. Todos os direitos reservados.</p>
+    </div>
+</body>
+</html>

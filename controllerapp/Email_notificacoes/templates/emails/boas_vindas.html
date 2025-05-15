@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bem-vindo(a) ao Sistema de Gestão do Laboratório</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            padding: 10px 20px;
+            font-size: 12px;
+            text-align: center;
+            color: #666;
+            background-color: #eee;
+        }
+        .info-section {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #fff;
+            border-left: 3px solid #28a745;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .welcome-message {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .data-label {
+            font-weight: bold;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Bem-vindo(a) ao Sistema de Gestão do Laboratório!</h2>
+    </div>
+    
+    <div class="content">
+        <p class="welcome-message">Olá {{ usuario.first_name }} {{ usuario.last_name }},</p>
+        
+        <p>Seu cadastro foi realizado com sucesso. Agora você pode acessar todas as funcionalidades disponíveis para o seu perfil.</p>
+        
+        <div class="info-section">
+            <h3>Seus dados de acesso:</h3>
+            <p><span class="data-label">Matrícula:</span> {{ usuario.id }}</p>
+            <p><span class="data-label">Email:</span> {{ usuario.email }}</p>
+        </div>
+        
+        <p>Para acessar o sistema, clique no botão abaixo:</p>
+        
+        <a href="http://localhost:8000/" class="btn">Acessar o Sistema</a>
+        
+        <div class="info-section" style="margin-top: 20px;">
+            <h3>O que você pode fazer no sistema:</h3>
+            <ul>
+                <li>Verificar a agenda de eventos do laboratório</li>
+                <li>Solicitar agendamentos de visitas e eventos</li>
+                <li>Explorar os serviços disponíveis</li>
+                <li>Acompanhar suas solicitações</li>
+                <li>E muito mais!</li>
+            </ul>
+        </div>
+        
+        <p>Em caso de dúvidas, entre em contato conosco através do email: <strong>fablab@ifmt.edu.br</strong></p>
+    </div>
+    
+    <div class="footer">
+        <p>Esta mensagem foi enviada automaticamente pelo sistema do FabLab IFMT.</p>
+        <p>© {% now "Y" %} FabLab IFMT. Todos os direitos reservados.</p>
+    </div>
+</body>
+</html>

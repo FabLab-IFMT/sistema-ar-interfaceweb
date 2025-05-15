@@ -12,6 +12,12 @@ def enviar_email_boas_vindas(usuario):
         usuario: O objeto usuário que acabou de se registrar
     """
     assunto = f'Bem-vindo(a) ao Sistema de Gestão do Laboratório, {usuario.first_name}!'
+    
+    # Criar conteúdo do email em HTML
+    contexto = {'usuario': usuario}
+    html_mensagem = render_to_string('emails/boas_vindas.html', contexto)
+    
+    # Texto simples para clientes de email que não suportam HTML
     mensagem = f"""
     Olá {usuario.first_name} {usuario.last_name},
     
@@ -38,7 +44,8 @@ def enviar_email_boas_vindas(usuario):
         assunto,
         mensagem,
         email_de,
-        email_para
+        email_para,
+        html_message=html_mensagem
     )
 
 def enviar_email_solicitacao_enviada(evento):
@@ -50,6 +57,12 @@ def enviar_email_solicitacao_enviada(evento):
     """
     usuario = evento.created_by
     assunto = f'Sua solicitação foi recebida - {evento.title}'
+    
+    # Criar conteúdo do email em HTML
+    contexto = {'evento': evento}
+    html_mensagem = render_to_string('emails/evento_solicitacao_recebida.html', contexto)
+    
+    # Texto simples para clientes de email que não suportam HTML
     mensagem = f"""
     Olá {usuario.first_name} {usuario.last_name},
     
@@ -73,7 +86,8 @@ def enviar_email_solicitacao_enviada(evento):
         assunto,
         mensagem,
         email_de,
-        email_para
+        email_para,
+        html_message=html_mensagem
     )
 
 def enviar_email_solicitacao_aprovada(evento):
@@ -85,6 +99,12 @@ def enviar_email_solicitacao_aprovada(evento):
     """
     usuario = evento.created_by
     assunto = f'Solicitação aprovada - {evento.title}'
+    
+    # Criar conteúdo do email em HTML
+    contexto = {'evento': evento}
+    html_mensagem = render_to_string('emails/evento_solicitacao_aprovada.html', contexto)
+    
+    # Texto simples para clientes de email que não suportam HTML
     mensagem = f"""
     Olá {usuario.first_name} {usuario.last_name},
     
@@ -108,7 +128,54 @@ def enviar_email_solicitacao_aprovada(evento):
         assunto,
         mensagem,
         email_de,
-        email_para
+        email_para,
+        html_message=html_mensagem
+    )
+
+def enviar_email_solicitacao_recusada(evento, motivo):
+    """
+    Envia um email notificando que a solicitação de evento/visita foi recusada.
+    
+    Args:
+        evento: O objeto Event que foi recusado
+        motivo: O motivo da recusa
+    """
+    usuario = evento.created_by
+    assunto = f'Solicitação recusada - {evento.title}'
+    
+    # Criar conteúdo do email em HTML
+    contexto = {'evento': evento, 'motivo': motivo}
+    html_mensagem = render_to_string('emails/evento_solicitacao_recusada.html', contexto)
+    
+    # Texto simples para clientes de email que não suportam HTML
+    mensagem = f"""
+    Olá {usuario.first_name} {usuario.last_name},
+    
+    Infelizmente sua solicitação para o evento "{evento.title}" foi recusada.
+    
+    Detalhes da solicitação:
+    - Tipo: {evento.get_event_type_display()}
+    - Data: {evento.start_time.strftime('%d/%m/%Y')}
+    - Horário: {evento.start_time.strftime('%H:%M')} - {evento.end_time.strftime('%H:%M')}
+    
+    Motivo da recusa:
+    {motivo}
+    
+    Se tiver dúvidas, entre em contato conosco para mais informações.
+    
+    Atenciosamente,
+    Equipe do Sistema de Gestão do Laboratório
+    """
+    
+    email_de = settings.DEFAULT_FROM_EMAIL
+    email_para = [usuario.email]
+    
+    return enviar_email_async(
+        assunto,
+        mensagem,
+        email_de,
+        email_para,
+        html_message=html_mensagem
     )
 
 def enviar_email_notificacao_interesse(solicitacao):

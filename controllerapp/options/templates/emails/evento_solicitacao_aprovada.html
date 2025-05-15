@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitação Aprovada - {{ evento.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            padding: 10px 20px;
+            font-size: 12px;
+            text-align: center;
+            color: #666;
+            background-color: #eee;
+        }
+        .event-detail {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border-left: 3px solid #28a745;
+        }
+        .event-info {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        .event-label {
+            font-weight: bold;
+            color: #555;
+            width: 120px;
+        }
+        .event-value {
+            flex-grow: 1;
+        }
+        .success-box {
+            background-color: #e8f5e9;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border-left: 5px solid #28a745;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Solicitação Aprovada!</h2>
+    </div>
+    
+    <div class="content">
+        <p>Olá {{ evento.created_by.first_name }} {{ evento.created_by.last_name }},</p>
+        
+        <p>Temos boas notícias! Sua solicitação para o evento <strong>"{{ evento.title }}"</strong> foi <span class="badge">APROVADA</span>.</p>
+        
+        <div class="success-box">
+            <p><strong>Seu evento está confirmado!</strong></p>
+            <p>Por favor, chegue com alguns minutos de antecedência para preparar o espaço.</p>
+        </div>
+        
+        <div class="event-detail">
+            <h3>Detalhes do evento:</h3>
+            <div class="event-info">
+                <div class="event-label">Tipo:</div>
+                <div class="event-value">{{ evento.get_event_type_display }}</div>
+            </div>
+            <div class="event-info">
+                <div class="event-label">Data de início:</div>
+                <div class="event-value">{{ evento.start_time|date:"d/m/Y H:i" }}</div>
+            </div>
+            <div class="event-info">
+                <div class="event-label">Data de término:</div>
+                <div class="event-value">{{ evento.end_time|date:"d/m/Y H:i" }}</div>
+            </div>
+            <div class="event-info">
+                <div class="event-label">Local:</div>
+                <div class="event-value">FabLab IFMT</div>
+            </div>
+        </div>
+        
+        <p>Para visualizar todos os detalhes do seu evento, clique no botão abaixo:</p>
+        
+        <a href="http://localhost:8000/logs/agenda/" class="btn">Ver Detalhes do Evento</a>
+        
+        <p>Se você tiver alguma dúvida ou precisar fazer alguma alteração, entre em contato conosco.</p>
+    </div>
+    
+    <div class="footer">
+        <p>Esta mensagem foi enviada automaticamente pelo sistema do FabLab IFMT.</p>
+        <p>© {% now "Y" %} FabLab IFMT. Todos os direitos reservados.</p>
+    </div>
+</body>
+</html>
