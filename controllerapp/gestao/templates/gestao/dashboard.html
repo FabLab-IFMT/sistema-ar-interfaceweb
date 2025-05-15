@@ -1,0 +1,199 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Dashboard de Gestão{% endblock %}
+
+{% block head %}
+<style>
+  .card-gestao {
+    transition: transform 0.3s ease;
+  }
+  
+  .card-gestao:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .icon-card {
+    font-size: 2.5rem;
+    color: #fff;
+    background-color: #007bff;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i> Dashboard de Gestão</h1>
+    
+    {% if user.is_superuser %}
+    <a href="{% url 'gestao:gerenciar_acessos' %}" class="btn btn-primary">
+      <i class="fas fa-users-cog me-1"></i> Gerenciar Acessos
+    </a>
+    {% endif %}
+  </div>
+  
+  <div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i> Bem-vindo à área de gestão. Aqui você encontra ferramentas administrativas avançadas.
+  </div>
+  
+  <div class="row mt-4">
+    <!-- Card de Métricas e Monitoramento -->
+    <div class="col-md-4 mb-4">
+      <div class="card card-gestao h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="icon-card mx-auto">
+            <i class="fas fa-chart-pie"></i>
+          </div>
+          <h5 class="card-title">Métricas & Monitoramento</h5>
+          <p class="card-text">Visualize estatísticas e acompanhe métricas detalhadas sobre o desempenho do laboratório.</p>
+          <a href="{% url 'gestao:monitoramento' %}" class="btn btn-outline-primary">Acessar Monitoramento</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Card de Configurações do Sistema -->
+    <div class="col-md-4 mb-4">
+      <div class="card card-gestao h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="icon-card mx-auto" style="background-color: #28a745;">
+            <i class="fas fa-cogs"></i>
+          </div>
+          <h5 class="card-title">Configurações do Sistema</h5>
+          <p class="card-text">Ajuste os parâmetros e configurações gerais do sistema de gestão do laboratório.</p>
+          <a href="{% url 'gestao:configuracoes' %}" class="btn btn-outline-success">Configurar</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Card de Monitoramento -->
+    <div class="col-md-4 mb-4">
+      <div class="card card-gestao h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="icon-card mx-auto" style="background-color: #dc3545;">
+            <i class="fas fa-heartbeat"></i>
+          </div>
+          <h5 class="card-title">Status em Tempo Real</h5>
+          <p class="card-text">Acompanhe o status atual de todos os equipamentos e serviços do FABLAB.</p>
+          <a href="#" class="btn btn-outline-danger">Monitorar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row mt-3">
+    <!-- Card de Integração -->
+    <div class="col-md-6 mb-4">
+      <div class="card card-gestao h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title"><i class="fas fa-plug me-2"></i>Integrações</h5>
+          <p class="card-text">Gerencie conexões com sistemas externos e APIs integradas ao FABLAB.</p>
+          <ul class="list-group list-group-flush mb-3">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Sistema Acadêmico
+              <span class="badge bg-success rounded-pill">Online</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              API de Notificações
+              <span class="badge bg-success rounded-pill">Online</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Sistema de Inventário
+              <span class="badge bg-success rounded-pill">Online</span>
+            </li>
+          </ul>
+          <a href="#" class="btn btn-sm btn-outline-primary">Configurar Integrações</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Card de Logs de Sistema -->
+    <div class="col-md-6 mb-4">
+      <div class="card card-gestao h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title"><i class="fas fa-file-alt me-2"></i>Logs do Sistema</h5>
+          <p class="card-text">Acesse os registros de atividades e eventos do sistema para solução de problemas.</p>
+          <div class="table-responsive">
+            <table class="table table-sm table-hover">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Nível</th>
+                  <th>Descrição</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{% now "d/m/y H:i" %}</td>
+                  <td><span class="badge bg-info">INFO</span></td>
+                  <td>Acesso ao dashboard de gestão</td>
+                </tr>
+                <tr>
+                  <td>{% now "d/m/y H:i" %}</td>
+                  <td><span class="badge bg-warning">WARNING</span></td>
+                  <td>Tentativa de acesso não autorizado</td>
+                </tr>
+                <tr>
+                  <td>{% now "d/m/y H:i" %}</td>
+                  <td><span class="badge bg-success">SUCCESS</span></td>
+                  <td>Backup do sistema realizado</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <a href="{% url 'logs:index' %}" class="btn btn-sm btn-outline-secondary">Ver Todos os Logs</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Seção de Links Rápidos -->
+  <div class="row mt-3">
+    <div class="col-12">
+      <div class="card card-gestao shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="fas fa-link me-2"></i>Links Rápidos</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            {% if user.is_superuser %}
+            <div class="col-md-3">
+              <a href="{% url 'gestao:gerenciar_acessos' %}" class="btn btn-light d-flex align-items-center justify-content-between w-100 p-3">
+                <span><i class="fas fa-users-cog me-2 text-primary"></i> Gerenciar Acessos</span>
+                <i class="fas fa-chevron-right text-muted"></i>
+              </a>
+            </div>
+            {% endif %}
+            <div class="col-md-3">
+              <a href="{% url 'gestao:monitoramento' %}" class="btn btn-light d-flex align-items-center justify-content-between w-100 p-3">
+                <span><i class="fas fa-chart-line me-2 text-success"></i> Monitoramento</span>
+                <i class="fas fa-chevron-right text-muted"></i>
+              </a>
+            </div>
+            <div class="col-md-3">
+              <a href="{% url 'logs:index' %}" class="btn btn-light d-flex align-items-center justify-content-between w-100 p-3">
+                <span><i class="fas fa-history me-2 text-info"></i> Logs do Sistema</span>
+                <i class="fas fa-chevron-right text-muted"></i>
+              </a>
+            </div>
+            <div class="col-md-3">
+              <a href="{% url 'admin:index' %}" class="btn btn-light d-flex align-items-center justify-content-between w-100 p-3">
+                <span><i class="fas fa-user-shield me-2 text-danger"></i> Admin Django</span>
+                <i class="fas fa-chevron-right text-muted"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

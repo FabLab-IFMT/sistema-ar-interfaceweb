@@ -325,15 +325,17 @@
             
             <!-- Menu de projetos -->
             <li class="nav-item project">
-              <a class="nav-link" {% if user.is_staff %}href="{% url 'projetos:lista' %}"{% endif %}>
-                <i class="fas fa-project-diagram me-1"></i> Projetos {% if not user.is_staff %}<i class="fas fa-lock ms-1 text-muted small"></i>{% endif %}
+              <a class="nav-link" href="{% url 'projetos:lista' %}">
+                <i class="fas fa-project-diagram me-1"></i> Projetos
               </a>
-              {% if user.is_staff %}
-              <ul class="dropdown-menu">
+              <ul class="drop-down">
                 <li><a class="nav-link" href="{% url 'projetos:lista' %}"><i class="fas fa-list me-2"></i>Lista de Projetos</a></li>
-                <!-- Outros links relacionados a projetos -->
+                {% if user.is_staff %}
+                <!-- Links adicionais apenas para staff -->
+                <li><a class="nav-link" href="#"><i class="fas fa-plus-circle me-2"></i>Adicionar Projeto</a></li>
+                <li><a class="nav-link" href="#"><i class="fas fa-tasks me-2"></i>Gerenciar Projetos</a></li>
+                {% endif %}
               </ul>
-              {% endif %}
             </li>
             
             <!-- Link de inventário (apenas para administradores) -->
@@ -390,6 +392,13 @@
                   <li>
                     <a class="dropdown-item" href="{% url 'canva:kanban' %}">
                       <i class="fas fa-tasks me-2"></i> Quadro Kanban
+                    </a>
+                  </li>
+                  {% endif %}
+                  {% if user.is_superuser or user.acesso_gestao.tem_acesso %}
+                  <li>
+                    <a class="dropdown-item" href="{% url 'gestao:dashboard' %}">
+                      <i class="fas fa-cogs me-2"></i> Área de Gestão
                     </a>
                   </li>
                   {% endif %}

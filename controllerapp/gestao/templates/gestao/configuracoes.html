@@ -1,0 +1,378 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Configurações do Sistema{% endblock %}
+
+{% block head %}
+<style>
+  .config-card {
+    transition: all 0.3s ease;
+    border-radius: 10px;
+  }
+  
+  .config-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  .category-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    color: white;
+    margin-right: 1rem;
+  }
+  
+  .config-item {
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    padding-left: 15px;
+  }
+  
+  .config-item:hover {
+    border-left-color: #007bff;
+    background-color: rgba(0, 123, 255, 0.05);
+  }
+  
+  .config-restricted {
+    background-color: rgba(255, 193, 7, 0.1);
+  }
+  
+  .config-description {
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+  
+  .nav-pills .nav-link {
+    border-radius: 0;
+    border-left: 3px solid transparent;
+  }
+  
+  .nav-pills .nav-link.active {
+    background-color: rgba(0, 123, 255, 0.1);
+    color: #0d6efd;
+    border-left: 3px solid #0d6efd;
+  }
+  
+  .config-form {
+    max-width: 600px;
+  }
+  
+  .config-meta {
+    font-size: 0.8rem;
+    color: #6c757d;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav aria-label="breadcrumb" class="my-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'gestao:dashboard' %}">Gestão</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Configurações do Sistema</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0"><i class="fas fa-cogs me-2"></i> Configurações do Sistema</h1>
+    <div>
+      <a href="{% url 'gestao:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+      </a>
+      {% if user.is_superuser %}
+      <button type="button" class="btn btn-primary ms-2" title="Adicionar nova configuração" data-bs-toggle="tooltip">
+        <i class="fas fa-plus-circle me-1"></i> Nova Configuração
+      </button>
+      {% endif %}
+    </div>
+  </div>
+  
+  <div class="alert alert-info mb-4">
+    <div class="d-flex">
+      <div class="me-3">
+        <i class="fas fa-info-circle fa-2x"></i>
+      </div>
+      <div>
+        <h5 class="alert-heading">Configurações do Sistema</h5>
+        <p class="mb-0">Ajuste os parâmetros de funcionamento do sistema conforme as necessidades da sua instituição. As alterações podem afetar o comportamento geral do sistema.</p>
+        {% if user.is_superuser %}
+        <p class="mb-0 mt-2"><span class="badge bg-warning"><i class="fas fa-lock me-1"></i> Restrita</span> indica configurações que apenas superusuários podem modificar.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  
+  {% if categorias %}
+  <div class="row">
+    <!-- Menu lateral de categorias -->
+    <div class="col-md-3 mb-4">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Categorias</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="nav flex-column nav-pills">
+            {% for categoria_code, categoria in categorias.items %}
+              <a class="nav-link {% if forloop.first %}active{% endif %}" 
+                 href="#categoria-{{ categoria_code }}" 
+                 data-bs-toggle="pill" 
+                 role="tab">
+                <i class="{% if categoria_code == 'geral' %}fas fa-sliders-h
+                           {% elif categoria_code == 'email' %}fas fa-envelope
+                           {% elif categoria_code == 'acesso' %}fas fa-lock
+                           {% elif categoria_code == 'visual' %}fas fa-paint-brush
+                           {% elif categoria_code == 'integracoes' %}fas fa-plug
+                           {% elif categoria_code == 'armazenamento' %}fas fa-database
+                           {% elif categoria_code == 'logs' %}fas fa-history
+                           {% elif categoria_code == 'agendamento' %}fas fa-calendar
+                           {% elif categoria_code == 'projetos' %}fas fa-project-diagram
+                           {% elif categoria_code == 'inventario' %}fas fa-boxes
+                           {% elif categoria_code == 'avancado' %}fas fa-code
+                           {% else %}fas fa-cog{% endif %} me-2"></i>
+                {{ categoria.nome }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Configurações -->
+    <div class="col-md-9">
+      <div class="tab-content">
+        {% for categoria_code, categoria in categorias.items %}
+          <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
+               id="categoria-{{ categoria_code }}" role="tabpanel">
+            
+            <div class="card mb-4 config-card">
+              <div class="card-header bg-white d-flex align-items-center">
+                <div class="category-icon bg-{% if categoria_code == 'geral' %}primary
+                                       {% elif categoria_code == 'email' %}info
+                                       {% elif categoria_code == 'acesso' %}danger
+                                       {% elif categoria_code == 'visual' %}success
+                                       {% elif categoria_code == 'integracoes' %}warning
+                                       {% elif categoria_code == 'armazenamento' %}secondary
+                                       {% elif categoria_code == 'logs' %}dark
+                                       {% elif categoria_code == 'agendamento' %}primary
+                                       {% elif categoria_code == 'projetos' %}success
+                                       {% elif categoria_code == 'inventario' %}info
+                                       {% elif categoria_code == 'avancado' %}danger
+                                       {% else %}primary{% endif %}">
+                  <i class="{% if categoria_code == 'geral' %}fas fa-sliders-h
+                           {% elif categoria_code == 'email' %}fas fa-envelope
+                           {% elif categoria_code == 'acesso' %}fas fa-lock
+                           {% elif categoria_code == 'visual' %}fas fa-paint-brush
+                           {% elif categoria_code == 'integracoes' %}fas fa-plug
+                           {% elif categoria_code == 'armazenamento' %}fas fa-database
+                           {% elif categoria_code == 'logs' %}fas fa-history
+                           {% elif categoria_code == 'agendamento' %}fas fa-calendar
+                           {% elif categoria_code == 'projetos' %}fas fa-project-diagram
+                           {% elif categoria_code == 'inventario' %}fas fa-boxes
+                           {% elif categoria_code == 'avancado' %}fas fa-code
+                           {% else %}fas fa-cog{% endif %}"></i>
+                </div>
+                <h5 class="mb-0">{{ categoria.nome }}</h5>
+              </div>
+              <div class="card-body">
+                <!-- Lista de configurações desta categoria -->
+                {% for config in categoria.configs %}
+                  <div class="config-item mb-4 p-3 rounded {% if config.restrito %}config-restricted{% endif %}">
+                    <form method="post" class="config-form" action="{% url 'gestao:configuracoes' %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="config_id" value="{{ config.id }}">
+                      
+                      <div class="mb-3">
+                        <label class="form-label fw-bold">
+                          {{ config.nome }}
+                          {% if config.restrito %}
+                            <span class="badge bg-warning ms-2" title="Apenas superusuários podem modificar" data-bs-toggle="tooltip">
+                              <i class="fas fa-lock me-1"></i> Restrita
+                            </span>
+                          {% endif %}
+                        </label>
+                        
+                        <p class="config-description mb-3">{{ config.descricao }}</p>
+                        
+                        <!-- Diferentes tipos de campo baseados no tipo de configuração -->
+                        {% if config.tipo == 'booleano' %}
+                          <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="valor" 
+                                  id="config-{{ config.id }}" 
+                                  {% if config.valor|lower == 'true' or config.valor == '1' %}checked{% endif %}
+                                  {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
+                            <label class="form-check-label" for="config-{{ config.id }}">Ativado</label>
+                          </div>
+                          
+                        {% elif config.tipo == 'texto' or config.tipo == 'url' or config.tipo == 'email' %}
+                          <input type="{% if config.tipo == 'email' %}email{% elif config.tipo == 'url' %}url{% else %}text{% endif %}" 
+                                class="form-control" 
+                                name="valor" 
+                                id="config-{{ config.id }}"
+                                value="{{ config.valor }}"
+                                {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
+                        
+                        {% elif config.tipo == 'numero' %}
+                          <input type="number" 
+                                class="form-control" 
+                                name="valor" 
+                                id="config-{{ config.id }}"
+                                value="{{ config.valor }}"
+                                {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
+                        
+                        {% elif config.tipo == 'cor' %}
+                          <input type="color" 
+                                class="form-control form-control-color" 
+                                name="valor" 
+                                id="config-{{ config.id }}"
+                                value="{{ config.valor }}"
+                                {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
+                        
+                        {% elif config.tipo == 'data' %}
+                          <input type="date" 
+                                class="form-control" 
+                                name="valor" 
+                                id="config-{{ config.id }}"
+                                value="{{ config.valor }}"
+                                {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
+                        
+                        {% elif config.tipo == 'hora' %}
+                          <input type="time" 
+                                class="form-control" 
+                                name="valor" 
+                                id="config-{{ config.id }}"
+                                value="{{ config.valor }}"
+                                {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
+                        
+                        {% elif config.tipo == 'senha' %}
+                          <input type="password" 
+                                class="form-control" 
+                                name="valor" 
+                                id="config-{{ config.id }}"
+                                value="{{ config.valor }}"
+                                {% if config.restrito and not user.is_superuser %}disabled{% endif %}>
+                        
+                        {% elif config.tipo == 'json' %}
+                          <textarea class="form-control" 
+                                   name="valor" 
+                                   id="config-{{ config.id }}"
+                                   rows="4"
+                                   {% if config.restrito and not user.is_superuser %}disabled{% endif %}>{{ config.valor }}</textarea>
+                        {% else %}
+                          <textarea class="form-control" 
+                                   name="valor" 
+                                   id="config-{{ config.id }}"
+                                   rows="3"
+                                   {% if config.restrito and not user.is_superuser %}disabled{% endif %}>{{ config.valor }}</textarea>
+                        {% endif %}
+                      </div>
+                      
+                      <div class="d-flex justify-content-between align-items-center">
+                        {% if not config.restrito or user.is_superuser %}
+                          <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Salvar
+                          </button>
+                        {% else %}
+                          <div></div>
+                        {% endif %}
+                        
+                        <div class="config-meta">
+                          Última modificação: 
+                          {% if config.modificado_por %}
+                            {{ config.ultima_modificacao|date:"d/m/Y H:i" }} por {{ config.modificado_por.username }}
+                          {% else %}
+                            Nunca modificado
+                          {% endif %}
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle me-2"></i> Não há configurações disponíveis. 
+    {% if user.is_superuser %}
+      Clique em "Nova Configuração" para adicionar as primeiras configurações ao sistema.
+    {% else %}
+      Entre em contato com um administrador para configurar o sistema.
+    {% endif %}
+  </div>
+  {% endif %}
+  
+  <!-- Exemplos de configurações -->
+  {% if not categorias and user.is_superuser %}
+  <div class="card mt-4">
+    <div class="card-header bg-white">
+      <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i> Sugestões de Configurações</h5>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-light">
+        <p class="mb-3">Você pode adicionar diversas configurações para personalizar o sistema:</p>
+        <ul class="list-group list-group-flush mb-3">
+          <li class="list-group-item"><strong>Nome da Instituição</strong> (geral) - Nome que aparece nos cabeçalhos do sistema</li>
+          <li class="list-group-item"><strong>Email para Contato</strong> (email) - Email exibido para contato</li>
+          <li class="list-group-item"><strong>Cor Primária</strong> (visual) - Cor principal do tema do sistema</li>
+          <li class="list-group-item"><strong>Período de Inatividade</strong> (acesso) - Minutos até encerrar sessão inativa</li>
+          <li class="list-group-item"><strong>Retenção de Logs</strong> (logs) - Dias que os logs ficam armazenados</li>
+          <li class="list-group-item"><strong>Manutenção Programada</strong> (avancado) - Data/hora da próxima manutenção</li>
+          <li class="list-group-item"><strong>SMTP Servidor</strong> (email) - Servidor para envio de emails</li>
+          <li class="list-group-item"><strong>Cadastro Automático</strong> (acesso) - Se novos usuários são aprovados automaticamente</li>
+          <li class="list-group-item"><strong>Localização do Laboratório</strong> (geral) - Endereço completo</li>
+          <li class="list-group-item"><strong>Horário de Funcionamento</strong> (geral) - Horários de funcionamento do laboratório</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Ativar tooltips do Bootstrap
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
+    // Tratar checkboxes de booleanos para submeter o valor correto
+    document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
+      checkbox.closest('form').addEventListener('submit', function() {
+        if (checkbox.disabled) return;
+        
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = checkbox.name;
+        hiddenInput.value = checkbox.checked ? 'true' : 'false';
+        this.appendChild(hiddenInput);
+        checkbox.disabled = true; // Desabilitar para não ser enviado
+      });
+    });
+    
+    // Validação para JSON
+    document.querySelectorAll('textarea').forEach(function(textarea) {
+      if (textarea.id.includes('json')) {
+        textarea.closest('form').addEventListener('submit', function(e) {
+          try {
+            JSON.parse(textarea.value);
+          } catch (error) {
+            e.preventDefault();
+            alert('O valor inserido não é um JSON válido. Por favor, corrija o formato.');
+          }
+        });
+      }
+    });
+  });
+</script>
+{% endblock %}

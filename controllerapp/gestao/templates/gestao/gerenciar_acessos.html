@@ -1,0 +1,129 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Gerenciar Acessos à Gestão{% endblock %}
+
+{% block head %}
+<style>
+  .access-user-card {
+    transition: all 0.3s ease;
+  }
+  
+  .access-user-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  .user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .search-box {
+    border-radius: 50px;
+    padding-left: 20px;
+    border: 1px solid #ced4da;
+  }
+  
+  .search-btn {
+    border-radius: 0 50px 50px 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav aria-label="breadcrumb" class="my-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'gestao:dashboard' %}">Gestão</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Gerenciar Acessos</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0"><i class="fas fa-users-cog me-2"></i> Gerenciar Acessos à Gestão</h1>
+    <a href="{% url 'gestao:dashboard' %}" class="btn btn-secondary">
+      <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+  </div>
+  
+  <div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle me-2"></i> Esta área permite que você gerencie quais usuários têm acesso ao módulo de Gestão. Apenas usuários com permissão específica poderão acessar as funcionalidades avançadas.
+  </div>
+  
+  <!-- Barra de pesquisa -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="get" class="d-flex">
+        <div class="input-group">
+          <input type="text" name="search" class="form-control search-box" placeholder="Buscar por nome, email ou usuário..." value="{{ termo_busca }}">
+          <button type="submit" class="btn btn-primary search-btn">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Lista de usuários -->
+  <div class="row">
+    {% for user in users %}
+    <div class="col-md-6 col-lg-4 mb-3">
+      <div class="card access-user-card">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="user-avatar bg-primary me-3">
+              {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+            </div>
+            <div>
+              <h5 class="card-title mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
+              <p class="text-muted mb-0">@{{ user.username }}</p>
+            </div>
+          </div>
+          
+          <p class="card-text">
+            <i class="fas fa-envelope me-2 text-muted"></i>{{ user.email }}
+          </p>
+          
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-muted">Status de acesso:</small>
+              {% if user.acesso_gestao.tem_acesso %}
+                <span class="badge bg-success ms-2">Acesso Permitido</span>
+              {% else %}
+                <span class="badge bg-secondary ms-2">Sem Acesso</span>
+              {% endif %}
+            </div>
+            
+            <form method="post" action="{% url 'gestao:toggle_acesso' user.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm {% if user.acesso_gestao.tem_acesso %}btn-danger{% else %}btn-success{% endif %}">
+                {% if user.acesso_gestao.tem_acesso %}
+                  <i class="fas fa-lock me-1"></i> Revogar
+                {% else %}
+                  <i class="fas fa-unlock me-1"></i> Conceder
+                {% endif %}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i> Nenhum usuário encontrado com os critérios de busca.
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
