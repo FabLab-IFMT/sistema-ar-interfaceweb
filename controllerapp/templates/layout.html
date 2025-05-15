@@ -330,11 +330,6 @@
               </a>
               <ul class="drop-down">
                 <li><a class="nav-link" href="{% url 'projetos:lista' %}"><i class="fas fa-list me-2"></i>Lista de Projetos</a></li>
-                {% if user.is_staff %}
-                <!-- Links adicionais apenas para staff -->
-                <li><a class="nav-link" href="#"><i class="fas fa-plus-circle me-2"></i>Adicionar Projeto</a></li>
-                <li><a class="nav-link" href="#"><i class="fas fa-tasks me-2"></i>Gerenciar Projetos</a></li>
-                {% endif %}
               </ul>
             </li>
             
