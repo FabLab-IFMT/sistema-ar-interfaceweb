@@ -39,6 +39,8 @@
             color: #555;
         }
     </style>
+    <!-- Adicionar jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -86,7 +88,15 @@
                         {% endif %}
                         
                         <div class="form-group">
-                            <label for="{{ form.motivo.id_for_label }}">{{ form.motivo.label }}</label>
+                            <label for="{{ form.motivo_comum.id_for_label }}">{{ form.motivo_comum.label }}</label>
+                            {{ form.motivo_comum }}
+                            {% if form.motivo_comum.help_text %}
+                                <div class="form-help-text">{{ form.motivo_comum.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mt-3">
+                            <label for="{{ form.motivo.id_for_label }}">{{ form.motivo.label }} <span class="text-danger">*</span></label>
                             {{ form.motivo }}
                             {% if form.motivo.help_text %}
                                 <div class="form-help-text">{{ form.motivo.help_text }}</div>
@@ -115,4 +125,31 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // Objeto com os textos detalhados para cada motivo comum
+        const motivosDetalhados = {
+            'data_indisponivel': 'Lamentamos informar que a data e horário solicitados já estão ocupados com outro evento/visita agendada anteriormente. Por favor, verifique outras datas disponíveis em nosso calendário e faça uma nova solicitação.',
+            'fora_horario': 'A solicitação não pôde ser atendida pois o horário solicitado está fora do período de funcionamento do laboratório (segunda a sexta, das 08:00 às 18:00). Pedimos que faça uma nova solicitação dentro do horário de atendimento.',
+            'lotacao_maxima': 'O número de visitantes informado excede a nossa capacidade máxima de atendimento, que é de 20 pessoas por visita. Por favor, reduza o número de visitantes ou divida a visita em grupos menores em datas diferentes.',
+            'manutencao': 'Infelizmente, o laboratório estará em período de manutenção/fechado na data solicitada. Solicitamos que verifique o calendário e faça um novo agendamento em outra data.',
+            'falta_detalhes': 'A solicitação não apresenta detalhes suficientes para que possamos avaliar adequadamente o pedido. Por favor, faça uma nova solicitação informando claramente o objetivo da visita e demais detalhes relevantes.'
+        };
+        
+        // Função para preencher o campo de detalhamento quando um motivo comum é selecionado
+        $('#id_motivo_comum').change(function() {
+            const motivoSelecionado = $(this).val();
+            
+            if (motivoSelecionado && motivoSelecionado !== 'outro') {
+                $('#id_motivo_detalhado').val(motivosDetalhados[motivoSelecionado]);
+            } else if (motivoSelecionado === 'outro') {
+                $('#id_motivo_detalhado').val('');
+                $('#id_motivo_detalhado').focus();
+            }
+        });
+    });
+</script>
 {% endblock %}

@@ -135,8 +135,36 @@ class EventRejectForm(forms.Form):
     """
     Formulário para coletar o motivo da recusa de uma solicitação de evento/visita.
     """
-    motivo = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
-        label='Motivo da Recusa',
-        help_text='Explique por que a solicitação está sendo recusada. Esta informação será enviada por email ao solicitante.'
+    MOTIVOS_COMUNS = [
+        ('', '-- Selecione um motivo comum ou digite outro abaixo --'),
+        ('data_indisponivel', 'A data/horário solicitado já está reservada para outro evento'),
+        ('fora_horario', 'A solicitação está fora do horário de funcionamento do laboratório'),
+        ('lotacao_maxima', 'O número de visitantes excede nossa capacidade máxima'),
+        ('manutencao', 'O laboratório estará em manutenção na data solicitada'),
+        ('falta_detalhes', 'A solicitação não contém detalhes suficientes para avaliação'),
+        ('outro', 'Outro motivo (especifique abaixo)')
+    ]
+    
+    motivo_comum = forms.ChoiceField(
+        choices=MOTIVOS_COMUNS,
+        required=False,
+        label='Motivos Comuns',
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_motivo_comum'}),
+        help_text='Selecione um motivo comum ou escreva um personalizado abaixo'
     )
+    
+    motivo = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control', 'id': 'id_motivo_detalhado'}),
+        label='Detalhamento do Motivo',
+        help_text='Esta informação será enviada por email ao solicitante. Seja claro e cordial.'
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        motivo = cleaned_data.get('motivo')
+        
+        # Validar se o motivo foi preenchido
+        if not motivo or motivo.strip() == '':
+            self.add_error('motivo', 'Por favor, forneça um motivo para a recusa da solicitação.')
+            
+        return cleaned_data
