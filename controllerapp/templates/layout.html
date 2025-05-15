@@ -1,5 +1,16 @@
 {% load static %}
 <!DOCTYPE html>
+  <!-- 
+    #     #   #####    #####  
+    #     #  #     #  #     # 
+    #     #  #        #       
+    #######   #####   #       
+    #     #        #  #       
+    #     #  #     #  #     # 
+    #     #   #####    #####  
+    
+    Feito por Henrique Severino da Cunha
+  -->
 <html lang="pt-br" class="h-100">
   <head>
     <meta charset="UTF-8">
@@ -284,7 +295,7 @@
                 {% if user.is_staff %}
                 <li><a class="nav-link" href="{% url 'logs:request_visit' %}"><i class="fas fa-users me-2"></i>Visitas</a></li>
                 {% endif %}
-                <li><a class="nav-link" href="{% url 'logs:agenda_home' %}"><i class="fas fa-calendar-alt me-2"></i>Reservas</a></li>
+                <li><a class="nav-link" href="{% url 'logs:agenda_home' %}"><i class="fas fa-calendar-alt me-2"></i>Agendamentos</a></li>
                 <li><a class="nav-link" href="{% url 'options:membros' %}"><i class="fas fa-id-badge me-2"></i>Membros</a></li>
               </ul>
             </li>
@@ -541,11 +552,11 @@
           <div class="col-lg-2 col-md-6 mb-4 mb-md-0 footer-links">
             <h5>Serviços</h5>
             <ul class="list-unstyled">
-              <li><a href="#" class="d-block"><i class="fas fa-chevron-right me-2"></i>Impressão 3D</a></li>
-              <li><a href="#" class="d-block"><i class="fas fa-chevron-right me-2"></i>Corte a Laser</a></li>
-              <li><a href="#" class="d-block"><i class="fas fa-chevron-right me-2"></i>Prototipagem</a></li>
-              <li><a href="#" class="d-block"><i class="fas fa-chevron-right me-2"></i>Capacitação</a></li>
-              <li><a href="#" class="d-block"><i class="fas fa-chevron-right me-2"></i>Consultoria</a></li>
+              <li><a href="{% url 'options:servicos' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Impressão 3D</a></li>
+              <li><a href="{% url 'options:servicos' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Corte a Laser</a></li>
+              <li><a href="{% url 'options:servicos' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Prototipagem</a></li>
+              <li><a href="{% url 'options:servicos' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Capacitação</a></li>
+              <li><a href="{% url 'options:servicos' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Consultoria</a></li>
             </ul>
           </div>
           
@@ -567,7 +578,7 @@
               </li>
               <li>
                 <i class="fas fa-clock"></i>
-                <span>Segunda à Sexta: 8:00 - 18:00</span>
+                <span>Segunda à Sexta: 08:00 às 18:00</span>
               </li>
             </ul>
           </div>

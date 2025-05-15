@@ -7,6 +7,8 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from .models import Material, Membro, CategoriaServico, Servico, SolicitacaoInteresse, Noticia, Hashtag
 from .forms import SolicitacaoInteresseForm
+# Importar o modelo LabSchedule para obter os horários de funcionamento
+from logs.models import LabSchedule
 
 # Importar a função de envio de email do app Email_notificacoes
 from Email_notificacoes.models import enviar_email_notificacao_interesse
@@ -40,11 +42,15 @@ def servicos(request):
     page = request.GET.get('page')
     servicos = paginator.get_page(page)
     
+    # Obter horários de funcionamento do laboratório
+    horarios_funcionamento = LabSchedule.objects.all().order_by('day_of_week')
+    
     context = {
         'categorias': categorias,
         'servicos': servicos,
         'servicos_destaque': servicos_destaque,
-        'categoria_selecionada': categoria_selecionada
+        'categoria_selecionada': categoria_selecionada,
+        'horarios_funcionamento': horarios_funcionamento
     }
     return render(request, 'servicos.html', context)
 
@@ -157,3 +163,46 @@ def noticia_detalhe(request, slug):
         'noticias_relacionadas': noticias_relacionadas,
         'hashtags': todas_hashtags,
     })
+
+@login_required
+def editar_servico(request, servico_id):
+    """View para editar informações de um serviço por superusers."""
+    
+    # Verificar se o usuário é um superuser
+    if not request.user.is_superuser:
+        messages.error(request, "Você não tem permissão para editar serviços.")
+        return redirect('options:servicos')
+    
+    servico = get_object_or_404(Servico, id=servico_id)
+    
+    if request.method == 'POST':
+        campo = request.POST.get('campo')
+        
+        # Validar campo e conteúdo
+        campos_permitidos = ['descricao', 'como_utilizar', 'aplicacoes', 'especificacoes']
+        
+        if campo in campos_permitidos:
+            if campo in ['como_utilizar', 'aplicacoes']:
+                # Para campos que usam listas de itens
+                itens = request.POST.getlist('itens[]')
+                if itens:
+                    # Converter a lista de itens para texto com quebras de linha
+                    conteudo = '\n'.join(itens)
+                    setattr(servico, campo, conteudo)
+                    servico.save()
+                    messages.success(request, f"A lista de '{campo}' foi atualizada com sucesso!")
+                else:
+                    messages.error(request, "Nenhum item foi recebido.")
+            else:
+                # Para campos de texto normal
+                conteudo = request.POST.get('conteudo')
+                if conteudo is not None:
+                    setattr(servico, campo, conteudo)
+                    servico.save()
+                    messages.success(request, f"O campo '{campo}' foi atualizado com sucesso!")
+                else:
+                    messages.error(request, "Conteúdo vazio.")
+        else:
+            messages.error(request, "Campo inválido.")
+    
+    return redirect('options:detalhe_servico', servico_id=servico.id)
