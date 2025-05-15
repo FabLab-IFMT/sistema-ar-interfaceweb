@@ -1,7 +1,8 @@
 {% extends 'layout.html' %}
 {% load static %}
+{% load service_filters %}
 
-{% block title %}{{ servico.nome }} - Capacidade FABLAB{% endblock %}
+{% block title %}{{ servico.nome }} - Serviço FABLAB{% endblock %}
 
 {% block head %}
 <style>
@@ -143,7 +144,7 @@
       <div class="col-lg-8">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'options:servicos' %}" class="text-white">Capacidades</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'options:servicos' %}" class="text-white">Serviços</a></li>
             <li class="breadcrumb-item"><a href="{% url 'options:servicos' %}?categoria={{ servico.categoria.id }}" class="text-white">{{ servico.categoria.nome }}</a></li>
             <li class="breadcrumb-item active text-white" aria-current="page">{{ servico.nome }}</li>
           </ol>
@@ -164,7 +165,14 @@
       <!-- Description -->
       <div class="card service-detail-card mb-4">
         <div class="card-body">
-          <h2 class="mb-4">Sobre esta Capacidade</h2>
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-3">Sobre este Serviço</h2>
+            {% if user.is_superuser %}
+              <a href="#" class="btn btn-sm btn-outline-primary editar-servico" data-bs-toggle="modal" data-bs-target="#editarDescricaoModal">
+                <i class="fas fa-edit"></i> Editar
+              </a>
+            {% endif %}
+          </div>
           <div class="mb-4">
             {{ servico.descricao|linebreaks }}
           </div>
@@ -174,47 +182,82 @@
       <!-- Process -->
       <div class="card service-detail-card mb-4">
         <div class="card-body">
-          <h2 class="mb-4">Como Utilizar</h2>
-          <div class="timeline">
-            <div class="timeline-item">
-              <h5>1. Explore a Capacidade</h5>
-              <p>Conheça detalhes sobre o equipamento ou tecnologia disponível.</p>
-            </div>
-            <div class="timeline-item">
-              <h5>2. Demonstre Interesse</h5>
-              <p>Preencha o formulário para que possamos entender seu projeto.</p>
-            </div>
-            <div class="timeline-item">
-              <h5>3. Consultoria Inicial</h5>
-              <p>Nossa equipe analisará seu projeto e agendará uma consultoria.</p>
-            </div>
-            <div class="timeline-item">
-              <h5>4. Treinamento</h5>
-              <p>Participe de um treinamento específico para o uso do equipamento.</p>
-            </div>
-            <div class="timeline-item">
-              <h5>5. Agendamento</h5>
-              <p>Agende um horário para utilizar o laboratório com supervisão.</p>
-            </div>
-            <div class="timeline-item">
-              <h5>6. Execução</h5>
-              <p>Utilize o equipamento para desenvolver seu projeto com suporte técnico.</p>
-            </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-3">Como Utilizar</h2>
+            {% if user.is_superuser %}
+              <a href="#" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarComoUtilizarModal">
+                <i class="fas fa-edit"></i> Editar
+              </a>
+            {% endif %}
           </div>
+          
+          {% if servico.get_como_utilizar_list %}
+            <div class="timeline">
+              {% for item in servico.get_como_utilizar_list %}
+                <div class="timeline-item">
+                  <h5>{{ forloop.counter }}. {{ item|split_first_sentence }}</h5>
+                  <p>{{ item|remove_first_sentence }}</p>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="timeline">
+              <div class="timeline-item">
+                <h5>1. Explore o Serviço</h5>
+                <p>Conheça detalhes sobre o equipamento ou tecnologia disponível.</p>
+              </div>
+              <div class="timeline-item">
+                <h5>2. Demonstre Interesse</h5>
+                <p>Preencha o formulário para que possamos entender seu projeto.</p>
+              </div>
+              <div class="timeline-item">
+                <h5>3. Consultoria Inicial</h5>
+                <p>Nossa equipe analisará seu projeto e agendará uma consultoria.</p>
+              </div>
+              <div class="timeline-item">
+                <h5>4. Treinamento</h5>
+                <p>Participe de um treinamento específico para o uso do equipamento.</p>
+              </div>
+              <div class="timeline-item">
+                <h5>5. Agendamento</h5>
+                <p>Agende um horário para utilizar o laboratório com supervisão.</p>
+              </div>
+              <div class="timeline-item">
+                <h5>6. Execução</h5>
+                <p>Utilize o equipamento para desenvolver seu projeto com suporte técnico.</p>
+              </div>
+            </div>
+          {% endif %}
         </div>
       </div>
       
       <!-- Possible Applications -->
       <div class="card service-detail-card mb-4">
         <div class="card-body">
-          <h2 class="mb-4">Aplicações Possíveis</h2>
-          <ul class="capabilities-list">
-            <li>Prototipagem rápida de componentes e produtos</li>
-            <li>Desenvolvimento de projetos acadêmicos e de pesquisa</li>
-            <li>Criação de modelos de demonstração e apresentação</li>
-            <li>Projetos de extensão e comunitários</li>
-            <li>Desenvolvimento de soluções para problemas locais</li>
-          </ul>
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-3">Aplicações Possíveis</h2>
+            {% if user.is_superuser %}
+              <a href="#" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarAplicacoesModal">
+                <i class="fas fa-edit"></i> Editar
+              </a>
+            {% endif %}
+          </div>
+          
+          {% if servico.get_aplicacoes_list %}
+            <ul class="capabilities-list">
+              {% for item in servico.get_aplicacoes_list %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <ul class="capabilities-list">
+              <li>Prototipagem rápida de componentes e produtos</li>
+              <li>Desenvolvimento de projetos acadêmicos e de pesquisa</li>
+              <li>Criação de modelos de demonstração e apresentação</li>
+              <li>Projetos de extensão e comunitários</li>
+              <li>Desenvolvimento de soluções para problemas locais</li>
+            </ul>
+          {% endif %}
         </div>
       </div>
       
@@ -314,7 +357,7 @@
     <!-- Sidebar -->
     <div class="col-lg-4">
       <!-- Info Card -->
-      <div class="card service-detail-card sticky-top mb-4" style="top: 2rem; z-index: 999;">
+      <div class="card service-detail-card sticky-top mb-4" style="top: 2rem; z-index: 999; position: sticky;">
         <div class="card-body">
           <h3>Informações</h3>
           <hr>
@@ -343,13 +386,27 @@
       <!-- Equipment Specifications -->
       <div class="card service-detail-card mb-4">
         <div class="card-body">
-          <h3 class="mb-3">Especificações Técnicas</h3>
-          <ul class="specs-list">
-            <li>Disponível para projetos acadêmicos</li>
-            <li>Suporte técnico durante utilização</li>
-            <li>Materiais básicos disponíveis</li>
-            <li>Uso supervisionado para iniciantes</li>
-          </ul>
+          <div class="d-flex justify-content-between align-items-center">
+            <h3 class="mb-3">Especificações Técnicas</h3>
+            {% if user.is_superuser %}
+              <a href="#" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarEspecificacoesModal">
+                <i class="fas fa-edit"></i> Editar
+              </a>
+            {% endif %}
+          </div>
+          
+          {% if servico.especificacoes %}
+            <div class="mb-4">
+              {{ servico.especificacoes|linebreaks }}
+            </div>
+          {% else %}
+            <ul class="specs-list">
+              <li>Disponível para projetos acadêmicos</li>
+              <li>Suporte técnico durante utilização</li>
+              <li>Materiais básicos disponíveis</li>
+              <li>Uso supervisionado para iniciantes</li>
+            </ul>
+          {% endif %}
         </div>
       </div>
       
@@ -357,7 +414,7 @@
       {% if servicos_relacionados %}
       <div class="card service-detail-card mb-4">
         <div class="card-body">
-          <h3 class="mb-3">Capacidades Relacionadas</h3>
+          <h3 class="mb-3">Serviços Relacionados</h3>
           <div class="list-group">
             {% for sr in servicos_relacionados %}
             <a href="{% url 'options:detalhe_servico' sr.id %}" class="list-group-item list-group-item-action">
@@ -383,7 +440,7 @@
       <div class="card service-detail-card">
         <div class="card-body">
           <h3 class="mb-3">Precisa de ajuda?</h3>
-          <p>Entre em contato com nossa equipe para mais informações sobre esta capacidade.</p>
+          <p>Entre em contato com nossa equipe para mais informações sobre este serviço.</p>
           <div class="d-grid gap-2">
             <a href="mailto:fablab@ifmt.edu.br" class="btn btn-outline-primary">
               <i class="fas fa-envelope me-2"></i>fablab@ifmt.edu.br
@@ -394,4 +451,250 @@
     </div>
   </div>
 </section>
+
+{% if user.is_superuser %}
+<!-- Modais de edição para superusers -->
+<!-- Modal de edição da descrição -->
+<div class="modal fade" id="editarDescricaoModal" tabindex="-1" aria-labelledby="editarDescricaoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editarDescricaoModalLabel">Editar Descrição do Serviço</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'options:editar_servico' servico.id %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <input type="hidden" name="campo" value="descricao">
+          <div class="mb-3">
+            <label for="conteudo" class="form-label">Descrição do Serviço</label>
+            <textarea class="form-control" id="conteudo" name="conteudo" rows="10">{{ servico.descricao }}</textarea>
+            <div class="form-text">Use parágrafos para uma melhor formatação do texto.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de edição do Como Utilizar -->
+<div class="modal fade" id="editarComoUtilizarModal" tabindex="-1" aria-labelledby="editarComoUtilizarModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editarComoUtilizarModalLabel">Editar Como Utilizar</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'options:editar_servico' servico.id %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <input type="hidden" name="campo" value="como_utilizar">
+          
+          <div class="mb-3">
+            <label class="form-label">Passos de Como Utilizar</label>
+            <div id="como-utilizar-container">
+              {% if servico.get_como_utilizar_list %}
+                {% for item in servico.get_como_utilizar_list %}
+                  <div class="input-group mb-2 item-input">
+                    <span class="input-group-text">{{ forloop.counter }}</span>
+                    <input type="text" class="form-control" name="itens[]" value="{{ item }}" required>
+                    <button type="button" class="btn btn-danger remover-item"><i class="fas fa-times"></i></button>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="input-group mb-2 item-input">
+                  <span class="input-group-text">1</span>
+                  <input type="text" class="form-control" name="itens[]" placeholder="Passo 1" required>
+                  <button type="button" class="btn btn-danger remover-item"><i class="fas fa-times"></i></button>
+                </div>
+              {% endif %}
+            </div>
+            
+            <div class="d-grid mt-2">
+              <button type="button" id="adicionar-como-utilizar" class="btn btn-sm btn-success">
+                <i class="fas fa-plus"></i> Adicionar Novo Passo
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de edição das Aplicações Possíveis -->
+<div class="modal fade" id="editarAplicacoesModal" tabindex="-1" aria-labelledby="editarAplicacoesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editarAplicacoesModalLabel">Editar Aplicações Possíveis</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'options:editar_servico' servico.id %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <input type="hidden" name="campo" value="aplicacoes">
+          
+          <div class="mb-3">
+            <label class="form-label">Aplicações Possíveis</label>
+            <div id="aplicacoes-container">
+              {% if servico.get_aplicacoes_list %}
+                {% for item in servico.get_aplicacoes_list %}
+                  <div class="input-group mb-2 item-input">
+                    <input type="text" class="form-control" name="itens[]" value="{{ item }}" required>
+                    <button type="button" class="btn btn-danger remover-item"><i class="fas fa-times"></i></button>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="input-group mb-2 item-input">
+                  <input type="text" class="form-control" name="itens[]" placeholder="Aplicação" required>
+                  <button type="button" class="btn btn-danger remover-item"><i class="fas fa-times"></i></button>
+                </div>
+              {% endif %}
+            </div>
+            
+            <div class="d-grid mt-2">
+              <button type="button" id="adicionar-aplicacao" class="btn btn-sm btn-success">
+                <i class="fas fa-plus"></i> Adicionar Nova Aplicação
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de edição das Especificações Técnicas -->
+<div class="modal fade" id="editarEspecificacoesModal" tabindex="-1" aria-labelledby="editarEspecificacoesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editarEspecificacoesModalLabel">Editar Especificações Técnicas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'options:editar_servico' servico.id %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <input type="hidden" name="campo" value="especificacoes">
+          <div class="mb-3">
+            <label for="conteudo" class="form-label">Especificações Técnicas</label>
+            <textarea class="form-control" id="conteudo" name="conteudo" rows="10">{{ servico.especificacoes }}</textarea>
+            <div class="form-text">Descreva as especificações técnicas, requisitos e características do serviço/equipamento.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Ajuste para melhorar o menu de informações no mobile
+    const infoCard = document.querySelector('.sticky-top');
+    if (infoCard) {
+      window.addEventListener('scroll', function() {
+        const windowWidth = window.innerWidth;
+        if (windowWidth < 992) {  // Bootstrap lg breakpoint
+          infoCard.style.position = 'static';
+        } else {
+          infoCard.style.position = 'sticky';
+        }
+      });
+    }
+    
+    // Funcionalidade para adicionar novos passos em "Como utilizar"
+    const adicionarComoUtilizarBtn = document.getElementById('adicionar-como-utilizar');
+    if (adicionarComoUtilizarBtn) {
+      adicionarComoUtilizarBtn.addEventListener('click', function() {
+        const container = document.getElementById('como-utilizar-container');
+        const itemCount = container.getElementsByClassName('item-input').length + 1;
+        
+        const novoItem = document.createElement('div');
+        novoItem.className = 'input-group mb-2 item-input';
+        novoItem.innerHTML = `
+          <span class="input-group-text">${itemCount}</span>
+          <input type="text" class="form-control" name="itens[]" placeholder="Passo ${itemCount}" required>
+          <button type="button" class="btn btn-danger remover-item"><i class="fas fa-times"></i></button>
+        `;
+        
+        container.appendChild(novoItem);
+        atualizarBotoesRemover();
+      });
+    }
+    
+    // Funcionalidade para adicionar novas aplicações
+    const adicionarAplicacaoBtn = document.getElementById('adicionar-aplicacao');
+    if (adicionarAplicacaoBtn) {
+      adicionarAplicacaoBtn.addEventListener('click', function() {
+        const container = document.getElementById('aplicacoes-container');
+        
+        const novoItem = document.createElement('div');
+        novoItem.className = 'input-group mb-2 item-input';
+        novoItem.innerHTML = `
+          <input type="text" class="form-control" name="itens[]" placeholder="Aplicação" required>
+          <button type="button" class="btn btn-danger remover-item"><i class="fas fa-times"></i></button>
+        `;
+        
+        container.appendChild(novoItem);
+        atualizarBotoesRemover();
+      });
+    }
+    
+    // Função para atualizar numeração dos passos e botões de remover
+    function atualizarBotoesRemover() {
+      const botoesRemover = document.querySelectorAll('.remover-item');
+      
+      botoesRemover.forEach(function(botao) {
+        botao.addEventListener('click', function() {
+          const itemInput = this.closest('.item-input');
+          const container = itemInput.parentElement;
+          itemInput.remove();
+          
+          // Atualiza a numeração para os passos de "Como Utilizar"
+          if (container.id === 'como-utilizar-container') {
+            const passos = container.querySelectorAll('.item-input');
+            passos.forEach(function(passo, index) {
+              passo.querySelector('.input-group-text').textContent = index + 1;
+            });
+          }
+        });
+      });
+      
+      // Se há apenas um item, não permitir remover
+      document.querySelectorAll('#como-utilizar-container, #aplicacoes-container').forEach(function(container) {
+        const itens = container.querySelectorAll('.item-input');
+        if (itens.length === 1) {
+          itens[0].querySelector('.remover-item').style.display = 'none';
+        } else {
+          itens.forEach(function(item) {
+            item.querySelector('.remover-item').style.display = 'block';
+          });
+        }
+      });
+    }
+    
+    // Inicializar os botões de remover
+    atualizarBotoesRemover();
+  });
+</script>
 {% endblock %}

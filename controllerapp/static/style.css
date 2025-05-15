@@ -26,6 +26,105 @@ main {
     flex: 1;
 }
 
+/* Estilos para a página de detalhes de serviço */
+.service-detail-card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+    margin-bottom: 1.5rem;
+}
+
+.service-detail-card:hover {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+}
+
+/* Estilos para a timeline de Como Utilizar */
+.timeline {
+    position: relative;
+    padding-left: 20px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-item:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 16px;
+    height: 16px;
+    background-color: #0d6efd;
+    border-radius: 50%;
+}
+
+.timeline-item:not(:last-child):after {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 24px;
+    height: calc(100% - 16px);
+    border-left: 2px solid #dee2e6;
+}
+
+.timeline-item h5 {
+    color: #343a40;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-item p {
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+/* Estilos para a lista de Aplicações Possíveis */
+.capabilities-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.capabilities-list li {
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.capabilities-list li:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 5px;
+    height: 100%;
+    max-height: 15px;
+    background-color: #0d6efd;
+    border-radius: 3px;
+}
+
+/* Estilos para os modais de edição */
+.item-input {
+    margin-bottom: 10px;
+}
+
+.item-input .input-group-text {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.remover-item {
+    transition: all 0.2s;
+}
+
+.remover-item:hover {
+    opacity: 0.8;
+}
+
 /* ...existing code... */
 .toast {
     opacity: 0; /* Começa invisível */
