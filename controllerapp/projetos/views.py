@@ -325,7 +325,7 @@ def todo_list(request):
         'direction': direction
     }
     
-    return render(request, 'projetos/todo_list.html', context)
+    return render(request, 'projetos/todo_list_simplified.html', context)
 
 @login_required
 def add_task(request):
@@ -395,11 +395,38 @@ def add_task(request):
 @login_required
 def update_task(request, task_id):
     """Atualiza uma tarefa existente"""
-    task = get_object_or_404(TodoTask, id=task_id, usuario=request.user)
+    # Obtemos a tarefa primeiro para verificar permissões
+    task = get_object_or_404(TodoTask, id=task_id)
     
-    # Verificar se é uma requisição AJAX para toggle de conclusão
+    # Verificar se a tarefa pertence a um grupo
+    if task.grupo:
+        # Se é tarefa de grupo, verificar se o usuário é membro desse grupo
+        is_group_member = request.user in task.grupo.membros.all()
+        is_task_owner = task.usuario == request.user
+        
+        # Verificar se é uma requisição AJAX para toggle de conclusão - isso qualquer membro pode fazer
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and request.method == 'POST':
+            if is_group_member or is_task_owner or request.user.is_superuser:
+                concluida = request.POST.get('concluida') in ['true', 'on']
+                task.concluida = concluida
+                task.save()
+                return JsonResponse({'status': 'success', 'concluida': task.concluida})
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Sem permissão'}, status=403)
+        
+        # Para edições completas, apenas superusuários podem editar tarefas de grupo
+        elif not request.user.is_superuser:
+            messages.error(request, 'Apenas administradores podem editar detalhes das tarefas de grupo')
+            return redirect('projetos:todo_list')
+    else:
+        # Se não é tarefa de grupo, verificar permissão normal - apenas o proprietário ou superuser
+        if task.usuario != request.user and not request.user.is_superuser:
+            messages.error(request, 'Você não tem permissão para editar esta tarefa')
+            return redirect('projetos:todo_list')
+    
+    # Verificar se é uma requisição AJAX para toggle de conclusão (caso não seja tarefa de grupo)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and request.method == 'POST':
-        concluida = request.POST.get('concluida') == 'true'
+        concluida = request.POST.get('concluida') in ['true', 'on']
         task.concluida = concluida
         task.save()
         
@@ -457,10 +484,28 @@ def update_task(request, task_id):
 @login_required
 def delete_task(request, task_id):
     """Exclui uma tarefa"""
-    task = get_object_or_404(TodoTask, id=task_id, usuario=request.user)
+    # Obtemos a tarefa sem filtrar pelo usuário para verificar permissões depois
+    task = get_object_or_404(TodoTask, id=task_id)
+    
+    # Verifica permissões:
+    # 1. Se a tarefa tem grupo e o usuário não é superusuário, não pode excluir
+    # 2. Se a tarefa não tem grupo, apenas o dono pode excluir
+    if task.grupo and not request.user.is_superuser:
+        messages.error(request, 'Apenas administradores podem excluir tarefas de grupo')
+        return redirect('projetos:todo_list')
+    elif not task.grupo and task.usuario != request.user:
+        messages.error(request, 'Você não tem permissão para excluir esta tarefa')
+        return redirect('projetos:todo_list')
     
     if request.method == 'POST':
+        task_title = task.titulo
+        task_grupo = task.grupo.nome if task.grupo else None
         task.delete()
+        
+        if task_grupo:
+            messages.success(request, f'Tarefa "{task_title}" do grupo {task_grupo} excluída com sucesso!')
+        else:
+            messages.success(request, f'Tarefa "{task_title}" excluída com sucesso!')
     
     return redirect('projetos:todo_list')
 

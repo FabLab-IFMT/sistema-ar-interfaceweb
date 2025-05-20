@@ -1,0 +1,1184 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Lista de Tarefas{% endblock %}
+
+{% block head %}
+<style>
+  /* Estilo geral da página */
+  body {
+    background-color: #f8f9fa;
+  }
+  
+  .todo-container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .todo-header {
+    margin-bottom: 20px;
+  }
+  
+  .todo-header h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 0;
+    color: #333;
+  }
+  
+  .todo-header p {
+    color: #6c757d;
+    font-size: 14px;
+  }
+
+  /* Stats cards */
+  .todo-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    flex: 1;
+    min-width: 150px;
+    padding: 15px;
+    border-radius: 6px;
+    background-color: white;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    text-align: center;
+  }
+
+  .stat-card.total {
+    background: linear-gradient(45deg, #6772e5, #8e84fd);
+    color: #ffffff;
+  }
+  
+  .stat-card.pending {
+    background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+    color: #4a3b38;
+  }
+  
+  .stat-card.completed {
+    background: linear-gradient(45deg, #84fab0, #8fd3f4);
+    color: #194b4d;
+  }
+  
+  .stat-card.overdue {
+    background: linear-gradient(45deg, #ff6b6b, #ff9f9f);
+    color: #4f1c1c;
+  }
+
+  .stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 5px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+
+  /* Filtro de tarefas */
+  .task-filters {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .filter-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #495057;
+    display: flex;
+    align-items: center;
+  }
+
+  .filter-title i {
+    margin-right: 10px;
+    color: #6772e5;
+  }
+
+  /* Task cards */
+  .task-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+  }
+
+  .task-item {
+    background-color: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    padding: 15px;
+    border-left: 3px solid #6772e5;
+    position: relative;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  /* Adiciona estilo específico para tarefas que são apenas para visualização */
+  .task-item.view-only {
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .task-item.view-only:hover::after {
+    opacity: 1;
+  }
+  
+  /* Adicionamos um indicador mais sutil e elegante no próprio card */
+  
+  .task-item.task-completed {
+    border-left-color: #84fab0;
+    opacity: 0.85;
+
+  }
+  
+  /* Prioridade na borda esquerda */
+  .task-item.baixa-priority {
+    border-left-color: #84fab0;
+  }
+  
+  .task-item.media-priority {
+    border-left-color: #fad0c4;
+  }
+  
+  .task-item.alta-priority {
+    border-left-color: #ff9a9e;
+  }
+  
+  .task-item.urgente-priority {
+    border-left-color: #ff6b6b;
+    position: relative;
+  }
+  
+  .task-item.grupo-assignment {
+    background-color: #f8f9ff;
+  }
+  
+  .task-item.superuser-assignment {
+    border-left: 3px solid #6772e5;
+  }
+
+  .task-check {
+    display: inline-block;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+
+  .task-check input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+
+  .task-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .task-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    color: #343a40;
+  }
+  
+  .task-title.completed {
+    text-decoration: line-through;
+    color: #adb5bd;
+  }
+
+  .task-collapse-btn {
+    color: #6c757d;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+  }
+
+  .task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .task-project {
+    display: inline-flex;
+    align-items: center;
+    background-color: #f1f3f5;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #495057;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+  }
+
+  .task-date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #6c757d;
+  }
+
+  .task-date.overdue {
+    color: #dc3545;
+    font-weight: 500;
+  }
+
+  .task-description {
+    margin-top: 10px;
+    background-color: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #495057;
+    white-space: pre-line;
+    border-left: 2px solid #e9ecef;
+  }
+
+  .task-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f1f3f5;
+  }
+
+  .task-actions .btn {
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .priority-badge {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .priority-badge i {
+    font-size: 10px;
+  }
+
+  .priority-baixa {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+  }
+
+  .priority-media {
+    background-color: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+  }
+
+  .priority-alta {
+    background-color: rgba(255, 87, 34, 0.15);
+    color: #ff5722;
+  }
+
+  .priority-urgente {
+    background-color: #dc3545;
+    color: white;
+    font-weight: bold;
+  }
+
+  /* Empty tasks */
+  .empty-tasks {
+    text-align: center;
+    padding: 40px 0;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    grid-column: 1 / -1;
+  }
+
+  .empty-tasks i {
+    font-size: 40px;
+    color: #ccc;
+    margin-bottom: 15px;
+    display: block;
+  }
+
+  .empty-tasks h4 {
+    font-size: 20px;
+    color: #343a40;
+    margin-bottom: 8px;
+  }
+
+  .empty-tasks p {
+    color: #6c757d;
+    margin-bottom: 20px;
+  }
+
+  /* Botão flutuante */
+  .btn-floating {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    bottom: 30px;
+    right: 30px;
+    background-color: #6772e5;
+    color: #FFF;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 22px;
+    box-shadow: 0 3px 10px rgba(103, 114, 229, 0.3);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-floating:hover {
+    background-color: #5969ff;
+    color: white;
+  }
+
+  /* Responsividade */
+  @media (max-width: 768px) {
+    .task-list {
+      grid-template-columns: 1fr;
+    }
+    
+    .todo-container {
+      padding: 15px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="todo-container">
+    <!-- Cabeçalho -->
+    <div class="todo-header">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-check-square me-3 text-primary"></i> Lista de Tarefas</h2>
+      </div>
+      <p class="text-muted">Gerencie suas tarefas pessoais e relacionadas a projetos</p>
+    </div>
+    
+    <!-- Estatísticas -->
+    <div class="todo-stats">
+      <div class="stat-card total">
+        <div class="stat-number">{{ total_tarefas }}</div>
+        <div class="stat-label">Total de Tarefas</div>
+      </div>
+      <div class="stat-card pending">
+        <div class="stat-number">{{ tarefas_pendentes }}</div>
+        <div class="stat-label">Pendentes</div>
+      </div>
+      <div class="stat-card completed">
+        <div class="stat-number">{{ tarefas_concluidas }}</div>
+        <div class="stat-label">Concluídas</div>
+      </div>
+      <div class="stat-card overdue">
+        <div class="stat-number">{{ tarefas_atrasadas }}</div>
+        <div class="stat-label">Atrasadas</div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="task-filters">
+      <h4 class="filter-title"><i class="fas fa-filter"></i> Filtros e Ordenação</h4>
+      <form class="row g-3" method="get">
+        <div class="col-md-3">
+          <label for="status" class="form-label">Status</label>
+          <select class="form-select" id="status" name="status">
+            <option value="all" {% if filtro_status == 'all' %}selected{% endif %}>Todas</option>
+            <option value="pending" {% if filtro_status == 'pending' %}selected{% endif %}>Pendentes</option>
+            <option value="completed" {% if filtro_status == 'completed' %}selected{% endif %}>Concluídas</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="prioridade" class="form-label">Prioridade</label>
+          <select class="form-select" id="prioridade" name="prioridade">
+            <option value="" {% if not filtro_prioridade %}selected{% endif %}>Todas</option>
+            <option value="baixa" {% if filtro_prioridade == 'baixa' %}selected{% endif %}>Baixa</option>
+            <option value="media" {% if filtro_prioridade == 'media' %}selected{% endif %}>Média</option>
+            <option value="alta" {% if filtro_prioridade == 'alta' %}selected{% endif %}>Alta</option>
+            <option value="urgente" {% if filtro_prioridade == 'urgente' %}selected{% endif %}>Urgente</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="projeto" class="form-label">Projeto</label>
+          <select class="form-select" id="projeto" name="projeto">
+            <option value="" {% if not filtro_projeto %}selected{% endif %}>Todos</option>
+            {% for projeto in projetos %}
+            <option value="{{ projeto.id }}" {% if filtro_projeto == projeto.id|stringformat:"s" %}selected{% endif %}>
+              {{ projeto.titulo }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="grupo" class="form-label">Grupo</label>
+          <select class="form-select" id="grupo" name="grupo">
+            <option value="" {% if not filtro_grupo %}selected{% endif %}>Todos</option>
+            {% for grupo in grupos %}
+            <option value="{{ grupo.id }}" {% if filtro_grupo == grupo.id|stringformat:"s" %}selected{% endif %}>
+              {{ grupo.nome }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label for="order_by" class="form-label">Ordenar por</label>
+          <div class="input-group">
+            <select class="form-select" id="order_by" name="order_by">
+              <option value="data_criacao" {% if order_by == 'data_criacao' %}selected{% endif %}>Data de Criação</option>
+              <option value="data_limite" {% if order_by == 'data_limite' %}selected{% endif %}>Data Limite</option>
+              <option value="prioridade" {% if order_by == 'prioridade' %}selected{% endif %}>Prioridade</option>
+              <option value="titulo" {% if order_by == 'titulo' %}selected{% endif %}>Título</option>
+            </select>
+            <select class="form-select" name="direction" aria-label="Direção">
+              <option value="desc" {% if direction == 'desc' %}selected{% endif %}>Decrescente</option>
+              <option value="asc" {% if direction == 'asc' %}selected{% endif %}>Crescente</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-filter me-2"></i> Filtrar
+          </button>
+          <a href="{% url 'projetos:todo_list' %}" class="btn btn-outline-secondary ms-2">
+            <i class="fas fa-times me-2"></i> Limpar Filtros
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Lista de Tarefas -->
+    <div class="task-list">
+      {% if tarefas %}
+        {% for tarefa in tarefas %}
+        <div class="task-item {{ tarefa.prioridade }}-priority 
+                  {% if tarefa.concluida %}task-completed{% endif %} 
+                  {% if tarefa.grupo %}grupo-assignment{% endif %} 
+                  {% if tarefa.grupo and not tarefa.usuario %}superuser-assignment{% endif %}
+                  {% if tarefa.grupo and not user.is_superuser %}view-only{% endif %}" 
+             id="task-{{ tarefa.id }}"
+             data-task-id="{{ tarefa.id }}" 
+             data-task-title="{{ tarefa.titulo }}" 
+             data-task-desc="{{ tarefa.descricao|default:'' }}"
+             data-task-priority="{{ tarefa.prioridade }}"
+             data-task-projeto="{% if tarefa.projeto %}{{ tarefa.projeto.titulo }}{% endif %}"
+             data-task-grupo="{% if tarefa.grupo %}{{ tarefa.grupo.nome }}{% endif %}"
+             data-task-date="{% if tarefa.data_limite %}{{ tarefa.data_limite|date:'d/m/Y' }}{% endif %}"
+             data-task-completed="{% if tarefa.concluida %}1{% else %}0{% endif %}"
+             ondblclick="showTaskDetails(this)">
+          
+          <div class="d-flex">
+            <div class="task-check">
+              <input type="checkbox" class="form-check-input task-checkbox" data-task-id="{{ tarefa.id }}" 
+                    {% if tarefa.concluida %}checked{% endif %}>
+            </div>
+            <div class="task-content">
+              <h5 class="task-title {% if tarefa.concluida %}completed{% endif %}">
+                {{ tarefa.titulo }}
+                {% if tarefa.descricao %}
+                <span class="task-collapse-btn" data-bs-toggle="collapse" data-bs-target="#desc-{{ tarefa.id }}">
+                  <i class="fas fa-caret-down"></i>
+                </span>
+                {% endif %}
+              </h5>
+              
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="priority-badge priority-{{ tarefa.prioridade }}">
+                  {% if tarefa.prioridade == 'baixa' %}
+                    <i class="fas fa-arrow-down"></i>
+                  {% elif tarefa.prioridade == 'media' %}
+                    <i class="fas fa-minus"></i>
+                  {% elif tarefa.prioridade == 'alta' %}
+                    <i class="fas fa-arrow-up"></i>
+                  {% else %}
+                    <i class="fas fa-exclamation"></i>
+                  {% endif %}
+                  {{ tarefa.get_prioridade_display }}
+                </span>
+              </div>
+              
+              <div class="task-meta">
+                {% if tarefa.projeto %}
+                <span class="task-project">
+                  <i class="fas fa-folder me-1"></i>{{ tarefa.projeto.titulo }}
+                </span>
+                {% endif %}
+                
+                {% if tarefa.grupo %}
+                <span class="task-project" style="background-color: #e7f5ff; color: #0d6efd;">
+                  <i class="fas fa-users me-1"></i>{{ tarefa.grupo.nome }}
+                </span>
+                {% endif %}
+                
+                {% if tarefa.usuario %}
+                <span class="task-project" style="background-color: #f5f0ff; color: #6f42c1;">
+                  <i class="fas fa-user me-1"></i>{{ tarefa.usuario.get_full_name|default:tarefa.usuario.username }}
+                </span>
+                {% endif %}
+                
+                {% if tarefa.data_limite %}
+                <span class="task-date {% if tarefa.days_remaining < 0 and not tarefa.concluida %}overdue{% endif %}">
+                  <i class="fas fa-calendar{% if tarefa.days_remaining < 0 and not tarefa.concluida %}-times{% else %}-alt{% endif %} me-1"></i>
+                  {{ tarefa.data_limite|date:"d/m/Y" }}
+                  {% if not tarefa.concluida %}
+                    {% if tarefa.days_remaining < 0 %}
+                      <span class="badge bg-danger ms-1">{{ tarefa.days_remaining|abs }} dia(s) atrás</span>
+                    {% elif tarefa.days_remaining == 0 %}
+                      <span class="badge bg-warning ms-1">Hoje</span>
+                    {% elif tarefa.days_remaining <= 2 %}
+                      <span class="badge bg-warning ms-1">{{ tarefa.days_remaining }} dia(s)</span>
+                    {% endif %}
+                  {% endif %}
+                </span>
+                {% endif %}
+              </div>
+              
+              {% if tarefa.descricao %}
+              <div class="collapse" id="desc-{{ tarefa.id }}">
+                <div class="task-description">{{ tarefa.descricao }}</div>
+              </div>
+              {% endif %}
+              
+              <div class="task-actions">
+                {% if tarefa.grupo and not user.is_superuser %}
+                <!-- Para usuários regulares com tarefas de grupo, só mostrar o botão de Detalhes -->
+                <button class="btn btn-outline-info w-100" data-bs-toggle="modal" data-bs-target="#viewTaskModal" 
+                       data-task-id="{{ tarefa.id }}" 
+                       data-task-title="{{ tarefa.titulo }}" 
+                       data-task-desc="{{ tarefa.descricao|default:'' }}"
+                       data-task-priority="{{ tarefa.prioridade }}"
+                       data-task-projeto="{% if tarefa.projeto %}{{ tarefa.projeto.titulo }}{% endif %}"
+                       data-task-grupo="{% if tarefa.grupo %}{{ tarefa.grupo.nome }}{% endif %}"
+                       data-task-date="{% if tarefa.data_limite %}{{ tarefa.data_limite|date:'d/m/Y' }}{% endif %}"
+                       data-task-completed="{% if tarefa.concluida %}1{% else %}0{% endif %}">
+                  <i class="fas fa-eye me-1"></i> Ver Detalhes
+                </button>
+                {% else %}
+                <!-- Para tarefas pessoais ou superusuários, mostrar todos os botões -->
+                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editTaskModal" 
+                       data-task-id="{{ tarefa.id }}" 
+                       data-task-title="{{ tarefa.titulo }}" 
+                       data-task-desc="{{ tarefa.descricao|default:'' }}"
+                       data-task-priority="{{ tarefa.prioridade }}"
+                       data-task-projeto="{% if tarefa.projeto %}{{ tarefa.projeto.id }}{% endif %}"
+                       data-task-grupo="{% if tarefa.grupo %}{{ tarefa.grupo.id }}{% endif %}"
+                       data-task-date="{% if tarefa.data_limite %}{{ tarefa.data_limite|date:'Y-m-d' }}{% endif %}"
+                       data-task-completed="{% if tarefa.concluida %}1{% else %}0{% endif %}">
+                  <i class="fas fa-edit"></i> Editar
+                </button>
+                
+                <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteTaskModal" 
+                       data-task-id="{{ tarefa.id }}"
+                       data-task-title="{{ tarefa.titulo }}">
+                  <i class="fas fa-trash"></i> Excluir
+                </button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-tasks">
+          <i class="fas fa-clipboard"></i>
+          <h4>Nenhuma tarefa encontrada</h4>
+          <p>Adicione uma nova tarefa para começar</p>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+            <i class="fas fa-plus me-2"></i> Adicionar Tarefa
+          </button>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Botão flutuante para adicionar tarefa -->
+    <a href="#" class="btn-floating" data-bs-toggle="modal" data-bs-target="#addTaskModal" id="add-task-btn">
+      <i class="fas fa-plus"></i>
+    </a>
+
+    <!-- Modal Adicionar Tarefa -->
+    <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addTaskModalLabel">Adicionar Nova Tarefa</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <form action="{% url 'projetos:add_task' %}" method="post">
+            {% csrf_token %}
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="titulo" class="form-label">Título*</label>
+                <input type="text" class="form-control" id="titulo" name="titulo" required>
+              </div>
+              <div class="mb-3">
+                <label for="descricao" class="form-label">Descrição</label>
+                <textarea class="form-control" id="descricao" name="descricao" rows="3"></textarea>
+              </div>
+              <div class="mb-3">
+                <label for="prioridade" class="form-label">Prioridade</label>
+                <select class="form-select" id="prioridade" name="prioridade">
+                  <option value="baixa">Baixa</option>
+                  <option value="media" selected>Média</option>
+                  <option value="alta">Alta</option>
+                  <option value="urgente">Urgente</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="data_limite" class="form-label">Data Limite</label>
+                <input type="date" class="form-control" id="data_limite" name="data_limite">
+              </div>
+              <div class="mb-3">
+                <label for="projeto" class="form-label">Projeto</label>
+                <select class="form-select" id="projeto" name="projeto">
+                  <option value="">Sem projeto</option>
+                  {% for projeto in projetos %}
+                  <option value="{{ projeto.id }}">{{ projeto.titulo }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="grupo" class="form-label">Grupo</label>
+                <select class="form-select" id="grupo" name="grupo">
+                  <option value="">Sem grupo</option>
+                  {% for grupo in grupos %}
+                  <option value="{{ grupo.id }}">{{ grupo.nome }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Adicionar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Editar Tarefa -->
+    <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editTaskModalLabel">Editar Tarefa</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <form id="editTaskForm" action="" method="post">
+            {% csrf_token %}
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="edit_titulo" class="form-label">Título*</label>
+                <input type="text" class="form-control" id="edit_titulo" name="titulo" required>
+              </div>
+              <div class="mb-3">
+                <label for="edit_descricao" class="form-label">Descrição</label>
+                <textarea class="form-control" id="edit_descricao" name="descricao" rows="3"></textarea>
+              </div>
+              <div class="mb-3">
+                <label for="edit_prioridade" class="form-label">Prioridade</label>
+                <select class="form-select" id="edit_prioridade" name="prioridade">
+                  <option value="baixa">Baixa</option>
+                  <option value="media">Média</option>
+                  <option value="alta">Alta</option>
+                  <option value="urgente">Urgente</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="edit_data_limite" class="form-label">Data Limite</label>
+                <input type="date" class="form-control" id="edit_data_limite" name="data_limite">
+              </div>
+              <div class="mb-3">
+                <label for="edit_projeto" class="form-label">Projeto</label>
+                <select class="form-select" id="edit_projeto" name="projeto">
+                  <option value="">Sem projeto</option>
+                  {% for projeto in projetos %}
+                  <option value="{{ projeto.id }}">{{ projeto.titulo }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="edit_grupo" class="form-label">Grupo</label>
+                <select class="form-select" id="edit_grupo" name="grupo">
+                  <option value="">Sem grupo</option>
+                  {% for grupo in grupos %}
+                  <option value="{{ grupo.id }}">{{ grupo.nome }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="edit_concluida" name="concluida">
+                <label class="form-check-label" for="edit_concluida">Marcar como concluída</label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para Visualizar Detalhes da Tarefa -->
+    <div class="modal fade" id="viewTaskModal" tabindex="-1" aria-labelledby="viewTaskModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-light">
+            <h5 class="modal-title" id="viewTaskModalLabel">Detalhes da Tarefa</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h4 id="view_task_title" class="mb-0"></h4>
+              <div class="badge priority-badge" id="view_task_priority"></div>
+            </div>
+                
+            <hr class="my-3">
+            
+            <!-- Descrição -->
+            <div class="mb-4">
+              <h6 class="text-muted fw-bold"><i class="fas fa-align-left me-2"></i>Descrição:</h6>
+              <div id="view_task_desc" class="p-3 bg-light rounded">Sem descrição</div>
+            </div>
+            
+            <!-- Metadados -->
+            <div class="row mb-3">
+              <div class="col-md-6 mb-3">
+                <h6 class="text-muted fw-bold"><i class="fas fa-folder me-2"></i>Projeto:</h6>
+                <p id="view_task_projeto" class="mb-0 ps-4">Nenhum</p>
+              </div>
+              <div class="col-md-6 mb-3">
+                <h6 class="text-muted fw-bold"><i class="fas fa-users me-2"></i>Grupo:</h6>
+                <p id="view_task_grupo" class="mb-0 ps-4">Nenhum</p>
+              </div>
+              <div class="col-md-6 mb-3">
+                <h6 class="text-muted fw-bold"><i class="fas fa-calendar-alt me-2"></i>Data Limite:</h6>
+                <p id="view_task_date" class="mb-0 ps-4">Não definida</p>
+              </div>
+              <div class="col-md-6 mb-3">
+                <h6 class="text-muted fw-bold"><i class="fas fa-info-circle me-2"></i>Status:</h6>
+                <p id="view_task_status" class="mb-0 ps-4 fw-bold">Pendente</p>
+              </div>
+            </div>
+            
+            <!-- Aviso sobre permissões (só aparece para tarefas de grupo) -->
+            <div class="alert alert-info d-none" role="alert">
+              <i class="fas fa-info-circle me-2"></i>
+              <span>Membros do grupo podem marcar tarefas como concluídas, mas apenas administradores podem editar outros detalhes.</span>
+            </div>
+            
+            <!-- Opção para marcar como concluída -->
+            <div id="view_task_completion" class="d-flex justify-content-center mt-4 pt-3 border-top">
+              <div class="form-check form-switch">
+                <input type="checkbox" class="form-check-input" id="view_task_completed" style="width: 3rem; height: 1.5rem;">
+                <label class="form-check-label fs-5 ms-2" for="view_task_completed">
+                  Marcar como concluída
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Excluir Tarefa -->
+    <div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteTaskModalLabel">Confirmar Exclusão</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <p>Tem certeza que deseja excluir a tarefa "<span id="delete-task-title"></span>"?</p>
+            <p class="text-danger">Esta ação não pode ser desfeita.</p>
+            <div id="task-permission-warning" class="alert alert-warning d-none">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <span>Apenas administradores podem excluir tarefas de grupo.</span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <form id="deleteTaskForm" action="" method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger">Excluir</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Container para toasts/notificações -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+  <!-- Toast para permissões -->
+  <div id="permissionToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header bg-info text-white">
+      <i class="fas fa-info-circle me-2"></i>
+      <strong class="me-auto">Permissões de Tarefa</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Fechar"></button>
+    </div>
+    <div class="toast-body">
+      Membros do grupo podem marcar tarefas como concluídas, mas apenas administradores podem editar outros detalhes.
+    </div>
+  </div>
+  
+  <!-- Container para toasts dinâmicos -->
+  <div class="toast-container"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Função para exibir detalhes da tarefa ao fazer duplo clique
+    window.showTaskDetails = function(taskElement) {
+      // Obter dados da tarefa
+      const taskId = taskElement.dataset.taskId;
+      const taskTitle = taskElement.dataset.taskTitle;
+      const taskDesc = taskElement.dataset.taskDesc || 'Sem descrição';
+      const taskPriority = taskElement.dataset.taskPriority;
+      const taskProjeto = taskElement.dataset.taskProjeto || 'Nenhum';
+      const taskGrupo = taskElement.dataset.taskGrupo || 'Nenhum';
+      const taskDate = taskElement.dataset.taskDate || 'Não definida';
+      const taskCompleted = taskElement.dataset.taskCompleted === '1';
+      
+      // Preencher o modal com os detalhes
+      document.getElementById('view_task_title').textContent = taskTitle;
+      document.getElementById('view_task_desc').textContent = taskDesc;
+      
+      // Configurar a etiqueta de prioridade
+      const priorityBadge = document.getElementById('view_task_priority');
+      priorityBadge.textContent = getPrioridadeDisplay(taskPriority);
+      priorityBadge.className = 'badge priority-badge priority-' + taskPriority;
+      
+      // Atualizar outros detalhes
+      document.getElementById('view_task_projeto').textContent = taskProjeto;
+      document.getElementById('view_task_grupo').textContent = taskGrupo;
+      document.getElementById('view_task_date').textContent = taskDate;
+      document.getElementById('view_task_status').textContent = taskCompleted ? 'Concluída' : 'Pendente';
+      document.getElementById('view_task_status').className = 'mb-0 ps-4 fw-bold ' + (taskCompleted ? 'text-success' : 'text-warning');
+      
+      // Configurar o checkbox de conclusão
+      const completionCheckbox = document.getElementById('view_task_completed');
+      completionCheckbox.checked = taskCompleted;
+      completionCheckbox.dataset.taskId = taskId;
+      
+      // Para tarefas de grupo, mostrar o toast de permissão explicando as regras
+      if (taskGrupo !== 'Nenhum') {
+        // Mostrar a notificação de permissão
+        const permissionToast = new bootstrap.Toast(document.getElementById('permissionToast'));
+        permissionToast.show();
+        
+        // Exibir o alerta de informação sobre permissões
+        document.querySelector('#viewTaskModal .alert-info').classList.remove('d-none');
+      } else {
+        // Para tarefas pessoais, ocultar informação sobre permissões de grupo
+        document.querySelector('#viewTaskModal .alert-info').classList.add('d-none');
+      }
+      
+      // Mostrar o modal
+      const viewTaskModal = new bootstrap.Modal(document.getElementById('viewTaskModal'));
+      viewTaskModal.show();
+    }
+    
+    // Função para traduzir prioridades
+    function getPrioridadeDisplay(prioridade) {
+      const map = {
+        'baixa': 'Baixa',
+        'media': 'Média',
+        'alta': 'Alta',
+        'urgente': 'Urgente'
+      };
+      return map[prioridade] || prioridade;
+    }
+    
+    // Configurar o evento para marcar como concluída no modal de visualização
+    const viewTaskCompletedCheckbox = document.getElementById('view_task_completed');
+    if (viewTaskCompletedCheckbox) {
+      viewTaskCompletedCheckbox.addEventListener('change', function() {
+        const taskId = this.dataset.taskId;
+        const completed = this.checked;
+        
+        // Mostrar indicador visual de carregamento
+        this.disabled = true;
+        const spinnerHTML = '<span class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>';
+        document.querySelector('label[for="view_task_completed"]').insertAdjacentHTML('beforeend', spinnerHTML);
+        
+        // Enviar para o servidor via AJAX
+        fetch(`/projetos/todo/${taskId}/update/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+          },
+          body: completed ? 'concluida=on' : 'concluida='
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Erro no servidor: ' + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.status === 'success') {
+            // Atualizar interface do modal
+            document.getElementById('view_task_status').textContent = completed ? 'Concluída' : 'Pendente';
+            document.getElementById('view_task_status').className = 'mb-0 ps-4 fw-bold ' + (completed ? 'text-success' : 'text-warning');
+            
+            // Atualizar o card da tarefa na lista principal
+            const taskElement = document.getElementById(`task-${taskId}`);
+            if (taskElement) {
+              // Atualizar classes CSS
+              if (completed) {
+                taskElement.classList.add('task-completed');
+              } else {
+                taskElement.classList.remove('task-completed');
+              }
+              
+              // Atualizar atributo de dados
+              taskElement.dataset.taskCompleted = completed ? '1' : '0';
+              
+              // Atualizar o checkbox na lista principal
+              const mainCheckbox = taskElement.querySelector('.task-checkbox');
+              if (mainCheckbox) {
+                mainCheckbox.checked = completed;
+              }
+              
+              // Atualizar o título
+              const taskTitle = taskElement.querySelector('.task-title');
+              if (taskTitle) {
+                if (completed) {
+                  taskTitle.classList.add('completed');
+                } else {
+                  taskTitle.classList.remove('completed');
+                }
+              }
+            }
+            
+            // Exibir notificação de sucesso
+            const successToast = new bootstrap.Toast(document.createElement('div'));
+            const toastContainer = document.querySelector('.toast-container') || document.body;
+            const toastElement = document.createElement('div');
+            toastElement.classList.add('toast', 'bg-success', 'text-white');
+            toastElement.setAttribute('role', 'alert');
+            toastElement.setAttribute('aria-live', 'assertive');
+            toastElement.setAttribute('aria-atomic', 'true');
+            toastElement.innerHTML = `
+              <div class="toast-header bg-success text-white">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong class="me-auto">Tarefa ${completed ? 'concluída' : 'reaberta'}</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+              </div>
+              <div class="toast-body">
+                A tarefa foi ${completed ? 'marcada como concluída' : 'reaberta'} com sucesso.
+              </div>
+            `;
+            
+            toastContainer.appendChild(toastElement);
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            // Remover toast após exibição
+            toastElement.addEventListener('hidden.bs.toast', function() {
+              this.remove();
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Erro:', error);
+          // Notificar erro ao usuário
+          alert('Ocorreu um erro ao atualizar a tarefa. Por favor, tente novamente.');
+        })
+        .finally(() => {
+          // Remover spinner e restaurar estado do checkbox
+          this.disabled = false;
+          const spinner = document.querySelector('label[for="view_task_completed"] .spinner-border');
+          if (spinner) spinner.remove();
+        });
+      });
+    }
+
+    // Função para atualizar o status de conclusão de uma tarefa
+    const checkboxes = document.querySelectorAll('.task-checkbox');
+    if (checkboxes) {
+      checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          const taskId = this.dataset.taskId;
+          const completed = this.checked;
+          const taskItem = document.getElementById(`task-${taskId}`);
+          
+          // Desabilitar temporariamente para evitar múltiplos cliques
+          this.disabled = true;
+          
+          // Aplicar alterações visuais imediatamente
+          const taskTitle = taskItem.querySelector('.task-title');
+          
+          if (completed) {
+            taskItem.classList.add('task-completed');
+            taskTitle.classList.add('completed');
+          } else {
+            taskItem.classList.remove('task-completed');
+            taskTitle.classList.remove('completed');
+          }
+          
+          // Enviar para o servidor via fetch
+          fetch(`/projetos/todo/${taskId}/update/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+            },
+            body: completed ? 'concluida=on' : 'concluida='
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Erro no servidor: ' + response.status);
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Verificar sucesso e atualizar a interface
+            if (data.status === 'success') {
+              // Atualizar atributo de dado para consistência
+              taskItem.dataset.taskCompleted = completed ? '1' : '0';
+              
+              // Atualizar contador de estatísticas
+              const completedCount = document.querySelector('.stat-card.completed .stat-number');
+              const pendingCount = document.querySelector('.stat-card.pending .stat-number');
+              
+              if (completedCount && pendingCount) {
+                if (completed) {
+                  completedCount.textContent = parseInt(completedCount.textContent) + 1;
+                  pendingCount.textContent = parseInt(pendingCount.textContent) - 1;
+                } else {
+                  completedCount.textContent = parseInt(completedCount.textContent) - 1;
+                  pendingCount.textContent = parseInt(pendingCount.textContent) + 1;
+                }
+              }
+            } else {
+              // Reverter as alterações se houver erro
+              this.checked = !completed;
+              if (completed) {
+                taskItem.classList.remove('task-completed');
+                taskTitle.classList.remove('completed');
+              } else {
+                taskItem.classList.add('task-completed');
+                taskTitle.classList.add('completed');
+              }
+              console.error('Erro ao atualizar tarefa:', data.message);
+            }
+          })
+          .catch(error => {
+            // Reverter as alterações em caso de erro
+            console.error('Erro ao atualizar status:', error);
+            this.checked = !completed;
+            
+            if (completed) {
+              taskItem.classList.remove('task-completed');
+              taskTitle.classList.remove('completed');
+            } else {
+              taskItem.classList.add('task-completed');
+              taskTitle.classList.add('completed');
+            }
+            
+            // Notificar o usuário sobre o erro
+            alert('Ocorreu um erro ao atualizar o status da tarefa. Por favor, tente novamente.');
+          })
+          .finally(() => {
+            // Reativar o checkbox
+            this.disabled = false;
+          });
+        });
+      });
+    }
+    
+    // Configurar modal de edição
+    const editTaskModal = document.getElementById('editTaskModal');
+    if (editTaskModal) {
+      editTaskModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const taskId = button.dataset.taskId;
+        const taskTitle = button.dataset.taskTitle;
+        const taskDesc = button.dataset.taskDesc;
+        const taskPriority = button.dataset.taskPriority;
+        const taskProjeto = button.dataset.taskProjeto || '';
+        const taskGrupo = button.dataset.taskGrupo || '';
+        const taskDate = button.dataset.taskDate || '';
+        const taskCompleted = button.dataset.taskCompleted === '1';
+        
+        // Popular o formulário
+        document.getElementById('edit_titulo').value = taskTitle;
+        document.getElementById('edit_descricao').value = taskDesc;
+        document.getElementById('edit_prioridade').value = taskPriority;
+        document.getElementById('edit_projeto').value = taskProjeto;
+        document.getElementById('edit_grupo').value = taskGrupo;
+        document.getElementById('edit_data_limite').value = taskDate;
+        document.getElementById('edit_concluida').checked = taskCompleted;
+        
+        // Atualizar action do formulário
+        document.getElementById('editTaskForm').action = `/projetos/todo/${taskId}/update/`;
+      });
+    }
+    
+    // Configurar modal de excluir tarefa
+    const deleteTaskModal = document.getElementById('deleteTaskModal');
+    if (deleteTaskModal) {
+      deleteTaskModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const taskId = button.dataset.taskId;
+        const taskTitle = button.dataset.taskTitle;
+        
+        // Atualizar título no modal
+        document.getElementById('delete-task-title').textContent = taskTitle;
+        
+        // Atualizar action do formulário
+        document.getElementById('deleteTaskForm').action = `/projetos/todo/${taskId}/delete/`;
+
+        // Se o botão tem a classe disabled, mostrar aviso de permissão
+        if (button.classList.contains('disabled')) {
+          document.getElementById('task-permission-warning').classList.remove('d-none');
+          document.querySelector('#deleteTaskModal .modal-footer button[type="submit"]').disabled = true;
+        } else {
+          document.getElementById('task-permission-warning').classList.add('d-none');
+          document.querySelector('#deleteTaskModal .modal-footer button[type="submit"]').disabled = false;
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

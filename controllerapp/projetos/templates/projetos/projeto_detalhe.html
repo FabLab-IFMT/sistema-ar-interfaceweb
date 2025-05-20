@@ -118,7 +118,7 @@
                 <!-- Formulário para novo comentário -->
                 {% if user.is_authenticated %}
                     <div class="comment-form mb-4">
-                        <form id="comment-form" action="{% url 'projetos:adicionar_comentario' projeto.id %}" method="post">
+                        <form id="comment-form" action="{% url 'projetos:comentar' projeto.id %}" method="post">
                             {% csrf_token %}
                             <input type="hidden" name="comentario_pai" value="" id="comentario_pai_id">
                             
