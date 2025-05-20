@@ -1,0 +1,681 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Gestão de Projetos{% endblock %}
+
+{% block head %}
+<style>
+  .project-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .stat-card {
+    flex: 1;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+  }
+  
+  .stat-icon {
+    margin-right: 15px;
+    font-size: 24px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: white;
+  }
+  
+  .stat-info h5 {
+    margin-bottom: 5px;
+    font-size: 1.75rem;
+  }
+  
+  .stat-info p {
+    margin: 0;
+    color: #6c757d;
+  }
+  
+  .bg-total {
+    background-color: #6610f2;
+  }
+  
+  .bg-progress {
+    background-color: #fd7e14;
+  }
+  
+  .bg-completed {
+    background-color: #20c997;
+  }
+  
+  .bg-overdue {
+    background-color: #dc3545;
+  }
+
+  /* Estilos da navegação por abas */
+  .nav-tabs {
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .nav-tabs .nav-link {
+    margin-bottom: -1px;
+    border: 1px solid transparent;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    padding: 8px 16px;
+    font-weight: 500;
+  }
+  
+  .nav-tabs .nav-link.active {
+    color: #007bff;
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+  }
+  
+  /* Estilos para o Kanban */
+  .kanban-board {
+    display: flex;
+    overflow-x: auto;
+    padding: 20px 0;
+    gap: 20px;
+    min-height: 500px;
+  }
+  
+  .kanban-column {
+    min-width: 300px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .kanban-column-header {
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .kanban-column-content {
+    padding: 15px;
+    min-height: 100px;
+  }
+
+  /* Estilos para o A Fazer */
+  .column-to-do .kanban-column-header {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+  
+  /* Estilos para Em Andamento */
+  .column-in-progress .kanban-column-header {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  /* Estilos para Em Revisão */
+  .column-review .kanban-column-header {
+    background-color: #d4c4f9;
+    color: #5a3b94;
+  }
+  
+  /* Estilos para Concluído */
+  .column-done .kanban-column-header {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  /* Estilos para "Nenhum projeto nesta coluna" */
+  .empty-column {
+    text-align: center;
+    padding: 20px;
+    color: #6c757d;
+  }
+  
+  /* Estilos para o Roadmap vazio */
+  .empty-roadmap {
+    text-align: center;
+    padding: 100px 0;
+    color: #6c757d;
+    background-image: url("{% static 'images/roadmap-icon.png' %}");
+    background-repeat: no-repeat;
+    background-position: center 30px;
+    background-size: 60px;
+  }
+  
+  /* Estilos para a mensagem "Nenhum marco definido" */
+  .empty-roadmap h4 {
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  
+  /* Botão de adicionar card */
+  .add-card-btn {
+    width: 100%;
+    padding: 8px;
+    background-color: rgba(0,0,0,0.05);
+    border: 1px dashed #ced4da;
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s;
+  }
+  
+  .add-card-btn:hover {
+    background-color: rgba(0,0,0,0.08);
+    border-color: #adb5bd;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tasks me-2"></i>Gestão de Projetos</h2>
+    <div>
+      <button class="btn btn-outline-secondary" id="filterButton">
+        <i class="fas fa-filter me-1"></i> Filtros
+      </button>
+    </div>
+  </div>
+  
+  <!-- Cards de estatísticas -->
+  <div class="project-stats mb-4">
+    <div class="stat-card">
+      <div class="stat-icon bg-total">
+        <i class="fas fa-clipboard-list"></i>
+      </div>
+      <div class="stat-info">
+        <h5>{{ total_projetos }}</h5>
+        <p>Total de projetos</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon bg-progress">
+        <i class="fas fa-spinner"></i>
+      </div>
+      <div class="stat-info">
+        <h5>{{ projetos_andamento }}</h5>
+        <p>Em andamento</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon bg-completed">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="stat-info">
+        <h5>{{ projetos_concluidos }}</h5>
+        <p>Concluídos</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon bg-overdue">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <div class="stat-info">
+        <h5>{{ projetos_atrasados }}</h5>
+        <p>Com atraso</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Navegação por abas para diferentes visualizações -->
+  <ul class="nav nav-tabs mb-4" id="gestaoTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="kanban-tab" data-bs-toggle="tab" data-bs-target="#kanban" type="button" role="tab" aria-selected="false">
+        <i class="fas fa-columns me-2"></i>Kanban
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="todolist-tab" data-bs-toggle="tab" data-bs-target="#todolist" type="button" role="tab" aria-selected="false">
+        <i class="fas fa-check-square me-2"></i>ToDo List
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="roadmap-tab" data-bs-toggle="tab" data-bs-target="#roadmap" type="button" role="tab" aria-selected="true">
+        <i class="fas fa-map-signs me-2"></i>Roadmap
+      </button>
+    </li>
+  </ul>
+  
+  <div class="tab-content">
+    <!-- TAB 1: KANBAN -->
+    <div class="tab-pane fade" id="kanban" role="tabpanel">
+      <!-- Board do Kanban -->
+      <div class="kanban-board">
+        <!-- Coluna: A Fazer -->
+        <div class="kanban-column column-to-do">
+          <div class="kanban-column-header">
+            <div>
+              <i class="fas fa-list me-2"></i> A Fazer
+            </div>
+            <span class="badge bg-primary">{{ colunas.a_fazer|length }}</span>
+          </div>
+          <div class="kanban-column-content">
+            {% for card in colunas.a_fazer %}
+            <div class="card mb-3 shadow-sm">
+              <div class="card-body">
+                <h6 class="card-title">{{ card.titulo }}</h6>
+                <p class="card-text small">{{ card.descricao|truncatechars:80 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="badge {% if card.prioridade == 'alta' %}bg-danger{% elif card.prioridade == 'media' %}bg-warning{% else %}bg-success{% endif %}">
+                    {{ card.get_prioridade_display }}
+                  </span>
+                  <div>
+                    <button class="btn btn-sm btn-outline-primary">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="empty-column">
+              <i class="fas fa-info-circle mb-2"></i>
+              <p>Nenhum projeto nesta coluna.</p>
+            </div>
+            {% endfor %}
+            
+            <!-- Botão para adicionar card -->
+            <div class="add-card-btn" data-bs-toggle="modal" data-bs-target="#addCardModal" data-column="a_fazer">
+              <i class="fas fa-plus me-1"></i> Adicionar Card
+            </div>
+          </div>
+        </div>
+        
+        <!-- Coluna: Em Andamento -->
+        <div class="kanban-column column-in-progress">
+          <div class="kanban-column-header">
+            <div>
+              <i class="fas fa-spinner me-2"></i> Em Andamento
+            </div>
+            <span class="badge bg-warning">{{ colunas.em_andamento|length }}</span>
+          </div>
+          <div class="kanban-column-content">
+            {% for card in colunas.em_andamento %}
+            <div class="card mb-3 shadow-sm">
+              <div class="card-body">
+                <h6 class="card-title">{{ card.titulo }}</h6>
+                <p class="card-text small">{{ card.descricao|truncatechars:80 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="badge {% if card.prioridade == 'alta' %}bg-danger{% elif card.prioridade == 'media' %}bg-warning{% else %}bg-success{% endif %}">
+                    {{ card.get_prioridade_display }}
+                  </span>
+                  <div>
+                    <button class="btn btn-sm btn-outline-primary">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="empty-column">
+              <i class="fas fa-info-circle mb-2"></i>
+              <p>Nenhum projeto nesta coluna.</p>
+            </div>
+            {% endfor %}
+            
+            <!-- Botão para adicionar card -->
+            <div class="add-card-btn" data-bs-toggle="modal" data-bs-target="#addCardModal" data-column="em_andamento">
+              <i class="fas fa-plus me-1"></i> Adicionar Card
+            </div>
+          </div>
+        </div>
+        
+        <!-- Coluna: Em Revisão -->
+        <div class="kanban-column column-review">
+          <div class="kanban-column-header">
+            <div>
+              <i class="fas fa-search me-2"></i> Em Revisão
+            </div>
+            <span class="badge bg-purple">{{ colunas.em_revisao|length }}</span>
+          </div>
+          <div class="kanban-column-content">
+            {% for card in colunas.em_revisao %}
+            <div class="card mb-3 shadow-sm">
+              <div class="card-body">
+                <h6 class="card-title">{{ card.titulo }}</h6>
+                <p class="card-text small">{{ card.descricao|truncatechars:80 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="badge {% if card.prioridade == 'alta' %}bg-danger{% elif card.prioridade == 'media' %}bg-warning{% else %}bg-success{% endif %}">
+                    {{ card.get_prioridade_display }}
+                  </span>
+                  <div>
+                    <button class="btn btn-sm btn-outline-primary">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="empty-column">
+              <i class="fas fa-info-circle mb-2"></i>
+              <p>Nenhum projeto nesta coluna.</p>
+            </div>
+            {% endfor %}
+            
+            <!-- Botão para adicionar card -->
+            <div class="add-card-btn" data-bs-toggle="modal" data-bs-target="#addCardModal" data-column="em_revisao">
+              <i class="fas fa-plus me-1"></i> Adicionar Card
+            </div>
+          </div>
+        </div>
+        
+        <!-- Coluna: Concluído -->
+        <div class="kanban-column column-done">
+          <div class="kanban-column-header">
+            <div>
+              <i class="fas fa-check-circle me-2"></i> Concluído
+            </div>
+            <span class="badge bg-success">{{ colunas.concluido|length }}</span>
+          </div>
+          <div class="kanban-column-content">
+            {% for card in colunas.concluido %}
+            <div class="card mb-3 shadow-sm">
+              <div class="card-body">
+                <h6 class="card-title">{{ card.titulo }}</h6>
+                <p class="card-text small">{{ card.descricao|truncatechars:80 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="badge {% if card.prioridade == 'alta' %}bg-danger{% elif card.prioridade == 'media' %}bg-warning{% else %}bg-success{% endif %}">
+                    {{ card.get_prioridade_display }}
+                  </span>
+                  <div>
+                    <button class="btn btn-sm btn-outline-primary">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="empty-column">
+              <i class="fas fa-info-circle mb-2"></i>
+              <p>Nenhum projeto nesta coluna.</p>
+            </div>
+            {% endfor %}
+            
+            <!-- Botão para adicionar card -->
+            <div class="add-card-btn" data-bs-toggle="modal" data-bs-target="#addCardModal" data-column="concluido">
+              <i class="fas fa-plus me-1"></i> Adicionar Card
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- TAB 2: TODO LIST -->
+    <div class="tab-pane fade" id="todolist" role="tabpanel">
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <div class="card shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+              <h5 class="mb-0"><i class="fas fa-check-square me-2"></i>Lista de Tarefas</h5>
+              <button class="btn btn-primary btn-sm" id="addTaskBtn" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                <i class="fas fa-plus me-1"></i> Nova Tarefa
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="mb-4">
+                <div class="d-flex gap-2">
+                  <button class="btn btn-outline-secondary btn-sm active" data-filter="all">Todas</button>
+                  <button class="btn btn-outline-secondary btn-sm" data-filter="pending">Pendentes</button>
+                  <button class="btn btn-outline-secondary btn-sm" data-filter="completed">Concluídas</button>
+                </div>
+              </div>
+
+              <div id="todoList">
+                {% for tarefa in tarefas %}
+                <div class="list-group-item d-flex align-items-center">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="task{{ tarefa.id }}" {% if tarefa.concluida %}checked{% endif %}>
+                    <label class="form-check-label" for="task{{ tarefa.id }}">{{ tarefa.titulo }}</label>
+                  </div>
+                  <div class="ms-auto">
+                    <span class="badge {% if tarefa.prioridade == 'alta' %}bg-danger{% elif tarefa.prioridade == 'media' %}bg-warning{% else %}bg-success{% endif %}">
+                      {{ tarefa.prioridade|title }}
+                    </span>
+                    <button class="btn btn-sm btn-outline-danger ms-2">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                  <i class="fas fa-tasks mb-3" style="font-size: 2.5rem; color: #dee2e6;"></i>
+                  <h5>Nenhuma tarefa cadastrada</h5>
+                  <p class="text-muted">Clique no botão "Nova Tarefa" para adicionar</p>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- TAB 3: ROADMAP -->
+    <div class="tab-pane fade show active" id="roadmap" role="tabpanel">
+      {% if roadmap %}
+      <div class="container py-4">
+        <div class="timeline position-relative">
+          {% for milestone in roadmap %}
+          <div class="row g-0 mb-5">
+            <div class="{% if forloop.counter|divisibleby:2 %}col-md-6 offset-md-6 text-start{% else %}col-md-6 text-end{% endif %}">
+              <div class="card shadow-sm {% if forloop.counter|divisibleby:2 %}border-start border-5 border-primary{% else %}border-end border-5 border-primary{% endif %}">
+                <div class="card-body">
+                  <h5 class="card-title">{{ milestone.titulo }}</h5>
+                  <h6 class="card-subtitle text-primary mb-2">{{ milestone.data|date:"d/m/Y" }}</h6>
+                  <p class="card-text">{{ milestone.descricao }}</p>
+                  <p class="text-muted">Projeto: {{ milestone.projeto.titulo }}</p>
+                  <div class="progress mt-2">
+                    <div class="progress-bar" role="progressbar" style="width: {{ milestone.progresso }}%" 
+                        aria-valuenow="{{ milestone.progresso }}" aria-valuemin="0" aria-valuemax="100">
+                      {{ milestone.progresso }}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="empty-roadmap">
+        <h4>Nenhum marco definido</h4>
+        <p>Adicione marcos para visualizar o roadmap dos seus projetos</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal para adicionar card -->
+<div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addCardModalLabel">Adicionar Novo Card</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addCardForm">
+          <input type="hidden" id="cardColumn" name="coluna" value="">
+          
+          <div class="mb-3">
+            <label for="cardTitle" class="form-label">Título</label>
+            <input type="text" class="form-control" id="cardTitle" name="titulo" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="cardDescription" class="form-label">Descrição</label>
+            <textarea class="form-control" id="cardDescription" name="descricao" rows="3"></textarea>
+          </div>
+          
+          <div class="mb-3">
+            <label for="cardPriority" class="form-label">Prioridade</label>
+            <select class="form-select" id="cardPriority" name="prioridade">
+              <option value="baixa">Baixa</option>
+              <option value="media" selected>Média</option>
+              <option value="alta">Alta</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="cardProject" class="form-label">Projeto</label>
+            <select class="form-select" id="cardProject" name="projeto">
+              <option value="">Sem projeto</option>
+              {% for projeto in projetos_ativos %}
+              <option value="{{ projeto.id }}">{{ projeto.titulo }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="saveCardBtn">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para adicionar tarefa -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addTaskModalLabel">Nova Tarefa</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addTaskForm">
+          <div class="mb-3">
+            <label for="taskTitle" class="form-label">Título</label>
+            <input type="text" class="form-control" id="taskTitle" name="titulo" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="taskProject" class="form-label">Projeto</label>
+            <select class="form-select" id="taskProject" name="projeto">
+              <option value="">Sem projeto</option>
+              {% for projeto in projetos_ativos %}
+              <option value="{{ projeto.id }}">{{ projeto.titulo }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="taskPriority" class="form-label">Prioridade</label>
+            <select class="form-select" id="taskPriority" name="prioridade">
+              <option value="baixa">Baixa</option>
+              <option value="media" selected>Média</option>
+              <option value="alta">Alta</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="taskDueDate" class="form-label">Data limite</label>
+            <input type="date" class="form-control" id="taskDueDate" name="data_limite">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="saveTaskBtn">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Ativar as abas
+    const triggerTabList = [].slice.call(document.querySelectorAll('#gestaoTabs button'));
+    triggerTabList.forEach(function (triggerEl) {
+      const tabTrigger = new bootstrap.Tab(triggerEl);
+      triggerEl.addEventListener('click', function (event) {
+        event.preventDefault();
+        tabTrigger.show();
+      });
+    });
+
+    // Configurar os botões de adicionar card
+    document.querySelectorAll('.add-card-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const column = this.getAttribute('data-column');
+        document.getElementById('cardColumn').value = column;
+      });
+    });
+
+    // Função para adicionar um novo card
+    document.getElementById('saveCardBtn').addEventListener('click', function() {
+      const form = document.getElementById('addCardForm');
+      const formData = {
+        titulo: document.getElementById('cardTitle').value,
+        descricao: document.getElementById('cardDescription').value,
+        coluna: document.getElementById('cardColumn').value,
+        prioridade: document.getElementById('cardPriority').value,
+        projeto: document.getElementById('cardProject').value || null
+      };
+
+      // Validação básica
+      if (!formData.titulo) {
+        alert('Por favor, preencha o título do card.');
+        return;
+      }
+
+      // Enviar para o servidor
+      fetch('/cambam/card/add/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          // Fechar o modal
+          bootstrap.Modal.getInstance(document.getElementById('addCardModal')).hide();
+          // Recarregar a página para mostrar o novo card
+          window.location.reload();
+        } else {
+          alert(`Erro ao criar card: ${data.message}`);
+        }
+      })
+      .catch(error => {
+        console.error('Erro:', error);
+        alert('Ocorreu um erro ao adicionar o card. Por favor, tente novamente.');
+      });
+    });
+
+    // Função para obter o token CSRF
+    function getCSRFToken() {
+      const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+      return cookieValue;
+    }
+  });
+</script>
+{% endblock %}

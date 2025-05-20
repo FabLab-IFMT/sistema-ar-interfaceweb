@@ -1,0 +1,276 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block head %}
+<style>
+  .member-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 600;
+    margin-right: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .member-list-item:nth-child(5n+1) .member-avatar { background-color: #4B89DC; }
+  .member-list-item:nth-child(5n+2) .member-avatar { background-color: #967ADC; }
+  .member-list-item:nth-child(5n+3) .member-avatar { background-color: #D770AD; }
+  .member-list-item:nth-child(5n+4) .member-avatar { background-color: #F6BB42; }
+  .member-list-item:nth-child(5n+5) .member-avatar { background-color: #37BC9B; }
+  
+  .member-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .member-initials {
+    font-size: 1rem;
+  }
+  
+  .member-list-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .member-list-item:last-child {
+    border-bottom: none;
+  }
+  
+  .member-info {
+    flex-grow: 1;
+  }
+  
+  .member-name {
+    font-weight: 500;
+    margin-bottom: 3px;
+  }
+  
+  .member-role {
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+  
+  .task-list-item {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid #dee2e6;
+    background-color: #f8f9fa;
+  }
+  
+  .task-list-item.high {
+    border-left-color: #dc3545;
+  }
+  
+  .task-list-item.medium {
+    border-left-color: #ffc107;
+  }
+  
+  .task-list-item.low {
+    border-left-color: #28a745;
+  }
+  
+  .task-title {
+    font-weight: 500;
+    margin-bottom: 5px;
+  }
+  
+  .task-completed {
+    text-decoration: line-through;
+    color: #6c757d;
+  }
+  
+  .task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+  
+  .badge-project {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background-color: #e9ecef;
+    color: #495057;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'projetos:gestao' %}">Gestão</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'projetos:grupos_lista' %}">Grupos de Projetos</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ grupo.nome }}</li>
+    </ol>
+  </nav>
+
+  <!-- Cabeçalho -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+      <i class="fas fa-users me-2"></i>{{ grupo.nome }}
+    </h2>
+    <div>
+      <a href="{% url 'projetos:grupo_editar' grupo.id %}" class="btn btn-primary">
+        <i class="fas fa-edit me-1"></i> Editar
+      </a>
+      <a href="{% url 'projetos:grupo_excluir' grupo.id %}" class="btn btn-outline-danger ms-2">
+        <i class="fas fa-trash me-1"></i> Excluir
+      </a>
+    </div>
+  </div>
+
+  {% if grupo.descricao %}
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Descrição</h5>
+      <p class="card-text">{{ grupo.descricao }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row">
+    <!-- Coluna da esquerda: Membros e Projetos -->
+    <div class="col-md-4">
+      <!-- Membros do grupo -->
+      <div class="card mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Membros</h5>
+          <span class="badge bg-primary">{{ grupo.membros.count }}</span>
+        </div>
+        <div class="card-body">
+          {% if grupo.membros.exists %}
+            <div class="member-list">
+              {% for membro in grupo.membros.all %}
+                <div class="member-list-item">
+                  <div class="member-avatar">
+                    {% if membro.foto %}
+                      <img src="{{ membro.foto.url }}" alt="{{ membro.get_full_name }}">
+                    {% else %}
+                      <span class="member-initials">{{ membro.first_name|slice:":1" }}{{ membro.last_name|slice:":1" }}</span>
+                    {% endif %}
+                  </div>
+                  <div class="member-info">
+                    <div class="member-name">{{ membro.get_full_name|default:membro.username }}</div>
+                    <div class="member-role">
+                      {% if membro.is_superuser %}
+                        Superusuário
+                      {% elif membro.is_staff %}
+                        Staff
+                      {% else %}
+                        Usuário
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-center text-muted py-3">Nenhum membro no grupo</p>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Projetos associados -->
+      <div class="card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Projetos</h5>
+          <span class="badge bg-info">{{ grupo.projetos.count }}</span>
+        </div>
+        <div class="card-body">
+          {% if grupo.projetos.exists %}
+            <div class="list-group">
+              {% for projeto in grupo.projetos.all %}
+                <a href="{% url 'projetos:detalhe' projeto.slug %}" class="list-group-item list-group-item-action">
+                  {{ projeto.titulo }}
+                  <span class="float-end badge 
+                    {% if projeto.status == 'concluido' %}bg-success
+                    {% elif projeto.status == 'em_andamento' %}bg-primary
+                    {% elif projeto.status == 'planejado' %}bg-info
+                    {% else %}bg-secondary{% endif %}">
+                    {{ projeto.get_status_display }}
+                  </span>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-center text-muted py-3">Nenhum projeto associado ao grupo</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    <!-- Coluna da direita: Tarefas do grupo -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Tarefas do Grupo</h5>
+          <span class="badge bg-secondary">{{ tarefas.count }}</span>
+        </div>
+        <div class="card-body">
+          {% if tarefas %}
+            {% for tarefa in tarefas %}
+              <div class="task-list-item 
+                {% if tarefa.prioridade == 'urgente' or tarefa.prioridade == 'alta' %}high
+                {% elif tarefa.prioridade == 'media' %}medium
+                {% else %}low{% endif %}">
+                <h6 class="task-title {% if tarefa.concluida %}task-completed{% endif %}">{{ tarefa.titulo }}</h6>
+                {% if tarefa.descricao %}
+                  <p class="task-description {% if tarefa.concluida %}task-completed{% endif %}">
+                    {{ tarefa.descricao|truncatechars:150 }}
+                  </p>
+                {% endif %}
+                <div class="task-meta">
+                  {% if tarefa.projeto %}
+                    <span class="badge-project">
+                      <i class="fas fa-folder me-1"></i> {{ tarefa.projeto.titulo }}
+                    </span>
+                  {% endif %}
+                  <span class="task-date">
+                    <i class="fas fa-calendar-alt me-1"></i> Criado em: {{ tarefa.data_criacao|date:"d/m/Y" }}
+                  </span>
+                  {% if tarefa.data_limite %}
+                    <span class="task-deadline {% if tarefa.data_limite < today and not tarefa.concluida %}text-danger{% endif %}">
+                      <i class="fas fa-clock me-1"></i> Prazo: {{ tarefa.data_limite|date:"d/m/Y" }}
+                    </span>
+                  {% endif %}
+                  <span class="task-status">
+                    <i class="fas {% if tarefa.concluida %}fa-check-circle text-success{% else %}fa-clock text-warning{% endif %} me-1"></i>
+                    {{ tarefa.concluida|yesno:"Concluída,Pendente" }}
+                  </span>
+                  <span class="task-priority">
+                    <i class="fas fa-exclamation-circle me-1"></i> {{ tarefa.get_prioridade_display }}
+                  </span>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-center py-5">
+              <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+              <h5>Nenhuma tarefa atribuída a este grupo</h5>
+              <p class="text-muted">Atribua tarefas através da lista de tarefas.</p>
+              <a href="{% url 'projetos:todo_list' %}" class="btn btn-primary mt-2">
+                <i class="fas fa-plus me-1"></i> Adicionar Tarefa
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

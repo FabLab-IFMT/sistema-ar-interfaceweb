@@ -1,0 +1,56 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Excluir Grupo{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'projetos:gestao' %}">Gestão</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'projetos:grupos_lista' %}">Grupos de Projetos</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Excluir Grupo</li>
+    </ol>
+  </nav>
+
+  <!-- Card de confirmação -->
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card border-danger shadow-sm">
+        <div class="card-header bg-danger text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Exclusão
+          </h4>
+        </div>
+        <div class="card-body">
+          <h5 class="card-title">Tem certeza de que deseja excluir o grupo "{{ grupo.nome }}"?</h5>
+          <p class="card-text">Esta ação não pode ser desfeita. Os seguintes dados serão afetados:</p>
+          
+          <ul class="mb-4">
+            <li>Todas as associações com <strong>{{ grupo.membros.count }} membro(s)</strong> serão removidas;</li>
+            <li>Todas as associações com <strong>{{ grupo.projetos.count }} projeto(s)</strong> serão removidas;</li>
+            <li>Tarefas atribuídas a este grupo permanecerão no sistema, mas sem associação ao grupo.</li>
+          </ul>
+          
+          <div class="alert alert-warning">
+            <i class="fas fa-info-circle me-2"></i>A exclusão do grupo não afeta os membros ou projetos individualmente, apenas remove suas associações com este grupo.
+          </div>
+          
+          <form method="post" action="">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between mt-4">
+              <a href="{% url 'projetos:grupo_detalhe' grupo.id %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Cancelar
+              </a>
+              <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash me-2"></i>Sim, excluir este grupo
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
