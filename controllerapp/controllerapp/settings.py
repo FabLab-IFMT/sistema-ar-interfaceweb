@@ -31,16 +31,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users',
-    'logs',
-    'Controle_ar',
-    'options',
-    'acesso_e_ponto',
-    'Email_notificacoes',
-    'inventario', 
+    'repositorio',
     'projetos',
-    'canva',  # App do quadro Kanban
-    'repositorio',  # Novo app de repositório
+    'logs',
+    'options',
+    'users',
+    'gestao',
+    'acesso_e_ponto',
+    'canva',
+    'inventario',
+    'gestao_projetos',
+    'Controle_ar',
+    'Email_notificacoes',
+    'todo',  # Adicionando o aplicativo de lista de tarefas
 ]
 
 MIDDLEWARE = [

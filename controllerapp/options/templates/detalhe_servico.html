@@ -626,6 +626,11 @@
     const adicionarComoUtilizarBtn = document.getElementById('adicionar-como-utilizar');
     if (adicionarComoUtilizarBtn) {
       adicionarComoUtilizarBtn.addEventListener('click', function() {
+        adicionarPassoComoUtilizar();
+      });
+    }
+    
+    function adicionarPassoComoUtilizar() {
         const container = document.getElementById('como-utilizar-container');
         const itemCount = container.getElementsByClassName('item-input').length + 1;
         
@@ -639,13 +644,28 @@
         
         container.appendChild(novoItem);
         atualizarBotoesRemover();
-      });
+        
+        // Pergunta se deseja continuar adicionando
+        setTimeout(() => {
+            if (confirm("Continuar a iterar?")) {
+                adicionarPassoComoUtilizar();
+            } else {
+                // Foco no último campo adicionado
+                const ultimoInput = container.querySelector('.item-input:last-child input');
+                if (ultimoInput) ultimoInput.focus();
+            }
+        }, 100);
     }
     
     // Funcionalidade para adicionar novas aplicações
     const adicionarAplicacaoBtn = document.getElementById('adicionar-aplicacao');
     if (adicionarAplicacaoBtn) {
       adicionarAplicacaoBtn.addEventListener('click', function() {
+        adicionarAplicacao();
+      });
+    }
+    
+    function adicionarAplicacao() {
         const container = document.getElementById('aplicacoes-container');
         
         const novoItem = document.createElement('div');
@@ -657,7 +677,17 @@
         
         container.appendChild(novoItem);
         atualizarBotoesRemover();
-      });
+        
+        // Pergunta se deseja continuar adicionando
+        setTimeout(() => {
+            if (confirm("Continuar a iterar?")) {
+                adicionarAplicacao();
+            } else {
+                // Foco no último campo adicionado
+                const ultimoInput = container.querySelector('.item-input:last-child input');
+                if (ultimoInput) ultimoInput.focus();
+            }
+        }, 100);
     }
     
     // Função para atualizar numeração dos passos e botões de remover

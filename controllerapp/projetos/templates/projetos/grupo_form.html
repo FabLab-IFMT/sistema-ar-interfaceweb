@@ -1,0 +1,672 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+  .select2-container {
+    width: 100% !important;
+  }
+  
+  .select2-selection--multiple {
+    min-height: 80px !important;
+    border-radius: 4px !important;
+    border-color: #ced4da !important;
+    background: #ffffff !important;
+  }
+  
+  .select2-dropdown {
+    border-color: #ced4da !important;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1) !important;
+    border-radius: 4px !important;
+  }
+  
+  .select2-search__field {
+    margin-top: 8px !important;
+    padding: 6px 10px !important;
+    border-radius: 4px !important;
+  }
+  
+  /* Estilos para avatares no select2 */
+  .select2-selection__choice {
+    display: flex !important;
+    align-items: center !important;
+    padding: 5px 8px !important;
+    border-radius: 4px !important;
+    position: relative !important;
+    background-color: #f0f7ff !important;
+    border-color: #d1e6ff !important;
+    margin: 3px !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  .select2-selection__choice:hover {
+    background-color: #e1efff !important;
+  }
+  
+  .select2-selection__choice__remove {
+    margin-left: 6px !important;
+    color: #6c757d !important;
+    font-size: 14px !important;
+    opacity: 0.7 !important;
+    transition: opacity 0.2s ease !important;
+  }
+  
+  .select2-selection__choice__remove:hover {
+    opacity: 1 !important;
+    color: #dc3545 !important;
+  }
+  
+  /* Estilos para os resultados na lista de seleção */
+  .select2-results__option {
+    display: flex;
+    align-items: center;
+    padding: 6px 10px !important;
+    border-bottom: 1px solid #f7f7f7 !important;
+  }
+  
+  .select2-results__option--highlighted[aria-selected] {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+  }
+  
+  .select2-results__option[aria-selected=true] {
+    background-color: #e9ecef !important;
+  }
+  
+  .user-option {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .user-option-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .user-option-name {
+    font-weight: 500;
+    font-size: 14px;
+  }
+  
+  .user-option-role {
+    font-size: 12px;
+    color: #6c757d;
+  }
+  
+  /* Cores para avatares */
+  .avatar-color-1 { background-color: #4B89DC !important; }
+  .avatar-color-2 { background-color: #967ADC !important; }
+  .avatar-color-3 { background-color: #D770AD !important; }
+  .avatar-color-4 { background-color: #F6BB42 !important; }
+  .avatar-color-5 { background-color: #37BC9B !important; }
+  .avatar-color-6 { background-color: #DA4453 !important; }
+  .avatar-color-7 { background-color: #3BAFDA !important; }
+  .avatar-color-8 { background-color: #8CC152 !important; }
+  .avatar-color-9 { background-color: #E9573F !important; }
+  .avatar-color-10 { background-color: #48CFAD !important; }
+  
+  /* Customização para o placeholder */
+  .select2-container--default .select2-selection--multiple .select2-selection__placeholder {
+    color: #6c757d;
+    padding: 5px 0;
+    display: block;
+  }
+  
+  /* Estilo para contagem de seleções */
+  .select-count {
+    font-size: 13px;
+    color: #6c757d;
+    margin-top: 5px;
+    display: block;
+  }
+  
+  /* Estilo para os botões de seleção rápida */
+  .select-actions {
+    margin-bottom: 10px;
+    display: flex;
+    gap: 8px;
+  }
+  
+  .select-actions button {
+    font-size: 12px;
+    padding: 3px 8px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    color: #6c757d;
+    transition: all 0.2s;
+  }
+  
+  .select-actions button:hover {
+    background-color: #e9ecef;
+    color: #495057;
+  }
+  
+  /* Indicador de seleção múltipla */
+  .multi-select-hint {
+    color: #6c757d;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  
+  @media (max-width: 576px) {
+    .select-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+    
+    .filter-category {
+      justify-content: center;
+    }
+  }
+  
+  .multi-select-indicator i {
+    color: #0d6efd;
+    margin-right: 8px;
+  }
+  
+  /* Filtros de categoria */
+  .filter-category {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .filter-btn {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .filter-btn:hover, .filter-btn.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+  }
+  
+  /* Removemos as previsualizações complexas em favor de uma interface mais simples */
+  .role-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  
+  .role-superuser { background-color: #dc3545; }
+  .role-staff { background-color: #0d6efd; }
+  .role-user { background-color: #6c757d; }
+  
+  .status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  
+  .status-concluido { background-color: #198754; }
+  .status-em_andamento { background-color: #0d6efd; }
+  .status-planejado { background-color: #0dcaf0; }
+  .status-cancelado { background-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'projetos:gestao' %}">Gestão</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'projetos:grupos_lista' %}">Grupos de Projetos</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ titulo }}</li>
+    </ol>
+  </nav>
+
+  <!-- Cabeçalho -->
+  <div class="mb-4">
+    <h2>
+      <i class="fas fa-users me-2"></i>{{ titulo }}
+    </h2>
+    <p class="text-muted">Crie grupos para organizar membros e projetos de forma eficiente.</p>
+  </div>
+  
+  <!-- Formulário -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post" action="">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+          <label for="nome" class="form-label">Nome do Grupo *</label>
+          <input type="text" class="form-control" id="nome" name="nome" required 
+                 value="{{ grupo.nome|default:'' }}">
+          <div class="form-text">Um nome único e descritivo para o grupo.</div>
+        </div>
+        
+        <div class="mb-3">
+          <label for="descricao" class="form-label">Descrição</label>
+          <textarea class="form-control" id="descricao" name="descricao" rows="3">{{ grupo.descricao|default:'' }}</textarea>
+          <div class="form-text">Descreva o propósito ou a função deste grupo de projeto.</div>
+        </div>
+        
+        <div class="mb-4">
+          <label for="membros" class="form-label d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-users me-1"></i> Membros do Grupo</span>
+            <span class="badge bg-info">Múltipla escolha</span>
+          </label>
+          
+          <p class="multi-select-hint">
+            <i class="fas fa-info-circle"></i> 
+            Selecione os usuários que farão parte deste grupo (use Ctrl+Clique para selecionar vários)
+          </p>
+          
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="filter-category">
+              <span class="filter-btn active" data-role="all">Todos</span>
+              <span class="filter-btn" data-role="Superusuário">Superusuários</span>
+              <span class="filter-btn" data-role="Staff">Staff</span>
+              <span class="filter-btn" data-role="Usuário">Usuários</span>
+            </div>
+            
+            <div class="select-actions">
+              <button type="button" id="select-all-membros" class="btn-sm">
+                <i class="fas fa-check-double me-1"></i> Todos
+              </button>
+              <button type="button" id="unselect-all-membros" class="btn-sm">
+                <i class="fas fa-times me-1"></i> Limpar
+              </button>
+            </div>
+          </div>
+          
+          <select class="form-select select2-multiple" id="membros" name="membros" multiple data-placeholder="Clique aqui para selecionar membros...">
+            {% for usuario in usuarios %}
+              <option value="{{ usuario.id }}" {% if membros_selecionados and usuario.id in membros_selecionados %}selected{% endif %} 
+                     data-name="{{ usuario.get_full_name|default:usuario.username }}" 
+                     data-role="{% if usuario.is_superuser %}Superusuário{% elif usuario.is_staff %}Staff{% else %}Usuário{% endif %}">
+                {{ usuario.get_full_name|default:usuario.username }}
+                {% if usuario.is_superuser %} (Superusuário)
+                {% elif usuario.is_staff %} (Staff){% endif %}
+              </option>
+            {% endfor %}
+          </select>
+          <span id="membros-counter" class="select-count mt-1"></span>
+          
+          <div class="form-text mt-2">
+            <i class="fas fa-info-circle me-1"></i> Os membros selecionados terão acesso aos recursos compartilhados deste grupo.
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <label for="projetos" class="form-label d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-project-diagram me-1"></i> Projetos Associados</span>
+            <span class="badge bg-info">Múltipla escolha</span>
+          </label>
+          
+          <p class="multi-select-hint">
+            <i class="fas fa-info-circle"></i> 
+            Selecione os projetos que serão associados a este grupo
+          </p>
+          
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="filter-category">
+              <span class="filter-btn active" data-status="all">Todos</span>
+              {% for status_id, status_nome in status_opcoes %}
+                <span class="filter-btn" data-status="{{ status_id }}">{{ status_nome }}</span>
+              {% endfor %}
+            </div>
+            
+            <div class="select-actions">
+              <button type="button" id="select-all-projetos" class="btn-sm">
+                <i class="fas fa-check-double me-1"></i> Todos
+              </button>
+              <button type="button" id="unselect-all-projetos" class="btn-sm">
+                <i class="fas fa-times me-1"></i> Limpar
+              </button>
+            </div>
+          </div>
+          
+          <select class="form-select select2-multiple" id="projetos" name="projetos" multiple data-placeholder="Clique aqui para selecionar projetos...">
+            {% for projeto in projetos %}
+              <option value="{{ projeto.id }}" {% if projetos_selecionados and projeto.id in projetos_selecionados %}selected{% endif %} data-status="{{ projeto.status }}">
+                {{ projeto.titulo }} ({{ projeto.get_status_display }})
+              </option>
+            {% endfor %}
+          </select>
+          <span id="projetos-counter" class="select-count mt-1"></span>
+          
+          <div class="form-text mt-2">
+            <i class="fas fa-info-circle me-1"></i> Os projetos selecionados estarão vinculados a este grupo para gerenciamento conjunto.
+          </div>
+        </div>
+        
+        <div class="d-flex justify-content-between mt-4">
+          <a href="{% url 'projetos:grupos_lista' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Voltar
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i> {{ acao|default:'Salvar' }} Grupo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+  $(document).ready(function() {
+    // Inicializar Select2 para seleção de membros
+    $('#membros').select2({
+      placeholder: $(this).data('placeholder'),
+      allowClear: true,
+      width: '100%',
+      templateResult: formatUserResult,
+      templateSelection: formatUserSelection,
+      language: {
+        noResults: function() {
+          return "Nenhum usuário encontrado";
+        },
+        searching: function() {
+          return "Buscando...";
+        }
+      }
+    }).on('change', function() {
+      updateMembrosCounter();
+    });
+    
+    // Inicializar Select2 para seleção de projetos
+    $('#projetos').select2({
+      placeholder: $(this).data('placeholder'),
+      allowClear: true,
+      width: '100%',
+      templateResult: formatProjetoResult,
+      templateSelection: formatProjetoSelection,
+      language: {
+        noResults: function() {
+          return "Nenhum projeto encontrado";
+        },
+        searching: function() {
+          return "Buscando...";
+        }
+      }
+    }).on('change', function() {
+      updateProjetosCounter();
+    });
+    
+    // Botões de seleção rápida para membros
+    $('#select-all-membros').on('click', function() {
+      $('#membros option').prop('selected', true);
+      $('#membros').trigger('change');
+    });
+    
+    $('#unselect-all-membros').on('click', function() {
+      $('#membros option').prop('selected', false);
+      $('#membros').trigger('change');
+    });
+    
+    // Botões de seleção rápida para projetos
+    $('#select-all-projetos').on('click', function() {
+      $('#projetos option').prop('selected', true);
+      $('#projetos').trigger('change');
+    });
+    
+    $('#unselect-all-projetos').on('click', function() {
+      $('#projetos option').prop('selected', false);
+      $('#projetos').trigger('change');
+    });
+    
+    // Filtros por função de usuários
+    $('.filter-btn[data-role]').on('click', function() {
+      const role = $(this).data('role');
+      
+      // Atualizar estado ativo
+      $('.filter-btn[data-role]').removeClass('active');
+      $(this).addClass('active');
+      
+      if (role === 'all') {
+        // Mostrar todos os usuários
+        $('#membros option').each(function() {
+          $(this).show();
+        });
+      } else {
+        // Filtrar por função
+        $('#membros option').each(function() {
+          const userRole = $(this).data('role');
+          if (userRole === role) {
+            $(this).show();
+          } else {
+            $(this).hide();
+          }
+        });
+      }
+      
+      // Reconstruir dropdown do Select2
+      $('#membros').select2('destroy').select2({
+        placeholder: $('#membros').data('placeholder'),
+        allowClear: true,
+        width: '100%',
+        templateResult: formatUserResult,
+        templateSelection: formatUserSelection,
+        language: {
+          noResults: function() {
+            return "Nenhum usuário encontrado";
+          },
+          searching: function() {
+            return "Buscando...";
+          }
+        }
+      });
+    });
+    
+    // Filtros por status de projetos
+    $('.filter-btn[data-status]').on('click', function() {
+      const status = $(this).data('status');
+      
+      // Atualizar estado ativo
+      $('.filter-btn[data-status]').removeClass('active');
+      $(this).addClass('active');
+      
+      if (status === 'all') {
+        // Mostrar todos os projetos
+        $('#projetos option').each(function() {
+          $(this).show();
+        });
+      } else {
+        // Filtrar por status
+        $('#projetos option').each(function() {
+          const projectStatus = $(this).data('status');
+          if (projectStatus === status) {
+            $(this).show();
+          } else {
+            $(this).hide();
+          }
+        });
+      }
+      
+      // Reconstruir dropdown do Select2
+      $('#projetos').select2('destroy').select2({
+        placeholder: $('#projetos').data('placeholder'),
+        allowClear: true,
+        width: '100%',
+        templateResult: formatProjetoResult,
+        templateSelection: formatProjetoSelection,
+        language: {
+          noResults: function() {
+            return "Nenhum projeto encontrado";
+          },
+          searching: function() {
+            return "Buscando...";
+          }
+        }
+      });
+    });
+    
+    // Adicionar tooltip simplificado ao select2 membros
+    $('#membros').on('select2:open', function() {
+      if (!$(this).data('tooltip-added')) {
+        setTimeout(function() {
+          const $searchField = $('.select2-search__field');
+          
+          // Ajustar o placeholder do campo de busca
+          $searchField.attr('placeholder', 'Digite para buscar usuários (Ctrl+Clique para múltipla seleção)');
+          $('#membros').data('tooltip-added', true);
+        }, 100);
+      }
+    });
+    
+    // Adicionar tooltip simplificado ao select2 projetos
+    $('#projetos').on('select2:open', function() {
+      if (!$(this).data('tooltip-added')) {
+        setTimeout(function() {
+          const $searchField = $('.select2-search__field');
+          
+          // Ajustar o placeholder do campo de busca
+          $searchField.attr('placeholder', 'Digite para buscar projetos (Ctrl+Clique para múltipla seleção)');
+          $('#projetos').data('tooltip-added', true);
+        }, 100);
+      }
+    });
+    
+    // Atualizar contadores iniciais
+    updateMembrosCounter();
+    updateProjetosCounter();
+    
+    // Função para atualizar contador de membros selecionados
+    function updateMembrosCounter() {
+      const selectedUsers = $('#membros').select2('data');
+      const selectedCount = selectedUsers.length;
+      const totalCount = $('#membros option').length;
+      
+      $('#membros-counter').html(
+        selectedCount > 0 ? 
+        `<i class="fas fa-check-circle text-success me-1"></i> ${selectedCount} membro${selectedCount !== 1 ? 's' : ''} selecionado${selectedCount !== 1 ? 's' : ''}` :
+        `<i class="fas fa-info-circle text-muted me-1"></i> Nenhum membro selecionado`
+      );
+    }
+    
+    // Função para atualizar contador de projetos selecionados
+    function updateProjetosCounter() {
+      const selectedProjects = $('#projetos').select2('data');
+      const selectedCount = selectedProjects.length;
+      const totalCount = $('#projetos option').length;
+      
+      $('#projetos-counter').html(
+        selectedCount > 0 ? 
+        `<i class="fas fa-check-circle text-success me-1"></i> ${selectedCount} projeto${selectedCount !== 1 ? 's' : ''} selecionado${selectedCount !== 1 ? 's' : ''}` :
+        `<i class="fas fa-info-circle text-muted me-1"></i> Nenhum projeto selecionado`
+      );
+    }
+    
+    // Função para formatar a opção na lista de resultados
+    function formatUserResult(user) {
+      if (!user.id) {
+        return user.text;
+      }
+      
+      // Obter informações do usuário
+      const fullName = user.element.dataset.name || user.text.split('(')[0].trim();
+      const role = user.element.dataset.role || (user.text.includes('(Superusuário)') ? 'Superusuário' : 
+                                               user.text.includes('(Staff)') ? 'Staff' : 'Usuário');
+      
+      // Determinar cor do indicador baseado na função
+      let roleClass = 'role-user';
+      if (role === 'Superusuário') {
+        roleClass = 'role-superuser';
+      } else if (role === 'Staff') {
+        roleClass = 'role-staff';
+      }
+      
+      // Criar elemento completo com indicador e informações
+      const $container = $(
+        `<div class="user-option">
+          <div class="role-indicator ${roleClass}"></div>
+          <div class="user-option-info">
+            <div class="user-option-name">${fullName}</div>
+            <div class="user-option-role">${role}</div>
+          </div>
+        </div>`
+      );
+      
+      return $container;
+    }
+    
+    // Função para formatar a exibição de usuários selecionados
+    function formatUserSelection(user) {
+      if (!user.id) {
+        return user.text;
+      }
+      
+      // Obter nome completo
+      let fullName = user.element ? user.element.dataset.name : user.text.split('(')[0].trim();
+      
+      // Simplificar para mostrar apenas o nome
+      return fullName;
+    }
+    
+    // Função para formatar a exibição dos projetos na lista de resultados
+    function formatProjetoResult(projeto) {
+      if (!projeto.id) {
+        return projeto.text;
+      }
+      
+      // Extrair título e status do texto
+      const text = projeto.text;
+      const title = text.split(' (')[0];
+      let status = 'Indefinido';
+      let statusClass = '';
+      
+      if (text.includes('(')) {
+        status = text.split('(')[1].replace(')', '');
+      }
+      
+      // Determinar classe do status
+      if (status.includes('Concluído')) {
+        statusClass = 'status-concluido';
+      } else if (status.includes('Em andamento')) {
+        statusClass = 'status-em_andamento';
+      } else if (status.includes('Planejado')) {
+        statusClass = 'status-planejado';
+      } else if (status.includes('Cancelado')) {
+        statusClass = 'status-cancelado';
+      }
+      
+      // Criar elemento com título e indicador de status
+      const $container = $(
+        `<div class="d-flex align-items-center w-100">
+          <div class="status-indicator ${statusClass}"></div>
+          <div>${title}</div>
+          <small class="text-muted ms-2">(${status})</small>
+        </div>`
+      );
+      
+      return $container;
+    }
+    
+    // Função para formatar a exibição dos projetos selecionados
+    function formatProjetoSelection(projeto) {
+      if (!projeto.id) {
+        return projeto.text;
+      }
+      
+      // Extrair título do texto
+      const title = projeto.text.split(' (')[0];
+      
+      // Retornar apenas o título
+      return title;
+    }
+  });
+</script>
+{% endblock %}

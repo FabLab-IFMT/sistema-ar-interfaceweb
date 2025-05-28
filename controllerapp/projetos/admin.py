@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Projeto, ProjetoTag, ProjetoImagem, ComentarioProjeto
+from .models import Projeto, ProjetoTag, ProjetoImagem, ComentarioProjeto, TodoTask, ProjetoGrupo
 
 class ProjetoImagemInline(admin.TabularInline):
     model = ProjetoImagem
@@ -85,3 +85,51 @@ class ComentarioProjetoAdmin(admin.ModelAdmin):
         if request.path.endswith('/change/'):
             return qs
         return qs.filter(comentario_pai__isnull=True)
+
+@admin.register(TodoTask)
+class TodoTaskAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'usuario', 'projeto', 'prioridade', 'data_limite', 'concluida')
+    list_filter = ('concluida', 'prioridade', 'usuario', 'projeto')
+    search_fields = ('titulo', 'descricao')
+    date_hierarchy = 'data_criacao'
+
+@admin.register(ProjetoGrupo)
+class ProjetoGrupoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'get_membros_count', 'get_projetos_count', 'criado_por', 'data_criacao')
+    search_fields = ('nome', 'descricao')
+    filter_horizontal = ('membros', 'projetos')
+    readonly_fields = ('criado_por', 'data_criacao', 'data_atualizacao')
+    
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('nome', 'descricao')
+        }),
+        ('Membros e Projetos', {
+            'fields': ('membros', 'projetos')
+        }),
+        ('Informações do Sistema', {
+            'fields': ('criado_por', 'data_criacao', 'data_atualizacao'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_membros_count(self, obj):
+        return obj.membros.count()
+    get_membros_count.short_description = 'Membros'
+    
+    def get_projetos_count(self, obj):
+        return obj.projetos.count()
+    get_projetos_count.short_description = 'Projetos'
+    
+    def save_model(self, request, obj, form, change):
+        if not obj.criado_por:
+            obj.criado_por = request.user
+        super().save_model(request, obj, form, change)
+    
+    def has_add_permission(self, request):
+        # Apenas superusuários podem adicionar grupos
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        # Apenas superusuários podem editar grupos
+        return request.user.is_superuser

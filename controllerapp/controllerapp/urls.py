@@ -25,6 +25,7 @@ urlpatterns = [
     path('inventario/', include('inventario.urls')),
     path('cambam/', include('canva.urls')),  # Adicionar URLs do quadro Kanban
     path('repositorio/', include('repositorio.urls')),  # Adicionar URLs do repositório
+    path('gestao/', include('gestao.urls')),  # Adicionar URLs da área de gestão
 ]
 
 # Adicionar URLs para mídia - mesmo com DEBUG=False para uso local

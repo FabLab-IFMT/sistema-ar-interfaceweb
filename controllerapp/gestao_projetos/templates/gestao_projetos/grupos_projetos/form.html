@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{{ titulo }}</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="id_nome" class="form-label">Nome do Grupo</label>
+                        {{ form.nome }}
+                        {% if form.nome.errors %}
+                        <div class="text-danger">
+                            {% for error in form.nome.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_descricao" class="form-label">Descrição</label>
+                        {{ form.descricao }}
+                        {% if form.descricao.errors %}
+                        <div class="text-danger">
+                            {% for error in form.descricao.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="id_projetos" class="form-label">Projetos</label>
+                        {{ form.projetos }}
+                        <small class="form-text text-muted">Selecione os projetos que farão parte deste grupo.</small>
+                        {% if form.projetos.errors %}
+                        <div class="text-danger">
+                            {% for error in form.projetos.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_membros" class="form-label">Membros</label>
+                        {{ form.membros }}
+                        <small class="form-text text-muted">Selecione os usuários que terão acesso a este grupo.</small>
+                        {% if form.membros.errors %}
+                        <div class="text-danger">
+                            {% for error in form.membros.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'gestao_projetos:listar_grupos_projetos' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        // Inicializar select2 para melhorar a usabilidade das listas de seleção
+        $('#id_projetos').select2({
+            placeholder: "Selecione os projetos",
+            allowClear: true
+        });
+        
+        $('#id_membros').select2({
+            placeholder: "Selecione os membros",
+            allowClear: true
+        });
+    });
+</script>
+{% endblock %}

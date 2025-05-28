@@ -1,0 +1,791 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Lista de Tarefas{% endblock %}
+
+{% block head %}
+<style>
+  .todo-container {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 25px;
+    margin-bottom: 30px;
+  }
+
+  .todo-header {
+    margin-bottom: 20px;
+  }
+
+  .todo-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+
+  .stat-card {
+    flex: 1;
+    min-width: 140px;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+
+  .stat-label {
+    color: #6c757d;
+    font-size: 14px;
+  }
+
+  .stat-icon {
+    margin-bottom: 10px;
+    font-size: 20px;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    border-radius: 50%;
+    display: inline-block;
+    text-align: center;
+    color: white;
+  }
+
+  .bg-primary-light {
+    background-color: #0d6efd;
+  }
+
+  .bg-success-light {
+    background-color: #198754;
+  }
+
+  .bg-warning-light {
+    background-color: #ffc107;
+  }
+
+  .bg-danger-light {
+    background-color: #dc3545;
+  }
+
+  .filters-bar {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .task-list {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+  }
+
+  .task-item {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e9ecef;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .task-item:last-child {
+    border-bottom: none;
+  }
+
+  .task-item:hover {
+    background-color: #f8f9fa;
+  }
+
+  .task-check {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+  }
+
+  .task-checkbox {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+  }
+
+  .task-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .task-title {
+    font-weight: 500;
+    margin-bottom: 5px;
+    word-break: break-word;
+  }
+
+  .task-completed .task-title {
+    text-decoration: line-through;
+    color: #6c757d;
+  }
+
+  .task-meta {
+    display: flex;
+    align-items: center;
+    color: #6c757d;
+    font-size: 13px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .task-project {
+    background-color: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+  }
+
+  .task-date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .task-date.overdue {
+    color: #dc3545;
+  }
+
+  .task-description {
+    margin-top: 10px;
+    background-color: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #495057;
+    white-space: pre-line;
+  }
+
+  .task-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .priority-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .priority-baixa {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+  }
+
+  .priority-media {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+  }
+
+  .priority-alta {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+  }
+
+  .priority-urgente {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .task-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .task-col {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  @media (max-width: 768px) {
+    .task-col {
+      flex: 1 1 100%;
+    }
+  }
+
+  .btn-floating {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    bottom: 40px;
+    right: 40px;
+    background-color: #0d6efd;
+    color: #FFF;
+    border-radius: 50px;
+    text-align: center;
+    font-size: 24px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+
+  .btn-floating:hover {
+    transform: scale(1.1);
+    background-color: #0b5ed7;
+    color: white;
+  }
+
+  /* Estilos para mostrar/esconder descrição */
+  .task-collapse-btn {
+    cursor: pointer;
+    color: #6c757d;
+    margin-left: 5px;
+  }
+
+  /* Tarefas vazias */
+  .empty-tasks {
+    text-align: center;
+    padding: 50px 20px;
+    color: #6c757d;
+  }
+
+  .empty-tasks i {
+    font-size: 50px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Mensagens de notificação -->
+  {% if messages %}
+    <div class="messages-container mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Cabeçalho -->
+  <div class="todo-header">
+    <h2 class="mb-2"><i class="fas fa-check-square me-2"></i>Lista de Tarefas</h2>
+    <p class="text-muted">Gerencie suas tarefas pessoais e relacionadas a projetos</p>
+  </div>
+
+  <!-- Estatísticas -->
+  <div class="todo-stats">
+    <div class="stat-card">
+      <div class="stat-icon bg-primary-light">
+        <i class="fas fa-tasks"></i>
+      </div>
+      <div class="stat-value">{{ total_tarefas }}</div>
+      <div class="stat-label">Total de Tarefas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-warning-light">
+        <i class="fas fa-spinner"></i>
+      </div>
+      <div class="stat-value">{{ tarefas_pendentes }}</div>
+      <div class="stat-label">Pendentes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-success-light">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="stat-value">{{ tarefas_concluidas }}</div>
+      <div class="stat-label">Concluídas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-danger-light">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <div class="stat-value">{{ tarefas_atrasadas }}</div>
+      <div class="stat-label">Atrasadas</div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-bar">
+    <form method="get" class="row g-3">
+      <div class="col-md-3">
+        <label for="status" class="form-label">Status</label>
+        <select class="form-select" id="status" name="status">
+          <option value="all" {% if filtro_status == 'all' %}selected{% endif %}>Todas</option>
+          <option value="pending" {% if filtro_status == 'pending' %}selected{% endif %}>Pendentes</option>
+          <option value="completed" {% if filtro_status == 'completed' %}selected{% endif %}>Concluídas</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="prioridade" class="form-label">Prioridade</label>
+        <select class="form-select" id="prioridade" name="prioridade">
+          <option value="" {% if not filtro_prioridade %}selected{% endif %}>Todas</option>
+          <option value="baixa" {% if filtro_prioridade == 'baixa' %}selected{% endif %}>Baixa</option>
+          <option value="media" {% if filtro_prioridade == 'media' %}selected{% endif %}>Média</option>
+          <option value="alta" {% if filtro_prioridade == 'alta' %}selected{% endif %}>Alta</option>
+          <option value="urgente" {% if filtro_prioridade == 'urgente' %}selected{% endif %}>Urgente</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="projeto" class="form-label">Projeto</label>
+        <select class="form-select" id="projeto" name="projeto">
+          <option value="" {% if not filtro_projeto %}selected{% endif %}>Todos</option>
+          {% for projeto in projetos %}
+          <option value="{{ projeto.id }}" {% if filtro_projeto == projeto.id|stringformat:"s" %}selected{% endif %}>
+            {{ projeto.titulo }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="grupo" class="form-label">Grupo</label>
+        <select class="form-select" id="grupo" name="grupo">
+          <option value="" {% if not filtro_grupo %}selected{% endif %}>Todos</option>
+          {% for grupo in grupos %}
+          <option value="{{ grupo.id }}" {% if filtro_grupo == grupo.id|stringformat:"s" %}selected{% endif %}>
+            {{ grupo.nome }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="order_by" class="form-label">Ordenar por</label>
+        <div class="input-group">
+          <select class="form-select" id="order_by" name="order_by">
+            <option value="data_criacao" {% if order_by == 'data_criacao' %}selected{% endif %}>Data de Criação</option>
+            <option value="data_limite" {% if order_by == 'data_limite' %}selected{% endif %}>Data Limite</option>
+            <option value="prioridade" {% if order_by == 'prioridade' %}selected{% endif %}>Prioridade</option>
+            <option value="titulo" {% if order_by == 'titulo' %}selected{% endif %}>Título</option>
+          </select>
+          <select class="form-select" name="direction" aria-label="Direção">
+            <option value="desc" {% if direction == 'desc' %}selected{% endif %}>Decrescente</option>
+            <option value="asc" {% if direction == 'asc' %}selected{% endif %}>Crescente</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-filter me-1"></i> Filtrar
+        </button>
+        <a href="{% url 'projetos:todo_list' %}" class="btn btn-outline-secondary">
+          <i class="fas fa-times me-1"></i> Limpar Filtros
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de Tarefas -->
+  <div class="task-list">
+    {% if tarefas %}
+      {% for tarefa in tarefas %}
+      <div class="task-item {% if tarefa.concluida %}task-completed{% endif %}" id="task-{{ tarefa.id }}">
+        <div class="task-row">
+          <div class="task-check">
+            <input type="checkbox" class="task-checkbox" data-task-id="{{ tarefa.id }}" 
+                  {% if tarefa.concluida %}checked{% endif %}>
+          </div>
+          <div class="task-content">
+            <div class="d-flex justify-content-between align-items-start">
+              <h5 class="task-title">{{ tarefa.titulo }}
+                {% if tarefa.descricao %}
+                <span class="task-collapse-btn" data-bs-toggle="collapse" data-bs-target="#desc-{{ tarefa.id }}">
+                  <i class="fas fa-caret-down"></i>
+                </span>
+                {% endif %}
+              </h5>
+              <span class="priority-badge priority-{{ tarefa.prioridade }}">
+                {{ tarefa.get_prioridade_display }}
+              </span>
+            </div>
+            <div class="task-meta">
+              {% if tarefa.projeto %}
+              <span class="task-project">
+                <i class="fas fa-folder me-1"></i>{{ tarefa.projeto.titulo }}
+              </span>
+              {% endif %}
+              {% if tarefa.grupo %}
+              <span class="task-project" style="background-color: #e7f5ff; color: #0d6efd;">
+                <i class="fas fa-users me-1"></i>{{ tarefa.grupo.nome }}
+              </span>
+              {% endif %}
+              {% if tarefa.data_limite %}
+              <span class="task-date {% if tarefa.days_remaining < 0 and not tarefa.concluida %}overdue{% endif %}">
+                <i class="fas fa-calendar{% if tarefa.days_remaining < 0 and not tarefa.concluida %}-times{% else %}-alt{% endif %} me-1"></i>
+                {{ tarefa.data_limite|date:"d/m/Y" }}
+                {% if not tarefa.concluida %}
+                  {% if tarefa.days_remaining < 0 %}
+                    <span class="badge bg-danger ms-1">{{ tarefa.days_remaining|abs }} dia(s) atrás</span>
+                  {% elif tarefa.days_remaining == 0 %}
+                    <span class="badge bg-warning ms-1">Hoje</span>
+                  {% elif tarefa.days_remaining <= 2 %}
+                    <span class="badge bg-warning ms-1">{{ tarefa.days_remaining }} dia(s)</span>
+                  {% endif %}
+                {% endif %}
+              </span>
+              {% endif %}
+              <span class="task-date">
+                <i class="fas fa-clock me-1"></i>{{ tarefa.data_criacao|date:"d/m/Y H:i" }}
+              </span>
+            </div>
+            {% if tarefa.descricao %}
+            <div class="collapse" id="desc-{{ tarefa.id }}">
+              <div class="task-description">{{ tarefa.descricao }}</div>
+            </div>
+            {% endif %}
+          </div>
+          <div class="task-actions">
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editTaskModal" 
+                   data-task-id="{{ tarefa.id }}" 
+                   data-task-title="{{ tarefa.titulo }}" 
+                   data-task-desc="{{ tarefa.descricao|default:'' }}"
+                   data-task-priority="{{ tarefa.prioridade }}"
+                   data-task-projeto="{% if tarefa.projeto %}{{ tarefa.projeto.id }}{% endif %}"
+                   data-task-grupo="{% if tarefa.grupo %}{{ tarefa.grupo.id }}{% endif %}"
+                   data-task-date="{% if tarefa.data_limite %}{{ tarefa.data_limite|date:'Y-m-d' }}{% endif %}"
+                   data-task-completed="{% if tarefa.concluida %}1{% else %}0{% endif %}">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteTaskModal" 
+                   data-task-id="{{ tarefa.id }}"
+                   data-task-title="{{ tarefa.titulo }}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-tasks">
+        <i class="fas fa-clipboard"></i>
+        <h4>Nenhuma tarefa encontrada</h4>
+        <p>Adicione uma nova tarefa para começar</p>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+          <i class="fas fa-plus me-1"></i> Adicionar Tarefa
+        </button>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Botão flutuante para adicionar tarefa - Está fora do fluxo condicional, então sempre aparecerá -->
+  <a href="#" class="btn-floating" data-bs-toggle="modal" data-bs-target="#addTaskModal" id="add-task-btn">
+    <i class="fas fa-plus"></i>
+  </a>
+
+  <!-- Modal Adicionar Tarefa -->
+  <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addTaskModalLabel">Adicionar Nova Tarefa</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <form action="{% url 'projetos:add_task' %}" method="post">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="titulo" class="form-label">Título*</label>
+              <input type="text" class="form-control" id="titulo" name="titulo" required>
+            </div>
+            <div class="mb-3">
+              <label for="descricao" class="form-label">Descrição</label>
+              <textarea class="form-control" id="descricao" name="descricao" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="prioridade" class="form-label">Prioridade</label>
+              <select class="form-select" id="prioridade" name="prioridade">
+                <option value="baixa">Baixa</option>
+                <option value="media" selected>Média</option>
+                <option value="alta">Alta</option>
+                <option value="urgente">Urgente</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="projeto" class="form-label">Projeto (opcional)</label>
+              <select class="form-select" id="projeto" name="projeto">
+                <option value="">Nenhum projeto</option>
+                {% for projeto in projetos %}
+                <option value="{{ projeto.id }}">{{ projeto.titulo }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="grupo" class="form-label">Grupo (opcional)</label>
+              <select class="form-select" id="grupo" name="grupo">
+                <option value="">Tarefa individual</option>
+                {% for grupo in grupos %}
+                <option value="{{ grupo.id }}">{{ grupo.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="data_limite" class="form-label">Data Limite (opcional)</label>
+              <input type="date" class="form-control" id="data_limite" name="data_limite">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Adicionar Tarefa</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Editar Tarefa -->
+  <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editTaskModalLabel">Editar Tarefa</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <form id="editTaskForm" action="" method="post">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="edit_titulo" class="form-label">Título*</label>
+              <input type="text" class="form-control" id="edit_titulo" name="titulo" required>
+            </div>
+            <div class="mb-3">
+              <label for="edit_descricao" class="form-label">Descrição</label>
+              <textarea class="form-control" id="edit_descricao" name="descricao" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="edit_prioridade" class="form-label">Prioridade</label>
+              <select class="form-select" id="edit_prioridade" name="prioridade">
+                <option value="baixa">Baixa</option>
+                <option value="media">Média</option>
+                <option value="alta">Alta</option>
+                <option value="urgente">Urgente</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="edit_projeto" class="form-label">Projeto (opcional)</label>
+              <select class="form-select" id="edit_projeto" name="projeto">
+                <option value="">Nenhum projeto</option>
+                {% for projeto in projetos %}
+                <option value="{{ projeto.id }}">{{ projeto.titulo }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="edit_grupo" class="form-label">Grupo (opcional)</label>
+              <select class="form-select" id="edit_grupo" name="grupo">
+                <option value="">Tarefa individual</option>
+                {% for grupo in grupos %}
+                <option value="{{ grupo.id }}">{{ grupo.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="edit_data_limite" class="form-label">Data Limite (opcional)</label>
+              <input type="date" class="form-control" id="edit_data_limite" name="data_limite">
+            </div>
+            <div class="form-check mb-3">
+              <input type="checkbox" class="form-check-input" id="edit_concluida" name="concluida">
+              <label class="form-check-label" for="edit_concluida">Marcar como concluída</label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Excluir Tarefa -->
+  <div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteTaskModalLabel">Confirmar Exclusão</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <p>Tem certeza que deseja excluir a tarefa "<span id="delete-task-title"></span>"?</p>
+          <p class="text-danger">Esta ação não pode ser desfeita.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <form id="deleteTaskForm" action="" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Excluir</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Funcionalidade para marcar/desmarcar tarefas
+    const checkboxes = document.querySelectorAll('.task-checkbox');
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const taskId = this.dataset.taskId;
+        const isChecked = this.checked;
+        const taskItem = document.getElementById(`task-${taskId}`);
+        
+        // Atualizar visualmente
+        if (isChecked) {
+          taskItem.classList.add('task-completed');
+        } else {
+          taskItem.classList.remove('task-completed');
+        }
+        
+        // Enviar para o servidor via AJAX
+        fetch(`{% url 'projetos:todo_list' %}${taskId}/update/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+          body: `concluida=${isChecked}`
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            // Atualizar contador de tarefas após marcar/desmarcar
+            setTimeout(function() {
+              location.reload();
+            }, 500);
+          }
+        })
+        .catch(error => console.error('Erro:', error));
+      });
+    });
+    
+    // Configurar modal de editar tarefa
+    const editTaskModal = document.getElementById('editTaskModal');
+    if (editTaskModal) {
+      editTaskModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const taskId = button.dataset.taskId;
+        const taskTitle = button.dataset.taskTitle;
+        const taskDesc = button.dataset.taskDesc;
+        const taskPriority = button.dataset.taskPriority;
+        const taskProjeto = button.dataset.taskProjeto;
+        const taskGrupo = button.dataset.taskGrupo;
+        const taskDate = button.dataset.taskDate;
+        const taskCompleted = button.dataset.taskCompleted === '1';
+        
+        // Atualizar formulário
+        document.getElementById('edit_titulo').value = taskTitle;
+        document.getElementById('edit_descricao').value = taskDesc;
+        document.getElementById('edit_prioridade').value = taskPriority;
+        document.getElementById('edit_projeto').value = taskProjeto;
+        document.getElementById('edit_grupo').value = taskGrupo;
+        document.getElementById('edit_data_limite').value = taskDate;
+        document.getElementById('edit_concluida').checked = taskCompleted;
+        
+        // Atualizar action do formulário
+        document.getElementById('editTaskForm').action = `{% url 'projetos:todo_list' %}${taskId}/update/`;
+      });
+    }
+    
+    // Configurar modal de excluir tarefa
+    const deleteTaskModal = document.getElementById('deleteTaskModal');
+    if (deleteTaskModal) {
+      deleteTaskModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const taskId = button.dataset.taskId;
+        const taskTitle = button.dataset.taskTitle;
+        
+        // Atualizar título no modal
+        document.getElementById('delete-task-title').textContent = taskTitle;
+        
+        // Atualizar action do formulário
+        document.getElementById('deleteTaskForm').action = `{% url 'projetos:todo_list' %}${taskId}/delete/`;
+      });
+    }
+
+    // Garantir que o botão flutuante esteja sempre visível
+    const addTaskBtn = document.getElementById('add-task-btn');
+    if (addTaskBtn) {
+      // Certificar que o botão está visível
+      addTaskBtn.style.display = 'flex';
+    }
+    
+    // Fechar modal após submissão com sucesso
+    const addTaskModal = document.getElementById('addTaskModal');
+    if (addTaskModal) {
+      const form = addTaskModal.querySelector('form');
+      form.addEventListener('submit', function() {
+        // Antes de fechar o modal, garantimos que o botão flutuante ainda existirá após o recarregamento
+        localStorage.setItem('showAddTaskButton', 'true');
+      });
+    }
+    
+    // Verificar se precisamos forçar a exibição do botão (após recarregamento da página)
+    if (localStorage.getItem('showAddTaskButton') === 'true') {
+      localStorage.removeItem('showAddTaskButton');
+      // Garantir que o botão está visível
+      if (addTaskBtn) {
+        addTaskBtn.style.display = 'flex';
+        // Força o botão a permanecer visível mesmo que algum CSS tente escondê-lo
+        setTimeout(function() {
+          if (addTaskBtn) {
+            addTaskBtn.style.display = 'flex';
+            addTaskBtn.style.visibility = 'visible';
+            addTaskBtn.style.opacity = '1';
+          }
+        }, 500);
+      }
+    }
+
+    // Correção para garantir que o botão sempre esteja visível
+    // mesmo após adicionar uma nova tarefa
+    window.addEventListener('load', function() {
+      const addTaskBtn = document.getElementById('add-task-btn');
+      if (addTaskBtn) {
+        addTaskBtn.style.display = 'flex';
+        addTaskBtn.style.visibility = 'visible';
+        addTaskBtn.style.opacity = '1';
+      }
+    });
+
+    // Observador de mutação para garantir que o botão não seja removido
+    const observer = new MutationObserver(function(mutations) {
+      const addTaskBtn = document.getElementById('add-task-btn');
+      if (addTaskBtn && (addTaskBtn.style.display === 'none' || 
+                         addTaskBtn.style.visibility === 'hidden' || 
+                         addTaskBtn.style.opacity === '0')) {
+        addTaskBtn.style.display = 'flex';
+        addTaskBtn.style.visibility = 'visible';
+        addTaskBtn.style.opacity = '1';
+      }
+    });
+    
+    // Observe o documento inteiro para mudanças
+    observer.observe(document.body, { 
+      attributes: true,
+      childList: true,
+      subtree: true
+    });
+  });
+</script>
+{% endblock %}

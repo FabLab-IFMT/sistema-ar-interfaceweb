@@ -2,6 +2,8 @@ from django.db import models
 from django.utils.text import slugify
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from datetime import date
 
 User = get_user_model()
 
@@ -124,4 +126,78 @@ class ComentarioProjeto(models.Model):
     def is_resposta(self):
         """Verifica se este comentário é uma resposta"""
         return self.comentario_pai is not None
+
+class ProjetoGrupo(models.Model):
+    """Grupos de projetos para atribuir tarefas a múltiplos usuários"""
+    nome = models.CharField(max_length=100)
+    descricao = models.TextField(blank=True, null=True)
+    membros = models.ManyToManyField(User, related_name='grupos_projeto')
+    projetos = models.ManyToManyField(Projeto, related_name='grupos', blank=True)
+    
+    # Apenas superusuários podem criar/editar grupos
+    criado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='grupos_criados')
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Grupo de Projeto'
+        verbose_name_plural = 'Grupos de Projetos'
+        ordering = ['nome']
+    
+    def __str__(self):
+        return self.nome
+
+    def get_absolute_url(self):
+        return reverse('projetos:grupo_detalhe', args=[self.id])
+
+class TodoTask(models.Model):
+    PRIORIDADE_CHOICES = [
+        ('baixa', 'Baixa'),
+        ('media', 'Média'),
+        ('alta', 'Alta'),
+        ('urgente', 'Urgente'),
+    ]
+    
+    titulo = models.CharField(max_length=200)
+    descricao = models.TextField(blank=True, null=True)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+    data_limite = models.DateField(null=True, blank=True)
+    prioridade = models.CharField(max_length=10, choices=PRIORIDADE_CHOICES, default='media')
+    concluida = models.BooleanField(default=False)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tarefas', null=True, blank=True)
+    projeto = models.ForeignKey(Projeto, on_delete=models.CASCADE, null=True, blank=True, related_name='tarefas')
+    grupo = models.ForeignKey(ProjetoGrupo, on_delete=models.SET_NULL, null=True, blank=True, related_name='tarefas')
+    visivel_para = models.ManyToManyField(User, blank=True, related_name='tarefas_visiveis')
+    
+    class Meta:
+        verbose_name = 'Tarefa'
+        verbose_name_plural = 'Tarefas'
+        ordering = ['-prioridade', 'data_limite', 'titulo']
+    
+    def __str__(self):
+        return self.titulo
+    
+    @property
+    def days_remaining(self):
+        if not self.data_limite:
+            return None
+        
+        hoje = date.today()
+        return (self.data_limite - hoje).days
+    
+    @property
+    def esta_atrasada(self):
+        """Verifica se a tarefa está atrasada"""
+        if self.data_limite and not self.concluida:
+            return self.data_limite < timezone.now().date()
+        return False
+    
+    @property
+    def dias_restantes(self):
+        """Calcula os dias restantes até a data limite"""
+        if self.data_limite:
+            delta = self.data_limite - timezone.now().date()
+            return delta.days
+        return None
 

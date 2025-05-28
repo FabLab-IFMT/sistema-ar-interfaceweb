@@ -1,0 +1,206 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Configurações do Sistema{% endblock %}
+
+{% block head %}
+<style>
+  .config-card {
+    transition: all 0.2s ease;
+  }
+  
+  .config-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  .config-item {
+    border-left: 3px solid transparent;
+    padding: 15px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+  }
+  
+  .config-item:hover {
+    border-left-color: #007bff;
+    background-color: rgba(0,0,0,0.03);
+  }
+  
+  .nav-pills .nav-link.active {
+    background-color: #007bff;
+  }
+  
+  .categoria-icon {
+    font-size: 1.2rem;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-right: 10px;
+    color: white;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav aria-label="breadcrumb" class="my-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'gestao:dashboard' %}">Gestão</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Configurações do Sistema</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0"><i class="fas fa-cogs me-2"></i> Configurações do Sistema</h1>
+    <div>
+      <a href="{% url 'gestao:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+      </a>
+    </div>
+  </div>
+  
+  <div class="row">
+    <!-- Coluna de configurações -->
+    <div class="col-lg-8">
+      {% if configuracoes_por_categoria %}
+        <ul class="nav nav-pills mb-4" id="configTabs" role="tablist">
+          {% for categoria_code, categoria in configuracoes_por_categoria.items %}
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if forloop.first %}active{% endif %}" 
+                      id="tab-{{ categoria_code }}" 
+                      data-bs-toggle="pill" 
+                      data-bs-target="#tab-content-{{ categoria_code }}" 
+                      type="button" 
+                      role="tab" 
+                      aria-controls="tab-content-{{ categoria_code }}" 
+                      aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                <i class="{% if categoria_code == 'geral' %}fas fa-sliders-h
+                          {% elif categoria_code == 'email' %}fas fa-envelope
+                          {% elif categoria_code == 'laboratorio' %}fas fa-flask
+                          {% elif categoria_code == 'sistema' %}fas fa-server
+                          {% elif categoria_code == 'acesso' %}fas fa-lock
+                          {% else %}fas fa-cog{% endif %} me-2"></i>
+                {{ categoria.nome }}
+              </button>
+            </li>
+          {% endfor %}
+        </ul>
+        
+        <div class="tab-content mb-4" id="configTabsContent">
+          {% for categoria_code, categoria in configuracoes_por_categoria.items %}
+            <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
+                 id="tab-content-{{ categoria_code }}" 
+                 role="tabpanel" 
+                 aria-labelledby="tab-{{ categoria_code }}">
+              
+              <div class="card config-card">
+                <div class="card-header bg-white">
+                  <h5 class="mb-0">{{ categoria.nome }}</h5>
+                </div>
+                <div class="card-body">
+                  {% for config in categoria.configs %}
+                    <div class="config-item rounded">
+                      <form method="post" action="{% url 'gestao:configuracoes' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="config_id" value="{{ config.id }}">
+                        <div class="mb-3">
+                          <label for="config-{{ config.id }}" class="form-label fw-bold">{{ config.nome }}</label>
+                          <div class="text-muted small mb-2">{{ config.descricao }}</div>
+                          <div class="d-flex">
+                            <input type="text" class="form-control me-2" id="config-{{ config.id }}" name="valor" value="{{ config.valor|default:'' }}">
+                            <button type="submit" name="editar_config" class="btn btn-primary">
+                              <i class="fas fa-save"></i>
+                            </button>
+                            <button type="submit" name="excluir_config" class="btn btn-danger ms-2" onclick="return confirm('Tem certeza que deseja excluir esta configuração?')">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </div>
+                          <div class="text-muted mt-2 small">
+                            Última atualização: {{ config.data_atualizacao|date:"d/m/Y H:i" }}
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        
+      {% else %}
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i> Nenhuma configuração encontrada. Use o formulário ao lado para adicionar configurações ao sistema.
+        </div>
+      {% endif %}
+    </div>
+    
+    <!-- Formulário para adicionar novas configurações -->
+    <div class="col-lg-4">
+      <div class="card config-card sticky-top" style="top: 20px;">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Nova Configuração</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{% url 'gestao:configuracoes' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="nome" class="form-label">Nome</label>
+              <input type="text" class="form-control" id="nome" name="nome" required>
+            </div>
+            <div class="mb-3">
+              <label for="descricao" class="form-label">Descrição</label>
+              <input type="text" class="form-control" id="descricao" name="descricao" required>
+            </div>
+            <div class="mb-3">
+              <label for="valor" class="form-label">Valor</label>
+              <input type="text" class="form-control" id="valor" name="valor">
+            </div>
+            <div class="mb-3">
+              <label for="categoria" class="form-label">Categoria</label>
+              <select class="form-select" id="categoria" name="categoria" required>
+                {% for categoria_code, categoria_nome in categorias %}
+                  <option value="{{ categoria_code }}">{{ categoria_nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" name="nova_config" class="btn btn-success w-100">
+              <i class="fas fa-plus me-2"></i>Adicionar Configuração
+            </button>
+          </form>
+        </div>
+      </div>
+      
+      <div class="card mt-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Sugestões</h5>
+        </div>
+        <div class="card-body">
+          <p class="small">Exemplos de configurações úteis para adicionar ao sistema:</p>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item small"><strong>Nome da Instituição</strong> - Nome exibido no sistema</li>
+            <li class="list-group-item small"><strong>Email para Contato</strong> - Email principal do laboratório</li>
+            <li class="list-group-item small"><strong>Horário de Funcionamento</strong> - Horários de funcionamento do laboratório</li>
+            <li class="list-group-item small"><strong>Período de Agendamento</strong> - Dias de antecedência para agendamentos</li>
+            <li class="list-group-item small"><strong>URL API Externa</strong> - Endereço de uma API externa para integração</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Ativar tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+  });
+</script>
+{% endblock %}
