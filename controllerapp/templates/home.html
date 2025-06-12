@@ -502,9 +502,27 @@
           }
         });
       }, {threshold: 0.5});
-      
-      observer.observe(statsSection);
+        observer.observe(statsSection);
     }
+    
+    // Debug para verificar se os botões da CTA estão clicáveis
+    const ctaButtons = document.querySelectorAll('.cta-section .btn');
+    ctaButtons.forEach(function(button, index) {
+      button.addEventListener('click', function(e) {
+        console.log('Botão CTA clicado:', index, button.href);
+        // Se o link estiver vazio ou com problema, prevenir navegação
+        if (!button.href || button.href === '#') {
+          e.preventDefault();
+          console.error('Link do botão está vazio ou inválido');
+          return false;
+        }
+      });
+      
+      // Adicionar feedback visual ao hover
+      button.addEventListener('mouseenter', function() {
+        console.log('Mouse entrou no botão:', index);
+      });
+    });
   });
 </script>
 {% endblock %}
@@ -774,8 +792,7 @@
     position: relative;
     overflow: hidden;
   }
-  
-  .cta-section::before {
+    .cta-section::before {
     content: '';
     position: absolute;
     top: 0;
@@ -784,6 +801,25 @@
     height: 100%;
     background-image: url('data:image/svg+xml,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" fill="rgba(255,255,255,0.05)"/></svg>');
     opacity: 0.3;
+    z-index: 1;
+  }
+  
+  .cta-section .container {
+    position: relative;
+    z-index: 2;
+  }
+    .cta-section .btn {
+    position: relative;
+    z-index: 3;
+    pointer-events: auto;
+    cursor: pointer;
+    display: inline-block;
+    text-decoration: none;
+  }
+  
+  .cta-section .d-grid {
+    position: relative;
+    z-index: 3;
   }
   
   /* === Events Timeline === */
