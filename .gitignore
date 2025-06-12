@@ -30,5 +30,3 @@ local_settings.py
 secrets.json
 credentials.json
 
-# Database
-*.sqlite3
