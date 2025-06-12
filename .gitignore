@@ -29,3 +29,6 @@ local_settings.py
 **/settings/production.py
 secrets.json
 credentials.json
+
+# Database
+*.sqlite3
