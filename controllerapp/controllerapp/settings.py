@@ -16,7 +16,7 @@ DEBUG = False
 #################################################################
 
 
-ALLOWED_HOSTS = ['https:// ifmaker.cba.ifmt.edu.br', 'ifmaker.cba.ifmt.edu.br', 'localhost',]
+ALLOWED_HOSTS = ['ifmaker.cba.ifmt.edu.br', '127.0.0.1', 'localhost']
 
 #templates de KeyError
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
@@ -113,7 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'pt-br'
+TIME_ZONE = 'America/Cuiaba'
 
 TIME_ZONE = 'UTC'
 
@@ -125,12 +125,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
-VIEW_PATH = os.path.dirname(BASE_DIR)
-STATIC_ROOT = os.path.join(VIEW_PATH,'static root')
+MEDIA_URL = '/media/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR.parent, 'staticfiles')
+
+MEDIA_ROOT = os.path.join(BASE_DIR.parent, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
