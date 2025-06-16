@@ -1,0 +1,296 @@
+/* Estilos específicos para o sistema de controle de ar */
+
+:root {
+  --ar-primary: #4facfe;
+  --ar-primary-dark: #1f78ff;
+  --ar-primary-light: #6fccff;
+  --ar-secondary: #03dac6;
+  --ar-accent: #ff5722;
+  --ar-gradient-start: #4facfe;
+  --ar-gradient-end: #00f2fe;
+  --ar-warning: #ffb74d;
+  --ar-danger: #ff5252;
+  --ar-success: #66bb6a;
+}
+
+/* Estilos para cards e contêineres */
+.ar-status-card {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(79, 172, 254, 0.15);
+  border: none !important;
+}
+
+.ar-status-header {
+  background-image: linear-gradient(to right, var(--ar-gradient-start), var(--ar-gradient-end));
+  color: white;
+  border-radius: 12px 12px 0 0;
+  padding: 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ar-status-header::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: rotate(30deg);
+  pointer-events: none;
+}
+
+.temperature-display {
+  font-size: 5.5rem;
+  font-weight: 700;
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+}
+
+.ambient-temp {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  padding: 12px 18px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Botões e controles */
+.temp-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  background-color: white;
+  border: none;
+  color: var(--ar-primary);
+}
+
+.temp-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+  background-color: var(--ar-primary-light);
+  color: white;
+}
+
+.temp-btn-lg {
+  width: 90px;
+  height: 90px;
+  font-size: 2.2rem;
+}
+
+/* Estilização dos modos */
+.ar-mode-btn {
+  border-radius: 12px;
+  padding: 1.2rem 1rem;
+  transition: all 0.3s ease;
+  height: 100%;
+  border: 2px solid #eee;
+  background-color: white;
+}
+
+.ar-mode-btn i {
+  font-size: 2rem;
+  margin-bottom: 0.7rem;
+}
+
+.ar-mode-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.ar-mode-btn.mode-cold {
+  border-color: var(--ar-primary-light);
+  color: var(--ar-primary);
+}
+
+.ar-mode-btn.mode-cold.active-mode-btn {
+  background-color: var(--ar-primary);
+  color: white;
+}
+
+.ar-mode-btn.mode-heat {
+  border-color: #ffcdd2;
+  color: #e57373;
+}
+
+.ar-mode-btn.mode-heat.active-mode-btn {
+  background-color: #e57373;
+  color: white;
+}
+
+.ar-mode-btn.mode-fan {
+  border-color: #d1c4e9;
+  color: #7e57c2;
+}
+
+.ar-mode-btn.mode-fan.active-mode-btn {
+  background-color: #7e57c2;
+  color: white;
+}
+
+.active-mode-btn {
+  border-width: 2px;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos do Dashboard */
+.ar-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+}
+
+.ar-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(79, 172, 254, 0.2);
+}
+
+.ar-card-header {
+  background-image: linear-gradient(to right, var(--ar-gradient-start), var(--ar-gradient-end));
+  color: white;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ar-card-header::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: rotate(30deg);
+  pointer-events: none;
+}
+
+.offline-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  color: white;
+  border-radius: 12px;
+}
+
+.offline-overlay i {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.8;
+}
+
+/* Animações */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+/* Status badges */
+.badge-online {
+  background-color: var(--ar-success);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 30px;
+  font-weight: 600;
+}
+
+.badge-offline {
+  background-color: var(--ar-danger);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 30px;
+  font-weight: 600;
+}
+
+/* Botões principais */
+.btn-ar-primary {
+  background-color: var(--ar-primary);
+  border-color: var(--ar-primary);
+  color: white;
+  border-radius: 30px;
+  padding: 10px 25px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+.btn-ar-primary:hover {
+  background-color: var(--ar-primary-dark);
+  border-color: var(--ar-primary-dark);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+}
+
+.btn-ar-danger {
+  background-color: var(--ar-danger);
+  border-color: var(--ar-danger);
+  color: white;
+  border-radius: 30px;
+  padding: 10px 25px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 82, 82, 0.3);
+}
+
+.btn-ar-danger:hover {
+  background-color: #e53935;
+  border-color: #e53935;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 82, 82, 0.4);
+}
+
+/* Automação home */
+.automation-card {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  height: 100%;
+  border: none;
+}
+
+.automation-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.automation-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.automation-card:hover .automation-icon {
+  transform: scale(1.2);
+}
