@@ -12,7 +12,7 @@ SECRET_KEY = 'django-insecure-q25vadyhqou5z75*^oc#ln6g04f&+t6w@7&2!m$@dr^$h_ch!2
 # Deixe Debug=True
 # Para produção, Debug=False
 
-DEBUG = False
+DEBUG = True
 #################################################################
 
 
