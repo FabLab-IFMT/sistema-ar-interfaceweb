@@ -12,11 +12,13 @@ SECRET_KEY = 'django-insecure-q25vadyhqou5z75*^oc#ln6g04f&+t6w@7&2!m$@dr^$h_ch!2
 # Deixe Debug=True
 # Para produção, Debug=False
 
-DEBUG = True
+DEBUG = False
 #################################################################
 
 
 ALLOWED_HOSTS = ['https://ifmaker.cba.ifmt.edu.br','ifmaker.cba.ifmt.edu.br', '127.0.0.1', 'localhost']
+CSRF_TRUSTED_ORIGINS = ['https://ifmaker.cba.ifmt.edu.br']
+
 
 #templates de KeyError
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
