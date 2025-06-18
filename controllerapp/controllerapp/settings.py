@@ -122,18 +122,18 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
+# --- Configuração Definitiva de Arquivos Estáticos e de Mídia ---
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
+# PARA DESENVOLVIMENTO (runserver com DEBUG=True)
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
 
+# PARA PRODUÇÃO (collectstatic e Nginx)
 STATIC_ROOT = os.path.join(BASE_DIR.parent, 'staticfiles')
-
 MEDIA_ROOT = os.path.join(BASE_DIR.parent, 'media')
 
 # Default primary key field type
