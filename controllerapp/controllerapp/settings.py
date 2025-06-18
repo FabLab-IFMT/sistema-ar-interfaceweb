@@ -12,11 +12,11 @@ SECRET_KEY = 'django-insecure-q25vadyhqou5z75*^oc#ln6g04f&+t6w@7&2!m$@dr^$h_ch!2
 # Deixe Debug=True
 # Para produção, Debug=False
 
-DEBUG = True
+DEBUG = False
 #################################################################
 
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['ifmaker.cba.ifmt.edu.br', '127.0.0.1', 'localhost']
 
 #templates de KeyError
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
@@ -113,7 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'pt-br'
+TIME_ZONE = 'America/Cuiaba'
 
 TIME_ZONE = 'UTC'
 
@@ -122,15 +122,19 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
+# --- Configuração Definitiva de Arquivos Estáticos e de Mídia ---
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
-VIEW_PATH = os.path.dirname(BASE_DIR)
-STATIC_ROOT = os.path.join(VIEW_PATH,'static root')
+MEDIA_URL = '/media/'
+
+# PARA DESENVOLVIMENTO (runserver com DEBUG=True)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
+
+# PARA PRODUÇÃO (collectstatic e Nginx)
+STATIC_ROOT = os.path.join(BASE_DIR.parent, 'staticfiles')
+MEDIA_ROOT = os.path.join(BASE_DIR.parent, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
