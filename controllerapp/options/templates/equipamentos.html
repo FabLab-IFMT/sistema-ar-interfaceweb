@@ -8,13 +8,13 @@
 {% block extra_css %}
 <style>
   .equipment-card {
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: transform 0.2s, box-shadow 0.2s;
     height: 100%;
   }
   
   .equipment-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
   
   .filter-btn.active {
@@ -24,7 +24,7 @@
   
   .modal-container img {
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
   
   .badge-corner {
@@ -49,7 +49,7 @@
   .tech-specs {
     background-color: #f8f9fa;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   }
   
   .equipment-details {
@@ -63,19 +63,15 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #0d6efd, #6610f2);
-  }
-  
-  .modal .btn-close-white {
-    filter: brightness(0) invert(1);
+    height: 3px;
+    background: #0d6efd;
   }
   
   .brand-badge {
     position: absolute;
     bottom: 0;
     left: 0;
-    background-color: rgba(0,0,0,0.6);
+    background-color: rgba(0,0,0,0.7);
     color: white;
     padding: 4px 8px;
     font-size: 12px;
@@ -93,7 +89,7 @@
   }
   
   .responsavel-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
   }
   
   @media (max-width: 768px) {
@@ -384,6 +380,95 @@
       <div class="alert alert-warning">
         <i class="fas fa-exclamation-triangle me-2"></i> Nenhum equipamento corresponde aos critérios de busca.
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ Section - Design Minimalista -->
+<div class="py-5 bg-light">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="h3 text-dark mb-3">Perguntas Frequentes</h2>
+      <p class="text-muted">Principais dúvidas sobre os equipamentos</p>
+    </div>
+    
+    <div class="row g-4 justify-content-center">
+      <!-- FAQ 1 - Treinamento -->
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <h5 class="text-primary mb-3">
+              <i class="fas fa-graduation-cap me-2"></i>É necessário treinamento?
+            </h5>
+            <p class="text-muted mb-3">
+              Sim, é obrigatório para garantir segurança e bom uso dos equipamentos.
+            </p>
+            <ul class="list-unstyled small text-muted">
+              <li><i class="fas fa-check text-success me-2"></i>Gratuito</li>
+              <li><i class="fas fa-check text-success me-2"></i>Certificado incluído</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <!-- FAQ 2 - Agendamento -->
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <h5 class="text-primary mb-3">
+              <i class="fas fa-calendar-check me-2"></i>Como agendar?
+            </h5>
+            <p class="text-muted mb-3">
+              Pelo sistema online: faça login, acesse "Agendamentos" e escolha equipamento e horário.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- FAQ 3 - Custo -->
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <h5 class="text-primary mb-3">
+              <i class="fas fa-heart me-2"></i>Qual o custo?
+            </h5>
+            <div class="text-center">
+              <h4 class="text-success fw-bold">100% Gratuito</h4>
+              <p class="text-muted small mb-0">Para toda comunidade acadêmica</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- FAQ 4 - Horários -->
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <h5 class="text-primary mb-3">
+              <i class="fas fa-clock me-2"></i>Horários
+            </h5>
+            <div class="d-flex justify-content-between mb-2">
+              <span>Segunda a Sexta:</span>
+              <strong>8h às 18h</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Finais de semana:</span>
+              <span class="text-muted">Fechado</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Contato -->
+    <div class="text-center mt-5">
+      <p class="text-muted mb-3">Ainda tem dúvidas?</p>
+      <a href="https://www.instagram.com/ifmtmaker/" target="_blank" class="btn btn-primary me-2">
+        <i class="fab fa-instagram me-1"></i>Instagram
+      </a>
+      <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-primary">
+        <i class="fas fa-calendar me-1"></i>Agenda
+      </a>
     </div>
   </div>
 </div>
