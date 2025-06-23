@@ -28,6 +28,9 @@ class Ar_condicionado(models.Model):
     consumo_atual = models.FloatField(default=0.0, help_text="Consumo atual em kW/h")
     temperatura_ambiente = models.FloatField(null=True, blank=True, help_text="Temperatura ambiente em °C")
     
+    # Campo para armazenar o IP do ESP32 (opcional)
+    ip_address = models.GenericIPAddressField(null=True, blank=True, help_text="IP do ESP32 (preenchido automaticamente)")
+    
     class Meta:
         verbose_name = _("Ar Condicionado")
         verbose_name_plural = _("Ar Condicionados")
