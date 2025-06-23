@@ -16,7 +16,9 @@ DEBUG = False
 #################################################################
 
 
-ALLOWED_HOSTS = ['ifmaker.cba.ifmt.edu.br', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['https://ifmaker.cba.ifmt.edu.br','ifmaker.cba.ifmt.edu.br', '127.0.0.1', 'localhost']
+CSRF_TRUSTED_ORIGINS = ['https://ifmaker.cba.ifmt.edu.br']
+
 
 #templates de KeyError
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
@@ -133,7 +135,8 @@ STATICFILES_DIRS = [
 ]
 
 # PARA PRODUÇÃO (collectstatic e Nginx)
-STATIC_ROOT = os.path.join(BASE_DIR.parent, 'staticfiles')
+# Altere BASE_DIR.parent para apenas BASE_DIR
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_ROOT = os.path.join(BASE_DIR.parent, 'media')
 
 # Default primary key field type

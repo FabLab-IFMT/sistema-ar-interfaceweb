@@ -30,3 +30,5 @@ local_settings.py
 secrets.json
 credentials.json
 
+# Ignorar pastas de cache do Python
+__pycache__/
