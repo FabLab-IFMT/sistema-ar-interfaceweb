@@ -773,6 +773,7 @@
     padding: 80px 0;
     position: relative;
     overflow: hidden;
+    z-index: 10;
   }
   
   .cta-section::before {
@@ -887,6 +888,16 @@
     .cta-banner {
       margin-top: 0;
     }
+  }
+  
+  /* Estilo temporário para garantir que os botões na seção 'Call to Action Final' sejam clicáveis */
+  .cta-section {
+    position: relative;
+    z-index: 1000;
+  }
+  .cta-section a {
+    pointer-events: auto;
+    z-index: 1001;
   }
 </style>
 {% endblock %}
