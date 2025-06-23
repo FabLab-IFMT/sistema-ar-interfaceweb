@@ -172,7 +172,7 @@
     <h2 class="text-center mb-4">Navegue por Categorias</h2>
     <div class="row">
       <div class="col-12 mb-4">
-        <a href="{% url 'options:servicos' %}" class="btn {% if not categoria_selecionada %}btn-primary{% else %}btn-outline-primary{% endif %} me-2">Todos</a>
+        <a href="{% url 'options:servicos' %}" class="btn {% if not categoria_selecionada %}btn-primary{% else %}btn-outline-primary{% endif %} me-2 mb-2">Todos</a>
         {% for categoria in categorias %}
         <a href="{% url 'options:servicos' %}?categoria={{ categoria.id }}" class="btn {% if categoria_selecionada == categoria.id|stringformat:'s' %}btn-primary{% else %}btn-outline-primary{% endif %} me-2 mb-2">
           <i class="fas {{ categoria.icone }}"></i> {{ categoria.nome }}
