@@ -15,7 +15,6 @@ static/rest_framework
 
 # Ambiente virtual
 venv/
-env/
 ENV/
 
 # Configurações de banco de dados e arquivos sensíveis
