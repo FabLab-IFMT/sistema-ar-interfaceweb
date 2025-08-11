@@ -12,3 +12,7 @@ google-auth-oauthlib>=0.4.1
 
 # HTTP cliente
 requests>=2.28.0
+google-auth
+google-auth-httplib2
+google-auth-oauthlib
+google-api-python-client
