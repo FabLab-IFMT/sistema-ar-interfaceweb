@@ -147,25 +147,29 @@
             opacity: 0.9;
         }
         
-        .event-internal {
-            background-color: #3498db;
-        }
+        /* Cores para eventos locais */
+        .event-internal { background-color: #3498db; }
+        .event-workshop { background-color: #2ecc71; }
+        .event-visit { background-color: #e74c3c; }
+        .event-maintenance { background-color: #f39c12; }
+        .event-other { background-color: #9b59b6; }
         
-        .event-workshop {
-            background-color: #2ecc71;
-        }
+        /* Cor para eventos do Google */
+        .event-google { background-color: #4285F4; }
+        .badge.bg-google { background-color: #4285F4; }
         
-        .event-visit {
-            background-color: #e74c3c;
+        /* Pequeno chip para horário do evento */
+        .event-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            font-size: 11px;
+            margin-right: 6px;
         }
-        
-        .event-maintenance {
-            background-color: #f39c12;
-        }
-        
-        .event-other {
-            background-color: #9b59b6;
-        }
+        .event-chip i { font-size: 10px; opacity: 0.9; }
         
         /* Estilo para legenda */
         .legend-item {
@@ -193,21 +197,11 @@
             transform: translateX(5px);
         }
         
-        .upcoming-event-card.event-workshop {
-            border-left-color: #2ecc71;
-        }
-        
-        .upcoming-event-card.event-visit {
-            border-left-color: #e74c3c;
-        }
-        
-        .upcoming-event-card.event-maintenance {
-            border-left-color: #f39c12;
-        }
-        
-        .upcoming-event-card.event-other {
-            border-left-color: #9b59b6;
-        }
+        .upcoming-event-card.event-workshop { border-left-color: #2ecc71; }
+        .upcoming-event-card.event-visit { border-left-color: #e74c3c; }
+        .upcoming-event-card.event-maintenance { border-left-color: #f39c12; }
+        .upcoming-event-card.event-other { border-left-color: #9b59b6; }
+        .upcoming-event-card.event-google { border-left-color: #4285F4; }
         
         .event-date {
             font-size: 0.9rem;
@@ -318,13 +312,8 @@
             font-size: 18px;
         }
         
-        .action-warning .admin-icon i {
-            color: #f39c12;
-        }
-        
-        .action-danger .admin-icon i {
-            color: #e74c3c;
-        }
+        .action-warning .admin-icon i { color: #f39c12; }
+        .action-danger .admin-icon i { color: #e74c3c; }
         
         /* Responsividade */
         @media (max-width: 768px) {
@@ -340,9 +329,7 @@
                 font-size: 0.9rem;
             }
             
-            .events-container {
-                max-height: 60px;
-            }
+            .events-container { max-height: 60px; }
         }
     </style>
 {% endblock %}
@@ -413,11 +400,26 @@
                                                 <div class="events-container">
                                                     {% for event in events %}
                                                         {% if event.start_time.day == day and event.start_time.month == month and event.start_time.year == year %}
-                                                            <a href="{% url 'logs:agenda_event_detail' event.id %}" class="calendar-event event-{{ event.event_type }}"
-                                                               title="{{ event.title }} ({{ event.get_event_type_display }}) - {{ event.start_time|date:'H:i' }} às {{ event.end_time|date:'H:i' }}">
-                                                                <i class="fas fa-circle me-1" style="font-size: 8px;"></i>
-                                                                {{ event.start_time|date:"H:i" }} - {{ event.title|truncatechars:15 }}
-                                                            </a>
+                                                            {% if event.is_google %}
+                                                                <div class="calendar-event event-google js-google-event"
+                                                                     title="{{ event.title }} (Google Calendar) - {{ event.start_time|date:'H:i' }} às {{ event.end_time|date:'H:i' }}"
+                                                                     data-title="{{ event.title|escape }}"
+                                                                     data-description="{{ event.description|default:'Sem descrição'|escape }}"
+                                                                     data-start="{{ event.start_time|date:'d/m/Y H:i' }}"
+                                                                     data-end="{{ event.end_time|date:'d/m/Y H:i' }}">
+                                                                    <i class="fab fa-google me-1" style="font-size: 10px;"></i>
+                                                                    <span class="event-chip"><i class="far fa-clock"></i>{{ event.start_time|date:"H:i" }}</span>
+                                                                    {{ event.title|truncatechars:18 }}
+                                                                </div>
+                                                            {% else %}
+                                                                <a href="{% url 'logs:agenda_event_detail' event.id %}"
+                                                                   class="calendar-event event-{{ event.event_type }}"
+                                                                   title="{{ event.title }} ({{ event.get_event_type_display }}) - {{ event.start_time|date:'H:i' }} às {{ event.end_time|date:'H:i' }}">
+                                                                    <i class="fas fa-circle me-1" style="font-size: 8px;"></i>
+                                                                    <span class="event-chip"><i class="far fa-clock"></i>{{ event.start_time|date:"H:i" }}</span>
+                                                                    {{ event.title|truncatechars:18 }}
+                                                                </a>
+                                                            {% endif %}
                                                         {% endif %}
                                                     {% endfor %}
                                                 </div>
@@ -458,6 +460,12 @@
                             <span class="legend-color" style="background-color: #9b59b6;"></span>
                             <span>Outro</span>
                         </div>
+                        {% if user.is_superuser %}
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #4285F4;"></span>
+                            <span>Google Calendar</span>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -477,18 +485,28 @@
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <h5 class="mb-1">
-                                            <a href="{% url 'logs:agenda_event_detail' event.id %}" class="text-decoration-none text-dark">
-                                                {{ event.title }}
-                                            </a>
+                                            {% if event.is_google %}
+                                                <span class="text-dark js-google-event"
+                                                      data-title="{{ event.title|escape }}"
+                                                      data-description="{{ event.description|default:'Sem descrição'|escape }}"
+                                                      data-start="{{ event.start_time|date:'d/m/Y H:i' }}"
+                                                      data-end="{{ event.end_time|date:'d/m/Y H:i' }}">
+                                                    <i class="fab fa-google me-1"></i>{{ event.title }}
+                                                </span>
+                                            {% else %}
+                                                <a href="{% url 'logs:agenda_event_detail' event.id %}" class="text-decoration-none text-dark">
+                                                    {{ event.title }}
+                                                </a>
+                                            {% endif %}
                                         </h5>
                                         <div class="event-date">
                                             <i class="far fa-calendar-alt me-1"></i> 
                                             {{ event.start_time|date:"d/m/Y" }}
                                         </div>
                                     </div>
-                                    <span class="badge bg-{{ event.event_type }}">{{ event.get_event_type_display }}</span>
+                                    <span class="badge {% if event.is_google %}bg-google{% else %}bg-{{ event.event_type }}{% endif %}">{{ event.get_event_type_display }}</span>
                                 </div>
-                                <p class="text-muted mt-2 mb-2">{{ event.description|truncatechars:100 }}</p>
+                                <p class="text-muted mt-2 mb-2">{{ event.description|default:'Sem descrição'|truncatechars:100 }}</p>
                                 <div>
                                     <span class="event-time">
                                         <i class="far fa-clock me-1"></i>
@@ -497,12 +515,6 @@
                                 </div>
                             </div>
                         {% endfor %}
-                        
-                        {% if events|length > 5 %}
-                            <div class="text-center mt-3">
-                                <button class="btn btn-outline-primary btn-sm">Ver mais eventos</button>
-                            </div>
-                        {% endif %}
                     {% else %}
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
@@ -690,5 +702,83 @@
             {% endif %}
         </div>
     </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const googleItems = document.querySelectorAll('.js-google-event');
+    const modalEl = document.getElementById('googleEventModal');
+    const titleEl = document.getElementById('googleEventModalLabel');
+    const descEl = document.getElementById('googleEventDescription');
+    const timeEl = document.getElementById('googleEventTime');
+
+    function openModal() {
+      if (window.bootstrap && window.bootstrap.Modal) {
+        const m = new bootstrap.Modal(modalEl);
+        m.show();
+      } else {
+        // Fallback simples
+        modalEl.style.display = 'block';
+        modalEl.classList.add('show');
+      }
+    }
+
+    googleItems.forEach(function(item) {
+      item.addEventListener('click', function() {
+        const title = this.getAttribute('data-title') || 'Evento do Google';
+        const desc = this.getAttribute('data-description') || 'Sem descrição';
+        const start = this.getAttribute('data-start') || '';
+        const end = this.getAttribute('data-end') || '';
+
+        titleEl.textContent = title;
+        // Preserva quebras de linha simples
+        descEl.textContent = '';
+        const paragraphs = (desc || '').split(/\n+/).filter(Boolean);
+        if (paragraphs.length) {
+          paragraphs.forEach(p => {
+            const para = document.createElement('p');
+            para.textContent = p;
+            descEl.appendChild(para);
+          });
+        } else {
+          const para = document.createElement('p');
+          para.textContent = 'Sem descrição';
+          descEl.appendChild(para);
+        }
+        timeEl.textContent = start && end ? `${start} — ${end}` : start || '';
+
+        openModal();
+      });
+    });
+
+    // Fechar fallback
+    document.querySelectorAll('[data-close-google-modal]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        modalEl.classList.remove('show');
+        modalEl.style.display = 'none';
+      });
+    });
+  });
+</script>
+
+<!-- Modal para eventos do Google -->
+<div class="modal fade" id="googleEventModal" tabindex="-1" aria-labelledby="googleEventModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="googleEventModalLabel">Evento do Google</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-close-google-modal></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2 text-muted"><i class="far fa-calendar-alt me-1"></i> <span id="googleEventTime"></span></div>
+        <div id="googleEventDescription"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-close-google-modal>Fechar</button>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

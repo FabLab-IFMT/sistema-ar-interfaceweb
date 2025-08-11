@@ -1,3 +1,4 @@
+{# Arquivo: home.html #}
 {% extends 'layout.html' %}
 {% load static %}
 
@@ -207,7 +208,7 @@
                     <div class="text-center">
                         <h3>
                             {% if ares %}
-                                {{ ares|dictsort:"consumo_atual"|last.consumo_atual|floatformat:2 }} kW/h
+                                {{ consumo_total }} kW/h
                             {% else %}
                                 0.00 kW/h
                             {% endif %}
@@ -235,18 +236,13 @@
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             Dispositivos ativos
-                            <span class="badge bg-success rounded-pill">{{ ares|dictsortreversed:"estado"|first.estado|yesno:"1,0" }}</span>
+                            <span class="badge bg-success rounded-pill">{{ ar_online }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             Temperatura média
                             <span class="badge bg-info rounded-pill">
-                                {% if ares %}
-                                    {% with temp_sum=0 %}
-                                        {% for ar in ares %}
-                                            {% with temp_sum=temp_sum|add:ar.temperatura %}{% endwith %}
-                                        {% endfor %}
-                                        {{ temp_sum|floatformat:1 }}°C
-                                    {% endwith %}
+                                {% if temperatura_media %}
+                                    {{ temperatura_media }}°C
                                 {% else %}
                                     N/A
                                 {% endif %}

@@ -5,22 +5,60 @@
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'controle_ar.css' %}">
+<style>
+    #toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+    }
+    
+    .ar-card.processing {
+        position: relative;
+    }
+    
+    .ar-card.processing::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: inherit;
+        pointer-events: none;
+    }
+    
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.15em;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
+<!-- Container de toast para notificações -->
+<div id="toast-container"></div>
+
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Controle de Ar Condicionado</h1>
-        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Voltar
-        </a>
+        <div>
+            <button id="refresh-btn" class="btn btn-ar-primary me-2" onclick="checkAllDevices()">
+                <i class="fas fa-sync-alt me-1"></i> Atualizar Status
+            </button>
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
+            </a>
+        </div>
     </div>
     
     <div class="row">
         {% if ars %}
             {% for ar in ars %}
             <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card ar-card h-100">
+                <div class="card ar-card h-100" data-ar-id="{{ ar.id }}">
                     <div class="ar-card-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">{{ ar.nome }}</h5>
@@ -32,26 +70,34 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-6 text-center mb-3">
-                                <div class="h3">{{ ar.temperatura }}°C</div>
+                                <div class="h3 temperatura-display">{{ ar.temperatura }}°C</div>
                                 <div class="text-muted">Temperatura</div>
                             </div>
                             <div class="col-6 text-center mb-3">
-                                <div class="h3">{{ ar.modo_display }}</div>
+                                <div class="h3 modo-display">{{ ar.modo_display }}</div>
                                 <div class="text-muted">Modo</div>
                             </div>
                         </div>
                         
                         <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="mb-2">
-                                    <span class="text-muted">Status: </span>
-                                    <span class="fw-bold {% if ar.estado %}text-success{% else %}text-secondary{% endif %}">
-                                        {{ ar.estado|yesno:"Ligado,Desligado" }}
-                                    </span>
+                            <div class="w-100">
+                                <div class="mb-2 d-flex align-items-center">
+                                    <div class="me-auto">
+                                        <span class="text-muted">Status: </span>
+                                        <span class="fw-bold estado-display {% if ar.estado %}text-success{% else %}text-secondary{% endif %}">
+                                            {{ ar.estado|yesno:"Ligado,Desligado" }}
+                                        </span>
+                                        <i class="fas fa-power-off {% if ar.estado %}text-success{% else %}text-danger{% endif %} estado-icon ms-1"></i>
+                                    </div>
+                                    <button class="btn btn-sm {% if ar.estado %}btn-danger{% else %}btn-success{% endif %}" 
+                                            onclick="toggleDevicePower({{ ar.id }}, {{ ar.estado|yesno:'true,false' }})"
+                                            {% if not ar.online %}disabled{% endif %}>
+                                        {% if ar.estado %}Desligar{% else %}Ligar{% endif %}
+                                    </button>
                                 </div>
                                 <div>
                                     <span class="text-muted">Consumo: </span>
-                                    <span class="fw-bold">
+                                    <span class="fw-bold consumo-display">
                                         {% if ar.estado and ar.online %}
                                             {{ ar.consumo_atual|floatformat:2 }} kW/h
                                         {% else %}
@@ -69,11 +115,13 @@
                         <small>
                             <i class="far fa-clock me-1"></i>
                             Última atualização: 
-                            {% if ar.ultimo_ping %}
-                                {{ ar.ultimo_ping|date:"d/m/Y H:i:s" }}
-                            {% else %}
-                                Nunca
-                            {% endif %}
+                            <span class="last-check">
+                                {% if ar.ultimo_ping %}
+                                    {{ ar.ultimo_ping|date:"d/m/Y H:i:s" }}
+                                {% else %}
+                                    Nunca
+                                {% endif %}
+                            </span>
                         </small>
                     </div>
                 </div>
@@ -93,4 +141,14 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/dashboard_controller.js' %}"></script>
+<script>
+    // Inicia a verificação periódica dos dispositivos
+    document.addEventListener('DOMContentLoaded', function() {
+        initDashboardRefresh(30000); // Atualiza a cada 30 segundos
+    });
+</script>
 {% endblock %}

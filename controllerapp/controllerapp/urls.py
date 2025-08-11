@@ -15,6 +15,7 @@ handler500 = 'controllerapp.views.server_error'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
+    path('maintenance/', views.maintenance, name='maintenance'),
     path('about/', views.about, name='about'),
     path('projetos/', include('projetos.urls')),  # Atualizado para português
     path('users/', include('users.urls')),

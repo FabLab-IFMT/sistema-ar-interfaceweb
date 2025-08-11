@@ -1,5 +1,7 @@
+
 # Python bytecode
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -14,7 +16,6 @@ static/rest_framework
 
 # Ambiente virtual
 venv/
-env/
 ENV/
 
 # Configurações de banco de dados e arquivos sensíveis
@@ -29,6 +30,16 @@ local_settings.py
 **/settings/production.py
 secrets.json
 credentials.json
+env/google_credentials.json
+**/google_credentials.json
 
-# Ignorar pastas de cache do Python
-__pycache__/
+# Banco de dados local (não commitar)
+db.sqlite3
+*.sqlite3
+*.sqlite
+*.db
+
+# Dumps/backup locais de banco (opcional)
+*.sql
+*.dump
+*.bak
