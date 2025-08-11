@@ -1,0 +1,244 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistema em manutenção | FabLab IFMT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: linear-gradient(135deg, #ffffff 0%, #e0f2fe 50%, #b3e5fc 100%);
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --text: #1f2937;
+      --text-muted: #6b7280;
+      --primary: #0288d1;
+      --primary-hover: #0277bd;
+      --border: rgba(2, 136, 209, 0.2);
+      --shadow: 0 25px 50px -12px rgba(2, 136, 209, 0.15);
+    }
+    
+    * { box-sizing: border-box; }
+    
+    html, body { height: 100%; margin: 0; }
+    
+    body {
+      background: var(--bg);
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      overflow: hidden;
+    }
+    
+    .background-pattern {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.05;
+      background-image: 
+        radial-gradient(circle at 20% 80%, rgba(2, 136, 209, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(144, 202, 249, 0.2) 0%, transparent 50%);
+    }
+    
+    main {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 3rem 2rem;
+      text-align: center;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+    }
+    
+    .icon-container {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(2, 136, 209, 0.2);
+    }
+    
+    .icon {
+      width: 36px;
+      height: 36px;
+      color: white;
+    }
+    
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.025em;
+    }
+    
+    .subtitle {
+      margin: 0 0 2rem;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 36ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 14px rgba(2, 136, 209, 0.3);
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(2, 136, 209, 0.4);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-muted);
+      border-color: var(--border);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(107, 114, 128, 0.1);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+    
+    .footer-info {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #f59e0b;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    @media (max-width: 640px) {
+      .card {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+      }
+      
+      .actions {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+  <script>
+    // Garante permanência na página de manutenção
+    (function(){
+      function lock(){ if(location.pathname !== '/maintenance/') location.replace('/maintenance/'); }
+      addEventListener('pageshow', lock);
+      addEventListener('popstate', lock);
+      document.addEventListener('click', function(e){
+        const a = e.target.closest('a');
+        if(a && !a.href.startsWith('mailto:')){ e.preventDefault(); location.replace('/maintenance/'); }
+      }, true);
+    })();
+  </script>
+</head>
+<body>
+  <div class="background-pattern"></div>
+  
+  <main role="main" aria-label="Página de manutenção">
+    <div class="card" aria-live="polite">
+      <div class="icon-container">
+        <!-- Ícone de ferramenta/configuração -->
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </div>
+
+      <h1>Sistema em Manutenção</h1>
+      <p class="subtitle">Estamos realizando melhorias importantes para oferecer uma experiência ainda melhor. Voltaremos em breve!</p>
+
+      <div class="actions">
+        <a class="btn btn-primary" href="/maintenance/" aria-label="Recarregar página">
+          <!-- Ícone de reload -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <polyline points="1 20 1 14 7 14"/>
+            <path d="m3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          Recarregar
+        </a>
+        <a class="btn btn-secondary" href="mailto:ifmtmaker.fablab.cba@gmail.com" aria-label="Entrar em contato">
+          <!-- Ícone de email -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m4 4 7.07 7.07a1 1 0 0 0 1.41 0L20 4"/>
+            <path d="m21 5-9 9-9-9"/>
+            <rect width="18" height="14" x="3" y="4" rx="2"/>
+          </svg>
+          Contato
+        </a>
+      </div>
+
+      <div class="footer-info">
+        <div class="status-dot"></div>
+        <span>FabLab IFMT Cuiabá • Manutenção Ativa</span>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
