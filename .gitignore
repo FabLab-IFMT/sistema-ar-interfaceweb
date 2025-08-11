@@ -1,5 +1,6 @@
 # Python bytecode
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -29,6 +30,8 @@ local_settings.py
 **/settings/production.py
 secrets.json
 credentials.json
+env/google_credentials.json
+**/google_credentials.json
 
 # Banco de dados local (não commitar)
 db.sqlite3
@@ -40,9 +43,4 @@ db.sqlite3
 *.sql
 *.dump
 *.bak
-
-
-# Ignorar pastas de cache do Python
-__pycache__/
-*__pycache__/
 
