@@ -1,15 +1,14 @@
 # Dependências principais
 Django>=4.2.0,<5.0.0
-Pillow>=9.0.0  # Para processamento de imagem
-django-crispy-forms>=2.0   # Para melhorar a aparência dos formulários
-crispy-bootstrap5>=0.7     # Tema Bootstrap 5 para crispy forms
+Pillow>=9.0.0
+django-crispy-forms>=2.0
+crispy-bootstrap5>=0.7
 psycopg2>=2.9.0
 
-# Integração com Google Calendar
+# Integração com Google Calendar (CORRIGIDO)
 google-api-python-client>=2.0.0
-google-auth>=2.0.0
+google-auth-oauthlib>=0.4.1
 
 # HTTP cliente
 requests>=2.28.0
-
-
+gunicorn
