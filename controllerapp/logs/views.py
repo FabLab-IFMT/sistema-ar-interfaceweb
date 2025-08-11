@@ -11,6 +11,8 @@ from .scripts import FormattedAction
 from .forms import EventForm, VisitRequestForm, EventRejectForm
 from .utils import log_user_action
 from Email_notificacoes.models import enviar_email_solicitacao_enviada, enviar_email_solicitacao_aprovada, enviar_email_solicitacao_recusada
+# Importe a função do seu arquivo google_calendar.py
+from .google_calendar import get_google_calendar_events
 
 def staff_check(user):
     return user.is_staff
@@ -91,18 +93,65 @@ def agenda_home(request):
         
     # Obter primeiro e último dia do mês
     first_day = datetime(year, month, 1)
-    last_day = datetime(year, month, calendar.monthrange(year, month)[1])
+    last_day = datetime(year, month, calendar.monthrange(year, month)[1], 23, 59, 59)
     
-    # Eventos do mês (apenas aprovados)
-    events = Event.objects.filter(
+    # 1. Buscar eventos locais (aprovados) do banco de dados
+    local_events = Event.objects.filter(
         approved=True,
         start_time__gte=first_day,
         start_time__lte=last_day + timedelta(days=1)
     ).order_by('start_time')
     
-    # Estruturar o calendário - Corrigir geração do calendário
-    # Usamos a classe Calendar para garantir semanas corretas
-    cal_obj = calendar.Calendar(firstweekday=6)  # 6 = domingo como primeiro dia da semana
+    # 2. Buscar eventos do Google Calendar
+    # Somente superusuários podem ver itens do Google
+    google_events_raw = get_google_calendar_events(first_day, last_day) if request.user.is_superuser else []
+
+    # 3. Processar e combinar todos os eventos
+    all_events = []
+    
+    # Adicionar eventos locais à lista combinada
+    for event in local_events:
+        all_events.append({
+            'id': event.id,
+            'title': event.title,
+            'start_time': event.start_time,
+            'end_time': event.end_time,
+            'event_type': event.event_type,
+            'get_event_type_display': event.get_event_type_display,
+            'description': event.description,
+            'is_google': False # Flag para identificar no template
+        })
+
+    # Adicionar eventos do Google à lista combinada
+    for event in google_events_raw:
+        start_str = event.get('start', {}).get('dateTime', event.get('start', {}).get('date'))
+        end_str = event.get('end', {}).get('dateTime', event.get('end', {}).get('date'))
+        
+        if start_str:
+            # Lida com eventos de dia inteiro (formato 'YYYY-MM-DD')
+            if 'T' not in start_str:
+                start_time = timezone.make_aware(datetime.strptime(start_str, '%Y-%m-%d'))
+                end_time = timezone.make_aware(datetime.strptime(end_str, '%Y-%m-%d')) if end_str else start_time
+            else:
+                start_time = timezone.make_aware(datetime.fromisoformat(start_str.replace('Z', '+00:00')))
+                end_time = timezone.make_aware(datetime.fromisoformat(end_str.replace('Z', '+00:00'))) if end_str else start_time
+
+            all_events.append({
+                'id': event.get('id'),
+                'title': event.get('summary', 'Evento do Google'),
+                'start_time': start_time,
+                'end_time': end_time,
+                'event_type': 'google', # Tipo customizado
+                'get_event_type_display': 'Google Calendar',
+                'description': event.get('description', ''),
+                'is_google': True # Flag para identificar no template
+            })
+
+    # Ordenar a lista combinada por data de início
+    all_events.sort(key=lambda x: x['start_time'])
+    
+    # Estruturar o calendário
+    cal_obj = calendar.Calendar(firstweekday=6)
     cal = cal_obj.monthdayscalendar(year, month)
     
     # Horários de funcionamento
@@ -128,7 +177,7 @@ def agenda_home(request):
         pending_count = Event.objects.filter(approved=False).count()
     
     context = {
-        'events': events,
+        'events': all_events, # Passa a lista combinada para o template
         'calendar': cal,
         'month': month,
         'month_name': month_name,
