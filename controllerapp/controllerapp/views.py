@@ -78,6 +78,14 @@ def home(request):
     
     return render(request, 'home.html', context)
 
+def maintenance(request):
+    """Página principal de manutenção (retorna 503)."""
+    theme = request.COOKIES.get('theme', 'light')
+    response = render(request, 'maintenance.html', {'theme': theme}, status=503)
+    # Opcional: informar ao cliente quando tentar novamente (em segundos)
+    response['Retry-After'] = '3600'
+    return response
+
 # Handlers de erros personalizados - modificados para funcionarem com URLs de teste
 def bad_request(request, exception=None):
     """View para erro 400 - Bad Request"""

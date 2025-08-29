@@ -13,6 +13,9 @@ SECRET_KEY = 'django-insecure-q25vadyhqou5z75*^oc#ln6g04f&+t6w@7&2!m$@dr^$h_ch!2
 # Para produção, Debug=False
 
 DEBUG = False
+
+# Ativar modo de manutenção global
+MAINTENANCE_MODE = True
 #################################################################
 
 
@@ -49,6 +52,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # Middleware de manutenção deve vir primeiro para interceptar tudo
+    'controllerapp.middleware.MaintenanceModeMiddleware',
+    # Middlewares padrão do Django
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -163,3 +169,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'ifmtmaker.fablab.cba@gmail.com'
 EMAIL_HOST_PASSWORD = 'tgnm eeyu yhyu tycj'  
 DEFAULT_FROM_EMAIL = 'FabLab <seu-email@gmail.com>'
+
+# Certifique-se de que o middleware de manutenção esteja funcionando corretamente.
+# Lembre-se de testar todas as funcionalidades após as alterações.
+# Boa sorte!
