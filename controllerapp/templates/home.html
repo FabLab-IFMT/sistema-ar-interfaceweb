@@ -50,7 +50,7 @@
           </div>
         {% empty %}
           <div class="carousel-item active">
-            <img src="{% static 'images/default1.jpg' %}" class="d-block w-100" alt="Default Image 1" 
+            <img src="{% static 'images/carrossel/imagem1.png' %}" class="d-block w-100" alt="Imagem 1" 
                  height="600" style="object-fit: cover; width: 100%;">
             <div class="carousel-caption d-none d-md-block">
               <h2 class="display-4 fw-bold text-shadow">Crie. Aprenda. Inove.</h2>
@@ -58,7 +58,7 @@
             </div>
           </div>
           <div class="carousel-item">
-            <img src="{% static 'images/default2.jpg' %}" class="d-block w-100" alt="Default Image 2" 
+            <img src="{% static 'images/carrossel/imagem2.png' %}" class="d-block w-100" alt="Imagem 2" 
                  height="600" style="object-fit: cover; width: 100%;">
             <div class="carousel-caption d-none d-md-block">
               <h2 class="display-4 fw-bold text-shadow">Tecnologia ao seu alcance</h2>
@@ -66,11 +66,11 @@
             </div>
           </div>
           <div class="carousel-item">
-            <img src="{% static 'images/default3.jpg' %}" class="d-block w-100" alt="Default Image 3" 
+            <img src="{% static 'images/carrossel/imagem3.png' %}" class="d-block w-100" alt="Imagem 3" 
                  height="600" style="object-fit: cover; width: 100%;">
             <div class="carousel-caption d-none d-md-block">
-              <h2 class="display-4 fw-bold text-shadow">Faça acontecer</h2>
-              <p class="lead fs-3 text-shadow">Transforme suas ideias em realidade</p>
+              <h2 class="display-4 fw-bold text-shadow">Comunidade Maker</h2>
+              <p class="lead fs-3 text-shadow">Aprenda e compartilhe conhecimento</p>
             </div>
           </div>
         {% endfor %}
@@ -155,7 +155,7 @@
       <div class="row align-items-center">
         <div class="col-lg-6 order-lg-2">
           <div class="p-lg-4">
-            <img src="{% static 'images/lab-photo.jpg' %}" class="img-fluid rounded-4 shadow" 
+            <img src="{% static 'images/sobre/imagem monitores.jpeg' %}" class="img-fluid rounded-4 shadow" 
                  alt="Interior do laboratório" onerror="this.src='https://via.placeholder.com/600x400?text=FabLab'">
           </div>
         </div>
@@ -175,7 +175,8 @@
     </div>
   </div>
 
-  <!-- Projetos em destaque - apenas os marcados como destaque -->
+  <!-- Projetos em destaque - apenas quando houver projetos selecionados para a home -->
+  {% if tem_projetos %}
   <div class="container py-5 mt-3">
     <div class="row mb-4 text-center">
       <div class="col">
@@ -201,63 +202,6 @@
             </div>
           </div>
         </div>
-      {% empty %}
-        <!-- Projetos padrão caso não haja projetos cadastrados -->
-        <div class="col-md-6 col-lg-3">
-          <div class="project-card h-100">
-            <img src="{% static 'images/project1.jpg' %}" class="project-img" alt="Projeto 1" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto+1'">
-            <div class="project-content">
-              <h4>Braço Robótico</h4>
-              <p>Projeto de robótica com controle via Arduino usando impressão 3D e componentes eletrônicos.</p>
-              <div class="project-tags">
-                <span>Robótica</span>
-                <span>Impressão 3D</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-3">
-          <div class="project-card h-100">
-            <img src="{% static 'images/project2.jpg' %}" class="project-img" alt="Projeto 2" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto+2'">
-            <div class="project-content">
-              <h4>Estufa Automatizada</h4>
-              <p>Sistema de monitoramento e controle de temperatura e umidade para estufas agrícolas.</p>
-              <div class="project-tags">
-                <span>IoT</span>
-                <span>Automação</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-3">
-          <div class="project-card h-100">
-            <img src="{% static 'images/project3.jpg' %}" class="project-img" alt="Projeto 3" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto+3'">
-            <div class="project-content">
-              <h4>Cadeira Ergonômica</h4>
-              <p>Design e prototipação de cadeira ergonômica com materiais sustentáveis.</p>
-              <div class="project-tags">
-                <span>Design</span>
-                <span>Sustentabilidade</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-3">
-          <div class="project-card h-100">
-            <img src="{% static 'images/project4.jpg' %}" class="project-img" alt="Projeto 4" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto+4'">
-            <div class="project-content">
-              <h4>Smart Home</h4>
-              <p>Sistema integrado para automação residencial com interface controlada por aplicativo.</p>
-              <div class="project-tags">
-                <span>IoT</span>
-                <span>Mobile</span>
-              </div>
-            </div>
-          </div>
-        </div>
       {% endfor %}
     </div>
     
@@ -265,6 +209,7 @@
       <a href="{% url 'projetos:lista' %}" class="btn btn-outline-primary btn-lg">Ver todos os projetos</a>
     </div>
   </div>
+  {% endif %}
 
   <!-- Estatísticas com contador animado -->
   <div class="container mt-5 py-5">
