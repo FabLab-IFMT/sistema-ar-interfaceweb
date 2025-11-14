@@ -2,23 +2,22 @@
 
 from pathlib import Path
 import os
-from decouple import config  # Usaremos decouple para segredos
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Usa valor do .env ou, em último caso, uma chave fixa já existente no projeto.
-# Substitua esta string pela SECRET_KEY antiga se você tiver.
+# Secret Key
 SECRET_KEY = config(
     'SECRET_KEY',
     default='django-insecure-substitua-por-uma-chave-realmente-secreta'
 )
 
-# Em produção, DEBUG é sempre False; em dev pode ser controlado via .env
+# Debug
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# CORRIGIDO: Sem https:// no ALLOWED_HOSTS
-ALLOWED_HOSTS = ['ifmaker.cba.ifmt.edu.br', '127.0.0.1', 'localhost']
+# HOSTS PERMITIDOS
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.1.149.18', 'ifmaker.cba.ifmt.edu.br']
 CSRF_TRUSTED_ORIGINS = ['https://ifmaker.cba.ifmt.edu.br']
 
 # Application definition
@@ -52,8 +51,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # Middleware de manutenção desativado
-    # 'controllerapp.middleware.MaintenanceModeMiddleware', 
     'logs.middleware.LogMiddleware',
 ]
 
@@ -79,45 +76,53 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'controllerapp.wsgi.application'
 
-# Banco de dados para desenvolvimento (SQLite)
+# ✅ BANCO DE DADOS CORRIGIDO - PostgreSQL
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('POSTGRES_DB', default='fablab_db'),
+        'USER': config('POSTGRES_USER', default='fablab_user'),
+        'PASSWORD': config('POSTGRES_PASSWORD', default='fablab_pass'),
+        'HOST': 'db',
+        'PORT': '5432',
     }
 }
 
-# Password validation (sem alterações)
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    # ...
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
 # Internationalization
 LANGUAGE_CODE = 'pt-br'
-
-# CORRIGIDO: Apenas uma definição de fuso horário
 TIME_ZONE = 'America/Cuiaba'
-
 USE_I18N = True
 USE_TZ = True
 
-# --- Configuração Definitiva de Arquivos Estáticos e de Mídia ---
+# Arquivos Estáticos e de Mídia
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
-
-# Para DESENVOLVIMENTO (runserver com DEBUG=True)
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
-]
-# Para PRODUÇÃO (collectstatic e Nginx)
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_ROOT = os.path.join(BASE_DIR.parent, 'media')
 
+# Configurações gerais
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "users.CustomUser"
 LOGIN_URL = '/users/login/'
 
-# Configurações de Email (usando decouple)
+# Configurações de Email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -129,7 +134,7 @@ DEFAULT_FROM_EMAIL = config(
     default='FabLab <ifmtmaker.fablab.cba@gmail.com>'
 )
 
-# Configuração de Logging para vermos os erros
+# Logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -140,6 +145,6 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',  # Mostra mensagens informativas, de aviso e de erro
+        'level': 'INFO',
     },
 }
