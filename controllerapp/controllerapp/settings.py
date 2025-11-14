@@ -2,15 +2,20 @@
 
 from pathlib import Path
 import os
-from decouple import config # Usaremos decouple para segredos
+from decouple import config  # Usaremos decouple para segredos
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY')
+# Usa valor do .env ou, em último caso, uma chave fixa já existente no projeto.
+# Substitua esta string pela SECRET_KEY antiga se você tiver.
+SECRET_KEY = config(
+    'SECRET_KEY',
+    default='django-insecure-substitua-por-uma-chave-realmente-secreta'
+)
 
-# Em produção, DEBUG é sempre False
-DEBUG = False
+# Em produção, DEBUG é sempre False; em dev pode ser controlado via .env
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 # CORRIGIDO: Sem https:// no ALLOWED_HOSTS
 ALLOWED_HOSTS = ['ifmaker.cba.ifmt.edu.br', '127.0.0.1', 'localhost']
@@ -74,15 +79,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'controllerapp.wsgi.application'
 
-# CORRIGIDO: Configuração para o banco de dados PostgreSQL
+# Banco de dados para desenvolvimento (SQLite)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'fablab_db',
-        'USER': 'fablab_user',
-        'PASSWORD': 'fablab_pass',
-        'HOST': 'db',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -121,9 +122,12 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='FabLab <ifmtmaker.fablab.cba@gmail.com>')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL',
+    default='FabLab <ifmtmaker.fablab.cba@gmail.com>'
+)
 
 # Configuração de Logging para vermos os erros
 LOGGING = {
@@ -136,6 +140,6 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO', # Mostra mensagens informativas, de aviso e de erro
+        'level': 'INFO',  # Mostra mensagens informativas, de aviso e de erro
     },
 }
