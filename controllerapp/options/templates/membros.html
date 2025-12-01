@@ -1,131 +1,228 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}Membros da Equipe{% endblock %}
+{% block title %}Equipe FabLab{% endblock %}
 
 {% block head %}
 <style>
-  .team-member-card {
-    transition: transform 0.3s;
-    margin-bottom: 2rem;
-    height: 100%;
-  }
-  
-  .team-member-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-  }
-  
-  .member-img {
-    width: 150px;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid #007bff;
-    margin: 0 auto;
-  }
-  
-  .member-social a {
-    display: inline-block;
-    margin: 0 5px;
-    color: #6c757d;
-    font-size: 1.2rem;
-    transition: color 0.3s;
-  }
-  
-  .member-social a:hover {
-    color: #007bff;
-  }
-  
-  .member-info {
-    padding: 1.5rem;
-  }
-  
-  .member-name {
-    font-weight: bold;
-    font-size: 1.2rem;
-    margin-bottom: 0.2rem;
-  }
-  
-  .member-role {
-    color: #6c757d;
-    font-style: italic;
-    margin-bottom: 0.8rem;
-  }
-  
-  .section-heading {
+  /* === HERO SECTION "BLUEPRINT TECH" === */
+  .team-hero {
+    background-color: #0f172a; /* Azul Noturno (Tech) */
+    
+    /* Padrão de Grid criado com CSS Puro */
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px; /* Tamanho dos quadrados do grid */
+    
     position: relative;
-    padding-bottom: 15px;
-    margin-bottom: 30px;
-    text-align: center;
+    padding: 100px 0 80px 0;
+    margin-bottom: 4rem;
+    color: white;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
   }
-  
-  .section-heading:after {
+
+  /* Efeito de luz no centro (Vignette) */
+  .team-hero::before {
     content: '';
     position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 3px;
-    background-color: #007bff;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at center, transparent 0%, #0f172a 90%);
+    pointer-events: none;
   }
+
+  /* Detalhe da linha neon abaixo do título */
+  .hero-line {
+    width: 60px;
+    height: 4px;
+    background-color: var(--primary-blue, #0d6efd);
+    margin: 20px auto;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.5); /* Glow */
+  }
+
+  /* === MEMBER CARD (Cards Limpos) === */
+  .member-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    overflow: hidden; /* Importante para a imagem não sair */
+    transition: all 0.3s ease;
+    height: 100%;
+    position: relative;
+  }
+
+  .member-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+    border-color: var(--primary-blue, #0d6efd);
+  }
+
+  /* Faixa colorida no topo do card */
+  .card-top-accent {
+    height: 6px;
+    background: linear-gradient(90deg, #0d6efd, #0dcaf0);
+    width: 100%;
+  }
+
+  .member-body {
+    padding: 30px 20px;
+    text-align: center;
+  }
+
+  /* Foto do Membro */
+  .avatar-container {
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 20px auto;
+    position: relative;
+  }
+
+  .member-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #f8f9fa;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  /* Status Dot (Opcional - enfeite tech) */
+  .status-dot {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 18px;
+    height: 18px;
+    background-color: #198754; /* Verde Online */
+    border: 3px solid #fff;
+    border-radius: 50%;
+  }
+
+  .member-name {
+    font-weight: 700;
+    color: #212529;
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+  }
+
+  .member-role {
+    font-family: 'JetBrains Mono', monospace; /* Fonte monoespaçada para o cargo */
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--primary-blue, #0d6efd);
+    font-weight: 600;
+    background: rgba(13, 110, 253, 0.05);
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 15px;
+  }
+
+  .member-bio {
+    color: #6c757d;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+
+  /* Ícones Sociais Minimalistas */
+  .social-links {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: auto;
+  }
+
+  .social-link {
+    color: #adb5bd;
+    font-size: 1.1rem;
+    transition: color 0.2s;
+  }
+
+  .social-link:hover { color: var(--primary-blue, #0d6efd); }
+
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <h1 class="section-heading">Nossa Equipe</h1>
-  
-  <div class="row">
+
+<section class="team-hero text-center">
+  <div class="container position-relative" style="z-index: 2;">
+    <h1 class="display-4 fw-bold mb-0 tracking-tight">Quem faz acontecer</h1>
+    <div class="hero-line"></div>
+    <p class="lead text-white-50 mx-auto" style="max-width: 600px; font-weight: 300;">
+      A equipe multidisciplinar por trás da inovação no FabLab IFMT.
+    </p>
+  </div>
+</section>
+
+<div class="container mb-5">
+  <div class="row g-4 justify-content-center">
+    
     {% if membros %}
       {% for membro in membros %}
-        <div class="col-md-4">
-          <div class="card team-member-card shadow">
-            <div class="text-center pt-4">
-              {% if membro.foto %}
-                <img src="{{ membro.foto.url }}" alt="{{ membro.nome }}" class="member-img">
-              {% else %}
-                <img src="{% static 'images/default-user.png' %}" alt="{{ membro.nome }}" class="member-img">
-              {% endif %}
-            </div>
-            <div class="card-body member-info text-center">
+        <div class="col-lg-3 col-md-6 col-sm-10">
+          <div class="member-card h-100 d-flex flex-column">
+            <div class="card-top-accent"></div>
+            
+            <div class="member-body flex-grow-1 d-flex flex-column">
+              <div class="avatar-container">
+                {% if membro.foto %}
+                  <img src="{{ membro.foto.url }}" alt="{{ membro.nome }}" class="member-img">
+                {% else %}
+                  <div class="member-img d-flex align-items-center justify-content-center bg-light text-secondary fs-3 fw-bold">
+                    {{ membro.nome|slice:":1" }}
+                  </div>
+                {% endif %}
+                <div class="status-dot" title="Ativo"></div>
+              </div>
+
               <h5 class="member-name">{{ membro.nome }}</h5>
-              <p class="member-role">{{ membro.cargo }}</p>
+              <div>
+                <span class="member-role">{{ membro.cargo }}</span>
+              </div>
               
               {% if membro.bio %}
-                <p class="card-text text-muted mb-3">{{ membro.bio|truncatewords:30 }}</p>
+                <p class="member-bio">{{ membro.bio|truncatechars:80 }}</p>
+              {% else %}
+                <p class="member-bio fst-italic text-muted small">Colaborador do FabLab.</p>
               {% endif %}
               
-              <div class="member-social mb-2">
-                {% if membro.email %}
-                  <a href="mailto:{{ membro.email }}" title="E-mail"><i class="fas fa-envelope"></i></a>
-                {% endif %}
-                
+              <div class="social-links mt-auto pt-3 border-top w-100">
                 {% if membro.linkedin %}
-                  <a href="{{ membro.linkedin }}" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                  <a href="{{ membro.linkedin }}" target="_blank" class="social-link" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
                 {% endif %}
                 
                 {% if membro.github %}
-                  <a href="{{ membro.github }}" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                  <a href="{{ membro.github }}" target="_blank" class="social-link" title="GitHub"><i class="fab fa-github"></i></a>
                 {% endif %}
                 
                 {% if membro.lattes %}
-                  <a href="{{ membro.lattes }}" target="_blank" title="Lattes"><i class="fas fa-graduation-cap"></i></a>
+                  <a href="{{ membro.lattes }}" target="_blank" class="social-link" title="Lattes"><i class="fas fa-graduation-cap"></i></a>
+                {% endif %}
+
+                {% if membro.email %}
+                  <a href="mailto:{{ membro.email }}" class="social-link" title="Email"><i class="fas fa-envelope"></i></a>
                 {% endif %}
               </div>
             </div>
           </div>
         </div>
       {% endfor %}
+    
     {% else %}
       <div class="col-12 text-center py-5">
-        <div class="alert alert-info">
-          <h4>Não há membros cadastrados no momento.</h4>
-          <p>Em breve nossa equipe será atualizada.</p>
+        <div class="p-5 bg-light rounded-3 border border-dashed">
+          <i class="fas fa-user-astronaut fa-3x text-muted mb-3"></i>
+          <h4 class="text-muted">Equipe em montagem</h4>
+          <p class="text-muted small">Nenhum membro cadastrado publicamente no momento.</p>
         </div>
       </div>
     {% endif %}
+
   </div>
 </div>
+
 {% endblock %}
