@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # Em produção, DEBUG é sempre False
-DEBUG = False
+DEBUG = True
 
 # CORRIGIDO: Sem https:// no ALLOWED_HOSTS
 ALLOWED_HOSTS = ['ifmaker.cba.ifmt.edu.br', '127.0.0.1', 'localhost']
