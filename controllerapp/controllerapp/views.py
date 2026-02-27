@@ -28,7 +28,7 @@ def toggle_theme(request):
 
 def get_theme(request):
     """Função auxiliar para obter o tema atual do usuário."""
-    return request.COOKIES.get('theme', 'light')
+    return getattr(request, 'COOKIES', {}).get('theme', 'light')
 
 def about(request):
     """View para a página sobre."""

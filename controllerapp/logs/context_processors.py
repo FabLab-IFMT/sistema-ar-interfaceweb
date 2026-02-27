@@ -9,7 +9,7 @@ def pending_events_count(request):
     context = {'global_pending_count': 0}
     
     # Verificar se o usuário está autenticado e é staff
-    if request.user.is_authenticated and request.user.is_staff:
+    if hasattr(request, 'user') and request.user.is_authenticated and request.user.is_staff:
         # Contar eventos pendentes de aprovação
         context['global_pending_count'] = Event.objects.filter(approved=False).count()
     
