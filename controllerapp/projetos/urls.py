@@ -6,7 +6,8 @@ app_name = 'projetos'
 urlpatterns = [
     path('', views.projeto_lista, name='lista'),
     path('novo/', views.projeto_novo, name='novo'),  # Nova URL para criar projetos
-    path('gestao/', views.gestao_projetos, name='gestao'),  # Rota para gestão de projetos
+    path('gestao/', views.gestao_projetos, name='gestao'),  # Hub de gestão de projetos
+    path('gestao/<slug:slug>/', views.projeto_painel, name='projeto_painel'),  # Painel individual do projeto
     
     # Novas rotas para grupos de projeto
     path('grupos/', views.grupo_lista, name='grupos_lista'),

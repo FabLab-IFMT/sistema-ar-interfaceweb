@@ -1,326 +1,172 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}{% if mostrar_baixos %}Itens com Estoque Crítico{% else %}Itens do Inventário{% endif %}{% endblock %}
+{% block title %}{% if mostrar_baixos %}Itens Críticos{% else %}Itens do Inventário{% endif %}{% endblock %}
+
+{% block content %}
+<section style="background:var(--surface-alt);padding:1rem 0;border-bottom:1px solid var(--border)">
+  <div class="container">
+    <nav class="iv-breadcrumb"><a href="{% url 'inventario:dashboard' %}"><i class="fas fa-arrow-left me-1"></i> Dashboard</a> <span class="mx-2">/</span> <span>{% if mostrar_baixos %}Itens Críticos{% else %}Itens{% endif %}</span></nav>
+  </div>
+</section>
+
+<section class="iv-header">
+  <div class="container">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <h1 class="iv-page-title">
+        {% if mostrar_baixos %}<i class="fas fa-exclamation-triangle me-2" style="color:#DC2626"></i> Itens Críticos{% else %}<i class="fas fa-boxes me-2"></i> Itens do Inventário{% endif %}
+      </h1>
+      <div class="iv-header-actions">
+        <a href="{% url 'inventario:item_create' %}" class="iv-btn iv-btn-primary"><i class="fas fa-plus me-1"></i> Novo Item</a>
+        {% if mostrar_baixos %}<a href="{% url 'inventario:item_list' %}" class="iv-btn iv-btn-outline">Todos os Itens</a>
+        {% else %}<a href="{% url 'inventario:item_list' %}?baixos=true" class="iv-btn iv-btn-danger"><i class="fas fa-exclamation-triangle me-1"></i> Críticos</a>{% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="fl-section" style="padding-top:2rem">
+  <div class="container">
+    <!-- Filtros -->
+    <div class="iv-card mb-4">
+      <div class="iv-card-head"><h3><i class="fas fa-filter me-2"></i> Filtros</h3></div>
+      <div style="padding:1.25rem">
+        <form method="get" class="row g-3 align-items-end">
+          <div class="col-md-4">
+            <label class="iv-label">Buscar</label>
+            <div class="iv-search-wrap"><i class="fas fa-search"></i><input type="text" name="q" value="{{ query }}" placeholder="Nome, código ou descrição..." class="iv-input"></div>
+          </div>
+          <div class="col-md-3">
+            <label class="iv-label">Categoria</label>
+            <select name="categoria" class="iv-input">
+              <option value="">Todas</option>
+              {% for cat in categorias %}<option value="{{ cat.id }}" {% if categoria_id == cat.id|stringformat:"i" %}selected{% endif %}>{{ cat.nome }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="iv-label">Ordenar</label>
+            <select name="order_by" class="iv-input">
+              <option value="nome" {% if order_by == 'nome' %}selected{% endif %}>Nome A-Z</option>
+              <option value="-nome" {% if order_by == '-nome' %}selected{% endif %}>Nome Z-A</option>
+              <option value="quantidade" {% if order_by == 'quantidade' %}selected{% endif %}>Qtd ↑</option>
+              <option value="-quantidade" {% if order_by == '-quantidade' %}selected{% endif %}>Qtd ↓</option>
+              <option value="codigo" {% if order_by == 'codigo' %}selected{% endif %}>Código</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-flex align-items-center" style="padding-top:1.5rem">
+            <label class="iv-check"><input type="checkbox" name="baixos" value="true" {% if mostrar_baixos %}checked{% endif %}><span class="iv-check-mark"></span> Apenas críticos</label>
+          </div>
+          <div class="col-md-1"><button type="submit" class="iv-btn iv-btn-primary w-100"><i class="fas fa-search"></i></button></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Legenda e contagem -->
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-3" style="font-size:.82rem">
+      <span class="d-flex align-items-center gap-1"><span class="iv-dot iv-dot-green"></span> Adequado</span>
+      <span class="d-flex align-items-center gap-1"><span class="iv-dot iv-dot-red"></span> Abaixo do mínimo</span>
+      <span class="ms-auto"><span class="iv-badge iv-badge-blue">{{ page_obj.paginator.count }} itens</span></span>
+    </div>
+
+    <!-- Tabela -->
+    <div class="iv-card">
+      <div class="iv-table-wrap">
+        <table class="iv-table">
+          <thead>
+            <tr><th>Código</th><th>Nome</th><th>Categoria</th><th>Quantidade</th><th>Mínimo</th><th>Localização</th><th>Ações</th></tr>
+          </thead>
+          <tbody>
+            {% for item in page_obj %}
+            <tr {% if item.estoque_baixo %}class="iv-row-danger"{% endif %}>
+              <td><code>{{ item.codigo }}</code></td>
+              <td class="fw-semibold">{{ item.nome }}</td>
+              <td>{{ item.categoria.nome|default:"—" }}</td>
+              <td>{% if item.estoque_baixo %}<span class="iv-danger-text">{{ item.quantidade }} {{ item.get_unidade_display }}</span>{% else %}{{ item.quantidade }} {{ item.get_unidade_display }}{% endif %}</td>
+              <td>{{ item.quantidade_minima }} {{ item.get_unidade_display }}</td>
+              <td>{{ item.localizacao|default:"—" }}</td>
+              <td>
+                <div class="d-flex gap-1">
+                  <a href="{% url 'inventario:item_detail' item.pk %}" class="iv-action-btn" title="Ver"><i class="fas fa-eye"></i></a>
+                  <a href="{% url 'inventario:item_update' item.pk %}" class="iv-action-btn" title="Editar"><i class="fas fa-edit"></i></a>
+                  <a href="{% url 'inventario:item_delete' item.pk %}" class="iv-action-btn iv-action-danger" title="Excluir"><i class="fas fa-trash-alt"></i></a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center" style="padding:2rem">
+              {% if mostrar_baixos %}<div class="iv-empty-good"><i class="fas fa-check-circle"></i><p>Sem itens críticos!</p></div>
+              {% else %}<div class="iv-empty"><i class="fas fa-box-open"></i><p>Nenhum item encontrado.</p></div>{% endif %}
+            </td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Paginação -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="mt-4">
+      <ul class="iv-pagination">
+        {% if page_obj.has_previous %}
+          <li><a href="?page=1{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}"><i class="fas fa-angle-double-left"></i></a></li>
+          <li><a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}"><i class="fas fa-angle-left"></i></a></li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}<li class="active"><a href="#">{{ num }}</a></li>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}<li><a href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}">{{ num }}</a></li>{% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+          <li><a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}"><i class="fas fa-angle-right"></i></a></li>
+          <li><a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}"><i class="fas fa-angle-double-right"></i></a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
 
 {% block head %}
 <style>
-  .filter-bar {
-    background-color: #f8f9fa;
-    border-radius: 0.25rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-  
-  .status-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 5px;
-  }
-  
-  .status-ok {
-    background-color: #28a745;
-  }
-  
-  .status-warning {
-    background-color: #ffc107;
-  }
-  
-  .status-critical {
-    background-color: #dc3545;
-  }
+  .iv-header{background:var(--white);padding:2rem 0;border-bottom:1px solid var(--border)}
+  .iv-page-title{font-size:1.6rem;font-weight:800;color:var(--primary);margin:0}
+  .iv-breadcrumb{font-size:.85rem}.iv-breadcrumb a{color:var(--accent);text-decoration:none;font-weight:600}.iv-breadcrumb span:last-child{color:var(--text-muted)}
+  .iv-header-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+  .iv-btn{display:inline-flex;align-items:center;justify-content:center;padding:.55rem 1.1rem;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;text-decoration:none;transition:all var(--transition);border:none;cursor:pointer}
+  .iv-btn-primary{background:var(--primary);color:#fff}.iv-btn-primary:hover{background:var(--primary-light);color:#fff;transform:translateY(-1px)}
+  .iv-btn-outline{background:transparent;color:var(--text);border:2px solid var(--border)}.iv-btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+  .iv-btn-danger{background:#DC2626;color:#fff}.iv-btn-danger:hover{background:#B91C1C;color:#fff}
+  .iv-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .iv-card-head{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border)}
+  .iv-card-head h3{font-size:.95rem;font-weight:700;color:var(--primary);margin:0}
+  .iv-label{display:block;font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:.35rem}
+  .iv-input{width:100%;padding:.55rem .85rem;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:.85rem;transition:border-color .25s;background:var(--white);font-family:inherit;color:var(--text)}
+  .iv-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(19,103,138,.08)}
+  .iv-search-wrap{position:relative}.iv-search-wrap i{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.82rem}.iv-search-wrap .iv-input{padding-left:2.2rem}
+  .iv-check{display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer;color:var(--text)}
+  .iv-check input{display:none}.iv-check-mark{width:18px;height:18px;border:2px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+  .iv-check input:checked+.iv-check-mark{background:var(--accent);border-color:var(--accent)}.iv-check input:checked+.iv-check-mark::after{content:'\f00c';font-family:'Font Awesome 6 Free';font-weight:900;color:#fff;font-size:.6rem}
+  .iv-dot{width:8px;height:8px;border-radius:50%;display:inline-block}.iv-dot-green{background:#10B981}.iv-dot-red{background:#DC2626}
+  .iv-table-wrap{overflow-x:auto}
+  .iv-table{width:100%;border-collapse:collapse;font-size:.85rem}
+  .iv-table thead th{padding:.7rem 1rem;font-weight:600;color:var(--text-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:var(--surface)}
+  .iv-table tbody td{padding:.7rem 1rem;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+  .iv-table tbody tr:last-child td{border-bottom:none}
+  .iv-table tbody tr:hover{background:rgba(19,103,138,.02)}
+  .iv-row-danger{background:rgba(220,38,38,.03)!important}
+  .iv-danger-text{color:#DC2626;font-weight:700}
+  .iv-table code{background:var(--surface-alt);padding:.15rem .4rem;border-radius:4px;font-size:.8rem;color:var(--primary)}
+  .iv-action-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:var(--radius-sm);color:var(--text-muted);transition:all var(--transition);text-decoration:none;font-size:.8rem}
+  .iv-action-btn:hover{background:rgba(19,103,138,.08);color:var(--accent)}
+  .iv-action-danger:hover{background:rgba(220,38,38,.08);color:#DC2626}
+  .iv-badge{display:inline-block;padding:.2rem .6rem;border-radius:999px;font-size:.7rem;font-weight:700}
+  .iv-badge-blue{background:rgba(59,130,246,.1);color:#2563EB}
+  .iv-empty,.iv-empty-good{text-align:center;color:var(--text-muted)}.iv-empty i,.iv-empty-good i{font-size:1.5rem;margin-bottom:.4rem;display:block;opacity:.4}.iv-empty p,.iv-empty-good p{margin:0;font-size:.85rem}
+  .iv-empty-good{color:#059669}.iv-empty-good i{opacity:.7;color:#10B981}
+  .iv-pagination{display:flex;justify-content:center;gap:.25rem;list-style:none;padding:0}
+  .iv-pagination li a{display:flex;align-items:center;justify-content:center;min-width:36px;height:36px;border:1px solid var(--border);border-radius:var(--radius-sm);text-decoration:none;color:var(--text);font-size:.82rem;font-weight:500;transition:all var(--transition)}
+  .iv-pagination li a:hover{border-color:var(--accent);color:var(--accent)}
+  .iv-pagination li.active a{background:var(--accent);color:#fff;border-color:var(--accent)}
+  @media(max-width:768px){.iv-page-title{font-size:1.3rem}}
 </style>
-{% endblock %}
-
-{% block content %}
-<div class="container py-4">
-  <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
-      {% if mostrar_baixos %}
-        <li class="breadcrumb-item active" aria-current="page">Itens Críticos</li>
-      {% else %}
-        <li class="breadcrumb-item active" aria-current="page">Lista de Itens</li>
-      {% endif %}
-    </ol>
-  </nav>
-
-  <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">
-      {% if mostrar_baixos %}
-        <i class="fas fa-exclamation-triangle me-2 text-danger"></i> Itens com Estoque Crítico
-      {% else %}
-        <i class="fas fa-boxes me-2"></i> Itens do Inventário
-      {% endif %}
-    </h1>
-    <div>
-      <a href="{% url 'inventario:item_create' %}" class="btn btn-primary">
-        <i class="fas fa-plus me-1"></i> Novo Item
-      </a>
-      <a href="{% url 'inventario:dashboard' %}" class="btn btn-secondary ms-2">
-        <i class="fas fa-tachometer-alt me-1"></i> Dashboard
-      </a>
-      {% if mostrar_baixos %}
-        <a href="{% url 'inventario:item_list' %}" class="btn btn-info ms-2">
-          <i class="fas fa-list me-1"></i> Todos os Itens
-        </a>
-      {% else %}
-        <a href="{% url 'inventario:item_list' %}?baixos=true" class="btn btn-danger ms-2">
-          <i class="fas fa-exclamation-triangle me-1"></i> Itens Críticos
-        </a>
-      {% endif %}
-    </div>
-  </div>
-  
-  <!-- Filtros e busca -->
-  <div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex align-items-center justify-content-between">
-      <h6 class="m-0 font-weight-bold">Filtros</h6>
-    </div>
-    <div class="card-body">
-      <form method="get" class="row g-3">
-        <div class="col-md-4">
-          <label for="q" class="form-label">Buscar</label>
-          <input type="text" class="form-control" id="q" name="q" value="{{ query }}" placeholder="Nome, código ou descrição...">
-        </div>
-        <div class="col-md-3">
-          <label for="categoria" class="form-label">Categoria</label>
-          <select class="form-select" id="categoria" name="categoria">
-            <option value="">Todas as categorias</option>
-            {% for cat in categorias %}
-              <option value="{{ cat.id }}" {% if categoria_id == cat.id|stringformat:"i" %}selected{% endif %}>{{ cat.nome }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="col-md-2">
-          <label for="order_by" class="form-label">Ordenar por</label>
-          <select class="form-select" id="order_by" name="order_by">
-            <option value="nome" {% if order_by == 'nome' %}selected{% endif %}>Nome (A-Z)</option>
-            <option value="-nome" {% if order_by == '-nome' %}selected{% endif %}>Nome (Z-A)</option>
-            <option value="quantidade" {% if order_by == 'quantidade' %}selected{% endif %}>Quantidade (Menor)</option>
-            <option value="-quantidade" {% if order_by == '-quantidade' %}selected{% endif %}>Quantidade (Maior)</option>
-            <option value="codigo" {% if order_by == 'codigo' %}selected{% endif %}>Código</option>
-          </select>
-        </div>
-        <div class="col-md-2 d-flex align-items-end">
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="baixos" name="baixos" value="true" {% if mostrar_baixos %}checked{% endif %}>
-            <label class="form-check-label" for="baixos">
-              Mostrar apenas itens críticos
-            </label>
-          </div>
-        </div>
-        <div class="col-md-1 d-flex align-items-end">
-          <button type="submit" class="btn btn-primary mb-2">Filtrar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-  
-  <!-- Status de estoque e legenda -->
-  <div class="row mb-4">
-    <div class="col">
-      <div class="card shadow">
-        <div class="card-body">
-          <h6 class="card-title">Status de Estoque</h6>
-          <div class="d-flex flex-wrap gap-3">
-            <div class="d-flex align-items-center">
-              <span class="status-indicator status-ok me-2"></span>
-              <span>Estoque Adequado</span>
-            </div>
-            <div class="d-flex align-items-center">
-              <span class="status-indicator status-critical me-2"></span>
-              <span>Abaixo do Mínimo</span>
-            </div>
-            <div class="d-flex align-items-center ms-auto">
-              <span class="badge bg-primary">{{ page_obj.paginator.count }} itens encontrados</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Listagem de itens -->
-  <div class="card shadow">
-    <div class="card-header py-3 d-flex align-items-center justify-content-between">
-      <h6 class="m-0 font-weight-bold">
-        {% if mostrar_baixos %}Itens Críticos{% else %}Itens{% endif %}
-        {% if query %}(Busca: "{{ query }}"){% endif %}
-        {% if categoria_id %}(Categoria: "{{ categoria.nome }}"){% endif %}
-      </h6>
-    </div>
-    <div class="card-body">
-      {% if page_obj %}
-        <div class="table-responsive">
-          <table class="table table-hover table-striped">
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Nome</th>
-                <th>Categoria</th>
-                <th>Quantidade</th>
-                <th>Mínimo</th>
-                <th>Localização</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for item in page_obj %}
-                <tr {% if item.estoque_baixo %}class="table-danger"{% endif %}>
-                  <td>{{ item.codigo }}</td>
-                  <td>{{ item.nome }}</td>
-                  <td>{{ item.categoria.nome|default:"Sem categoria" }}</td>
-                  <td>
-                    {% if item.estoque_baixo %}
-                      <span class="text-danger fw-bold">
-                        {{ item.quantidade }} {{ item.get_unidade_display }}
-                      </span>
-                    {% else %}
-                      {{ item.quantidade }} {{ item.get_unidade_display }}
-                    {% endif %}
-                  </td>
-                  <td>{{ item.quantidade_minima }} {{ item.get_unidade_display }}</td>
-                  <td>{{ item.localizacao|default:"Não definida" }}</td>
-                  <td>
-                    <a href="{% url 'inventario:item_detail' item.pk %}" class="btn btn-sm btn-info" title="Ver detalhes">
-                      <i class="fas fa-eye"></i>
-                    </a>
-                    <a href="{% url 'inventario:item_update' item.pk %}" class="btn btn-sm btn-warning" title="Editar">
-                      <i class="fas fa-edit"></i>
-                    </a>
-                    <a href="{% url 'inventario:item_delete' item.pk %}" class="btn btn-sm btn-danger" title="Excluir">
-                      <i class="fas fa-trash"></i>
-                    </a>
-                    {% if item.disponivel_para_emprestimo %}
-                      <a href="{% url 'inventario:emprestimo_create' %}?item={{ item.pk }}" class="btn btn-sm btn-success" title="Emprestar">
-                        <i class="fas fa-hand-holding"></i>
-                      </a>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="7" class="text-center">
-                    {% if mostrar_baixos %}
-                      Parabéns! Não há itens com estoque crítico no momento.
-                    {% else %}
-                      Nenhum item encontrado com os filtros atuais.
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        
-        <!-- Paginação -->
-        {% if page_obj.paginator.num_pages > 1 %}
-          <nav aria-label="Paginação" class="mt-4">
-            <ul class="pagination justify-content-center">
-              {% if page_obj.has_previous %}
-                <li class="page-item">
-                  <a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" aria-label="Primeira">
-                    <span aria-hidden="true">&laquo;&laquo;</span>
-                  </a>
-                </li>
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" aria-label="Anterior">
-                    <span aria-hidden="true">&laquo;</span>
-                  </a>
-                </li>
-              {% else %}
-                <li class="page-item disabled">
-                  <a class="page-link" href="#" aria-label="Primeira">
-                    <span aria-hidden="true">&laquo;&laquo;</span>
-                  </a>
-                </li>
-                <li class="page-item disabled">
-                  <a class="page-link" href="#" aria-label="Anterior">
-                    <span aria-hidden="true">&laquo;</span>
-                  </a>
-                </li>
-              {% endif %}
-              
-              {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                  <li class="page-item active" aria-current="page">
-                    <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}">{{ num }}</a>
-                  </li>
-                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                  <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}">{{ num }}</a>
-                  </li>
-                {% endif %}
-              {% endfor %}
-              
-              {% if page_obj.has_next %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" aria-label="Próxima">
-                    <span aria-hidden="true">&raquo;</span>
-                  </a>
-                </li>
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if mostrar_baixos %}&baixos=true{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" aria-label="Última">
-                    <span aria-hidden="true">&raquo;&raquo;</span>
-                  </a>
-                </li>
-              {% else %}
-                <li class="page-item disabled">
-                  <a class="page-link" href="#" aria-label="Próxima">
-                    <span aria-hidden="true">&raquo;</span>
-                  </a>
-                </li>
-                <li class="page-item disabled">
-                  <a class="page-link" href="#" aria-label="Última">
-                    <span aria-hidden="true">&raquo;&raquo;</span>
-                  </a>
-                </li>
-              {% endif %}
-            </ul>
-          </nav>
-        {% endif %}
-      {% else %}
-        <div class="alert alert-info">
-          Nenhum item cadastrado no sistema. <a href="{% url 'inventario:item_create' %}" class="alert-link">Clique aqui</a> para adicionar o primeiro item.
-        </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- Atalho para ações principais -->
-  <div class="row mt-4">
-    <div class="col-12">
-      <div class="card shadow">
-        <div class="card-body">
-          <div class="d-flex justify-content-center gap-3">
-            <a href="{% url 'inventario:item_create' %}" class="btn btn-primary">
-              <i class="fas fa-plus me-1"></i> Adicionar Novo Item
-            </a>
-            <a href="{% url 'inventario:categoria_list' %}" class="btn btn-outline-secondary">
-              <i class="fas fa-tags me-1"></i> Gerenciar Categorias
-            </a>
-            <a href="{% url 'inventario:emprestimo_list' %}" class="btn btn-outline-success">
-              <i class="fas fa-hand-holding me-1"></i> Ver Empréstimos
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Adicionar tooltips aos botões de ação
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
-  });
-</script>
 {% endblock %}

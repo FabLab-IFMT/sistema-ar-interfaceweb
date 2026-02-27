@@ -1,16 +1,5 @@
 {% load static %}
 <!DOCTYPE html>
-  <!-- 
-    #     #   #####    #####  
-    #     #  #     #  #     # 
-    #     #  #        #       
-    #######   #####   #       
-    #     #        #  #       
-    #     #  #     #  #     # 
-    #     #   #####    #####  
-    
-    Feito por Henrique Severino da Cunha
-  -->
 <html lang="pt-br" class="h-100">
   <head>
     <meta charset="UTF-8">
@@ -18,597 +7,472 @@
     <meta name="description" content="Sistema de gestão do laboratório FABLAB IFMT">
     <title>{% block title %}{% endblock %} | FABLAB IFMT</title>
 
-    <!-- Arquivos CSS principais -->
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
     <link rel="stylesheet" href="{% static 'style.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     {% block head %} {% endblock %}
 
     <style>
+      /* ===== Design System ===== */
       :root {
-        --primary-color: #007bff;
-        --secondary-color: #6c757d;
-        --accent-color: #28a745;
-        --danger-color: #dc3545;
+        --primary: #0B2545;
+        --primary-light: #134074;
+        --accent: #13678A;
+        --accent-light: #45C4B0;
+        --surface: #FAFBFC;
+        --surface-alt: #EEF1F6;
+        --text: #1A1A2E;
+        --text-muted: #6B7280;
+        --white: #FFFFFF;
+        --border: #E2E8F0;
+        --shadow-sm: 0 1px 3px rgba(11,37,69,.08);
+        --shadow-md: 0 4px 16px rgba(11,37,69,.10);
+        --shadow-lg: 0 12px 40px rgba(11,37,69,.12);
+        --radius: 12px;
+        --radius-sm: 8px;
+        --transition: .25s cubic-bezier(.4,0,.2,1);
       }
-      
+
+      * { box-sizing: border-box; }
+
       body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: var(--text);
+        background: var(--surface);
         display: flex;
         flex-direction: column;
         min-height: 100vh;
-      }
-      
-      main {
-        flex: 1 0 auto;
-        padding: 1rem 0;
-      }
-
-      .navbar {
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        padding: 0.5rem 1rem;
-      }
-      
-      .navbar-brand img {
-        transition: transform 0.3s ease;
-      }
-      
-      .navbar-brand img:hover {
-        transform: scale(1.05);
-      }
-      
-      .notification-indicator {
-        position: relative;
-        display: inline-block;
-      }
-      
-      .notification-dot {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        height: 10px;
-        width: 10px;
-        background-color: #ff4b4b;
-        border-radius: 50%;
-        border: 1px solid #fff;
-        animation: pulse 1.5s infinite;
-      }
-
-      @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.2); }
-        100% { transform: scale(1); }
-      }
-      
-      .agenda-with-notification {
-        position: relative;
-        padding-right: 10px;
-      }
-
-      .nav-item.project {
-        position: relative;
-      }
-
-      .nav-item.project .nav-link {
-        cursor: pointer;
-      }
-
-      .drop-down {
-        display: none;
-        background-color: #343a40;
-        border-radius: 0.25rem;
-        padding: 0.5rem 0;
-        min-width: 10rem;
-        list-style: none;
         margin: 0;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      main { flex: 1 0 auto; }
+
+      /* ===== Navbar ===== */
+      .fl-navbar {
+        background: var(--primary);
+        padding: .6rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 1030;
+        border-bottom: 1px solid rgba(255,255,255,.06);
+        transition: background var(--transition), box-shadow var(--transition);
+      }
+      .fl-navbar.scrolled {
+        background: rgba(11,37,69,.97);
+        box-shadow: 0 4px 24px rgba(0,0,0,.18);
+        backdrop-filter: blur(12px);
+      }
+      .fl-navbar .navbar-brand img {
+        height: 46px;
+        transition: transform var(--transition);
+      }
+      .fl-navbar .navbar-brand img:hover { transform: scale(1.04); }
+      .fl-navbar .nav-link {
+        color: rgba(255,255,255,.78) !important;
+        font-weight: 500;
+        font-size: .875rem;
+        padding: .55rem .85rem !important;
+        border-radius: var(--radius-sm);
+        transition: color var(--transition), background var(--transition);
+        letter-spacing: .01em;
+      }
+      .fl-navbar .nav-link:hover,
+      .fl-navbar .nav-link:focus {
+        color: #fff !important;
+        background: rgba(255,255,255,.08);
+      }
+
+      /* Dropdown */
+      .fl-dropdown { position: relative; }
+      .fl-dropdown-menu {
+        display: none;
         position: absolute;
-        z-index: 1000;
+        top: 100%;
+        left: 0;
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        min-width: 220px;
+        padding: .5rem 0;
+        border: 1px solid var(--border);
+        z-index: 1050;
+        margin-top: 0;
+        list-style: none;
+        padding-left: 0;
       }
-
-      .nav-item.project:hover .drop-down {
-        display: block;
-      }
-
-      .drop-down li a {
-        display: block;
-        padding: 0.5rem 1.5rem;
-        color: #f8f9fa;
-        text-decoration: none;
-        transition: background-color 0.2s;
-      }
-
-      .drop-down li a:hover {
-        background-color: #495057;
-        color: white;
-      }
-      
-      .carousel-item {
-        height: 450px;
-      }
-      
-      .carousel-item img {
-        object-fit: cover;
-        height: 100%;
-      }
-      
-      .user-welcome {
-        display: flex;
-        align-items: center;
-        margin-right: 1rem;
-      }
-      
-      .user-welcome .user-role {
-        margin-right: 0.5rem;
-        font-size: 1.2rem;
-      }
-      
-      .toast {
-        opacity: 1;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-      }
-      
-      /* Estilos adicionados para o novo footer */
-      footer {
-        background-color: #212529;
-        color: #f8f9fa;
-        margin-top: auto;
-      }
-      
-      footer h5 {
-        color: #ffffff;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        position: relative;
-        padding-bottom: 0.5rem;
-      }
-      
-      footer h5::after {
+      /* Bridge the gap between trigger and menu so it doesn't close */
+      .fl-dropdown-menu::before {
         content: '';
         position: absolute;
+        top: -12px;
         left: 0;
-        bottom: 0;
-        height: 2px;
-        width: 50px;
-        background-color: var(--primary-color);
+        width: 100%;
+        height: 12px;
       }
-      
-      .footer-logo {
-        max-height: 60px;
-        margin-bottom: 15px;
-      }
-      
-      .footer-links ul li {
-        padding: 0.35rem 0;
-      }
-      
-      .footer-links ul li a {
-        color: #e2e2e2;
-        text-decoration: none;
-        transition: all 0.3s ease;
-      }
-      
-      .footer-links ul li a:hover {
-        color: #ffffff;
-        padding-left: 5px;
-      }
-      
-      .social-links {
+      .fl-dropdown:hover .fl-dropdown-menu,
+      .fl-dropdown:focus-within .fl-dropdown-menu { display: block; }
+      .fl-dropdown-menu a {
         display: flex;
-        gap: 10px;
+        align-items: center;
+        gap: .6rem;
+        padding: .6rem 1.1rem;
+        color: var(--text);
+        text-decoration: none;
+        font-size: .875rem;
+        font-weight: 500;
+        transition: background var(--transition);
       }
-      
-      .social-links a {
+      .fl-dropdown-menu a:hover { background: var(--surface-alt); color: var(--accent); }
+      .fl-dropdown-menu a i { color: var(--accent); width: 18px; text-align: center; }
+
+      /* Badges */
+      .fl-badge {
+        font-size: .65rem;
+        padding: .2em .55em;
+        border-radius: 999px;
+        font-weight: 700;
+        line-height: 1;
+        vertical-align: middle;
+      }
+      .fl-badge-danger { background: #EF4444; color: #fff; }
+      .fl-badge-warn   { background: #F59E0B; color: #fff; }
+      @keyframes pulse-dot { 0%,100%{ opacity:1 } 50%{ opacity:.5 } }
+      .fl-badge-blink { animation: pulse-dot 1.8s infinite; }
+
+      /* User */
+      .fl-user-toggle {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        color: rgba(255,255,255,.85);
+        cursor: pointer;
+        font-weight: 500;
+        font-size: .875rem;
+        padding: .4rem .7rem;
+        border-radius: var(--radius-sm);
+        transition: background var(--transition);
+      }
+      .fl-user-toggle:hover { background: rgba(255,255,255,.1); }
+      .fl-user-avatar {
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        background: var(--accent);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: .75rem; color: #fff;
+        flex-shrink: 0;
+      }
+
+      /* Auth buttons */
+      .fl-btn-login {
+        background: var(--accent);
+        color: #fff !important;
+        border: none;
+        font-weight: 600;
+        font-size: .85rem;
+        padding: .5rem 1.2rem;
+        border-radius: var(--radius-sm);
+        transition: background var(--transition), transform var(--transition);
+        text-decoration: none;
+      }
+      .fl-btn-login:hover { background: var(--accent-light); transform: translateY(-1px); }
+      .fl-btn-register {
+        background: rgba(255,255,255,.12);
+        color: #fff !important;
+        border: 1px solid rgba(255,255,255,.2);
+        font-weight: 600;
+        font-size: .85rem;
+        padding: .5rem 1.2rem;
+        border-radius: var(--radius-sm);
+        transition: background var(--transition);
+        text-decoration: none;
+      }
+      .fl-btn-register:hover { background: rgba(255,255,255,.2); }
+
+      /* Toast */
+      .toast { opacity: 1; box-shadow: var(--shadow-lg); border: none; border-radius: var(--radius-sm); }
+
+      /* ===== Footer ===== */
+      .fl-footer {
+        background: var(--primary);
+        color: rgba(255,255,255,.8);
+        margin-top: auto;
+      }
+      .fl-footer h5 {
+        color: #fff;
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 1.2rem;
+        letter-spacing: .02em;
+        position: relative;
+        padding-bottom: .6rem;
+      }
+      .fl-footer h5::after {
+        content: '';
+        position: absolute;
+        left: 0; bottom: 0;
+        width: 32px; height: 3px;
+        background: var(--accent);
+        border-radius: 2px;
+      }
+      .fl-footer a {
+        color: rgba(255,255,255,.7);
+        text-decoration: none;
+        transition: color var(--transition), padding-left var(--transition);
+        font-size: .875rem;
+      }
+      .fl-footer a:hover { color: #fff; padding-left: 4px; }
+      .fl-footer-logo { max-height: 50px; margin-bottom: 1rem; opacity: .9; }
+
+      .fl-social a {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 38px;
-        height: 38px;
-        background-color: rgba(255,255,255,0.1);
+        width: 36px; height: 36px;
         border-radius: 50%;
-        color: #ffffff;
-        text-decoration: none;
-        transition: all 0.3s ease;
+        background: rgba(255,255,255,.08);
+        color: #fff;
+        transition: background var(--transition), transform var(--transition);
       }
-      
-      .social-links a:hover {
-        background-color: var(--primary-color);
-        transform: translateY(-3px);
-      }
-      
-      .contact-info li {
+      .fl-social a:hover { background: var(--accent); transform: translateY(-2px); padding-left: 0; }
+
+      .fl-footer .contact-info li {
         display: flex;
         align-items: flex-start;
-        margin-bottom: 16px;
+        margin-bottom: 1rem;
+        font-size: .875rem;
       }
-      
-      .contact-info li i {
-        margin-right: 12px;
-        margin-top: 5px;
-        color: var(--primary-color);
+      .fl-footer .contact-info li i {
+        margin-right: .6rem;
+        margin-top: 3px;
+        color: var(--accent-light);
+        width: 16px;
+        text-align: center;
       }
-      
-      .footer-bottom {
-        border-top: 1px solid rgba(255,255,255,0.1);
-        padding-top: 20px;
-        margin-top: 30px;
-        padding-bottom: 20px;
-      }
-      
-      @media (max-width: 768px) {
-        .footer-links {
-          margin-bottom: 30px;
-        }
-        
-        .footer-bottom {
-          text-align: center;
-        }
+      .fl-footer-bottom {
+        border-top: 1px solid rgba(255,255,255,.08);
+        padding: 1.2rem 0;
+        font-size: .8rem;
+        color: rgba(255,255,255,.5);
       }
 
-      /* Animação para o badge piscando */
-      @keyframes badge-blink {
-        0% { opacity: 1; }
-        50% { opacity: 0.7; }
-        100% { opacity: 1; }
-      }
-      
-      .badge-blink {
-        animation: badge-blink 1.5s infinite;
+      /* Responsive */
+      @media (max-width: 991.98px) {
+        .fl-dropdown-menu {
+          position: static;
+          box-shadow: none;
+          border: none;
+          background: rgba(255,255,255,.05);
+          border-radius: var(--radius-sm);
+          margin: .25rem 0;
+          list-style: none;
+          padding-left: 0;
+        }
+        .fl-dropdown-menu::before { display: none; }
+        .fl-dropdown-menu a { color: rgba(255,255,255,.8); }
+        .fl-dropdown-menu a:hover { background: rgba(255,255,255,.08); color: #fff; }
+        .fl-dropdown-menu a i { color: var(--accent-light); }
       }
     </style>
   </head>
 
   <body class="d-flex flex-column min-vh-100">
-    
-    <!-- Navbar - Barra de navegação principal -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+
+    <!-- ===== Navbar ===== -->
+    <nav class="fl-navbar navbar navbar-expand-lg">
       <div class="container">
-        <!-- Logo link para home -->
         <a class="navbar-brand d-flex align-items-center" href="/" aria-label="FABLAB IFMT Home">
-          <img src="{% static 'images/logo_branco.png' %}" alt="Logo FABLAB" style="height: 60px;" class="me-2">
+          <img src="{% static 'images/logo_branco.png' %}" alt="Logo FABLAB">
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02" 
-                aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarColor02">
+
+        <div class="collapse navbar-collapse" id="mainNav">
           <ul class="navbar-nav me-auto">
-            <!-- Links de navegação principal -->
-            <li class="nav-item">
-              <a class="nav-link" href="/">
-                <i class="fas fa-home me-1"></i> Home
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/about">
-                <i class="fas fa-info-circle me-1"></i> Sobre
-              </a>
-            </li>
-            <!-- Menu dropdown do FABLAB -->
-            <li class="nav-item project">
-              <a class="nav-link">
-                <i class="fas fa-flask me-1"></i> FABLAB <i class="fas fa-caret-down ms-1"></i>
-              </a>
-              <ul class="drop-down">
-                <li><a class="nav-link" href="{% url 'options:equipamentos' %}"><i class="fas fa-tools me-2"></i>Equipamentos</a></li>
-                <li><a class="nav-link" href="{% url 'options:servicos' %}"><i class="fas fa-cogs me-2"></i>Serviços</a></li>
-                <li><a class="nav-link" href="{% url 'options:noticias' %}"><i class="fas fa-newspaper me-2"></i>Notícias</a></li>
+            <li class="nav-item"><a class="nav-link" href="/"><i class="fas fa-home me-1"></i> Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="/about"><i class="fas fa-info-circle me-1"></i> Sobre</a></li>
+
+            <!-- FabLab dropdown -->
+            <li class="nav-item fl-dropdown">
+              <a class="nav-link"><i class="fas fa-flask me-1"></i> FabLab <i class="fas fa-chevron-down ms-1" style="font-size:.6rem"></i></a>
+              <ul class="fl-dropdown-menu">
+                <li><a href="{% url 'options:equipamentos' %}"><i class="fas fa-tools"></i> Equipamentos</a></li>
+                <li><a href="{% url 'options:servicos' %}"><i class="fas fa-cogs"></i> Serviços</a></li>
+                <li><a href="{% url 'options:noticias' %}"><i class="fas fa-newspaper"></i> Notícias</a></li>
                 {% if user.is_staff %}
-                <li><a class="nav-link" href="{% url 'logs:request_visit' %}"><i class="fas fa-users me-2"></i>Visitas</a></li>
+                <li><a href="{% url 'logs:request_visit' %}"><i class="fas fa-users"></i> Visitas</a></li>
                 {% endif %}
-                <li><a class="nav-link" href="{% url 'logs:agenda_home' %}"><i class="fas fa-calendar-alt me-2"></i>Agendamentos</a></li>
-                <li><a class="nav-link" href="{% url 'options:membros' %}"><i class="fas fa-id-badge me-2"></i>Membros</a></li>
+                <li><a href="{% url 'logs:agenda_home' %}"><i class="fas fa-calendar-alt"></i> Agendamentos</a></li>
+                <li><a href="{% url 'options:membros' %}"><i class="fas fa-id-badge"></i> Membros</a></li>
               </ul>
             </li>
-            
-            <!-- Link de visitas para usuários não-administradores -->
+
             {% if not user.is_staff %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'logs:request_visit' %}">
-                <i class="fas fa-users me-1"></i> Visitas
-              </a>
-            </li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'logs:request_visit' %}"><i class="fas fa-users me-1"></i> Visitas</a></li>
             {% endif %}
-            
-            <!-- Links disponíveis apenas para usuários autenticados -->
+
             {% if user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link agenda-with-notification" href="{% url 'logs:agenda_home' %}">
+              <a class="nav-link" href="{% url 'logs:agenda_home' %}">
                 <i class="fas fa-calendar-check me-1"></i> Agenda
                 {% if user.is_staff and global_pending_count > 0 %}
-                  <small class="badge bg-danger ms-1 badge-blink">{{ global_pending_count }}</small>
+                  <span class="fl-badge fl-badge-danger fl-badge-blink ms-1">{{ global_pending_count }}</span>
                 {% endif %}
               </a>
             </li>
-            
-            <!-- Remover o link direto para o Kanban aqui -->
             {% endif %}
-            
-            <!-- Menu de projetos -->
-            <li class="nav-item project">
-              <a class="nav-link" href="{% url 'projetos:lista' %}">
-                <i class="fas fa-project-diagram me-1"></i> Projetos
-              </a>
-              <ul class="drop-down">
-                <li><a class="nav-link" href="{% url 'projetos:lista' %}"><i class="fas fa-list me-2"></i>Lista de Projetos</a></li>
+
+            <!-- Projetos dropdown -->
+            <li class="nav-item fl-dropdown">
+              <a class="nav-link" href="{% url 'projetos:lista' %}"><i class="fas fa-project-diagram me-1"></i> Projetos</a>
+              <ul class="fl-dropdown-menu">
+                <li><a href="{% url 'projetos:lista' %}"><i class="fas fa-list"></i> Lista de Projetos</a></li>
                 {% if user.is_authenticated and user.is_staff %}
-                <li><a class="nav-link" href="{% url 'projetos:gestao' %}"><i class="fas fa-tasks me-2"></i>Gestão de Projetos</a></li>
+                <li><a href="{% url 'projetos:gestao' %}"><i class="fas fa-tasks"></i> Gestão de Projetos</a></li>
                 {% endif %}
               </ul>
             </li>
-            
-            <!-- Link de inventário (apenas para administradores) -->
+
             {% if user.is_authenticated and user.is_staff %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'inventario:dashboard' %}">
-                  <i class="fas fa-boxes me-1"></i> Inventário
-                </a>
-              </li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'inventario:dashboard' %}"><i class="fas fa-boxes me-1"></i> Inventário</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'Controle_ar:automacao_home' %}"><i class="fas fa-robot me-1"></i> Automação</a></li>
             {% endif %}
-            
-            <!-- Link de automação (apenas para administradores) -->
-            {% if user.is_authenticated and user.is_staff %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'Controle_ar:automacao_home' %}">
-                  <i class="fas fa-robot me-1"></i> Automação
-                </a>
-              </li>
-            {% endif %}
-            
-            <!-- Autorização de usuários (apenas para superusuários) -->
+
             {% if user.is_authenticated and user.is_superuser %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'users:pending_registrations' %}">
-                  <i class="fas fa-user-check me-1"></i> Autorizações
-                  {% if registration_pending_count > 0 %}
-                    <small class="badge bg-warning ms-1 badge-blink">{{ registration_pending_count }}</small>
-                  {% endif %}
-                </a>
-              </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'users:pending_registrations' %}">
+                <i class="fas fa-user-check me-1"></i> Autorizações
+                {% if registration_pending_count > 0 %}
+                  <span class="fl-badge fl-badge-warn fl-badge-blink ms-1">{{ registration_pending_count }}</span>
+                {% endif %}
+              </a>
+            </li>
             {% endif %}
-          </ul>          <!-- Bloco de autenticação do usuário -->
-          <div class="d-flex align-items-center">
+          </ul>
+
+          <div class="d-flex align-items-center gap-2">
             {% if user.is_authenticated %}
               <div class="dropdown">
-                <div class="user-welcome text-light dropdown-toggle" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
-                  <span class="user-role">{% if user.is_staff %}👑{% endif %}</span>
-                  <span>{{user.first_name}} {{user.last_name}}</span>
+                <div class="fl-user-toggle dropdown-toggle" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span class="fl-user-avatar">{{ user.first_name|first }}{{ user.last_name|first }}</span>
+                  <span class="d-none d-md-inline">{{ user.first_name }}</span>
+                  {% if user.is_staff %}<i class="fas fa-shield-alt ms-1" style="color:var(--accent-light);font-size:.7rem" title="Admin"></i>{% endif %}
                 </div>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-                  <li>
-                    <a class="dropdown-item" href="{% url 'users:profile' %}">
-                      <i class="fas fa-user me-2"></i> Meu Perfil
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{% url 'projetos:todo_list' %}">
-                      <i class="fas fa-check-square me-2"></i> Lista de Tarefas
-                    </a>
-                  </li>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu" style="border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow-lg)">
+                  <li><a class="dropdown-item" href="{% url 'users:profile' %}"><i class="fas fa-user me-2 text-muted"></i> Meu Perfil</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projetos:todo_list' %}"><i class="fas fa-check-square me-2 text-muted"></i> Lista de Tarefas</a></li>
                   {% if user.is_staff %}
-                  <li>
-                    <a class="dropdown-item" href="{% url 'acesso_e_ponto:my_access_history' %}">
-                      <i class="fas fa-history me-2"></i> Histórico de Acessos
-                    </a>
-                  </li>
+                  <li><a class="dropdown-item" href="{% url 'acesso_e_ponto:my_access_history' %}"><i class="fas fa-history me-2 text-muted"></i> Histórico de Acessos</a></li>
                   {% endif %}
                   {% if user.is_superuser or user.acesso_gestao.tem_acesso %}
-                  <li>
-                    <a class="dropdown-item" href="{% url 'gestao:dashboard' %}">
-                      <i class="fas fa-cogs me-2"></i> Área de Gestão
-                    </a>
-                  </li>
+                  <li><a class="dropdown-item" href="{% url 'gestao:dashboard' %}"><i class="fas fa-cogs me-2 text-muted"></i> Área de Gestão</a></li>
                   {% endif %}
                   <li><hr class="dropdown-divider"></li>
                   <li>
                     <form action="{% url 'users:logout' %}" method="post" class="m-0 p-0">
                       {% csrf_token %}
-                      <button class="dropdown-item text-danger" type="submit">
-                        <i class="fas fa-sign-out-alt me-2"></i> Sair
-                      </button>
+                      <button class="dropdown-item text-danger" type="submit"><i class="fas fa-sign-out-alt me-2"></i> Sair</button>
                     </form>
                   </li>
                 </ul>
               </div>
             {% else %}
-              <a href="/users/login" class="btn btn-success me-2">
-                <i class="fas fa-sign-in-alt me-1"></i> Login
-              </a>
-              <a href="/users/register" class="btn btn-light">
-                <i class="fas fa-user-plus me-1"></i> Registrar
-              </a>
+              <a href="/users/login" class="fl-btn-login"><i class="fas fa-sign-in-alt me-1"></i> Entrar</a>
+              <a href="/users/register" class="fl-btn-register"><i class="fas fa-user-plus me-1"></i> Registrar</a>
             {% endif %}
           </div>
         </div>
       </div>
     </nav>
-        
-    <!-- Container de Toast para mensagens de notificação -->
+
+    <!-- Toasts -->
     <div aria-live="polite" aria-atomic="true" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
       {% if messages %}
         {% for message in messages %}
-          <div class="toast fade show {% if message.tags == 'error' %}bg-danger text-white{% else %}bg-success text-white{% endif %}" 
-               role="alert" 
-               aria-live="assertive" 
-               aria-atomic="true" 
-               data-bs-delay="5000">
+          <div class="toast fade show {% if message.tags == 'error' %}bg-danger text-white{% else %}bg-success text-white{% endif %}" role="alert" data-bs-delay="5000">
             <div class="toast-header {% if message.tags == 'error' %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
-              <strong class="me-auto">
-                {% if message.tags == 'error' %} ⚠️ Erro {% else %} ✅ Notificação {% endif %}
-              </strong>
+              <strong class="me-auto">{% if message.tags == 'error' %}⚠️ Erro{% else %}✅ Notificação{% endif %}</strong>
               <small>Agora</small>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Fechar"></button>
             </div>
-            <div class="toast-body">
-              {{ message }}
-            </div>
+            <div class="toast-body">{{ message }}</div>
           </div>
         {% endfor %}
       {% endif %}
     </div>
-    
-    <!-- Conteúdo Principal -->
-    <main class="container py-4">
-      {% block content %}
-      <!-- Conteúdo padrão - substituído nos templates filhos -->
-      <!-- Exemplo de Carrossel Bootstrap 5 -->
-      <section class="mb-5">
-        <div class="card shadow">
-          <div class="card-body p-0">
-            <div id="meuCarrossel" class="carousel slide" data-bs-ride="carousel">
-              <!-- Indicadores -->
-              <div class="carousel-indicators">
-                <button type="button" data-bs-target="#meuCarrossel" data-bs-slide-to="0" class="active" 
-                        aria-current="true" aria-label="Slide 1"></button>
-                <button type="button" data-bs-target="#meuCarrossel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                <button type="button" data-bs-target="#meuCarrossel" data-bs-slide-to="2" aria-label="Slide 3"></button>
-              </div>
 
-              <!-- Itens do Carrossel -->
-              <div class="carousel-inner">
-                <div class="carousel-item active">
-                  <img src="{% static 'images/imagem1.jpg' %}" class="d-block w-100" alt="Imagem 1">
-                  <div class="carousel-caption d-none d-md-block">
-                    <h5>FABLAB IFMT</h5>
-                    <p>Espaço de inovação e criação tecnológica</p>
-                  </div>
-                </div>
-                <div class="carousel-item">
-                  <img src="{% static 'images/imagem2.jpg' %}" class="d-block w-100" alt="Imagem 2">
-                  <div class="carousel-caption d-none d-md-block">
-                    <h5>Projetos Inovadores</h5>
-                    <p>Desenvolvimento de soluções tecnológicas</p>
-                  </div>
-                </div>
-                <div class="carousel-item">
-                  <img src="{% static 'images/imagem3.jpg' %}" class="d-block w-100" alt="Imagem 3">
-                  <div class="carousel-caption d-none d-md-block">
-                    <h5>Comunidade Maker</h5>
-                    <p>Aprenda e compartilhe conhecimento</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Controles -->
-              <button class="carousel-control-prev" type="button" data-bs-target="#meuCarrossel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Anterior</span>
-              </button>
-              <button class="carousel-control-next" type="button" data-bs-target="#meuCarrossel" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Próximo</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-      {% endblock %}
+    <!-- Main -->
+    <main>
+      {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer - Rodapé do site -->
-    <footer class="pt-5 mt-auto bg-dark text-white">
+    <!-- ===== Footer ===== -->
+    <footer class="fl-footer pt-5">
       <div class="container">
-        <div class="row">
-          <!-- Coluna 1 - Informações do FabLab -->
-          <div class="col-lg-4 col-md-6 mb-4 mb-md-0 footer-links">
+        <div class="row g-4">
+          <div class="col-lg-4 col-md-6">
             <h5>Sobre o FabLab</h5>
-            <div class="mb-3">
-              <img src="{% static 'images/logo_branco.png' %}" alt="Logo FABLAB" class="footer-logo">
-            </div>
-            <p class="mb-3">
-              Laboratório de fabricação digital e inovação tecnológica do Instituto Federal de Mato Grosso, dedicado ao desenvolvimento de projetos e soluções criativas.
-            </p>            <!-- Links de redes sociais -->
-            <div class="social-links mt-3">
-              <a href="https://www.instagram.com/ifmtmaker/" target="_blank" aria-label="Instagram" title="Instagram">
-                <i class="fab fa-instagram"></i>
-              </a>
-              <a href="https://github.com/FabLab-IFMT" target="_blank" aria-label="GitHub" title="GitHub">
-                <i class="fab fa-github"></i>
-              </a>
+            <img src="{% static 'images/logo_branco.png' %}" alt="Logo FABLAB" class="fl-footer-logo">
+            <p style="font-size:.875rem;line-height:1.7">Laboratório de fabricação digital e inovação tecnológica do Instituto Federal de Mato Grosso, dedicado ao desenvolvimento de projetos e soluções criativas.</p>
+            <div class="fl-social d-flex gap-2 mt-3">
+              <a href="https://www.instagram.com/ifmtmaker/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+              <a href="https://github.com/FabLab-IFMT" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
             </div>
           </div>
-          
-          <!-- Coluna 2 - Links Úteis -->
-          <div class="col-lg-3 col-md-6 mb-4 mb-md-0 footer-links">
-            <h5>Links Úteis</h5>
-            <ul class="list-unstyled">
-              <li><a href="/" class="d-block"><i class="fas fa-chevron-right me-2"></i>Home</a></li>
-              <li><a href="/about" class="d-block"><i class="fas fa-chevron-right me-2"></i>Sobre</a></li>
-              <li><a href="{% url 'options:equipamentos' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Equipamentos</a></li>
-              <li><a href="{% url 'options:servicos' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Serviços</a></li>
-              <li><a href="{% url 'logs:agenda_home' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Agenda</a></li>
-              <li><a href="{% url 'options:noticias' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Notícias</a></li>
+          <div class="col-lg-2 col-md-6">
+            <h5>Navegação</h5>
+            <ul class="list-unstyled d-flex flex-column gap-2">
+              <li><a href="/"><i class="fas fa-chevron-right me-1" style="font-size:.6rem"></i> Home</a></li>
+              <li><a href="/about"><i class="fas fa-chevron-right me-1" style="font-size:.6rem"></i> Sobre</a></li>
+              <li><a href="{% url 'options:equipamentos' %}"><i class="fas fa-chevron-right me-1" style="font-size:.6rem"></i> Equipamentos</a></li>
+              <li><a href="{% url 'options:servicos' %}"><i class="fas fa-chevron-right me-1" style="font-size:.6rem"></i> Serviços</a></li>
+              <li><a href="{% url 'logs:agenda_home' %}"><i class="fas fa-chevron-right me-1" style="font-size:.6rem"></i> Agenda</a></li>
+              <li><a href="{% url 'options:noticias' %}"><i class="fas fa-chevron-right me-1" style="font-size:.6rem"></i> Notícias</a></li>
             </ul>
           </div>
-            <!-- Coluna 3 - Serviços -->
-          <div class="col-lg-2 col-md-6 mb-4 mb-md-0 footer-links">
+          <div class="col-lg-2 col-md-6">
             <h5>Serviços</h5>
-            <ul class="list-unstyled">
-              <li><a href="{% url 'options:servicos' %}" class="d-block"><i class="fas fa-chevron-right me-2"></i>Nossos Serviços</a></li>
+            <ul class="list-unstyled d-flex flex-column gap-2">
+              <li><a href="{% url 'options:servicos' %}"><i class="fas fa-chevron-right me-1" style="font-size:.6rem"></i> Nossos Serviços</a></li>
             </ul>
           </div>
-          
-          <!-- Coluna 4 - Contato -->
-          <div class="col-lg-3 col-md-6 mb-4 mb-md-0 footer-links">
+          <div class="col-lg-4 col-md-6">
             <h5>Contato</h5>
             <ul class="list-unstyled contact-info">
-              <li>
-                <i class="fas fa-map-marker-alt"></i>
-                <span>Rua Zulmira Canavarros, 95, Centro, Cuiabá - MT, 78005-200</span>
-              </li>
-              <li>
-                <i class="fas fa-envelope"></i>
-                <span>fablab@ifmt.edu.br</span>
-              </li>
-              <li>
-                <i class="fas fa-phone"></i>
-                <span>(65) 3318-1400</span>
-              </li>
-              <li>
-                <i class="fas fa-clock"></i>
-                <span>Segunda à Sexta: 08:00 às 18:00</span>
-              </li>
+              <li><i class="fas fa-map-marker-alt"></i><span>Rua Zulmira Canavarros, 95, Centro, Cuiabá - MT, 78005-200</span></li>
+              <li><i class="fas fa-envelope"></i><span>fablab@ifmt.edu.br</span></li>
+              <li><i class="fas fa-phone"></i><span>(65) 3318-1400</span></li>
+              <li><i class="fas fa-clock"></i><span>Segunda à Sexta: 08:00 às 18:00</span></li>
             </ul>
           </div>
         </div>
-        
-        <!-- Copyright e informações legais -->
-        <div class="row footer-bottom">
-          <div class="col-md-6 text-center text-md-start">
-            <p>&copy; 2025 FABLAB IFMT. Todos os direitos reservados.</p>
-          </div>
-          <div class="col-md-6 text-center text-md-end">
-            <p>
-                Desenvolvido com <i class="fas fa-heart text-danger"></i> pelo <a href="https://github.com/henrltop" target="_blank" class="text-white">Henrique</a> e equipe
-              <!-- Adicione aqui um link para a política de privacidade se desejar -->
-              <!-- <a href="/privacy-policy" class="text-white ms-2">Política de Privacidade</a> -->
-            </p>
-          </div>
+        <div class="fl-footer-bottom d-flex flex-wrap justify-content-between align-items-center mt-4">
+          <span>&copy; 2025 FABLAB IFMT. Todos os direitos reservados.</span>
+          <span>Desenvolvido com <i class="fas fa-heart text-danger"></i> pelo <a href="https://github.com/henrltop" target="_blank" style="color:var(--accent-light)">Henrique</a> e equipe</span>
         </div>
       </div>
     </footer>
 
-    <!-- Scripts JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
-            crossorigin="anonymous"></script>
-    
-    <!-- Script para inicializar os toasts -->
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        // Inicialização dos Toasts para mensagens temporárias
-        var toastElements = document.querySelectorAll('.toast');
-        toastElements.forEach(function (toastEl) {
-          var toast = new bootstrap.Toast(toastEl, {
-            autohide: true,
-            delay: 5000
-          });
-          toast.show();
+        document.querySelectorAll('.toast').forEach(function (el) {
+          new bootstrap.Toast(el, { autohide: true, delay: 5000 }).show();
+        });
+        var nav = document.querySelector('.fl-navbar');
+        window.addEventListener('scroll', function() {
+          nav.classList.toggle('scrolled', window.scrollY > 20);
         });
       });
     </script>
-    
-    <!-- Bloco para scripts específicos de cada página -->
     {% block scripts %}{% endblock %}
-
   </body>
 </html>

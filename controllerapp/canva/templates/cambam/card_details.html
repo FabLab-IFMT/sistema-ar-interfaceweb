@@ -1,95 +1,131 @@
+<!-- AJAX Fragment: Card Details — loaded into #editCardContent -->
 <div class="card-details">
-    <!-- Título -->
-    <div class="mb-3">
-        <label for="editCardTitle" class="form-label">Título</label>
-        <input type="text" class="form-control" id="editCardTitle" name="titulo" value="{{ card.titulo }}" required>
-    </div>
-    
-    <!-- Descrição - área principal solicitada -->
-    <div class="mb-3">
-        <label for="editCardDescription" class="form-label">Descrição</label>
-        <textarea class="form-control" id="editCardDescription" name="descricao" rows="3">{{ card.descricao }}</textarea>
-    </div>
-    
+
+  <!-- Título -->
+  <div class="mb-3">
+    <label for="editCardTitle" class="form-label" style="font-weight:600;font-size:.85rem;color:var(--text)">Título</label>
+    <input type="text" class="form-control" id="editCardTitle" name="titulo" value="{{ card.titulo }}"
+           style="border-radius:var(--radius-sm,8px);border:1px solid var(--border,#E2E8F0)" required>
+  </div>
+
+  <!-- Descrição -->
+  <div class="mb-3">
+    <label for="editCardDescription" class="form-label" style="font-weight:600;font-size:.85rem;color:var(--text)">Descrição</label>
+    <textarea class="form-control" id="editCardDescription" name="descricao" rows="4"
+              style="border-radius:var(--radius-sm,8px);border:1px solid var(--border,#E2E8F0)">{{ card.descricao }}</textarea>
+  </div>
+
+  <div class="row g-3 mb-3">
     <!-- Prioridade -->
-    <div class="mb-3">
-        <label for="editCardPriority" class="form-label">Prioridade</label>
-        <select class="form-select" id="editCardPriority" name="prioridade">
-            <option value="baixa" {% if card.prioridade == 'baixa' %}selected{% endif %}>Baixa</option>
-            <option value="media" {% if card.prioridade == 'media' %}selected{% endif %}>Média</option>
-            <option value="alta" {% if card.prioridade == 'alta' %}selected{% endif %}>Alta</option>
-            <option value="urgente" {% if card.prioridade == 'urgente' %}selected{% endif %}>Urgente</option>
-        </select>
-    </div>
-    
-    <!-- Visibilidade -->
-    <div class="mb-3 form-check">
-        <input type="checkbox" class="form-check-input" id="editCardVisible" name="visivel" {% if card.visivel %}checked{% endif %}>
-        <label class="form-check-label" for="editCardVisible">Visível no quadro</label>
-        <div class="form-text">Desmarque para ocultar cards concluídos ou arquivados</div>
-    </div>
-    
-    <!-- Informações do responsável -->
-    <div class="mb-3">
-        <label for="editCardResponsible" class="form-label">Responsável</label>
-        {% if can_edit %}
-            <select class="form-select" id="editCardResponsible" name="responsavel_id">
-                <option value="">Sem responsável</option>
-                {% for usuario in usuarios %}
-                    <option value="{{ usuario.id }}" {% if card.responsavel == usuario %}selected{% endif %}>
-                        {{ usuario.first_name }} {{ usuario.last_name }}
-                    </option>
-                {% endfor %}
-            </select>
-        {% else %}
-            <input type="text" class="form-control" value="{% if card.responsavel %}{{ card.responsavel.first_name }} {{ card.responsavel.last_name }}{% else %}Não definido{% endif %}" readonly>
-        {% endif %}
+    <div class="col-md-6">
+      <label for="editCardPriority" class="form-label" style="font-weight:600;font-size:.85rem;color:var(--text)">Prioridade</label>
+      <select class="form-select" id="editCardPriority" name="prioridade"
+              style="border-radius:var(--radius-sm,8px);border:1px solid var(--border,#E2E8F0)">
+        <option value="baixa" {% if card.prioridade == 'baixa' %}selected{% endif %}>🟢 Baixa</option>
+        <option value="media" {% if card.prioridade == 'media' %}selected{% endif %}>🟡 Média</option>
+        <option value="alta" {% if card.prioridade == 'alta' %}selected{% endif %}>🟠 Alta</option>
+        <option value="urgente" {% if card.prioridade == 'urgente' %}selected{% endif %}>🔴 Urgente</option>
+      </select>
     </div>
 
-    <!-- Projeto (apenas visualização) -->
-    {% if card.projeto %}
-    <div class="mb-3">
-        <label class="form-label">Projeto</label>
-        <input type="text" class="form-control" value="{{ card.projeto.titulo }}" readonly>
+    <!-- Visibilidade -->
+    <div class="col-md-6 d-flex align-items-end">
+      <div class="form-check form-switch">
+        <input type="checkbox" class="form-check-input" id="editCardVisible" name="visivel"
+               {% if card.visivel %}checked{% endif %} style="cursor:pointer">
+        <label class="form-check-label" for="editCardVisible" style="font-weight:500;cursor:pointer">
+          Visível no quadro
+        </label>
+        <div class="form-text" style="font-size:.75rem">Desmarque para ocultar o card</div>
+      </div>
     </div>
+  </div>
+
+  <!-- Responsável -->
+  <div class="mb-3">
+    <label class="form-label" style="font-weight:600;font-size:.85rem;color:var(--text)">
+      <i class="fas fa-user-tie me-1" style="color:var(--accent,#13678A)"></i> Responsável
+    </label>
+    {% if can_edit %}
+    <select class="form-select" id="editCardResponsible" name="responsavel_id"
+            style="border-radius:var(--radius-sm,8px);border:1px solid var(--border,#E2E8F0)">
+      <option value="">Sem responsável</option>
+      {% for usuario in usuarios %}
+      <option value="{{ usuario.id }}" {% if card.responsavel == usuario %}selected{% endif %}>
+        {{ usuario.first_name }} {{ usuario.last_name }}
+      </option>
+      {% endfor %}
+    </select>
+    {% else %}
+    <input type="text" class="form-control" readonly
+           value="{% if card.responsavel %}{{ card.responsavel.first_name }} {{ card.responsavel.last_name }}{% else %}Não definido{% endif %}"
+           style="border-radius:var(--radius-sm,8px);background:var(--surface-alt,#EEF1F6)">
     {% endif %}
-    
+  </div>
+
+  <!-- Projeto (readonly) -->
+  {% if card.projeto %}
+  <div class="mb-3">
+    <label class="form-label" style="font-weight:600;font-size:.85rem;color:var(--text)">
+      <i class="fas fa-folder me-1" style="color:var(--accent,#13678A)"></i> Projeto
+    </label>
+    <input type="text" class="form-control" value="{{ card.projeto.titulo }}" readonly
+           style="border-radius:var(--radius-sm,8px);background:var(--surface-alt,#EEF1F6)">
+  </div>
+  {% endif %}
+
+  <div class="row g-3 mb-3">
     <!-- Data de criação -->
-    <div class="mb-3">
-        <label class="form-label">Data de criação</label>
-        <input type="text" class="form-control" value="{{ card.data_criacao|date:'d/m/Y H:i' }}" readonly>
+    <div class="col-md-6">
+      <label class="form-label" style="font-weight:600;font-size:.85rem;color:var(--text)">
+        <i class="fas fa-calendar-plus me-1" style="color:var(--text-muted,#6B7280)"></i> Criado em
+      </label>
+      <input type="text" class="form-control" value="{{ card.data_criacao|date:'d/m/Y H:i' }}" readonly
+             style="border-radius:var(--radius-sm,8px);background:var(--surface-alt,#EEF1F6)">
     </div>
-    
-    <!-- Status atual -->
-    <div class="mb-3">
-        <label class="form-label">Status atual</label>
-        <input type="text" class="form-control" value="{{ card.coluna.nome }}" readonly>
+
+    <!-- Status (coluna) -->
+    <div class="col-md-6">
+      <label class="form-label" style="font-weight:600;font-size:.85rem;color:var(--text)">
+        <i class="fas fa-columns me-1" style="color:var(--text-muted,#6B7280)"></i> Coluna atual
+      </label>
+      <input type="text" class="form-control" value="{{ card.coluna.nome }}" readonly
+             style="border-radius:var(--radius-sm,8px);background:var(--surface-alt,#EEF1F6)">
     </div>
-    
-    <!-- Membros do card (checkbox para edição, lista para visualização) -->
-    {% if can_edit and usuarios %}
-    <div class="mb-3">
-        <label class="form-label">Membros</label>
-        <div class="card p-3">
-            {% for usuario in usuarios %}
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="{{ usuario.id }}" name="membros" id="membro{{ usuario.id }}"
-                       {% if usuario in card.membros.all %}checked{% endif %}>
-                <label class="form-check-label" for="membro{{ usuario.id }}">
-                    {{ usuario.first_name }} {{ usuario.last_name }}
-                </label>
-            </div>
-            {% endfor %}
-        </div>
+  </div>
+
+  <!-- Membros -->
+  {% if can_edit and usuarios %}
+  <div class="mb-3">
+    <label class="form-label" style="font-weight:600;font-size:.85rem;color:var(--text)">
+      <i class="fas fa-users me-1" style="color:var(--accent,#13678A)"></i> Membros
+    </label>
+    <div style="max-height:180px;overflow-y:auto;padding:.75rem;border:1px solid var(--border,#E2E8F0);border-radius:var(--radius-sm,8px)">
+      {% for usuario in usuarios %}
+      <div class="form-check mb-1">
+        <input class="form-check-input" type="checkbox" value="{{ usuario.id }}" name="membros"
+               id="membro{{ usuario.id }}" {% if usuario in card.membros.all %}checked{% endif %}>
+        <label class="form-check-label" for="membro{{ usuario.id }}" style="font-size:.9rem">
+          {{ usuario.first_name }} {{ usuario.last_name }}
+        </label>
+      </div>
+      {% endfor %}
     </div>
-    {% elif card.membros.exists %}
-    <div class="mb-3">
-        <label class="form-label">Membros</label>
-        <ul class="list-group">
-            {% for membro in card.membros.all %}
-            <li class="list-group-item">{{ membro.first_name }} {{ membro.last_name }}</li>
-            {% endfor %}
-        </ul>
+  </div>
+  {% elif card.membros.exists %}
+  <div class="mb-3">
+    <label class="form-label" style="font-weight:600;font-size:.85rem;color:var(--text)">
+      <i class="fas fa-users me-1" style="color:var(--accent,#13678A)"></i> Membros
+    </label>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+      {% for membro in card.membros.all %}
+      <span style="display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .75rem;background:var(--surface-alt,#EEF1F6);border-radius:50px;font-size:.85rem;font-weight:500">
+        <i class="fas fa-user-circle" style="color:var(--accent,#13678A)"></i>
+        {{ membro.first_name }} {{ membro.last_name }}
+      </span>
+      {% endfor %}
     </div>
-    {% endif %}
+  </div>
+  {% endif %}
+
 </div>

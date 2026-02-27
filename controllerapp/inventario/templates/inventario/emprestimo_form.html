@@ -1,194 +1,208 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}{{ title }}{% endblock %}
-
-{% block head %}
-<style>
-  .item-info {
-    display: none;
-    transition: all 0.3s ease;
-  }
-  .item-info.show {
-    display: block;
-    animation: fadeIn 0.5s;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  .form-label.required::after {
-    content: " *";
-    color: #dc3545;
-  }
-</style>
-{% endblock %}
+{% block title %}{{ title }} — Inventário{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'inventario:emprestimo_list' %}">Empréstimos</a></li>
-      <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
-    </ol>
-  </nav>
+<section style="background:var(--surface-alt);padding:1rem 0;border-bottom:1px solid var(--border)">
+  <div class="container">
+    <nav class="iv-breadcrumb"><a href="{% url 'inventario:dashboard' %}">Inventário</a> <span class="mx-2">/</span> <a href="{% url 'inventario:emprestimo_list' %}">Empréstimos</a> <span class="mx-2">/</span> <span>{{ title }}</span></nav>
+  </div>
+</section>
 
-  <div class="card shadow">
-    <div class="card-header py-3 bg-primary text-white">
-      <h6 class="m-0 fw-bold">{{ title }}</h6>
-    </div>
-    <div class="card-body">
-      <form method="post">
+<section class="fl-section" style="padding:3rem 0 5rem">
+  <div class="container" style="max-width:780px">
+    <div class="iv-form-card">
+      <div class="iv-form-header">
+        <div class="iv-form-icon"><i class="fas fa-hand-holding"></i></div>
+        <div><h1>{{ title }}</h1><p>Registre a saída de um item do estoque.</p></div>
+      </div>
+
+      <form method="post" class="iv-form">
         {% csrf_token %}
-        
-        <!-- Item a ser emprestado -->
-        <div class="row mb-4">
-          <div class="col-md-6">
-            <label for="{{ form.item.id_for_label }}" class="form-label required">Item</label>
-            {{ form.item.errors }}
-            <select name="{{ form.item.name }}" id="{{ form.item.id_for_label }}" 
-                   class="form-select {% if form.item.errors %}is-invalid{% endif %}" required>
-              <option value="">Selecione um item...</option>
-              {% for choice in form.fields.item.queryset %}
-                <option value="{{ choice.id }}" 
-                        data-quantidade="{{ choice.quantidade }}" 
-                        data-unidade="{{ choice.get_unidade_display }}"
-                        data-codigo="{{ choice.codigo }}"
-                        {% if form.item.value|stringformat:"i" == choice.id|stringformat:"i" %}selected{% endif %}>
-                  {{ choice.codigo }} - {{ choice.nome }}
+
+        <!-- Section 1: Item -->
+        <div class="iv-form-section">
+          <div class="iv-section-number">1</div>
+          <div class="iv-section-body">
+            <h3 class="iv-section-title">Item a emprestar</h3>
+            <div class="iv-field">
+              <label class="iv-label" for="{{ form.item.id_for_label }}">Item <span class="iv-req">*</span></label>
+              {{ form.item.errors }}
+              <select name="{{ form.item.name }}" id="{{ form.item.id_for_label }}" class="iv-input iv-select" required>
+                <option value="">Selecione um item...</option>
+                {% for choice in form.fields.item.queryset %}
+                <option value="{{ choice.id }}"
+                  data-quantidade="{{ choice.quantidade }}"
+                  data-unidade="{{ choice.get_unidade_display }}"
+                  data-codigo="{{ choice.codigo }}"
+                  {% if form.item.value|stringformat:"i" == choice.id|stringformat:"i" %}selected{% endif %}>
+                  {{ choice.codigo }} — {{ choice.nome }}
                 </option>
-              {% endfor %}
-            </select>
-            {% if form.item.help_text %}
-              <div class="form-text">{{ form.item.help_text }}</div>
-            {% endif %}
-          </div>
-          
-          <div class="col-md-6">
-            <div id="itemInfo" class="item-info alert alert-info mt-4">
-              <h6 class="alert-heading">Informações do Item</h6>
-              <p id="itemCodigo" class="mb-1"></p>
-              <p id="itemQuantidade" class="mb-1"></p>
-              <p id="itemDisponibilidade" class="mb-0"></p>
+                {% endfor %}
+              </select>
+            </div>
+            <!-- Item Info Panel -->
+            <div id="itemInfoPanel" class="iv-item-info" style="display:none">
+              <div class="iv-info-grid">
+                <div class="iv-info-cell"><span class="iv-info-label">Código</span><span id="infoCodigo" class="iv-info-value">—</span></div>
+                <div class="iv-info-cell"><span class="iv-info-label">Estoque atual</span><span id="infoQtd" class="iv-info-value">—</span></div>
+                <div class="iv-info-cell"><span class="iv-info-label">Disponibilidade</span><span id="infoDisp" class="iv-info-value">—</span></div>
+              </div>
             </div>
           </div>
         </div>
-        
-        <!-- Usuário que irá receber o empréstimo -->
-        <div class="row mb-4">
-          <div class="col-md-6">
-            <label for="{{ form.usuario.id_for_label }}" class="form-label required">Usuário</label>
-            {{ form.usuario.errors }}
-            <select name="{{ form.usuario.name }}" id="{{ form.usuario.id_for_label }}" 
-                   class="form-select {% if form.usuario.errors %}is-invalid{% endif %}" required>
-              <option value="">Selecione um usuário...</option>
-              {% for choice in form.fields.usuario.queryset %}
-                <option value="{{ choice.id }}" 
-                        {% if form.usuario.value|stringformat:"i" == choice.id|stringformat:"i" %}selected{% endif %}>
+
+        <!-- Section 2: Destinatário -->
+        <div class="iv-form-section">
+          <div class="iv-section-number">2</div>
+          <div class="iv-section-body">
+            <h3 class="iv-section-title">Destinatário</h3>
+            <div class="iv-field">
+              <label class="iv-label" for="{{ form.usuario.id_for_label }}">Usuário <span class="iv-req">*</span></label>
+              {{ form.usuario.errors }}
+              <select name="{{ form.usuario.name }}" id="{{ form.usuario.id_for_label }}" class="iv-input iv-select" required>
+                <option value="">Selecione um usuário...</option>
+                {% for choice in form.fields.usuario.queryset %}
+                <option value="{{ choice.id }}"
+                  {% if form.usuario.value|stringformat:"i" == choice.id|stringformat:"i" %}selected{% endif %}>
                   {{ choice.get_full_name }} ({{ choice.email }})
                 </option>
-              {% endfor %}
-            </select>
+                {% endfor %}
+              </select>
+            </div>
           </div>
         </div>
-        
-        <!-- Quantidade e data de devolução -->
-        <div class="row mb-4">
-          <div class="col-md-4">
-            <label for="{{ form.quantidade.id_for_label }}" class="form-label required">Quantidade</label>
-            {{ form.quantidade.errors }}
-            <input type="number" name="{{ form.quantidade.name }}" id="{{ form.quantidade.id_for_label }}" 
-                  class="form-control {% if form.quantidade.errors %}is-invalid{% endif %}" 
-                  value="{{ form.quantidade.value|default:'1' }}" step="0.01" min="0.01" required>
-          </div>
-          
-          <div class="col-md-4">
-            <label for="{{ form.data_prevista_devolucao.id_for_label }}" class="form-label required">Previsão de Devolução</label>
-            {{ form.data_prevista_devolucao.errors }}
-            <input type="datetime-local" name="{{ form.data_prevista_devolucao.name }}" id="{{ form.data_prevista_devolucao.id_for_label }}" 
-                  class="form-control {% if form.data_prevista_devolucao.errors %}is-invalid{% endif %}" 
-                  value="{{ form.data_prevista_devolucao.value|date:'Y-m-d\TH:i' }}" required>
-          </div>
-        </div>
-        
-        <!-- Observação -->
-        <div class="row mb-4">
-          <div class="col-md-12">
-            <label for="{{ form.observacao.id_for_label }}" class="form-label">Observação</label>
-            {{ form.observacao.errors }}
-            {{ form.observacao }}
-            <div class="form-text">Adicione informações importantes sobre este empréstimo.</div>
+
+        <!-- Section 3: Detalhes -->
+        <div class="iv-form-section">
+          <div class="iv-section-number">3</div>
+          <div class="iv-section-body">
+            <h3 class="iv-section-title">Detalhes do empréstimo</h3>
+            <div class="iv-row">
+              <div class="iv-field" style="flex:1">
+                <label class="iv-label" for="{{ form.quantidade.id_for_label }}">Quantidade <span class="iv-req">*</span></label>
+                {{ form.quantidade.errors }}
+                <input type="number" name="{{ form.quantidade.name }}" id="{{ form.quantidade.id_for_label }}"
+                  class="iv-input" value="{{ form.quantidade.value|default:'1' }}" step="0.01" min="0.01" required>
+              </div>
+              <div class="iv-field" style="flex:1">
+                <label class="iv-label" for="{{ form.data_prevista_devolucao.id_for_label }}">Previsão de devolução <span class="iv-req">*</span></label>
+                {{ form.data_prevista_devolucao.errors }}
+                <input type="datetime-local" name="{{ form.data_prevista_devolucao.name }}" id="{{ form.data_prevista_devolucao.id_for_label }}"
+                  class="iv-input" value="{{ form.data_prevista_devolucao.value|date:'Y-m-d\TH:i' }}" required>
+              </div>
+            </div>
           </div>
         </div>
-        
-        <div class="alert alert-light border">
-          <div class="fw-bold mb-2">Importante:</div>
-          <ul class="mb-0">
-            <li>O item será automaticamente descontado do estoque após o empréstimo.</li>
-            <li>O sistema registrará você como o responsável por autorizar este empréstimo.</li>
-            <li>A quantidade deve estar disponível em estoque.</li>
-          </ul>
+
+        <!-- Section 4: Observação -->
+        <div class="iv-form-section" style="border-bottom:none">
+          <div class="iv-section-number">4</div>
+          <div class="iv-section-body">
+            <h3 class="iv-section-title">Observação</h3>
+            <div class="iv-field">
+              {{ form.observacao.errors }}
+              {{ form.observacao }}
+              <span class="iv-hint">Informações adicionais sobre este empréstimo.</span>
+            </div>
+          </div>
         </div>
-        
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-          <a href="{% url 'inventario:emprestimo_list' %}" class="btn btn-secondary me-md-2">
-            <i class="fas fa-times me-1"></i> Cancelar
-          </a>
-          <button type="submit" class="btn btn-success">
-            <i class="fas fa-check me-1"></i> Confirmar Empréstimo
-          </button>
+
+        <!-- Important Notice -->
+        <div class="iv-notice">
+          <i class="fas fa-info-circle iv-notice-icon"></i>
+          <div>
+            <strong>Ao confirmar:</strong>
+            <ul style="margin:.4rem 0 0;padding-left:1.2rem;font-size:.82rem">
+              <li>O item será automaticamente descontado do estoque.</li>
+              <li>Você será registrado como responsável pelo empréstimo.</li>
+              <li>A quantidade deve estar disponível em estoque.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="iv-form-actions">
+          <a href="{% url 'inventario:emprestimo_list' %}" class="iv-btn iv-btn-cancel"><i class="fas fa-times me-1"></i> Cancelar</a>
+          <button type="submit" class="iv-btn iv-btn-save"><i class="fas fa-check me-1"></i> Confirmar Empréstimo</button>
         </div>
       </form>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Estilize as textareas
-    document.querySelectorAll('textarea').forEach(function(textarea) {
-      if (!textarea.classList.contains('form-control')) {
-        textarea.classList.add('form-control');
+document.addEventListener('DOMContentLoaded',function(){
+  // Auto-style textareas
+  document.querySelectorAll('textarea').forEach(function(t){t.classList.add('iv-input');t.rows=3});
+
+  // Item info panel
+  var sel=document.getElementById('{{ form.item.id_for_label }}');
+  var panel=document.getElementById('itemInfoPanel');
+  var cod=document.getElementById('infoCodigo');
+  var qtd=document.getElementById('infoQtd');
+  var disp=document.getElementById('infoDisp');
+
+  function updateInfo(){
+    var o=sel.options[sel.selectedIndex];
+    if(sel.value){
+      var q=o.getAttribute('data-quantidade');
+      var u=o.getAttribute('data-unidade');
+      cod.textContent=o.getAttribute('data-codigo');
+      qtd.textContent=q+' '+u;
+      if(parseFloat(q)>0){
+        disp.innerHTML='<span style="color:#059669"><i class="fas fa-check-circle me-1"></i>Disponível</span>';
+      }else{
+        disp.innerHTML='<span style="color:#dc2626"><i class="fas fa-times-circle me-1"></i>Sem estoque</span>';
       }
-    });
-    
-    // Mostrar informações do item selecionado
-    const itemSelect = document.getElementById('{{ form.item.id_for_label }}');
-    const itemInfo = document.getElementById('itemInfo');
-    const itemCodigo = document.getElementById('itemCodigo');
-    const itemQuantidade = document.getElementById('itemQuantidade');
-    const itemDisponibilidade = document.getElementById('itemDisponibilidade');
-    
-    function atualizarInfoItem() {
-      const selectedOption = itemSelect.options[itemSelect.selectedIndex];
-      if (itemSelect.value) {
-        const quantidade = selectedOption.getAttribute('data-quantidade');
-        const unidade = selectedOption.getAttribute('data-unidade');
-        const codigo = selectedOption.getAttribute('data-codigo');
-        
-        itemCodigo.textContent = `Código: ${codigo}`;
-        itemQuantidade.textContent = `Quantidade disponível: ${quantidade} ${unidade}`;
-        
-        if (parseFloat(quantidade) > 0) {
-          itemDisponibilidade.innerHTML = `<span class="text-success"><i class="fas fa-check-circle me-1"></i> Disponível para empréstimo</span>`;
-        } else {
-          itemDisponibilidade.innerHTML = `<span class="text-danger"><i class="fas fa-times-circle me-1"></i> Indisponível (estoque zerado)</span>`;
-        }
-        
-        itemInfo.classList.add('show');
-      } else {
-        itemInfo.classList.remove('show');
-      }
-    }
-    
-    // Atualizar quando o select muda
-    itemSelect.addEventListener('change', atualizarInfoItem);
-    
-    // Atualizar na carga da página, caso já tenha um item selecionado
-    atualizarInfoItem();
-  });
+      panel.style.display='block';
+    }else{panel.style.display='none';}
+  }
+  sel.addEventListener('change',updateInfo);
+  updateInfo();
+});
 </script>
+{% endblock %}
+
+{% block head %}
+<style>
+  .iv-breadcrumb{font-size:.85rem}.iv-breadcrumb a{color:var(--accent);text-decoration:none;font-weight:600}.iv-breadcrumb span:last-child{color:var(--text-muted)}
+  .iv-form-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .iv-form-header{display:flex;align-items:center;gap:1.25rem;padding:2rem;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(11,37,69,.03),rgba(19,103,138,.04))}
+  .iv-form-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;flex-shrink:0}
+  .iv-form-header h1{font-size:1.2rem;font-weight:700;color:var(--primary);margin:0}.iv-form-header p{font-size:.82rem;color:var(--text-muted);margin:.2rem 0 0}
+  .iv-form{padding:0 2rem 2rem}
+  .iv-form-section{display:flex;gap:1.25rem;padding:1.5rem 0;border-bottom:1px solid var(--border)}
+  .iv-section-number{width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;margin-top:.15rem}
+  .iv-section-body{flex:1;min-width:0}
+  .iv-section-title{font-size:.92rem;font-weight:700;color:var(--primary);margin:0 0 1rem}
+  .iv-label{display:block;font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:.35rem}
+  .iv-req{color:#ef4444}
+  .iv-input{width:100%;padding:.6rem .85rem;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:.88rem;transition:border-color .25s;font-family:inherit;color:var(--text);background:var(--white)}
+  .iv-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(19,103,138,.08)}
+  .iv-select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236B7280' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .85rem center}
+  .iv-field{margin-bottom:1rem}.iv-field:last-child{margin-bottom:0}
+  .iv-row{display:flex;gap:1rem}
+  .iv-hint{display:block;font-size:.72rem;color:var(--text-muted);margin-top:.3rem}
+  .iv-form-actions{display:flex;justify-content:flex-end;gap:.75rem;padding-top:1.5rem;border-top:1px solid var(--border);margin-top:.25rem}
+  .iv-btn{display:inline-flex;align-items:center;padding:.55rem 1.25rem;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;text-decoration:none;transition:all var(--transition);cursor:pointer;border:none}
+  .iv-btn-cancel{background:transparent;color:var(--text-muted);border:2px solid var(--border)}.iv-btn-cancel:hover{border-color:var(--text-muted);color:var(--text)}
+  .iv-btn-save{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}.iv-btn-save:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(11,37,69,.2)}
+
+  /* Item info panel */
+  .iv-item-info{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;margin-top:.75rem;animation:ivFadeIn .3s}
+  @keyframes ivFadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .iv-info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+  .iv-info-cell{text-align:center}
+  .iv-info-label{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--text-muted);margin-bottom:.2rem}
+  .iv-info-value{font-size:.88rem;font-weight:600;color:var(--text)}
+
+  /* Notice */
+  .iv-notice{display:flex;gap:.75rem;align-items:flex-start;background:rgba(19,103,138,.05);border:1px solid rgba(19,103,138,.15);border-radius:var(--radius-sm);padding:1rem 1.25rem;margin:0 0 .25rem;font-size:.85rem;color:var(--text)}
+  .iv-notice-icon{color:var(--accent);margin-top:.15rem;font-size:1rem}
+
+  @media(max-width:600px){.iv-row{flex-direction:column}.iv-info-grid{grid-template-columns:1fr}.iv-form{padding:0 1.25rem 1.25rem}.iv-form-header{padding:1.5rem 1.25rem}}
+</style>
 {% endblock %}

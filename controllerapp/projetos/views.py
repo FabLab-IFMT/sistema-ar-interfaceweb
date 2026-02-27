@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -8,7 +9,8 @@ from django.views.decorators.http import require_POST
 from .models import Projeto, ProjetoTag, ComentarioProjeto, TodoTask, ProjetoGrupo
 from canva.models import KanbanCard, KanbanColumn
 from .forms import ProjetoForm  # Garantir que estamos importando o formulário
-from django.db.models import Q
+from django.db import models
+from django.db.models import Q, Count
 from datetime import datetime
 
 # Função auxiliar para verificar se o usuário é staff
@@ -103,7 +105,7 @@ def adicionar_comentario(request, projeto_id):
             comentario_pai = ComentarioProjeto.objects.get(id=comentario_pai_id)
             comentario.comentario_pai = comentario_pai
         except ComentarioProjeto.DoesNotExist:
-            pass
+            logging.warning("Comentário pai %s não encontrado ao responder", comentario_pai_id)
     
     comentario.save()
     messages.success(request, 'Seu comentário foi adicionado com sucesso!')
@@ -149,7 +151,8 @@ def projeto_novo(request):
         form = ProjetoForm(request.POST, request.FILES)
         if form.is_valid():
             projeto = form.save(commit=False)
-            projeto.criado_por = request.user
+            if not projeto.responsavel:
+                projeto.responsavel = request.user
             projeto.save()
             
             # Salva as relações many-to-many após salvar o objeto principal
@@ -165,54 +168,138 @@ def projeto_novo(request):
 @login_required
 @user_passes_test(is_staff)
 def gestao_projetos(request):
-    """View para a página principal (hub) de gestão de projetos"""
+    """View para a página principal (hub) de gestão de projetos — lista projetos e grupos"""
     
-    # Estatísticas para o dashboard do hub
-    total_projetos = Projeto.objects.count()
-    projetos_ativos = Projeto.objects.filter(status='Ativo').count()
-    projetos_concluidos = Projeto.objects.filter(status='Concluído').count()
-    projetos_atrasados = Projeto.objects.filter(status='Ativo', data_conclusao__lt=timezone.now()).count()
+    # Todos os projetos com contagens
+    todos_projetos = Projeto.objects.all().order_by('-data_atualizacao')
+    total_projetos = todos_projetos.count()
+    projetos_em_andamento = todos_projetos.filter(status='em_andamento').count()
+    projetos_concluidos = todos_projetos.filter(status='concluido').count()
+    projetos_planejados = todos_projetos.filter(status='planejado').count()
     
-    # Lista de projetos recentes para o card de projetos
-    projetos_recentes = Projeto.objects.order_by('-data_atualizacao')[:5]
+    # Filtro opcional por status
+    filtro_status = request.GET.get('status', '')
+    busca = request.GET.get('busca', '')
+    projetos_filtrados = todos_projetos
+    if filtro_status:
+        projetos_filtrados = projetos_filtrados.filter(status=filtro_status)
+    if busca:
+        projetos_filtrados = projetos_filtrados.filter(
+            Q(titulo__icontains=busca) | Q(descricao_curta__icontains=busca)
+        )
     
-    # Cards recentes do Kanban para o card de atividades
-    cards_recentes = KanbanCard.objects.select_related('responsavel', 'projeto', 'coluna').order_by('-data_atualizacao')[:5]
+    # Anotações úteis: contagem de cards kanban e tarefas por projeto
+    projetos_filtrados = projetos_filtrados.annotate(
+        total_cards=Count('kanban_cards', distinct=True),
+        total_tarefas=Count('tarefas', distinct=True),
+    )
     
-    # Informações de grupos (apenas para superusuários)
-    total_grupos = 0
-    total_membros = 0
-    grupos_recentes = []
+    # Paginação
+    paginator = Paginator(projetos_filtrados, 12)
+    page = request.GET.get('page')
+    projetos_pagina = paginator.get_page(page)
     
-    # Grupos do usuário atual
-    meus_grupos = ProjetoGrupo.objects.filter(membros=request.user).prefetch_related('membros').order_by('nome')
-    
+    # Grupos
     if request.user.is_superuser:
-        grupos = ProjetoGrupo.objects.all()
-        total_grupos = grupos.count()
-        # Contar membros únicos em todos os grupos
-        membros_ids = set()
-        for grupo in grupos:
-            membros_ids.update(grupo.membros.values_list('id', flat=True))
-        total_membros = len(membros_ids)
-        
-        # Grupos recentes para exibição
-        grupos_recentes = ProjetoGrupo.objects.prefetch_related('membros').order_by('-data_criacao')[:3]
+        grupos = ProjetoGrupo.objects.prefetch_related('membros', 'projetos').order_by('nome')
+    else:
+        grupos = ProjetoGrupo.objects.filter(membros=request.user).prefetch_related('membros', 'projetos').order_by('nome')
     
     context = {
+        'projetos': projetos_pagina,
+        'grupos': grupos,
         'total_projetos': total_projetos,
-        'projetos_ativos': projetos_ativos,
+        'projetos_em_andamento': projetos_em_andamento,
         'projetos_concluidos': projetos_concluidos,
-        'projetos_atrasados': projetos_atrasados,
-        'projetos_recentes': projetos_recentes,
-        'cards_recentes': cards_recentes,
-        'total_grupos': total_grupos,
-        'total_membros': total_membros,
-        'grupos_recentes': grupos_recentes,
-        'meus_grupos': meus_grupos,
+        'projetos_planejados': projetos_planejados,
+        'filtro_status': filtro_status,
+        'busca': busca,
+        'status_opcoes': Projeto.STATUS_CHOICES,
     }
     
     return render(request, 'projetos/gestao_hub.html', context)
+
+
+@login_required
+@user_passes_test(is_staff)
+def projeto_painel(request, slug):
+    """Painel individual do projeto — Visão Geral, Kanban, Tarefas, Equipe"""
+    projeto = get_object_or_404(Projeto, slug=slug)
+    
+    # Aba ativa (default: visao_geral)
+    aba = request.GET.get('aba', 'visao_geral')
+    
+    # ── Estatísticas do projeto ──
+    tarefas_projeto = TodoTask.objects.filter(projeto=projeto)
+    total_tarefas = tarefas_projeto.count()
+    tarefas_pendentes = tarefas_projeto.filter(concluida=False).count()
+    tarefas_concluidas_count = tarefas_projeto.filter(concluida=True).count()
+    hoje = timezone.now().date()
+    tarefas_atrasadas = tarefas_projeto.filter(concluida=False, data_limite__lt=hoje).count()
+    
+    # ── Kanban: colunas com cards filtrados para este projeto ──
+    colunas = KanbanColumn.objects.all()
+    mostrar_ocultos = request.GET.get('mostrar_ocultos') == '1'
+    for coluna in colunas:
+        cards_query = coluna.cards.filter(projeto=projeto)
+        if not mostrar_ocultos:
+            cards_query = cards_query.filter(visivel=True)
+        if not request.user.is_superuser:
+            cards_query = cards_query.filter(
+                models.Q(responsavel=request.user) | models.Q(membros=request.user)
+            ).distinct()
+        coluna.cards_filtrados = cards_query
+    total_cards = sum(len(c.cards_filtrados) for c in colunas)
+    
+    # ── Tarefas — com filtros ──
+    filtro_tarefa_status = request.GET.get('t_status', 'all')
+    filtro_tarefa_prioridade = request.GET.get('t_prioridade', '')
+    tarefas = tarefas_projeto
+    if filtro_tarefa_status == 'pending':
+        tarefas = tarefas.filter(concluida=False)
+    elif filtro_tarefa_status == 'completed':
+        tarefas = tarefas.filter(concluida=True)
+    if filtro_tarefa_prioridade:
+        tarefas = tarefas.filter(prioridade=filtro_tarefa_prioridade)
+    tarefas = tarefas.order_by('-prioridade', 'data_limite')
+    
+    # ── Equipe ──
+    participantes = projeto.participantes.all()
+    responsavel = projeto.responsavel
+    grupos_projeto = projeto.grupos.prefetch_related('membros').all()
+    
+    # ── Projetos para formulário de card (apenas este) ──
+    projetos_form = Projeto.objects.filter(id=projeto.id)
+    
+    # Usuários para formulários
+    from django.contrib.auth import get_user_model as gum
+    User_model = gum()
+    usuarios = User_model.objects.filter(is_active=True) if request.user.is_superuser else None
+    
+    context = {
+        'projeto': projeto,
+        'aba': aba,
+        # Stats
+        'total_tarefas': total_tarefas,
+        'tarefas_pendentes': tarefas_pendentes,
+        'tarefas_concluidas_count': tarefas_concluidas_count,
+        'tarefas_atrasadas': tarefas_atrasadas,
+        'total_cards': total_cards,
+        # Kanban
+        'colunas': colunas,
+        'projetos_form': projetos_form,
+        'usuarios': usuarios,
+        # Tarefas
+        'tarefas': tarefas,
+        'filtro_tarefa_status': filtro_tarefa_status,
+        'filtro_tarefa_prioridade': filtro_tarefa_prioridade,
+        # Equipe
+        'participantes': participantes,
+        'responsavel': responsavel,
+        'grupos_projeto': grupos_projeto,
+    }
+    
+    return render(request, 'projetos/projeto_painel.html', context)
 
 @login_required
 def todo_list(request):
@@ -371,7 +458,7 @@ def add_task(request):
                 projeto = Projeto.objects.get(id=projeto_id)
                 task.projeto = projeto
             except Projeto.DoesNotExist:
-                pass
+                logging.warning("Projeto id %s não encontrado ao criar tarefa", projeto_id)
         
         # Processar data limite se for informada
         if data_limite_str:
@@ -379,7 +466,7 @@ def add_task(request):
                 data_limite = datetime.strptime(data_limite_str, '%Y-%m-%d').date()
                 task.data_limite = data_limite
             except ValueError:
-                pass
+                logging.warning("Data limite inválida recebida: %s", data_limite_str)
         
         # Salvar a tarefa
         task.save()

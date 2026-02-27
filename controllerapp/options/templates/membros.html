@@ -1,131 +1,106 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}Membros da Equipe{% endblock %}
-
-{% block head %}
-<style>
-  .team-member-card {
-    transition: transform 0.3s;
-    margin-bottom: 2rem;
-    height: 100%;
-  }
-  
-  .team-member-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-  }
-  
-  .member-img {
-    width: 150px;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid #007bff;
-    margin: 0 auto;
-  }
-  
-  .member-social a {
-    display: inline-block;
-    margin: 0 5px;
-    color: #6c757d;
-    font-size: 1.2rem;
-    transition: color 0.3s;
-  }
-  
-  .member-social a:hover {
-    color: #007bff;
-  }
-  
-  .member-info {
-    padding: 1.5rem;
-  }
-  
-  .member-name {
-    font-weight: bold;
-    font-size: 1.2rem;
-    margin-bottom: 0.2rem;
-  }
-  
-  .member-role {
-    color: #6c757d;
-    font-style: italic;
-    margin-bottom: 0.8rem;
-  }
-  
-  .section-heading {
-    position: relative;
-    padding-bottom: 15px;
-    margin-bottom: 30px;
-    text-align: center;
-  }
-  
-  .section-heading:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 3px;
-    background-color: #007bff;
-  }
-</style>
-{% endblock %}
+{% block title %}Nossa Equipe - FabLab IFMT{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <h1 class="section-heading">Nossa Equipe</h1>
-  
-  <div class="row">
+<!-- Hero -->
+<section class="pg-hero">
+  <div class="container">
+    <span class="fl-tag">EQUIPE</span>
+    <h1 class="pg-hero-title">Nossa <span>Equipe</span></h1>
+    <p class="pg-hero-sub">Conheça as pessoas que fazem o FabLab IFMT acontecer</p>
+  </div>
+</section>
+
+<section class="fl-section">
+  <div class="container">
     {% if membros %}
+    <div class="row g-4">
       {% for membro in membros %}
-        <div class="col-md-4">
-          <div class="card team-member-card shadow">
-            <div class="text-center pt-4">
+      <div class="col-md-6 col-lg-4 pg-fade-up" style="animation-delay:{{ forloop.counter0 }}00ms">
+        <div class="pg-card-member">
+          <div class="pg-member-header">
+            <div class="pg-member-avatar">
               {% if membro.foto %}
-                <img src="{{ membro.foto.url }}" alt="{{ membro.nome }}" class="member-img">
+                <img src="{{ membro.foto.url }}" alt="{{ membro.nome }}">
               {% else %}
-                <img src="{% static 'images/default-user.png' %}" alt="{{ membro.nome }}" class="member-img">
+                <img src="{% static 'images/default-user.png' %}" alt="{{ membro.nome }}">
               {% endif %}
             </div>
-            <div class="card-body member-info text-center">
-              <h5 class="member-name">{{ membro.nome }}</h5>
-              <p class="member-role">{{ membro.cargo }}</p>
-              
-              {% if membro.bio %}
-                <p class="card-text text-muted mb-3">{{ membro.bio|truncatewords:30 }}</p>
+            <div class="pg-member-ornament"></div>
+          </div>
+          <div class="pg-member-body">
+            <h5>{{ membro.nome }}</h5>
+            <span class="pg-member-role">{{ membro.cargo }}</span>
+            {% if membro.bio %}
+              <p class="pg-member-bio">{{ membro.bio|truncatewords:30 }}</p>
+            {% endif %}
+            <div class="pg-member-social">
+              {% if membro.email %}
+                <a href="mailto:{{ membro.email }}" title="E-mail"><i class="fas fa-envelope"></i></a>
               {% endif %}
-              
-              <div class="member-social mb-2">
-                {% if membro.email %}
-                  <a href="mailto:{{ membro.email }}" title="E-mail"><i class="fas fa-envelope"></i></a>
-                {% endif %}
-                
-                {% if membro.linkedin %}
-                  <a href="{{ membro.linkedin }}" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                {% endif %}
-                
-                {% if membro.github %}
-                  <a href="{{ membro.github }}" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
-                {% endif %}
-                
-                {% if membro.lattes %}
-                  <a href="{{ membro.lattes }}" target="_blank" title="Lattes"><i class="fas fa-graduation-cap"></i></a>
-                {% endif %}
-              </div>
+              {% if membro.linkedin %}
+                <a href="{{ membro.linkedin }}" target="_blank" rel="noopener" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+              {% endif %}
+              {% if membro.github %}
+                <a href="{{ membro.github }}" target="_blank" rel="noopener" title="GitHub"><i class="fab fa-github"></i></a>
+              {% endif %}
+              {% if membro.lattes %}
+                <a href="{{ membro.lattes }}" target="_blank" rel="noopener" title="Lattes"><i class="fas fa-graduation-cap"></i></a>
+              {% endif %}
             </div>
           </div>
         </div>
-      {% endfor %}
-    {% else %}
-      <div class="col-12 text-center py-5">
-        <div class="alert alert-info">
-          <h4>Não há membros cadastrados no momento.</h4>
-          <p>Em breve nossa equipe será atualizada.</p>
-        </div>
       </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="pg-empty-state">
+      <i class="fas fa-users"></i>
+      <h4>Equipe em atualização</h4>
+      <p>Em breve a listagem de membros será publicada. Volte em breve!</p>
+    </div>
     {% endif %}
   </div>
-</div>
+</section>
+{% endblock %}
+
+{% block head %}
+<style>
+  .pg-hero { background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%); padding:4rem 0 3rem; position:relative; overflow:hidden; }
+  .pg-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 80% 40%,rgba(69,196,176,.12) 0%,transparent 60%); }
+  .pg-hero-title { font-size:2.5rem; font-weight:800; color:#fff; letter-spacing:-.02em; margin-bottom:.5rem; }
+  .pg-hero-title span { color:var(--accent-light); }
+  .pg-hero-sub { color:rgba(255,255,255,.8); font-size:1.05rem; max-width:560px; }
+  .fl-tag { display:inline-block; background:linear-gradient(135deg,var(--accent),var(--accent-light)); color:#fff; font-size:.7rem; font-weight:700; letter-spacing:.12em; padding:.35rem 1rem; border-radius:999px; margin-bottom:.75rem; text-transform:uppercase; }
+  .fl-section { padding:5rem 0; }
+
+  .pg-card-member { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; height:100%; text-align:center; transition:all var(--transition); }
+  .pg-card-member:hover { transform:translateY(-8px); box-shadow:0 20px 40px rgba(11,37,69,.12); border-color:transparent; }
+
+  .pg-member-header { position:relative; background:linear-gradient(135deg,var(--primary),var(--accent)); height:100px; display:flex; align-items:flex-end; justify-content:center; }
+  .pg-member-ornament { position:absolute; bottom:-1px; left:0; right:0; height:25px; background:var(--white); border-radius:50% 50% 0 0 / 100% 100% 0 0; }
+  .pg-member-avatar { position:relative; z-index:2; width:110px; height:110px; border-radius:50%; border:4px solid var(--white); overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,.15); transform:translateY(35px); }
+  .pg-member-avatar img { width:100%; height:100%; object-fit:cover; }
+
+  .pg-member-body { padding:2.5rem 1.5rem 1.5rem; }
+  .pg-member-body h5 { font-size:1.1rem; font-weight:700; color:var(--primary); margin-bottom:.15rem; }
+  .pg-member-role { display:inline-block; background:rgba(19,103,138,.08); color:var(--accent); padding:.25rem .75rem; border-radius:999px; font-size:.78rem; font-weight:600; margin-bottom:.75rem; }
+  .pg-member-bio { font-size:.85rem; color:var(--text-muted); line-height:1.6; margin-bottom:1rem; }
+
+  .pg-member-social { display:flex; justify-content:center; gap:.5rem; }
+  .pg-member-social a { width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; border:1px solid var(--border); color:var(--text-muted); text-decoration:none; font-size:.9rem; transition:all var(--transition); }
+  .pg-member-social a:hover { border-color:var(--accent); color:var(--accent); background:rgba(19,103,138,.05); }
+
+  .pg-empty-state { text-align:center; padding:3rem; }
+  .pg-empty-state i { font-size:3rem; color:var(--border); margin-bottom:1rem; display:block; }
+  .pg-empty-state h4 { color:var(--text); font-weight:700; }
+  .pg-empty-state p { color:var(--text-muted); }
+
+  .pg-fade-up { opacity:0; transform:translateY(30px); animation:pgFadeUp .6s ease forwards; }
+  @keyframes pgFadeUp { to { opacity:1; transform:translateY(0); } }
+
+  @media(max-width:768px){ .pg-hero-title{font-size:1.8rem;} .pg-hero{padding:3rem 0 2rem;} }
+</style>
 {% endblock %}

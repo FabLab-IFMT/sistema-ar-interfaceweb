@@ -31,27 +31,33 @@ python -m venv venv
 source venv/bin/activate  # No Windows: venv\Scripts\activate
 ```
 
-3. Instale as dependências:
+3. Copie o arquivo de exemplo de variáveis de ambiente e ajuste os valores (DB, e-mail, hosts e CSRF):
+```bash
+cp .env.example .env
+# edite .env com sua SECRET_KEY, credenciais de e-mail e credenciais do Postgres
+```
+
+4. Instale as dependências:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Configure o banco de dados:
+5. Configure o banco de dados:
 ```bash
 python manage.py migrate
 ```
 
-5. Crie um superusuário:
+6. Crie um superusuário:
 ```bash
 python manage.py createsuperuser
 ```
 
-6. Execute o servidor de desenvolvimento:
+7. Execute o servidor de desenvolvimento:
 ```bash
 python manage.py runserver
 ```
 
-7. Acesse o sistema em: http://localhost:8000
+8. Acesse o sistema em: http://localhost:8000
 
 ## 🏗️ Estrutura do projeto
 

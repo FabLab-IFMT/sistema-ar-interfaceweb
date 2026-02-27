@@ -1,116 +1,163 @@
 {% extends 'layout.html' %}
+{% load static %}
 
-{% block title %}
-    Login
+{% block title %}Login - FabLab IFMT{% endblock %}
+
+{% block content %}
+<div class="lg-wrapper">
+  <!-- Painel esquerdo — branding -->
+  <div class="lg-brand">
+    <div class="lg-brand-inner">
+      <img src="{% static 'images/logo_branco.png' %}" alt="Logo FabLab" class="lg-logo">
+      <h1 class="lg-brand-title">FabLab <span>IFMT</span></h1>
+      <p class="lg-brand-sub">Laboratório de Fabricação Digital do Instituto Federal de Mato Grosso</p>
+      <div class="lg-brand-features">
+        <div class="lg-feature"><i class="fas fa-microchip"></i><span>Prototipagem Rápida</span></div>
+        <div class="lg-feature"><i class="fas fa-print"></i><span>Impressão 3D</span></div>
+        <div class="lg-feature"><i class="fas fa-cut"></i><span>Corte a Laser</span></div>
+        <div class="lg-feature"><i class="fas fa-laptop-code"></i><span>Eletrônica</span></div>
+      </div>
+    </div>
+    <div class="lg-brand-decor"></div>
+    <div class="lg-brand-decor2"></div>
+  </div>
+
+  <!-- Painel direito — formulário -->
+  <div class="lg-form-panel">
+    <div class="lg-form-container">
+      <div class="lg-form-header">
+        <div class="lg-avatar"><i class="fas fa-user"></i></div>
+        <h2>Bem-vindo de volta</h2>
+        <p>Entre com suas credenciais para acessar o sistema</p>
+      </div>
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="lg-alert lg-alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+            <i class="fas fa-{% if message.tags == 'error' %}exclamation-circle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <form action="{% url 'users:login' %}" method="post" class="lg-form">
+        {% csrf_token %}
+
+        <div class="lg-field">
+          <label for="id_username"><i class="fas fa-id-card me-2"></i>Número de Matrícula</label>
+          <div class="lg-input-wrap">
+            <input type="text" name="username" id="id_username" autofocus autocapitalize="none" autocomplete="username" maxlength="13" required placeholder="Digite sua matrícula">
+          </div>
+        </div>
+
+        <div class="lg-field">
+          <div class="d-flex justify-content-between align-items-center">
+            <label for="id_password"><i class="fas fa-lock me-2"></i>Senha</label>
+            <a href="{% url 'users:password_reset' %}" class="lg-forgot">Esqueci minha senha</a>
+          </div>
+          <div class="lg-input-wrap">
+            <input type="password" name="password" id="id_password" autocomplete="current-password" required placeholder="Digite sua senha">
+            <button type="button" class="lg-eye" onclick="togglePwd()" tabindex="-1"><i class="fas fa-eye" id="eyeIcon"></i></button>
+          </div>
+        </div>
+
+        <button type="submit" class="lg-submit">
+          <span>Entrar</span>
+          <i class="fas fa-arrow-right ms-2"></i>
+        </button>
+      </form>
+
+      <div class="lg-divider"><span>ou</span></div>
+
+      <div class="lg-footer">
+        <p>Não tem uma conta? <a href="{% url 'users:register' %}">Registre-se aqui</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePwd(){
+  var p=document.getElementById('id_password'),i=document.getElementById('eyeIcon');
+  if(p.type==='password'){p.type='text';i.classList.replace('fa-eye','fa-eye-slash');}
+  else{p.type='password';i.classList.replace('fa-eye-slash','fa-eye');}
+}
+</script>
 {% endblock %}
 
 {% block head %}
-    <style>
-        html, body, .loginbox {
-            height: 100%;
-        }
-        
-        .loginbox {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+<style>
+  /* ===== Login Page ===== */
+  .lg-wrapper { display:flex; min-height:calc(100vh - 76px); }
 
-        .login-form {
-            width: 100%;
-            max-width: 450px;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.15);
-            background-color: #fff;
-            transition: transform 0.3s ease;
-        }
-        
-        .login-form:hover {
-            transform: translateY(-5px);
-        }
+  /* Brand side */
+  .lg-brand { flex:0 0 42%; background:linear-gradient(160deg,#0B2545 0%,#134074 50%,#13678A 100%); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; padding:3rem; }
+  .lg-brand-inner { position:relative; z-index:2; text-align:center; max-width:360px; }
+  .lg-logo { height:80px; margin-bottom:1.5rem; filter:drop-shadow(0 4px 15px rgba(0,0,0,.25)); animation:lgFloat 6s ease-in-out infinite; }
+  @keyframes lgFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .lg-brand-title { font-size:2.2rem; font-weight:800; color:#fff; letter-spacing:-.02em; margin-bottom:.5rem; }
+  .lg-brand-title span { color:#45C4B0; }
+  .lg-brand-sub { color:rgba(255,255,255,.65); font-size:.9rem; line-height:1.5; margin-bottom:2rem; }
+  .lg-brand-features { display:grid; grid-template-columns:1fr 1fr; gap:.65rem; }
+  .lg-feature { display:flex; align-items:center; gap:.6rem; background:rgba(255,255,255,.07); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.1); padding:.55rem .85rem; border-radius:10px; transition:all .3s; }
+  .lg-feature:hover { background:rgba(255,255,255,.14); transform:translateY(-2px); }
+  .lg-feature i { color:#45C4B0; font-size:.9rem; }
+  .lg-feature span { color:rgba(255,255,255,.85); font-size:.78rem; font-weight:600; }
+  .lg-brand-decor { position:absolute; width:350px; height:350px; border-radius:50%; background:radial-gradient(circle,rgba(69,196,176,.12),transparent 70%); top:-80px; right:-100px; }
+  .lg-brand-decor2 { position:absolute; width:250px; height:250px; border-radius:50%; background:radial-gradient(circle,rgba(19,103,138,.2),transparent 70%); bottom:-60px; left:-60px; }
 
-        .login-header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        
-        .login-header img {
-            max-width: 80px;
-            margin-bottom: 15px;
-        }
+  /* Form side */
+  .lg-form-panel { flex:1; display:flex; align-items:center; justify-content:center; padding:2rem; background:var(--surface); }
+  .lg-form-container { width:100%; max-width:420px; }
 
-        .login-footer {
-            margin-top: 25px;
-            text-align: center;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-        }
-        
-        .form-floating {
-            margin-bottom: 20px;
-        }
-        
-        .login-btn {
-            transition: all 0.3s ease;
-        }
-        
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .forgot-password {
-            text-align: right;
-            margin-top: -15px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-    </style>
-{% endblock %}
+  .lg-form-header { text-align:center; margin-bottom:2rem; }
+  .lg-avatar { width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#13678A,#45C4B0); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin:0 auto 1rem; box-shadow:0 8px 25px rgba(19,103,138,.3); }
+  .lg-form-header h2 { font-size:1.6rem; font-weight:800; color:#0B2545; margin-bottom:.35rem; }
+  .lg-form-header p { color:#6B7280; font-size:.9rem; }
 
-{% block content%}
-    <div class="loginbox">
-        <div class="login-form">
-            <div class="login-header">
-                <h1 class="mb-2">Bem-vindo</h1>
-                <p class="text-muted">Entre com suas credenciais para acessar o sistema</p>
-            </div>
-        
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-            
-            <form action="{% url 'users:login' %}" method="post">
-                {% csrf_token %}
-                
-                <div class="form-floating">
-                    <input class="form-control form-control-lg" type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="13" required id="id_username" placeholder="Número de Matrícula">
-                    <label for="id_username">Número de Matrícula</label>
-                </div>
-                
-                <div class="form-floating">
-                    <input class="form-control form-control-lg" type="password" name="password" autocomplete="current-password" required id="id_password" placeholder="Senha">
-                    <label for="id_password">Senha</label>
-                </div>
-                
-                <div class="forgot-password">
-                    <a href="{% url 'users:password_reset' %}"><i class="fas fa-key me-1"></i>Esqueci minha senha</a>
-                </div>
+  .lg-alert { padding:.75rem 1rem; border-radius:10px; font-size:.85rem; margin-bottom:1rem; }
+  .lg-alert-danger { background:rgba(239,68,68,.08); color:#DC2626; border:1px solid rgba(239,68,68,.15); }
+  .lg-alert-success { background:rgba(16,185,129,.08); color:#059669; border:1px solid rgba(16,185,129,.15); }
+  .lg-alert-info { background:rgba(59,130,246,.08); color:#2563EB; border:1px solid rgba(59,130,246,.15); }
 
-                <div class="d-grid gap-2">
-                    <button class="btn btn-primary btn-lg login-btn">Entrar</button>
-                </div>
-                
-                <div class="login-footer">
-                    <p>Não tem uma conta? <a href="{% url 'users:register' %}">Registre-se aqui</a></p>
-                </div>
-            </form>
-        </div>
-    </div>
+  .lg-form { display:flex; flex-direction:column; gap:1.25rem; }
+  .lg-field label { display:block; font-size:.82rem; font-weight:600; color:#0B2545; margin-bottom:.4rem; }
+  .lg-field label i { color:#13678A; }
+  .lg-input-wrap { position:relative; }
+  .lg-input-wrap input { width:100%; padding:.8rem 1rem; border:2px solid #E2E8F0; border-radius:12px; font-size:.92rem; color:#1A1A2E; background:#fff; transition:all .25s cubic-bezier(.4,0,.2,1); }
+  .lg-input-wrap input:focus { outline:none; border-color:#13678A; box-shadow:0 0 0 4px rgba(19,103,138,.1); }
+  .lg-input-wrap input::placeholder { color:#9CA3AF; }
+  .lg-eye { position:absolute; right:.75rem; top:50%; transform:translateY(-50%); background:none; border:none; color:#9CA3AF; cursor:pointer; padding:.25rem; transition:color .2s; }
+  .lg-eye:hover { color:#13678A; }
+
+  .lg-forgot { font-size:.78rem; color:#13678A; text-decoration:none; font-weight:600; transition:color .2s; }
+  .lg-forgot:hover { color:#0B2545; }
+
+  .lg-submit { width:100%; padding:.85rem; border:none; border-radius:12px; background:linear-gradient(135deg,#13678A,#45C4B0); color:#fff; font-size:1rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 4px 15px rgba(19,103,138,.3); margin-top:.5rem; }
+  .lg-submit:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(19,103,138,.35); }
+  .lg-submit:active { transform:translateY(0); }
+
+  .lg-divider { display:flex; align-items:center; gap:1rem; margin:1.5rem 0; }
+  .lg-divider::before,.lg-divider::after { content:''; flex:1; height:1px; background:#E2E8F0; }
+  .lg-divider span { font-size:.8rem; color:#9CA3AF; font-weight:500; }
+
+  .lg-footer { text-align:center; }
+  .lg-footer p { font-size:.88rem; color:#6B7280; }
+  .lg-footer a { color:#13678A; font-weight:700; text-decoration:none; transition:color .2s; }
+  .lg-footer a:hover { color:#0B2545; }
+
+  /* Responsive */
+  @media(max-width:991px){
+    .lg-wrapper { flex-direction:column; }
+    .lg-brand { flex:none; padding:2.5rem 2rem; }
+    .lg-brand-features { grid-template-columns:1fr 1fr; }
+  }
+  @media(max-width:575px){
+    .lg-brand-features { grid-template-columns:1fr; }
+    .lg-brand-title { font-size:1.6rem; }
+    .lg-form-panel { padding:1.5rem; }
+  }
+</style>
 {% endblock %}

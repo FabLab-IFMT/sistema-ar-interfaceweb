@@ -1,378 +1,264 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}Inventário{% endblock %}
-
-{% block head %}
-<style>
-  .dashboard-card {
-    transition: all 0.3s ease;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-  }
-  
-  .dashboard-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  .stat-icon {
-    font-size: 2.5rem;
-    opacity: 0.8;
-  }
-  
-  .custom-table th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-  }
-  
-  .status-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 5px;
-  }
-  
-  .status-ok {
-    background-color: #28a745;
-  }
-  
-  .status-warning {
-    background-color: #ffc107;
-  }
-  
-  .status-critical {
-    background-color: #dc3545;
-  }
-  
-  .inventory-actions a {
-    margin: 0 5px;
-  }
-</style>
-{% endblock %}
+{% block title %}Dashboard — Inventário{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">
-      <i class="fas fa-warehouse me-2"></i> Dashboard de Inventário
-    </h1>
-    <div>
-      <a href="{% url 'inventario:item_create' %}" class="btn btn-sm btn-primary">
-        <i class="fas fa-plus me-1"></i> Novo Item
-      </a>
-      <a href="{% url 'inventario:emprestimo_create' %}" class="btn btn-sm btn-success ms-2">
-        <i class="fas fa-hand-holding me-1"></i> Novo Empréstimo
-      </a>
-      <a href="{% url 'inventario:item_list' %}" class="btn btn-sm btn-secondary ms-2">
-        <i class="fas fa-list me-1"></i> Todos os Itens
-      </a>
-    </div>
-  </div>
-
-  <!-- Cards de estatísticas -->
-  <div class="row">
-    <!-- Total de Itens -->
-    <div class="col-xl-3 col-md-6">
-      <div class="card bg-primary text-white dashboard-card">
-        <div class="card-body d-flex justify-content-between">
-          <div>
-            <div class="h5 mb-0 font-weight-bold">{{ total_itens }}</div>
-            <div class="text-xs text-white-50">Total de Itens</div>
-          </div>
-          <div class="stat-icon">
-            <i class="fas fa-cubes"></i>
-          </div>
-        </div>
-        <div class="card-footer bg-transparent border-0 text-white-50 small">
-          <a href="{% url 'inventario:item_list' %}" class="text-white">
-            Ver detalhes <i class="fas fa-arrow-circle-right ms-1"></i>
-          </a>
-        </div>
+<!-- Header -->
+<section class="iv-header">
+  <div class="container">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <h1 class="iv-page-title"><i class="fas fa-warehouse me-2"></i> Inventário</h1>
+        <p class="iv-page-sub">Visão geral do estoque, empréstimos e alertas.</p>
       </div>
-    </div>
-    
-    <!-- Categorias -->
-    <div class="col-xl-3 col-md-6">
-      <div class="card bg-success text-white dashboard-card">
-        <div class="card-body d-flex justify-content-between">
-          <div>
-            <div class="h5 mb-0 font-weight-bold">{{ total_categorias }}</div>
-            <div class="text-xs text-white-50">Categorias</div>
-          </div>
-          <div class="stat-icon">
-            <i class="fas fa-tags"></i>
-          </div>
-        </div>
-        <div class="card-footer bg-transparent border-0 text-white-50 small">
-          <a href="{% url 'inventario:categoria_list' %}" class="text-white">
-            Ver detalhes <i class="fas fa-arrow-circle-right ms-1"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Empréstimos Ativos -->
-    <div class="col-xl-3 col-md-6">
-      <div class="card bg-info text-white dashboard-card">
-        <div class="card-body d-flex justify-content-between">
-          <div>
-            <div class="h5 mb-0 font-weight-bold">{{ total_emprestimos_ativos }}</div>
-            <div class="text-xs text-white-50">Empréstimos Ativos</div>
-          </div>
-          <div class="stat-icon">
-            <i class="fas fa-hand-holding"></i>
-          </div>
-        </div>
-        <div class="card-footer bg-transparent border-0 text-white-50 small">
-          <a href="{% url 'inventario:emprestimo_list' %}?status=ativos" class="text-white">
-            Ver detalhes <i class="fas fa-arrow-circle-right ms-1"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Itens com estoque baixo -->
-    <div class="col-xl-3 col-md-6">
-      <div class="card bg-danger text-white dashboard-card">
-        <div class="card-body d-flex justify-content-between">
-          <div>
-            <div class="h5 mb-0 font-weight-bold">{{ itens_estoque_baixo }}</div>
-            <div class="text-xs text-white-50">Itens Críticos</div>
-          </div>
-          <div class="stat-icon">
-            <i class="fas fa-exclamation-triangle"></i>
-          </div>
-        </div>
-        <div class="card-footer bg-transparent border-0 text-white-50 small">
-          <a href="{% url 'inventario:item_list' %}?baixos=true" class="text-white">
-            Ver detalhes <i class="fas fa-arrow-circle-right ms-1"></i>
-          </a>
-        </div>
+      <div class="iv-header-actions">
+        <a href="{% url 'inventario:item_create' %}" class="iv-btn iv-btn-primary"><i class="fas fa-plus me-1"></i> Novo Item</a>
+        <a href="{% url 'inventario:emprestimo_create' %}" class="iv-btn iv-btn-accent"><i class="fas fa-hand-holding me-1"></i> Empréstimo</a>
       </div>
     </div>
   </div>
+</section>
 
-  <div class="row mt-4">
-    <!-- Itens com estoque baixo -->
-    <div class="col-lg-6 mb-4">
-      <div class="card shadow">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-          <h6 class="m-0 font-weight-bold">Itens com Estoque Crítico</h6>
-          <a href="{% url 'inventario:item_list' %}?baixos=true" class="btn btn-sm btn-danger">
-            Ver todos
-          </a>
-        </div>
-        <div class="card-body">
+<!-- Stats -->
+<section class="iv-stats">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-xl-3 col-sm-6">
+        <a href="{% url 'inventario:item_list' %}" class="iv-stat-card">
+          <div class="iv-stat-icon" style="background:rgba(19,103,138,.1);color:var(--accent)"><i class="fas fa-cubes"></i></div>
+          <div class="iv-stat-body"><span class="iv-stat-num">{{ total_itens }}</span><span class="iv-stat-label">Total de Itens</span></div>
+          <i class="fas fa-arrow-right iv-stat-arrow"></i>
+        </a>
+      </div>
+      <div class="col-xl-3 col-sm-6">
+        <a href="{% url 'inventario:categoria_list' %}" class="iv-stat-card">
+          <div class="iv-stat-icon" style="background:rgba(16,185,129,.1);color:#10B981"><i class="fas fa-tags"></i></div>
+          <div class="iv-stat-body"><span class="iv-stat-num">{{ total_categorias }}</span><span class="iv-stat-label">Categorias</span></div>
+          <i class="fas fa-arrow-right iv-stat-arrow"></i>
+        </a>
+      </div>
+      <div class="col-xl-3 col-sm-6">
+        <a href="{% url 'inventario:emprestimo_list' %}?status=ativos" class="iv-stat-card">
+          <div class="iv-stat-icon" style="background:rgba(59,130,246,.1);color:#3B82F6"><i class="fas fa-hand-holding"></i></div>
+          <div class="iv-stat-body"><span class="iv-stat-num">{{ total_emprestimos_ativos }}</span><span class="iv-stat-label">Empréstimos Ativos</span></div>
+          <i class="fas fa-arrow-right iv-stat-arrow"></i>
+        </a>
+      </div>
+      <div class="col-xl-3 col-sm-6">
+        <a href="{% url 'inventario:item_list' %}?baixos=true" class="iv-stat-card iv-stat-danger">
+          <div class="iv-stat-icon" style="background:rgba(220,38,38,.1);color:#DC2626"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="iv-stat-body"><span class="iv-stat-num">{{ itens_estoque_baixo }}</span><span class="iv-stat-label">Itens Críticos</span></div>
+          <i class="fas fa-arrow-right iv-stat-arrow"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Valor total do estoque -->
+    <div class="iv-valor-banner mt-4">
+      <i class="fas fa-coins me-2"></i> Valor total estimado do estoque: <strong>R$ {{ valor_total|floatformat:2 }}</strong>
+    </div>
+  </div>
+</section>
+
+<!-- Alertas e tabelas -->
+<section class="fl-section" style="padding-top:2rem">
+  <div class="container">
+    <div class="row g-4">
+      <!-- Itens críticos -->
+      <div class="col-lg-6">
+        <div class="iv-card">
+          <div class="iv-card-head">
+            <h3><i class="fas fa-exclamation-triangle me-2" style="color:#DC2626"></i> Estoque Crítico</h3>
+            <a href="{% url 'inventario:item_list' %}?baixos=true" class="iv-link">Ver todos <i class="fas fa-arrow-right ms-1"></i></a>
+          </div>
           {% if itens_criticos %}
-            <div class="table-responsive">
-              <table class="table table-striped table-sm custom-table">
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Nome</th>
-                    <th>Qtd. Atual</th>
-                    <th>Qtd. Mínima</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for item in itens_criticos %}
-                    <tr>
-                      <td>{{ item.codigo }}</td>
-                      <td>{{ item.nome }}</td>
-                      <td class="text-danger fw-bold">{{ item.quantidade }} {{ item.get_unidade_display }}</td>
-                      <td>{{ item.quantidade_minima }} {{ item.get_unidade_display }}</td>
-                      <td>
-                        <a href="{% url 'inventario:item_detail' item.pk %}" class="btn btn-sm btn-info" title="Ver detalhes">
-                          <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="{% url 'inventario:item_update' item.pk %}" class="btn btn-sm btn-warning" title="Editar item">
-                          <i class="fas fa-edit"></i>
-                        </a>
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
+          <div class="iv-table-wrap">
+            <table class="iv-table">
+              <thead><tr><th>Código</th><th>Nome</th><th>Qtd.</th><th>Mínimo</th><th></th></tr></thead>
+              <tbody>
+                {% for item in itens_criticos %}
+                <tr>
+                  <td><code>{{ item.codigo }}</code></td>
+                  <td>{{ item.nome|truncatechars:25 }}</td>
+                  <td class="iv-danger-text">{{ item.quantidade }} {{ item.get_unidade_display }}</td>
+                  <td>{{ item.quantidade_minima }} {{ item.get_unidade_display }}</td>
+                  <td><a href="{% url 'inventario:item_update' item.pk %}" class="iv-action-btn" title="Editar"><i class="fas fa-edit"></i></a></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
           {% else %}
-            <div class="alert alert-success">
-              <i class="fas fa-check-circle me-2"></i> Todos os itens estão com estoque adequado!
-            </div>
+          <div class="iv-empty-good"><i class="fas fa-check-circle"></i><p>Estoque adequado em todos os itens.</p></div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Categorias populares -->
+      <div class="col-lg-6">
+        <div class="iv-card">
+          <div class="iv-card-head">
+            <h3><i class="fas fa-tags me-2" style="color:#10B981"></i> Categorias</h3>
+            <a href="{% url 'inventario:categoria_list' %}" class="iv-link">Gerenciar <i class="fas fa-arrow-right ms-1"></i></a>
+          </div>
+          {% if categorias_populares %}
+          <div class="iv-cat-list">
+            {% for cat in categorias_populares %}
+            <a href="{% url 'inventario:item_list' %}?categoria={{ cat.id }}" class="iv-cat-item">
+              <div class="iv-cat-icon"><i class="fas fa-folder"></i></div>
+              <span>{{ cat.nome }}</span>
+              <span class="iv-cat-count">{{ cat.total_itens }}</span>
+            </a>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="iv-empty"><i class="fas fa-folder-open"></i><p>Nenhuma categoria cadastrada.</p></div>
           {% endif %}
         </div>
       </div>
     </div>
-    
-    <!-- Categorias populares -->
-    <div class="col-lg-6 mb-4">
-      <div class="card shadow">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-          <h6 class="m-0 font-weight-bold">Categorias Principais</h6>
-          <a href="{% url 'inventario:categoria_list' %}" class="btn btn-sm btn-primary">
-            Ver todas
-          </a>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-striped table-sm custom-table">
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>Quantidade de Itens</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for categoria in categorias_populares %}
-                  <tr>
-                    <td>{{ categoria.nome }}</td>
-                    <td>{{ categoria.total_itens }}</td>
-                  </tr>
-                {% empty %}
-                  <tr>
-                    <td colspan="2" class="text-center">Nenhuma categoria cadastrada</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
+
+    <!-- Empréstimos atrasados -->
+    <div class="iv-card mt-4">
+      <div class="iv-card-head">
+        <h3><i class="fas fa-clock me-2" style="color:#F59E0B"></i> Empréstimos em Atraso</h3>
+        <a href="{% url 'inventario:emprestimo_list' %}?status=atrasados" class="iv-link">Ver todos <i class="fas fa-arrow-right ms-1"></i></a>
       </div>
+      {% if emprestimos_atrasados %}
+      <div class="iv-table-wrap">
+        <table class="iv-table">
+          <thead><tr><th>Item</th><th>Usuário</th><th>Empréstimo</th><th>Previsão</th><th></th></tr></thead>
+          <tbody>
+            {% for emp in emprestimos_atrasados %}
+            <tr>
+              <td>{{ emp.item.nome|truncatechars:30 }}</td>
+              <td>{{ emp.usuario.get_full_name }}</td>
+              <td>{{ emp.data_emprestimo|date:"d/m/Y" }}</td>
+              <td class="iv-danger-text">{{ emp.data_prevista_devolucao|date:"d/m/Y" }}</td>
+              <td>
+                <a href="{% url 'inventario:emprestimo_devolucao' emp.pk %}" class="iv-action-btn iv-action-good" title="Devolver"><i class="fas fa-check-circle"></i></a>
+                <a href="{% url 'inventario:emprestimo_detail' emp.pk %}" class="iv-action-btn" title="Detalhes"><i class="fas fa-eye"></i></a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="iv-empty-good"><i class="fas fa-check-circle"></i><p>Nenhum empréstimo em atraso!</p></div>
+      {% endif %}
+    </div>
+
+    <!-- Empréstimos recentes -->
+    <div class="iv-card mt-4">
+      <div class="iv-card-head">
+        <h3><i class="fas fa-history me-2" style="color:#3B82F6"></i> Empréstimos Recentes</h3>
+        <a href="{% url 'inventario:emprestimo_list' %}" class="iv-link">Ver todos <i class="fas fa-arrow-right ms-1"></i></a>
+      </div>
+      {% if emprestimos_recentes %}
+      <div class="iv-table-wrap">
+        <table class="iv-table">
+          <thead><tr><th>Data</th><th>Item</th><th>Usuário</th><th>Qtd.</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {% for emp in emprestimos_recentes %}
+            <tr>
+              <td>{{ emp.data_emprestimo|date:"d/m/Y" }}</td>
+              <td><a href="{% url 'inventario:item_detail' emp.item.pk %}" class="iv-table-link">{{ emp.item.nome|truncatechars:25 }}</a></td>
+              <td>{{ emp.usuario.get_full_name }}</td>
+              <td>{{ emp.quantidade }} {{ emp.item.get_unidade_display }}</td>
+              <td>
+                {% if emp.status == 'devolvido' %}<span class="iv-badge iv-badge-green">Devolvido</span>
+                {% elif emp.status == 'atrasado' %}<span class="iv-badge iv-badge-red">Atrasado</span>
+                {% else %}<span class="iv-badge iv-badge-blue">Emprestado</span>{% endif %}
+              </td>
+              <td>
+                <a href="{% url 'inventario:emprestimo_detail' emp.pk %}" class="iv-action-btn" title="Detalhes"><i class="fas fa-eye"></i></a>
+                {% if emp.status != 'devolvido' %}
+                <a href="{% url 'inventario:emprestimo_devolucao' emp.pk %}" class="iv-action-btn iv-action-good" title="Devolver"><i class="fas fa-check"></i></a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="iv-empty"><i class="fas fa-clipboard-list"></i><p>Nenhum empréstimo registrado.</p></div>
+      {% endif %}
+    </div>
+
+    <!-- Quick nav -->
+    <div class="iv-quick-nav mt-5 mb-5">
+      <a href="{% url 'inventario:item_list' %}"><i class="fas fa-boxes"></i><span>Todos os Itens</span></a>
+      <a href="{% url 'inventario:categoria_list' %}"><i class="fas fa-tags"></i><span>Categorias</span></a>
+      <a href="{% url 'inventario:emprestimo_list' %}"><i class="fas fa-hand-holding"></i><span>Empréstimos</span></a>
+      <a href="{% url 'inventario:item_create' %}"><i class="fas fa-plus-circle"></i><span>Novo Item</span></a>
+      <a href="{% url 'inventario:emprestimo_create' %}"><i class="fas fa-handshake"></i><span>Novo Empréstimo</span></a>
     </div>
   </div>
-  
-  <!-- Empréstimos Atrasados -->
-  <div class="row mt-2">
-    <div class="col-12">
-      <div class="card shadow">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center bg-warning-subtle">
-          <h6 class="m-0 font-weight-bold">Empréstimos em Atraso</h6>
-          <a href="{% url 'inventario:emprestimo_list' %}?status=atrasados" class="btn btn-sm btn-warning">
-            Ver todos
-          </a>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-striped table-sm custom-table">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Usuário</th>
-                  <th>Data do Empréstimo</th>
-                  <th>Previsão de Devolução</th>
-                  <th>Atraso</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for emprestimo in emprestimos_atrasados %}
-                  <tr>
-                    <td>{{ emprestimo.item.nome }}</td>
-                    <td>{{ emprestimo.usuario.get_full_name }}</td>
-                    <td>{{ emprestimo.data_emprestimo|date:"d/m/Y" }}</td>
-                    <td>{{ emprestimo.data_prevista_devolucao|date:"d/m/Y" }}</td>
-                    <td class="text-danger">
-                      {% with atraso=emprestimo.data_prevista_devolucao|timeuntil %}
-                        {{ atraso }} atrás
-                      {% endwith %}
-                    </td>
-                    <td>
-                      <a href="{% url 'inventario:emprestimo_detail' emprestimo.pk %}" class="btn btn-sm btn-info" title="Ver detalhes">
-                        <i class="fas fa-eye"></i>
-                      </a>
-                      <a href="{% url 'inventario:emprestimo_devolucao' emprestimo.pk %}" class="btn btn-sm btn-success" title="Registrar devolução">
-                        <i class="fas fa-check-circle"></i>
-                      </a>
-                    </td>
-                  </tr>
-                {% empty %}
-                  <tr>
-                    <td colspan="6" class="text-center">Nenhum empréstimo em atraso.</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Empréstimos Recentes -->
-  <div class="row mt-4">
-    <div class="col-12">
-      <div class="card shadow">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-          <h6 class="m-0 font-weight-bold">Empréstimos Recentes</h6>
-          <div>
-            <a href="{% url 'inventario:emprestimo_create' %}" class="btn btn-sm btn-success">
-              <i class="fas fa-plus me-1"></i> Novo Empréstimo
-            </a>
-            <a href="{% url 'inventario:emprestimo_list' %}" class="btn btn-sm btn-primary ms-2">
-              <i class="fas fa-list me-1"></i> Ver Todos
-            </a>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-striped table-sm custom-table">
-              <thead>
-                <tr>
-                  <th>Data</th>
-                  <th>Item</th>
-                  <th>Usuário</th>
-                  <th>Quantidade</th>
-                  <th>Status</th>
-                  <th>Previsão de Devolução</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for emprestimo in emprestimos_recentes %}
-                  <tr>
-                    <td>{{ emprestimo.data_emprestimo|date:"d/m/Y H:i" }}</td>
-                    <td>
-                      <a href="{% url 'inventario:item_detail' emprestimo.item.pk %}">
-                        {{ emprestimo.item.nome }}
-                      </a>
-                    </td>
-                    <td>{{ emprestimo.usuario.get_full_name }}</td>
-                    <td>{{ emprestimo.quantidade }} {{ emprestimo.item.get_unidade_display }}</td>
-                    <td>
-                      {% if emprestimo.status == 'devolvido' %}
-                        <span class="badge bg-success">Devolvido</span>
-                      {% elif emprestimo.status == 'atrasado' %}
-                        <span class="badge bg-danger">Atrasado</span>
-                      {% else %}
-                        <span class="badge bg-primary">Emprestado</span>
-                      {% endif %}
-                    </td>
-                    <td>{{ emprestimo.data_prevista_devolucao|date:"d/m/Y" }}</td>
-                    <td>
-                      <a href="{% url 'inventario:emprestimo_detail' emprestimo.pk %}" class="btn btn-sm btn-info" title="Ver detalhes">
-                        <i class="fas fa-eye"></i>
-                      </a>
-                      {% if emprestimo.status != 'devolvido' %}
-                      <a href="{% url 'inventario:emprestimo_devolucao' emprestimo.pk %}" class="btn btn-sm btn-success" title="Registrar devolução">
-                        <i class="fas fa-check-circle"></i>
-                      </a>
-                      {% endif %}
-                    </td>
-                  </tr>
-                {% empty %}
-                  <tr>
-                    <td colspan="7" class="text-center">Nenhum empréstimo registrado</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+</section>
+{% endblock %}
+
+{% block head %}
+<style>
+  .iv-header{background:var(--white);padding:2rem 0;border-bottom:1px solid var(--border)}
+  .iv-page-title{font-size:1.8rem;font-weight:800;color:var(--primary);margin:0}
+  .iv-page-sub{font-size:.9rem;color:var(--text-muted);margin:.25rem 0 0}
+  .iv-header-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+  .iv-btn{display:inline-flex;align-items:center;padding:.55rem 1.1rem;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;text-decoration:none;transition:all var(--transition)}
+  .iv-btn-primary{background:var(--primary);color:#fff}.iv-btn-primary:hover{background:var(--primary-light);color:#fff;transform:translateY(-1px)}
+  .iv-btn-accent{background:var(--accent);color:#fff}.iv-btn-accent:hover{background:var(--accent-light);color:#fff;transform:translateY(-1px)}
+
+  .iv-stats{padding:2rem 0 0}
+  .iv-stat-card{display:flex;align-items:center;gap:1rem;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-decoration:none;transition:all var(--transition)}
+  .iv-stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.08);border-color:var(--accent)}
+  .iv-stat-danger:hover{border-color:#DC2626}
+  .iv-stat-icon{width:48px;height:48px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+  .iv-stat-body{flex:1;display:flex;flex-direction:column}
+  .iv-stat-num{font-size:1.6rem;font-weight:800;color:var(--primary);line-height:1.2}
+  .iv-stat-label{font-size:.78rem;color:var(--text-muted);font-weight:500}
+  .iv-stat-arrow{color:var(--border);transition:color var(--transition)}.iv-stat-card:hover .iv-stat-arrow{color:var(--accent)}
+
+  .iv-valor-banner{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:1rem 1.5rem;border-radius:var(--radius);font-size:.92rem}
+
+  .iv-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .iv-card-head{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border)}
+  .iv-card-head h3{font-size:.95rem;font-weight:700;color:var(--primary);margin:0}
+  .iv-link{font-size:.8rem;font-weight:600;color:var(--accent);text-decoration:none;transition:color var(--transition)}.iv-link:hover{color:var(--primary)}
+
+  .iv-table-wrap{overflow-x:auto}
+  .iv-table{width:100%;border-collapse:collapse;font-size:.85rem}
+  .iv-table thead th{padding:.7rem 1rem;font-weight:600;color:var(--text-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:var(--surface)}
+  .iv-table tbody td{padding:.7rem 1rem;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+  .iv-table tbody tr:last-child td{border-bottom:none}
+  .iv-table tbody tr:hover{background:rgba(19,103,138,.02)}
+  .iv-table-link{color:var(--accent);text-decoration:none;font-weight:600}.iv-table-link:hover{color:var(--primary)}
+  .iv-danger-text{color:#DC2626;font-weight:700}
+  .iv-table code{background:var(--surface-alt);padding:.15rem .4rem;border-radius:4px;font-size:.8rem;color:var(--primary)}
+
+  .iv-action-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:var(--radius-sm);color:var(--text-muted);transition:all var(--transition);text-decoration:none;font-size:.8rem}
+  .iv-action-btn:hover{background:rgba(19,103,138,.08);color:var(--accent)}
+  .iv-action-good:hover{background:rgba(16,185,129,.08);color:#10B981}
+
+  .iv-badge{display:inline-block;padding:.2rem .6rem;border-radius:999px;font-size:.7rem;font-weight:700}
+  .iv-badge-green{background:rgba(16,185,129,.1);color:#059669}.iv-badge-red{background:rgba(220,38,38,.1);color:#DC2626}.iv-badge-blue{background:rgba(59,130,246,.1);color:#2563EB}
+
+  .iv-cat-list{display:flex;flex-direction:column}
+  .iv-cat-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);text-decoration:none;transition:background var(--transition)}.iv-cat-item:last-child{border-bottom:none}
+  .iv-cat-item:hover{background:rgba(19,103,138,.02)}
+  .iv-cat-icon{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--surface-alt);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:.8rem}
+  .iv-cat-item span{font-size:.88rem;font-weight:500;color:var(--text);flex:1}
+  .iv-cat-count{background:var(--surface-alt);color:var(--text-muted);padding:.15rem .5rem;border-radius:999px;font-size:.72rem;font-weight:700;flex:0}
+
+  .iv-empty,.iv-empty-good{text-align:center;padding:2rem;color:var(--text-muted)}.iv-empty i,.iv-empty-good i{font-size:1.8rem;margin-bottom:.5rem;display:block;opacity:.4}.iv-empty p,.iv-empty-good p{margin:0;font-size:.88rem}
+  .iv-empty-good{color:#059669}.iv-empty-good i{opacity:.7;color:#10B981}
+
+  .iv-quick-nav{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+  .iv-quick-nav a{display:flex;align-items:center;gap:.5rem;padding:.6rem 1.2rem;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);text-decoration:none;color:var(--text);font-size:.82rem;font-weight:500;transition:all var(--transition)}
+  .iv-quick-nav a:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.06)}
+  .iv-quick-nav a i{color:var(--accent)}
+
+  @media(max-width:768px){.iv-page-title{font-size:1.4rem}.iv-stat-num{font-size:1.3rem}}
+</style>
 {% endblock %}

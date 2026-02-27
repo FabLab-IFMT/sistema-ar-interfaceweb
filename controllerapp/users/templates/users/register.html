@@ -1,177 +1,287 @@
 {% extends 'layout.html' %}
+{% load static %}
 
-{% block title %}
-    Registrar usuário
+{% block title %}Criar Conta - FabLab IFMT{% endblock %}
+
+{% block content %}
+<div class="rg-wrapper">
+  <!-- Painel esquerdo — branding -->
+  <div class="rg-brand">
+    <div class="rg-brand-inner">
+      <img src="{% static 'images/logo_branco.png' %}" alt="Logo FabLab" class="rg-logo">
+      <h1 class="rg-brand-title">Junte-se ao <span>FabLab</span></h1>
+      <p class="rg-brand-sub">Crie sua conta e tenha acesso a equipamentos, serviços e projetos do laboratório de fabricação digital do IFMT.</p>
+      <div class="rg-brand-steps">
+        <div class="rg-step"><span class="rg-step-num">1</span><span>Preencha o cadastro</span></div>
+        <div class="rg-step-line"></div>
+        <div class="rg-step"><span class="rg-step-num">2</span><span>Aguarde aprovação</span></div>
+        <div class="rg-step-line"></div>
+        <div class="rg-step"><span class="rg-step-num">3</span><span>Acesse o sistema</span></div>
+      </div>
+    </div>
+    <div class="rg-brand-decor"></div>
+    <div class="rg-brand-decor2"></div>
+  </div>
+
+  <!-- Painel direito — formulário -->
+  <div class="rg-form-panel">
+    <div class="rg-form-container">
+      <div class="rg-form-header">
+        <div class="rg-avatar"><i class="fas fa-user-plus"></i></div>
+        <h2>Criar nova conta</h2>
+        <p>Preencha os campos abaixo para se registrar</p>
+      </div>
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="rg-alert rg-alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+            <i class="fas fa-{% if message.tags == 'error' %}exclamation-circle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% if form.errors %}
+        <div class="rg-alert rg-alert-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Erro no formulário:</strong> Corrija os campos destacados abaixo.
+        </div>
+      {% endif %}
+
+      <div class="rg-info-banner">
+        <i class="fas fa-shield-alt"></i>
+        <span>Após o registro, sua conta será analisada e aprovada por um administrador.</span>
+      </div>
+
+      <form action="{% url 'users:register' %}" method="post" class="rg-form">
+        {% csrf_token %}
+
+        <!-- Matrícula -->
+        <div class="rg-field">
+          <label for="id_id"><i class="fas fa-id-card me-2"></i>Número de Matrícula</label>
+          <div class="rg-input-wrap">
+            <input type="text" name="id" id="id_id" maxlength="13" autofocus required
+                   value="{{ form.id.value|default:'' }}"
+                   class="{% if form.id.errors %}rg-has-error{% endif %}"
+                   placeholder="Ex: 2024010001">
+            <span class="rg-placeholder-hint" aria-hidden="true">SUAP ou SIAPE — apenas números</span>
+          </div>
+          {% if form.id.errors %}
+            <div class="rg-field-error">{% for e in form.id.errors %}{{ e }}{% endfor %}</div>
+          {% endif %}
+        </div>
+
+        <!-- E-mail -->
+        <div class="rg-field">
+          <label for="id_email"><i class="fas fa-envelope me-2"></i>Endereço de E-mail</label>
+          <div class="rg-input-wrap">
+            <input type="email" name="email" id="id_email" maxlength="254" required
+                   value="{{ form.email.value|default:'' }}"
+                   class="{% if form.email.errors %}rg-has-error{% endif %}"
+                   placeholder="Ex: nome.sobrenome@estudante.ifmt.edu.br">
+            <span class="rg-placeholder-hint" aria-hidden="true">Preferencialmente e-mail institucional</span>
+          </div>
+          {% if form.email.errors %}
+            <div class="rg-field-error">{% for e in form.email.errors %}{{ e }}{% endfor %}</div>
+          {% endif %}
+        </div>
+
+        <!-- Nome / Sobrenome -->
+        <div class="rg-row">
+          <div class="rg-field">
+            <label for="id_first_name"><i class="fas fa-user me-2"></i>Nome</label>
+            <div class="rg-input-wrap">
+              <input type="text" name="first_name" id="id_first_name" maxlength="150" required
+                     value="{{ form.first_name.value|default:'' }}"
+                     class="{% if form.first_name.errors %}rg-has-error{% endif %}"
+                     placeholder="Ex: Maria">
+              <span class="rg-placeholder-hint" aria-hidden="true">Primeiro nome</span>
+            </div>
+            {% if form.first_name.errors %}
+              <div class="rg-field-error">{% for e in form.first_name.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+          <div class="rg-field">
+            <label for="id_last_name"><i class="fas fa-user me-2"></i>Sobrenome</label>
+            <div class="rg-input-wrap">
+              <input type="text" name="last_name" id="id_last_name" maxlength="150" required
+                     value="{{ form.last_name.value|default:'' }}"
+                     class="{% if form.last_name.errors %}rg-has-error{% endif %}"
+                     placeholder="Ex: Silva">
+              <span class="rg-placeholder-hint" aria-hidden="true">Sobrenome completo</span>
+            </div>
+            {% if form.last_name.errors %}
+              <div class="rg-field-error">{% for e in form.last_name.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Senha -->
+        <div class="rg-field">
+          <label for="id_password1"><i class="fas fa-lock me-2"></i>Senha</label>
+          <div class="rg-input-wrap">
+            <input type="password" name="password1" id="id_password1" autocomplete="new-password" required
+                   class="{% if form.password1.errors %}rg-has-error{% endif %}"
+                   placeholder="Mínimo 8 caracteres">
+            <button type="button" class="rg-eye" onclick="togglePwd('id_password1','eye1')" tabindex="-1"><i class="fas fa-eye" id="eye1"></i></button>
+          </div>
+          {% if form.password1.errors %}
+            <div class="rg-field-error">{% for e in form.password1.errors %}{{ e }}{% endfor %}</div>
+          {% endif %}
+          <div class="rg-pwd-rules">
+            <div class="rg-pwd-rule" id="rule-len"><i class="fas fa-circle"></i> Pelo menos 8 caracteres</div>
+            <div class="rg-pwd-rule" id="rule-num"><i class="fas fa-circle"></i> Não pode ser toda numérica</div>
+            <div class="rg-pwd-rule" id="rule-common"><i class="fas fa-circle"></i> Não pode ser muito comum</div>
+          </div>
+        </div>
+
+        <!-- Confirmar Senha -->
+        <div class="rg-field">
+          <label for="id_password2"><i class="fas fa-lock me-2"></i>Confirme a Senha</label>
+          <div class="rg-input-wrap">
+            <input type="password" name="password2" id="id_password2" autocomplete="new-password" required
+                   class="{% if form.password2.errors %}rg-has-error{% endif %}"
+                   placeholder="Repita a mesma senha">
+            <button type="button" class="rg-eye" onclick="togglePwd('id_password2','eye2')" tabindex="-1"><i class="fas fa-eye" id="eye2"></i></button>
+          </div>
+          {% if form.password2.errors %}
+            <div class="rg-field-error">{% for e in form.password2.errors %}{{ e }}{% endfor %}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="rg-submit">
+          <span>Criar minha conta</span>
+          <i class="fas fa-arrow-right ms-2"></i>
+        </button>
+      </form>
+
+      <div class="rg-divider"><span>ou</span></div>
+
+      <div class="rg-footer">
+        <p>Já tem uma conta? <a href="{% url 'users:login' %}">Faça login aqui</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePwd(fid,iid){
+  var p=document.getElementById(fid),i=document.getElementById(iid);
+  if(p.type==='password'){p.type='text';i.classList.replace('fa-eye','fa-eye-slash');}
+  else{p.type='password';i.classList.replace('fa-eye-slash','fa-eye');}
+}
+/* Live password strength feedback */
+(function(){
+  var pw=document.getElementById('id_password1');
+  if(!pw)return;
+  pw.addEventListener('input',function(){
+    var v=pw.value;
+    check('rule-len',v.length>=8);
+    check('rule-num',!/^\d+$/.test(v)&&v.length>0);
+    var common=['12345678','password','qwerty12','abc12345'];
+    check('rule-common',common.indexOf(v.toLowerCase())===-1&&v.length>0);
+  });
+  function check(id,ok){
+    var el=document.getElementById(id);
+    if(!el)return;
+    el.classList.toggle('pass',ok);
+    el.classList.toggle('fail',!ok&&document.getElementById('id_password1').value.length>0);
+  }
+})();
+</script>
 {% endblock %}
 
 {% block head %}
-    <style>
-        html, body, .registerbox {
-            height: 100%;
-        }
-        
-        .registerbox {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 30px 0;
-        }
+<style>
+  /* ===== Register Page ===== */
+  .rg-wrapper { display:flex; min-height:calc(100vh - 76px); }
 
-        .register-form {
-            width: 100%;
-            max-width: 600px;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            background-color: #fff;
-            margin: 30px 0;
-        }
+  /* Brand side */
+  .rg-brand { flex:0 0 38%; background:linear-gradient(160deg,#0B2545 0%,#134074 50%,#13678A 100%); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; padding:3rem; }
+  .rg-brand-inner { position:relative; z-index:2; text-align:center; max-width:340px; }
+  .rg-logo { height:70px; margin-bottom:1.25rem; filter:drop-shadow(0 4px 15px rgba(0,0,0,.25)); animation:rgFloat 6s ease-in-out infinite; }
+  @keyframes rgFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .rg-brand-title { font-size:2rem; font-weight:800; color:#fff; letter-spacing:-.02em; margin-bottom:.5rem; }
+  .rg-brand-title span { color:#45C4B0; }
+  .rg-brand-sub { color:rgba(255,255,255,.6); font-size:.88rem; line-height:1.6; margin-bottom:2rem; }
+  .rg-brand-steps { display:flex; align-items:center; justify-content:center; gap:.5rem; }
+  .rg-step { display:flex; flex-direction:column; align-items:center; gap:.35rem; }
+  .rg-step-num { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.1); border:2px solid rgba(255,255,255,.25); color:#45C4B0; font-size:.8rem; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .rg-step span { color:rgba(255,255,255,.7); font-size:.7rem; font-weight:600; white-space:nowrap; }
+  .rg-step-line { width:30px; height:2px; background:rgba(255,255,255,.15); margin-bottom:1.2rem; }
+  .rg-brand-decor { position:absolute; width:300px; height:300px; border-radius:50%; background:radial-gradient(circle,rgba(69,196,176,.12),transparent 70%); top:-60px; right:-80px; }
+  .rg-brand-decor2 { position:absolute; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle,rgba(19,103,138,.2),transparent 70%); bottom:-50px; left:-50px; }
 
-        .register-footer {
-            margin-top: 20px;
-            text-align: center;
-        }
+  /* Form side */
+  .rg-form-panel { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.5rem 2rem; background:#FAFBFC; overflow-y:auto; }
+  .rg-form-container { width:100%; max-width:520px; }
 
-        .password-rules {
-            padding-left: 1.5rem;
-            margin-bottom: 0;
-        }
-        
-        .field-error {
-            color: #dc3545;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-        
-        .has-error {
-            border-color: #dc3545;
-        }
-    </style>
-{% endblock %}
+  .rg-form-header { text-align:center; margin-bottom:1.5rem; }
+  .rg-avatar { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#13678A,#45C4B0); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.3rem; margin:0 auto .75rem; box-shadow:0 8px 25px rgba(19,103,138,.3); }
+  .rg-form-header h2 { font-size:1.5rem; font-weight:800; color:#0B2545; margin-bottom:.25rem; }
+  .rg-form-header p { color:#6B7280; font-size:.88rem; }
 
-{% block content %}
-    <div class="registerbox">
-        <div class="register-form">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-            
-            {% if form.errors %}
-                <div class="alert alert-danger">
-                    <strong>Erro no formulário:</strong> Por favor, corrija os erros abaixo.
-                </div>
-            {% endif %}
-            
-            <form action="{% url 'users:register' %}" method="post">
-                {% csrf_token %}
-                <h1 class="text-center mb-4">Registrar um usuário</h1>
-                
-                <!-- Explicação sobre o processo de verificação -->
-                <div class="alert alert-info mb-4">
-                    <i class="fas fa-info-circle me-2"></i> Após o registro, sua conta precisará ser aprovada por um administrador antes de você poder acessar o sistema.
-                </div>
+  .rg-alert { padding:.7rem 1rem; border-radius:10px; font-size:.84rem; margin-bottom:.75rem; }
+  .rg-alert-danger { background:rgba(239,68,68,.08); color:#DC2626; border:1px solid rgba(239,68,68,.15); }
+  .rg-alert-success { background:rgba(16,185,129,.08); color:#059669; border:1px solid rgba(16,185,129,.15); }
+  .rg-alert-info { background:rgba(59,130,246,.08); color:#2563EB; border:1px solid rgba(59,130,246,.15); }
 
-                <div>
-                    <label for="id_id" class="form-label"><b>Número de Matrícula</b></label>
-                    <div class="helptext mb-2" id="id_id_helptext">
-                        <small class="form-text text-muted">Seu número de matrícula do SUAP ou SIAPE. Apenas números.</small>
-                    </div>
-                    <input class="form-control {% if form.id.errors %}has-error{% endif %}" type="text" name="id" maxlength="13" autofocus required aria-describedby="id_id_helptext" id="id_id" value="{{ form.id.value|default:'' }}">
-                    {% if form.id.errors %}
-                        <div class="field-error">
-                            {% for error in form.id.errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
+  .rg-info-banner { display:flex; align-items:center; gap:.65rem; background:linear-gradient(135deg,rgba(19,103,138,.06),rgba(69,196,176,.06)); border:1px solid rgba(19,103,138,.12); border-radius:12px; padding:.75rem 1rem; margin-bottom:1.5rem; }
+  .rg-info-banner i { color:#13678A; font-size:1.1rem; flex-shrink:0; }
+  .rg-info-banner span { font-size:.82rem; color:#374151; line-height:1.5; }
 
-                <div>
-                    <label for="id_email" class="form-label mt-3"><b>Endereço de E-mail</b></label>
-                    <input class="form-control {% if form.email.errors %}has-error{% endif %}" type="email" name="email" maxlength="254" required id="id_email" value="{{ form.email.value|default:'' }}">
-                    {% if form.email.errors %}
-                        <div class="field-error">
-                            {% for error in form.email.errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
+  .rg-form { display:flex; flex-direction:column; gap:1.1rem; }
+  .rg-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .rg-field label { display:block; font-size:.8rem; font-weight:600; color:#0B2545; margin-bottom:.35rem; }
+  .rg-field label i { color:#13678A; font-size:.75rem; }
+  .rg-input-wrap { position:relative; }
+  .rg-input-wrap input { width:100%; padding:.75rem 1rem; border:2px solid #E2E8F0; border-radius:12px; font-size:.9rem; color:#1A1A2E; background:#fff; transition:all .25s cubic-bezier(.4,0,.2,1); }
+  .rg-input-wrap input:focus { outline:none; border-color:#13678A; box-shadow:0 0 0 4px rgba(19,103,138,.1); }
+  .rg-input-wrap input::placeholder { color:#C5CAD0; font-size:.85rem; }
+  .rg-input-wrap input.rg-has-error { border-color:#DC2626; }
+  .rg-input-wrap input.rg-has-error:focus { box-shadow:0 0 0 4px rgba(220,38,38,.1); }
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <label for="id_first_name" class="form-label mt-3"><b>Nome</b></label>
-                        <input class="form-control {% if form.first_name.errors %}has-error{% endif %}" type="text" name="first_name" maxlength="150" required id="id_first_name" value="{{ form.first_name.value|default:'' }}">
-                        {% if form.first_name.errors %}
-                            <div class="field-error">
-                                {% for error in form.first_name.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-6">
-                        <label for="id_last_name" class="form-label mt-3"><b>Sobrenome</b></label>
-                        <input class="form-control {% if form.last_name.errors %}has-error{% endif %}" type="text" name="last_name" maxlength="150" required id="id_last_name" value="{{ form.last_name.value|default:'' }}">
-                        {% if form.last_name.errors %}
-                            <div class="field-error">
-                                {% for error in form.last_name.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
+  /* Visual placeholder hint — não clicável */
+  .rg-placeholder-hint { display:block; font-size:.72rem; color:#9CA3AF; margin-top:.3rem; padding-left:.25rem; pointer-events:none; user-select:none; }
 
-                <div>
-                    <label for="id_password1" class="form-label mt-3"><b>Senha</b></label>
-                    <input class="form-control {% if form.password1.errors %}has-error{% endif %}" type="password" name="password1" autocomplete="new-password" aria-describedby="id_password1_helptext" id="id_password1">
-                    {% if form.password1.errors %}
-                        <div class="field-error">
-                            {% for error in form.password1.errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    <div class="helptext mt-2 alert alert-info py-2" id="id_password1_helptext">
-                        <small class="form-text">Requisitos para senha:</small>
-                        <ul class="password-rules">
-                            <li>Sua senha não pode ser muito parecida com suas informações pessoais.</li>
-                            <li>Sua senha precisa conter pelo menos 8 caracteres.</li>
-                            <li>Sua senha não pode ser uma senha comumente utilizada.</li>
-                            <li>Sua senha não pode ser inteiramente numérica.</li>
-                        </ul>
-                    </div>
-                </div>
+  .rg-field-error { color:#DC2626; font-size:.8rem; margin-top:.3rem; padding-left:.25rem; }
 
-                <div>
-                    <label for="id_password2" class="form-label mt-3"><b>Confirme a senha</b></label>
-                    <input class="form-control {% if form.password2.errors %}has-error{% endif %}" type="password" name="password2" autocomplete="new-password" aria-describedby="id_password2_helptext" id="id_password2">
-                    {% if form.password2.errors %}
-                        <div class="field-error">
-                            {% for error in form.password2.errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    <div class="helptext mt-1" id="id_password2_helptext">
-                        <small class="form-text text-muted">Informe a mesma senha informada anteriormente, para verificação.</small>
-                    </div>
-                </div>
+  .rg-eye { position:absolute; right:.75rem; top:50%; transform:translateY(-50%); background:none; border:none; color:#9CA3AF; cursor:pointer; padding:.25rem; transition:color .2s; }
+  .rg-eye:hover { color:#13678A; }
 
-                <div class="d-grid gap-2 mt-4">
-                    <button class="btn btn-primary btn-lg">Registrar</button>
-                </div>
-                
-                <div class="register-footer">
-                    <p>Já tem uma conta? <a href="{% url 'users:login' %}">Faça login aqui</a></p>
-                </div>
-            </form>
-        </div>
-    </div>
+  .rg-pwd-rules { display:flex; flex-wrap:wrap; gap:.4rem .9rem; margin-top:.5rem; }
+  .rg-pwd-rule { font-size:.73rem; color:#9CA3AF; display:flex; align-items:center; gap:.35rem; transition:color .25s; }
+  .rg-pwd-rule i { font-size:.35rem; transition:color .25s; }
+  .rg-pwd-rule.pass { color:#059669; }
+  .rg-pwd-rule.pass i { color:#059669; }
+  .rg-pwd-rule.fail { color:#DC2626; }
+  .rg-pwd-rule.fail i { color:#DC2626; }
+
+  .rg-submit { width:100%; padding:.85rem; border:none; border-radius:12px; background:linear-gradient(135deg,#13678A,#45C4B0); color:#fff; font-size:1rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 4px 15px rgba(19,103,138,.3); margin-top:.25rem; }
+  .rg-submit:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(19,103,138,.35); }
+  .rg-submit:active { transform:translateY(0); }
+
+  .rg-divider { display:flex; align-items:center; gap:1rem; margin:1.25rem 0; }
+  .rg-divider::before,.rg-divider::after { content:''; flex:1; height:1px; background:#E2E8F0; }
+  .rg-divider span { font-size:.8rem; color:#9CA3AF; font-weight:500; }
+
+  .rg-footer { text-align:center; }
+  .rg-footer p { font-size:.88rem; color:#6B7280; }
+  .rg-footer a { color:#13678A; font-weight:700; text-decoration:none; transition:color .2s; }
+  .rg-footer a:hover { color:#0B2545; }
+
+  @media(max-width:991px){
+    .rg-wrapper { flex-direction:column; }
+    .rg-brand { flex:none; padding:2rem 1.5rem; }
+    .rg-brand-sub { margin-bottom:1.25rem; }
+  }
+  @media(max-width:575px){
+    .rg-row { grid-template-columns:1fr; }
+    .rg-brand-title { font-size:1.5rem; }
+    .rg-brand-steps { gap:.3rem; }
+    .rg-form-panel { padding:1.5rem 1rem; }
+  }
+</style>
 {% endblock %}

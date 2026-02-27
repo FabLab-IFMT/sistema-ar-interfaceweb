@@ -1,279 +1,191 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}Empréstimos{% endblock %}
+{% block title %}Empréstimos — Inventário{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<section style="background:var(--surface-alt);padding:1rem 0;border-bottom:1px solid var(--border)">
+  <div class="container">
+    <nav class="iv-breadcrumb"><a href="{% url 'inventario:dashboard' %}">Inventário</a> <span class="mx-2">/</span> <span>Empréstimos</span></nav>
+  </div>
+</section>
+
+<section class="fl-section" style="padding:2.5rem 0 5rem">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="iv-header">
+      <div>
+        <h1 class="iv-title">
+          {% if status == 'ativos' %}Empréstimos Ativos
+          {% elif status == 'atrasados' %}Empréstimos em Atraso
+          {% elif status == 'devolvidos' %}Empréstimos Devolvidos
+          {% else %}Todos os Empréstimos{% endif %}
+        </h1>
+        <span class="iv-subtitle">{{ page_obj.paginator.count }} registro{{ page_obj.paginator.count|pluralize:"s" }}</span>
+      </div>
+      <a href="{% url 'inventario:emprestimo_create' %}" class="iv-btn iv-btn-primary"><i class="fas fa-plus me-1"></i> Novo Empréstimo</a>
+    </div>
+
+    <!-- Status Filter Pills -->
+    <div class="iv-filter-row">
+      <a href="{% url 'inventario:emprestimo_list' %}" class="iv-pill {% if not status %}iv-pill-active{% endif %}"><i class="fas fa-list me-1"></i> Todos</a>
+      <a href="{% url 'inventario:emprestimo_list' %}?status=ativos" class="iv-pill {% if status == 'ativos' %}iv-pill-active iv-pill-info{% endif %}"><i class="fas fa-clock me-1"></i> Ativos</a>
+      <a href="{% url 'inventario:emprestimo_list' %}?status=atrasados" class="iv-pill {% if status == 'atrasados' %}iv-pill-active iv-pill-danger{% endif %}"><i class="fas fa-exclamation-triangle me-1"></i> Atrasados</a>
+      <a href="{% url 'inventario:emprestimo_list' %}?status=devolvidos" class="iv-pill {% if status == 'devolvidos' %}iv-pill-active iv-pill-success{% endif %}"><i class="fas fa-check-circle me-1"></i> Devolvidos</a>
+    </div>
+
+    <!-- Table Card -->
+    <div class="iv-card">
+      {% if page_obj %}
+      <div class="table-responsive">
+        <table class="iv-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Item</th>
+              <th>Usuário</th>
+              <th>Qtd</th>
+              <th>Status</th>
+              <th>Previsão / Devolução</th>
+              <th style="text-align:right">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for emprestimo in page_obj %}
+            <tr class="{% if emprestimo.status == 'atrasado' %}iv-row-danger{% endif %}">
+              <td data-label="Data">{{ emprestimo.data_emprestimo|date:"d/m/Y" }}<span class="iv-date-time">{{ emprestimo.data_emprestimo|date:"H:i" }}</span></td>
+              <td data-label="Item">
+                <a href="{% url 'inventario:item_detail' emprestimo.item.pk %}" class="iv-link">{{ emprestimo.item.nome }}</a>
+                <span class="iv-code">{{ emprestimo.item.codigo }}</span>
+              </td>
+              <td data-label="Usuário">{{ emprestimo.usuario.get_full_name }}</td>
+              <td data-label="Qtd">{{ emprestimo.quantidade }} {{ emprestimo.item.get_unidade_display }}</td>
+              <td data-label="Status">
+                {% if emprestimo.status == 'devolvido' %}
+                  <span class="iv-badge iv-badge-success"><i class="fas fa-check-circle me-1"></i>Devolvido</span>
+                {% elif emprestimo.status == 'atrasado' %}
+                  <span class="iv-badge iv-badge-danger"><i class="fas fa-exclamation-triangle me-1"></i>Atrasado</span>
+                {% else %}
+                  <span class="iv-badge iv-badge-info"><i class="fas fa-clock me-1"></i>Emprestado</span>
+                {% endif %}
+              </td>
+              <td data-label="Previsão">
+                {% if emprestimo.data_devolucao %}
+                  <span style="color:var(--accent-light)"><i class="fas fa-check-circle me-1"></i>{{ emprestimo.data_devolucao|date:"d/m/Y" }}</span>
+                {% elif emprestimo.status == 'atrasado' %}
+                  <span style="color:#ef4444"><i class="fas fa-exclamation-circle me-1"></i>{{ emprestimo.data_prevista_devolucao|date:"d/m/Y" }}</span>
+                {% else %}
+                  <span><i class="fas fa-calendar-alt me-1" style="color:var(--text-muted)"></i>{{ emprestimo.data_prevista_devolucao|date:"d/m/Y" }}</span>
+                {% endif %}
+              </td>
+              <td data-label="Ações" style="text-align:right">
+                <div class="iv-actions">
+                  <a href="{% url 'inventario:emprestimo_detail' emprestimo.pk %}" class="iv-action-btn" title="Detalhes"><i class="fas fa-eye"></i></a>
+                  {% if emprestimo.status != 'devolvido' %}
+                  <a href="{% url 'inventario:emprestimo_devolucao' emprestimo.pk %}" class="iv-action-btn iv-action-success" title="Devolver"><i class="fas fa-undo-alt"></i></a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="iv-empty">
+                <i class="fas fa-hand-holding" style="font-size:2rem;color:var(--border);margin-bottom:.75rem;display:block"></i>
+                {% if status == 'atrasados' %}Nenhum empréstimo em atraso. Tudo em dia!
+                {% elif status == 'ativos' %}Nenhum empréstimo ativo no momento.
+                {% elif status == 'devolvidos' %}Nenhum empréstimo devolvido ainda.
+                {% else %}Nenhum empréstimo registrado.
+                  <a href="{% url 'inventario:emprestimo_create' %}" class="iv-link" style="display:block;margin-top:.5rem">Registrar o primeiro</a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.paginator.num_pages > 1 %}
+      <div class="iv-pagination">
+        {% if page_obj.has_previous %}
+          <a href="?page=1{% if status %}&status={{ status }}{% endif %}" class="iv-page-link">&laquo;</a>
+          <a href="?page={{ page_obj.previous_page_number }}{% if status %}&status={{ status }}{% endif %}" class="iv-page-link">&lsaquo;</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <span class="iv-page-link iv-page-active">{{ num }}</span>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a href="?page={{ num }}{% if status %}&status={{ status }}{% endif %}" class="iv-page-link">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if status %}&status={{ status }}{% endif %}" class="iv-page-link">&rsaquo;</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}{% if status %}&status={{ status }}{% endif %}" class="iv-page-link">&raquo;</a>
+        {% endif %}
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="iv-empty" style="padding:3rem">
+        <i class="fas fa-hand-holding" style="font-size:2rem;color:var(--border);margin-bottom:.75rem;display:block"></i>
+        Nenhum empréstimo registrado. <a href="{% url 'inventario:emprestimo_create' %}" class="iv-link">Registrar um</a>.
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}
 
 {% block head %}
 <style>
-  .status-badge {
-    min-width: 100px;
-    text-align: center;
-  }
-  .filter-card {
-    background-color: #f8f9fa;
-    border-top: 3px solid #007bff;
-    transition: all 0.3s;
-  }
-  .filter-card:hover {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  }
+  .iv-breadcrumb{font-size:.85rem}.iv-breadcrumb a{color:var(--accent);text-decoration:none;font-weight:600}.iv-breadcrumb span:last-child{color:var(--text-muted)}
+  .iv-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem}
+  .iv-title{font-size:1.55rem;font-weight:800;color:var(--primary);margin:0}.iv-subtitle{font-size:.82rem;color:var(--text-muted)}
+  .iv-btn{display:inline-flex;align-items:center;padding:.55rem 1.25rem;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;text-decoration:none;transition:all var(--transition);cursor:pointer;border:none}
+  .iv-btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}.iv-btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(11,37,69,.18);color:#fff}
+
+  /* Filter pills */
+  .iv-filter-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem}
+  .iv-pill{padding:.45rem 1rem;border-radius:50px;font-size:.82rem;font-weight:600;border:2px solid var(--border);color:var(--text-muted);text-decoration:none;transition:all var(--transition)}
+  .iv-pill:hover{border-color:var(--accent);color:var(--accent)}
+  .iv-pill-active{background:var(--primary);border-color:var(--primary);color:#fff}.iv-pill-active:hover{color:#fff}
+  .iv-pill-info{background:var(--accent);border-color:var(--accent)}
+  .iv-pill-danger{background:#ef4444;border-color:#ef4444}
+  .iv-pill-success{background:#10b981;border-color:#10b981}
+
+  /* Card */
+  .iv-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+
+  /* Table */
+  .iv-table{width:100%;border-collapse:collapse}.iv-table thead{background:var(--surface-alt)}.iv-table th{padding:.7rem 1rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:var(--text-muted);border-bottom:2px solid var(--border)}
+  .iv-table td{padding:.75rem 1rem;font-size:.88rem;color:var(--text);border-bottom:1px solid var(--border);vertical-align:middle}
+  .iv-table tbody tr{transition:background var(--transition)}.iv-table tbody tr:hover{background:rgba(19,103,138,.03)}
+  .iv-row-danger{background:rgba(239,68,68,.04)!important}
+  .iv-link{color:var(--accent);font-weight:600;text-decoration:none}.iv-link:hover{text-decoration:underline}
+  .iv-code{display:block;font-size:.72rem;color:var(--text-muted);font-family:monospace}
+  .iv-date-time{display:block;font-size:.72rem;color:var(--text-muted)}
+
+  /* Badges */
+  .iv-badge{display:inline-flex;align-items:center;padding:.25rem .65rem;border-radius:50px;font-size:.72rem;font-weight:700}
+  .iv-badge-success{background:rgba(16,185,129,.1);color:#059669}.iv-badge-danger{background:rgba(239,68,68,.1);color:#dc2626}.iv-badge-info{background:rgba(19,103,138,.1);color:var(--accent)}
+
+  /* Actions */
+  .iv-actions{display:flex;gap:.35rem;justify-content:flex-end}
+  .iv-action-btn{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:var(--surface-alt);color:var(--text-muted);text-decoration:none;transition:all var(--transition);font-size:.82rem}
+  .iv-action-btn:hover{background:var(--accent);color:#fff;transform:translateY(-1px)}
+  .iv-action-success{background:rgba(16,185,129,.1);color:#059669}.iv-action-success:hover{background:#10b981;color:#fff}
+
+  /* Empty */
+  .iv-empty{text-align:center;padding:2rem;color:var(--text-muted);font-size:.92rem}
+
+  /* Pagination */
+  .iv-pagination{display:flex;justify-content:center;gap:.35rem;padding:1.25rem}
+  .iv-page-link{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);font-size:.82rem;font-weight:600;color:var(--text-muted);text-decoration:none;border:1px solid var(--border);transition:all var(--transition)}
+  .iv-page-link:hover{border-color:var(--accent);color:var(--accent)}
+  .iv-page-active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+  @media(max-width:768px){.iv-header{flex-direction:column;align-items:flex-start}.iv-filter-row{overflow-x:auto;flex-wrap:nowrap;padding-bottom:.5rem}}
 </style>
-{% endblock %}
-
-{% block content %}
-<div class="container py-4">
-  <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Empréstimos</li>
-    </ol>
-  </nav>
-
-  <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">
-      <i class="fas fa-hand-holding me-2"></i> 
-      {% if status == 'ativos' %}
-        Empréstimos Ativos
-      {% elif status == 'atrasados' %}
-        Empréstimos em Atraso
-      {% elif status == 'devolvidos' %}
-        Empréstimos Devolvidos
-      {% else %}
-        Todos os Empréstimos
-      {% endif %}
-    </h1>
-    <div>
-      <a href="{% url 'inventario:emprestimo_create' %}" class="btn btn-primary">
-        <i class="fas fa-plus me-1"></i> Novo Empréstimo
-      </a>
-      <a href="{% url 'inventario:dashboard' %}" class="btn btn-secondary ms-2">
-        <i class="fas fa-tachometer-alt me-1"></i> Dashboard
-      </a>
-    </div>
-  </div>
-  
-  <!-- Filtros -->
-  <div class="card shadow mb-4 filter-card">
-    <div class="card-header py-3 bg-light">
-      <h6 class="m-0 font-weight-bold">Filtrar por Status</h6>
-    </div>
-    <div class="card-body">
-      <div class="btn-group w-100" role="group">
-        <a href="{% url 'inventario:emprestimo_list' %}" class="btn {% if not status %}btn-primary{% else %}btn-outline-primary{% endif %}">
-          <i class="fas fa-list me-1"></i> Todos os Empréstimos
-        </a>
-        <a href="{% url 'inventario:emprestimo_list' %}?status=ativos" class="btn {% if status == 'ativos' %}btn-info{% else %}btn-outline-info{% endif %}">
-          <i class="fas fa-clock me-1"></i> Empréstimos Ativos
-        </a>
-        <a href="{% url 'inventario:emprestimo_list' %}?status=atrasados" class="btn {% if status == 'atrasados' %}btn-danger{% else %}btn-outline-danger{% endif %}">
-          <i class="fas fa-exclamation-triangle me-1"></i> Empréstimos Atrasados
-        </a>
-        <a href="{% url 'inventario:emprestimo_list' %}?status=devolvidos" class="btn {% if status == 'devolvidos' %}btn-success{% else %}btn-outline-success{% endif %}">
-          <i class="fas fa-check-circle me-1"></i> Empréstimos Devolvidos
-        </a>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Lista de empréstimos -->
-  <div class="card shadow">
-    <div class="card-header py-3 d-flex align-items-center justify-content-between">
-      <h6 class="m-0 font-weight-bold">
-        {% if status == 'ativos' %}
-          <i class="fas fa-clock me-1 text-info"></i> Empréstimos Ativos
-        {% elif status == 'atrasados' %}
-          <i class="fas fa-exclamation-triangle me-1 text-danger"></i> Empréstimos em Atraso
-        {% elif status == 'devolvidos' %}
-          <i class="fas fa-check-circle me-1 text-success"></i> Empréstimos Devolvidos
-        {% else %}
-          <i class="fas fa-list me-1"></i> Todos os Empréstimos
-        {% endif %}
-      </h6>
-      <span class="badge bg-primary">{{ page_obj.paginator.count }} empréstimos</span>
-    </div>
-    <div class="card-body">
-      {% if page_obj %}
-        <div class="table-responsive">
-          <table class="table table-hover table-striped">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Item</th>
-                <th>Usuário</th>
-                <th>Quantidade</th>
-                <th>Status</th>
-                <th>Previsão/Devolução</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for emprestimo in page_obj %}
-                <tr>
-                  <td>{{ emprestimo.data_emprestimo|date:"d/m/Y H:i" }}</td>
-                  <td>
-                    <a href="{% url 'inventario:item_detail' emprestimo.item.pk %}">
-                      {{ emprestimo.item.nome }}
-                    </a>
-                    <div class="small text-muted">{{ emprestimo.item.codigo }}</div>
-                  </td>
-                  <td>{{ emprestimo.usuario.get_full_name }}</td>
-                  <td>{{ emprestimo.quantidade }} {{ emprestimo.item.get_unidade_display }}</td>
-                  <td>
-                    {% if emprestimo.status == 'devolvido' %}
-                      <span class="badge bg-success status-badge">Devolvido</span>
-                    {% elif emprestimo.status == 'atrasado' %}
-                      <span class="badge bg-danger status-badge">Atrasado</span>
-                    {% else %}
-                      <span class="badge bg-info status-badge">Emprestado</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if emprestimo.data_devolucao %}
-                      <span class="text-success">
-                        <i class="fas fa-check-circle me-1"></i> {{ emprestimo.data_devolucao|date:"d/m/Y" }}
-                      </span>
-                    {% elif emprestimo.status == 'atrasado' %}
-                      <span class="text-danger">
-                        <i class="fas fa-exclamation-circle me-1"></i> {{ emprestimo.data_prevista_devolucao|date:"d/m/Y" }}
-                      </span>
-                    {% else %}
-                      <span>
-                        <i class="fas fa-calendar-alt me-1"></i> {{ emprestimo.data_prevista_devolucao|date:"d/m/Y" }}
-                      </span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    <div class="btn-group">
-                      <a href="{% url 'inventario:emprestimo_detail' emprestimo.pk %}" class="btn btn-sm btn-info" title="Ver detalhes">
-                        <i class="fas fa-eye"></i>
-                      </a>
-                      {% if emprestimo.status != 'devolvido' %}
-                        <a href="{% url 'inventario:emprestimo_devolucao' emprestimo.pk %}" class="btn btn-sm btn-success" title="Registrar devolução">
-                          <i class="fas fa-check"></i>
-                        </a>
-                      {% endif %}
-                    </div>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="7" class="text-center py-4">
-                    {% if status == 'ativos' %}
-                      <div class="alert alert-info mb-0">
-                        <i class="fas fa-info-circle me-2"></i> Não há empréstimos ativos no momento.
-                      </div>
-                    {% elif status == 'atrasados' %}
-                      <div class="alert alert-success mb-0">
-                        <i class="fas fa-check-circle me-2"></i> Ótimo! Não há empréstimos em atraso no momento.
-                      </div>
-                    {% elif status == 'devolvidos' %}
-                      <div class="alert alert-info mb-0">
-                        <i class="fas fa-info-circle me-2"></i> Não há registros de empréstimos devolvidos.
-                      </div>
-                    {% else %}
-                      <div class="alert alert-info mb-0">
-                        <i class="fas fa-info-circle me-2"></i> Nenhum empréstimo registrado.
-                        <a href="{% url 'inventario:emprestimo_create' %}" class="alert-link">Registrar um novo empréstimo</a>.
-                      </div>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        
-        <!-- Paginação -->
-        {% if page_obj.paginator.num_pages > 1 %}
-          <nav aria-label="Paginação" class="mt-4">
-            <ul class="pagination justify-content-center">
-              {% if page_obj.has_previous %}
-                <li class="page-item">
-                  <a class="page-link" href="?page=1{% if status %}&status={{ status }}{% endif %}" aria-label="Primeira">
-                    <span aria-hidden="true">&laquo;&laquo;</span>
-                  </a>
-                </li>
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status %}&status={{ status }}{% endif %}" aria-label="Anterior">
-                    <span aria-hidden="true">&laquo;</span>
-                  </a>
-                </li>
-              {% else %}
-                <li class="page-item disabled">
-                  <a class="page-link" href="#" aria-label="Primeira">
-                    <span aria-hidden="true">&laquo;&laquo;</span>
-                  </a>
-                </li>
-                <li class="page-item disabled">
-                  <a class="page-link" href="#" aria-label="Anterior">
-                    <span aria-hidden="true">&laquo;</span>
-                  </a>
-                </li>
-              {% endif %}
-              
-              {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                  <li class="page-item active" aria-current="page">
-                    <a class="page-link" href="?page={{ num }}{% if status %}&status={{ status }}{% endif %}">{{ num }}</a>
-                  </li>
-                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                  <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}{% if status %}&status={{ status }}{% endif %}">{{ num }}</a>
-                  </li>
-                {% endif %}
-              {% endfor %}
-              
-              {% if page_obj.has_next %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status %}&status={{ status }}{% endif %}" aria-label="Próxima">
-                    <span aria-hidden="true">&raquo;</span>
-                  </a>
-                </li>
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if status %}&status={{ status }}{% endif %}" aria-label="Última">
-                    <span aria-hidden="true">&raquo;&raquo;</span>
-                  </a>
-                </li>
-              {% else %}
-                <li class="page-item disabled">
-                  <a class="page-link" href="#" aria-label="Próxima">
-                    <span aria-hidden="true">&raquo;</span>
-                  </a>
-                </li>
-                <li class="page-item disabled">
-                  <a class="page-link" href="#" aria-label="Última">
-                    <span aria-hidden="true">&raquo;&raquo;</span>
-                  </a>
-                </li>
-              {% endif %}
-            </ul>
-          </nav>
-        {% endif %}
-      {% else %}
-        <div class="alert alert-info">
-          <p class="mb-0">Nenhum empréstimo registrado. <a href="{% url 'inventario:emprestimo_create' %}">Clique aqui</a> para registrar um empréstimo.</p>
-        </div>
-      {% endif %}
-    </div>
-  </div>
-  
-  <!-- Atalhos rápidos -->
-  <div class="row mt-4">
-    <div class="col-12">
-      <div class="card shadow">
-        <div class="card-body d-flex flex-wrap justify-content-center gap-3">
-          <a href="{% url 'inventario:emprestimo_create' %}" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i> Novo Empréstimo
-          </a>
-          <a href="{% url 'inventario:item_list' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-boxes me-1"></i> Ver Itens
-          </a>
-          <a href="{% url 'inventario:dashboard' %}" class="btn btn-outline-info">
-            <i class="fas fa-tachometer-alt me-1"></i> Dashboard
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 {% endblock %}

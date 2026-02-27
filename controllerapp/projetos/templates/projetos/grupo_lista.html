@@ -5,246 +5,134 @@
 
 {% block head %}
 <style>
-  .grupo-card {
-    transition: all 0.3s;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  }
-  
-  .grupo-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.15);
-  }
-  
-  .grupo-header {
-    padding: 1.2rem;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-  }
-  
-  .grupo-body {
-    padding: 1.5rem;
-  }
-  
-  .grupo-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
-  }
-  
-  .badge-count {
-    font-size: 0.8rem;
-    padding: 0.3rem 0.6rem;
-    border-radius: 50px;
-  }
-  
-  .search-box {
-    margin-bottom: 20px;
-  }
-  
-  /* Estilos para avatares dos membros */
-  .member-avatars {
-    display: flex;
-    margin-top: 15px;
-    margin-bottom: 15px;
-  }
-  
-  .member-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.75rem;
-    border: 2px solid white;
-    position: relative;
-    margin-left: -8px;
-    text-transform: uppercase;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  
-  .member-avatar:first-child {
-    margin-left: 0;
-  }
-  
-  .member-avatar:nth-child(1) { background-color: #4B89DC; }
-  .member-avatar:nth-child(2) { background-color: #967ADC; }
-  .member-avatar:nth-child(3) { background-color: #D770AD; }
-  .member-avatar:nth-child(4) { background-color: #F6BB42; }
-  .member-avatar:nth-child(5) { background-color: #37BC9B; }
-  
-  .member-avatar.more-members {
-    background-color: #656D78;
-  }
+  .gr-hero{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:2rem 0 1.5rem;position:relative;overflow:hidden}
+  .gr-hero::after{content:'';position:absolute;top:-30%;right:-15%;width:50%;height:160%;background:rgba(255,255,255,.04);border-radius:50%;transform:rotate(15deg)}
+  .gr-hero h1{font-size:1.4rem;font-weight:800;margin:0}
+  .gr-hero p{opacity:.7;font-size:.85rem;margin:.25rem 0 0}
+
+  .gr-toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem;margin-top:1.5rem;margin-bottom:1.25rem}
+  .gr-search{display:flex;gap:.5rem}
+  .gr-search input{padding:.45rem .85rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:.82rem;font-family:inherit;width:260px;transition:border var(--transition)}
+  .gr-search input:focus{outline:none;border-color:var(--accent)}
+  .gr-btn{display:inline-flex;align-items:center;justify-content:center;padding:.45rem 1rem;border-radius:var(--radius-sm);font-size:.8rem;font-weight:600;text-decoration:none;transition:all var(--transition);cursor:pointer;border:none;gap:.35rem}
+  .gr-btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
+  .gr-btn-primary:hover{color:#fff;transform:translateY(-1px);box-shadow:0 4px 12px rgba(11,37,69,.15)}
+  .gr-btn-outline{background:transparent;color:var(--text-muted);border:1.5px solid var(--border)}
+  .gr-btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+  .gr-btn-sm{padding:.3rem .7rem;font-size:.72rem}
+  .gr-btn-danger-sm{padding:.3rem .7rem;font-size:.72rem;background:rgba(239,68,68,.08);color:#DC2626;border:1.5px solid rgba(239,68,68,.2);border-radius:var(--radius-sm);transition:all var(--transition);cursor:pointer}
+  .gr-btn-danger-sm:hover{background:#EF4444;color:#fff;border-color:#EF4444}
+
+  .gr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem}
+  .gr-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all var(--transition);display:flex;flex-direction:column}
+  .gr-card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(11,37,69,.1)}
+  .gr-card-head{padding:1rem 1.15rem;background:var(--surface-alt);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem}
+  .gr-card-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#8B5CF6,#A78BFA);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+  .gr-card-name{font-size:.92rem;font-weight:700;color:var(--text)}
+  .gr-card-desc{font-size:.74rem;color:var(--text-muted);margin-top:.1rem;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  .gr-card-body{padding:1rem 1.15rem;flex:1}
+  .gr-badges{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.75rem}
+  .gr-badge{padding:.15rem .5rem;border-radius:50px;font-size:.65rem;font-weight:700}
+  .gr-badge-members{background:rgba(59,130,246,.1);color:#2563EB}
+  .gr-badge-projects{background:rgba(139,92,246,.1);color:#7C3AED}
+  .gr-badge-tasks{background:rgba(16,185,129,.1);color:#059669}
+
+  .gr-avatars{display:flex;margin-top:.5rem}
+  .gr-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;border:2px solid var(--white);margin-left:-6px;text-transform:uppercase}
+  .gr-avatar:first-child{margin-left:0}
+  .gr-avatar-1{background:#4B89DC}.gr-avatar-2{background:#967ADC}.gr-avatar-3{background:#D770AD}.gr-avatar-4{background:#F6BB42}.gr-avatar-5{background:#37BC9B}
+  .gr-avatar-more{background:var(--text-muted)}
+
+  .gr-card-foot{padding:.6rem 1.15rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.4rem}
+
+  .gr-empty{text-align:center;padding:3rem 1rem;color:var(--text-muted)}
+  .gr-empty i{font-size:2.5rem;opacity:.25;display:block;margin-bottom:.75rem}
+
+  .gr-pagination{display:flex;justify-content:center;gap:.3rem;margin-top:1.5rem}
+  .gr-pagination a,.gr-pagination span{padding:.35rem .7rem;border-radius:var(--radius-sm);font-size:.8rem;font-weight:600;text-decoration:none;border:1.5px solid var(--border);color:var(--text-muted);transition:all var(--transition)}
+  .gr-pagination a:hover{border-color:var(--accent);color:var(--accent)}
+  .gr-pagination .active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  @media(max-width:768px){.gr-grid{grid-template-columns:1fr}.gr-toolbar{flex-direction:column;align-items:stretch}}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <!-- Breadcrumb -->
-  <nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'projetos:gestao' %}">Gestão</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Grupos de Projetos</li>
-    </ol>
-  </nav>
-
-  <!-- Cabeçalho -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">
-      <i class="fas fa-users me-2"></i>Grupos de Projetos
-    </h2>
-    <a href="{% url 'projetos:grupo_novo' %}" class="btn btn-primary">
-      <i class="fas fa-plus me-2"></i> Novo Grupo
-    </a>
+<section class="gr-hero">
+  <div class="container">
+    <nav style="font-size:.78rem;margin-bottom:.5rem;opacity:.6">
+      <a href="{% url 'projetos:gestao' %}" style="color:#fff;text-decoration:none">Gestão</a> / <span>Grupos</span>
+    </nav>
+    <h1><i class="fas fa-users-cog me-2"></i>Grupos de Projetos</h1>
+    <p>Gerencie equipes e atribua membros a projetos</p>
   </div>
-  
-  <!-- Busca -->
-  <div class="search-box">
-    <form method="get" action="{% url 'projetos:grupos_lista' %}">
-      <div class="input-group">
-        <input type="text" name="busca" class="form-control" placeholder="Buscar grupos..." value="{{ termo_busca }}">
-        <button class="btn btn-outline-primary" type="submit">
-          <i class="fas fa-search"></i>
-        </button>
-        {% if termo_busca %}
-          <a href="{% url 'projetos:grupos_lista' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-times"></i> Limpar
-          </a>
+</section>
+
+<div class="container" style="padding-bottom:3rem">
+  <div class="gr-toolbar">
+    <form method="get" class="gr-search">
+      <input type="text" name="busca" placeholder="Buscar grupos..." value="{{ termo_busca }}">
+      <button type="submit" class="gr-btn gr-btn-outline gr-btn-sm"><i class="fas fa-search"></i></button>
+      {% if termo_busca %}<a href="{% url 'projetos:grupos_lista' %}" class="gr-btn gr-btn-outline gr-btn-sm"><i class="fas fa-times"></i></a>{% endif %}
+    </form>
+    <a href="{% url 'projetos:grupo_novo' %}" class="gr-btn gr-btn-primary"><i class="fas fa-plus"></i> Novo Grupo</a>
+  </div>
+
+  {% if grupos %}
+  <div class="gr-grid">
+    {% for grupo in grupos %}
+    <div class="gr-card">
+      <div class="gr-card-head">
+        <div class="gr-card-icon"><i class="fas fa-users"></i></div>
+        <div>
+          <div class="gr-card-name">{{ grupo.nome }}</div>
+          {% if grupo.descricao %}<div class="gr-card-desc">{{ grupo.descricao }}</div>{% endif %}
+        </div>
+      </div>
+      <div class="gr-card-body">
+        <div class="gr-badges">
+          <span class="gr-badge gr-badge-members"><i class="fas fa-user me-1"></i>{{ grupo.membros.count }} membro{{ grupo.membros.count|pluralize }}</span>
+          <span class="gr-badge gr-badge-projects"><i class="fas fa-folder me-1"></i>{{ grupo.projetos.count }} projeto{{ grupo.projetos.count|pluralize }}</span>
+          <span class="gr-badge gr-badge-tasks"><i class="fas fa-tasks me-1"></i>{{ grupo.tarefas.count }} tarefa{{ grupo.tarefas.count|pluralize }}</span>
+        </div>
+        {% if grupo.membros.exists %}
+        <div class="gr-avatars">
+          {% for m in grupo.membros.all|slice:":5" %}
+          <span class="gr-avatar gr-avatar-{{ forloop.counter }}" title="{{ m.get_full_name|default:m.username }}">{{ m.first_name|slice:":1" }}{{ m.last_name|slice:":1" }}</span>
+          {% endfor %}
+          {% if grupo.membros.count > 5 %}<span class="gr-avatar gr-avatar-more">+{{ grupo.membros.count|add:"-5" }}</span>{% endif %}
+        </div>
         {% endif %}
       </div>
-    </form>
-  </div>
-  
-  <!-- Lista de grupos -->
-  <div class="row g-4">
-    {% for grupo in grupos %}
-    <div class="col-md-6 col-lg-4">
-      <div class="grupo-card h-100">
-        <div class="grupo-header">
-          <h4 class="mb-0">{{ grupo.nome }}</h4>
-        </div>
-        <div class="grupo-body">
-          {% if grupo.descricao %}
-            <p>{{ grupo.descricao|truncatechars:100 }}</p>
-          {% else %}
-            <p class="text-muted">Sem descrição</p>
-          {% endif %}
-          
-          <div class="grupo-meta">
-            <span class="badge bg-primary badge-count">
-              <i class="fas fa-user me-1"></i> {{ grupo.membros.count }} membro{{ grupo.membros.count|pluralize }}
-            </span>
-            <span class="badge bg-info badge-count">
-              <i class="fas fa-folder me-1"></i> {{ grupo.projetos.count }} projeto{{ grupo.projetos.count|pluralize }}
-            </span>
-            <span class="badge bg-secondary badge-count">
-              <i class="fas fa-tasks me-1"></i> {{ grupo.tarefas.count }} tarefa{{ grupo.tarefas.count|pluralize }}
-            </span>
-          </div>
-          
-          {% if grupo.membros.exists %}
-          <div class="member-avatars">
-            {% for membro in grupo.membros.all|slice:":5" %}
-              <div class="member-avatar" title="{{ membro.get_full_name|default:membro.username }}">
-                {{ membro.first_name|slice:":1" }}{{ membro.last_name|slice:":1" }}
-              </div>
-            {% endfor %}
-            {% if grupo.membros.count > 5 %}
-              <div class="member-avatar more-members" title="E mais {{ grupo.membros.count|add:"-5" }} membro{{ grupo.membros.count|add:"-5"|pluralize }}">
-                +{{ grupo.membros.count|add:"-5" }}
-              </div>
-            {% endif %}
-          </div>
-          {% endif %}
-          
-          <div class="member-avatars">
-            {% for membro in grupo.membros.all %}
-              <div class="member-avatar">{{ membro.nome|slice:":1" }}</div>
-            {% endfor %}
-            {% if grupo.membros.count > 5 %}
-              <div class="member-avatar more-members">+{{ grupo.membros.count|add:"-5" }}</div>
-            {% endif %}
-          </div>
-          
-          <div class="mt-3">
-            <a href="{% url 'projetos:grupo_detalhe' grupo.id %}" class="btn btn-sm btn-outline-primary">
-              <i class="fas fa-eye me-1"></i> Detalhes
-            </a>
-            <a href="{% url 'projetos:grupo_editar' grupo.id %}" class="btn btn-sm btn-outline-secondary">
-              <i class="fas fa-edit me-1"></i> Editar
-            </a>
-            <a href="{% url 'projetos:grupo_excluir' grupo.id %}" class="btn btn-sm btn-outline-danger">
-              <i class="fas fa-trash me-1"></i> Excluir
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-    {% empty %}
-    <div class="col-12">
-      <div class="alert alert-info text-center py-5">
-        <i class="fas fa-users fa-3x mb-3"></i>
-        <h4>Nenhum grupo encontrado</h4>
-        <p>Crie um novo grupo para começar a organizar seus projetos e equipes.</p>
-        <a href="{% url 'projetos:grupo_novo' %}" class="btn btn-primary mt-2">
-          <i class="fas fa-plus me-2"></i> Criar Novo Grupo
-        </a>
+      <div class="gr-card-foot">
+        <a href="{% url 'projetos:grupo_detalhe' grupo.id %}" class="gr-btn gr-btn-outline gr-btn-sm"><i class="fas fa-eye"></i> Detalhes</a>
+        <a href="{% url 'projetos:grupo_editar' grupo.id %}" class="gr-btn gr-btn-outline gr-btn-sm"><i class="fas fa-edit"></i></a>
+        <a href="{% url 'projetos:grupo_excluir' grupo.id %}" class="gr-btn-danger-sm"><i class="fas fa-trash"></i></a>
       </div>
     </div>
     {% endfor %}
   </div>
-  
-  <!-- Paginação -->
+
   {% if grupos.has_other_pages %}
-  <nav class="mt-4">
-    <ul class="pagination justify-content-center">
-      {% if grupos.has_previous %}
-        <li class="page-item">
-          <a class="page-link" href="?page=1{% if termo_busca %}&busca={{ termo_busca }}{% endif %}">
-            <i class="fas fa-angle-double-left"></i>
-          </a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" href="?page={{ grupos.previous_page_number }}{% if termo_busca %}&busca={{ termo_busca }}{% endif %}">
-            <i class="fas fa-angle-left"></i>
-          </a>
-        </li>
+  <div class="gr-pagination">
+    {% if grupos.has_previous %}<a href="?page={{ grupos.previous_page_number }}{% if termo_busca %}&busca={{ termo_busca }}{% endif %}"><i class="fas fa-chevron-left"></i></a>{% endif %}
+    {% for num in grupos.paginator.page_range %}
+      {% if grupos.number == num %}
+        <span class="active">{{ num }}</span>
+      {% elif num > grupos.number|add:'-3' and num < grupos.number|add:'3' %}
+        <a href="?page={{ num }}{% if termo_busca %}&busca={{ termo_busca }}{% endif %}">{{ num }}</a>
       {% endif %}
+    {% endfor %}
+    {% if grupos.has_next %}<a href="?page={{ grupos.next_page_number }}{% if termo_busca %}&busca={{ termo_busca }}{% endif %}"><i class="fas fa-chevron-right"></i></a>{% endif %}
+  </div>
+  {% endif %}
 
-      {% for num in grupos.paginator.page_range %}
-        {% if grupos.number == num %}
-          <li class="page-item active">
-            <span class="page-link">{{ num }}</span>
-          </li>
-        {% elif num > grupos.number|add:'-3' and num < grupos.number|add:'3' %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ num }}{% if termo_busca %}&busca={{ termo_busca }}{% endif %}">
-              {{ num }}
-            </a>
-          </li>
-        {% endif %}
-      {% endfor %}
-
-      {% if grupos.has_next %}
-        <li class="page-item">
-          <a class="page-link" href="?page={{ grupos.next_page_number }}{% if termo_busca %}&busca={{ termo_busca }}{% endif %}">
-            <i class="fas fa-angle-right"></i>
-          </a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" href="?page={{ grupos.paginator.num_pages }}{% if termo_busca %}&busca={{ termo_busca }}{% endif %}">
-            <i class="fas fa-angle-double-right"></i>
-          </a>
-        </li>
-      {% endif %}
-    </ul>
-  </nav>
+  {% else %}
+  <div class="gr-empty">
+    <i class="fas fa-users"></i>
+    <h4 style="font-size:.95rem;font-weight:600;margin:0 0 .3rem">Nenhum grupo encontrado</h4>
+    <p style="font-size:.82rem;margin:0">Crie um novo grupo para organizar sua equipe</p>
+  </div>
   {% endif %}
 </div>
 {% endblock %}

@@ -1,257 +1,241 @@
-{# Arquivo: home.html #}
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}
-    Controle de Automação - FabLab
+{% block title %}Automação — FabLab{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="at-hero">
+  <div class="container">
+    <div class="at-hero-inner">
+      <div>
+        <h1 class="at-hero-title"><i class="fas fa-microchip me-2"></i>Automação</h1>
+        <p class="at-hero-sub">Controle inteligente de dispositivos do laboratório.</p>
+      </div>
+      <div class="at-hero-stats">
+        <div class="at-hero-stat">
+          <span class="at-hero-num">{{ ar_online|default:"0" }}</span>
+          <span class="at-hero-label">Online</span>
+        </div>
+        <div class="at-hero-divider"></div>
+        <div class="at-hero-stat">
+          <span class="at-hero-num">{{ ar_count|default:"0" }}</span>
+          <span class="at-hero-label">Dispositivos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Subsistemas -->
+<section class="fl-section" style="padding:2.5rem 0 2rem">
+  <div class="container">
+    <div class="at-grid">
+      <!-- Ar Condicionado -->
+      <a href="{% url 'Controle_ar:ar_dashboard' %}" class="at-subsys-card at-subsys-active">
+        <div class="at-subsys-icon"><i class="fas fa-snowflake"></i></div>
+        <div class="at-subsys-body">
+          <h3>Ar Condicionado</h3>
+          <p>Controle de temperatura e status dos aparelhos</p>
+        </div>
+        <div class="at-subsys-status">
+          <span class="at-dot {% if ar_online > 0 %}at-dot-on{% else %}at-dot-off{% endif %}"></span>
+          <span>{{ ar_online }}/{{ ar_count }} online</span>
+        </div>
+        <i class="fas fa-chevron-right at-subsys-arrow"></i>
+      </a>
+
+      <!-- Iluminação -->
+      <div class="at-subsys-card at-subsys-soon">
+        <div class="at-subsys-icon at-icon-muted"><i class="fas fa-lightbulb"></i></div>
+        <div class="at-subsys-body">
+          <h3>Iluminação</h3>
+          <p>Controle de iluminação das salas e espaços</p>
+        </div>
+        <span class="at-soon-badge">Em breve</span>
+      </div>
+
+      <!-- Acesso -->
+      <div class="at-subsys-card at-subsys-soon">
+        <div class="at-subsys-icon at-icon-muted"><i class="fas fa-door-open"></i></div>
+        <div class="at-subsys-body">
+          <h3>Controle de Acesso</h3>
+          <p>Gestão de portas e ambientes</p>
+        </div>
+        <span class="at-soon-badge">Em breve</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Status do Sistema -->
+<section class="fl-section" style="padding:0 0 2rem">
+  <div class="container">
+    <div class="at-card">
+      <div class="at-card-head"><i class="fas fa-chart-bar me-2"></i>Status do Sistema</div>
+      <div class="at-card-body">
+        <div class="at-metrics">
+          <div class="at-metric">
+            <div class="at-metric-icon" style="background:rgba(19,103,138,.1);color:var(--accent)"><i class="fas fa-thermometer-half"></i></div>
+            <div>
+              <span class="at-metric-num">{{ temperatura_media|default:"--" }}°C</span>
+              <span class="at-metric-label">Temperatura Média</span>
+            </div>
+          </div>
+          <div class="at-metric">
+            <div class="at-metric-icon" style="background:rgba(245,158,11,.1);color:#F59E0B"><i class="fas fa-bolt"></i></div>
+            <div>
+              <span class="at-metric-num">{{ consumo_total|default:"0.00" }} kW/h</span>
+              <span class="at-metric-label">Consumo Atual</span>
+            </div>
+          </div>
+          <div class="at-metric">
+            <div class="at-metric-icon" style="background:rgba(16,185,129,.1);color:#10B981"><i class="fas fa-wifi"></i></div>
+            <div>
+              <span class="at-metric-num">{{ ar_online|default:"0" }} / {{ ar_count|default:"0" }}</span>
+              <span class="at-metric-label">Dispositivos Online</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Dispositivos -->
+{% if ares %}
+<section class="fl-section" style="padding:0 0 3rem">
+  <div class="container">
+    <h2 class="at-section-title"><i class="fas fa-snowflake me-2"></i>Ar Condicionados</h2>
+    <div class="at-devices-grid">
+      {% for ar in ares %}
+      <div class="at-device-card {% if not ar.online %}at-device-offline{% endif %}">
+        <div class="at-device-header {% if ar.online %}{% if ar.estado %}at-device-on{% else %}at-device-standby{% endif %}{% endif %}">
+          <div class="at-device-header-top">
+            <h4>{{ ar.nome }}</h4>
+            <span class="at-device-badge">
+              <span class="at-dot-sm {% if ar.online %}{% if ar.estado %}at-dot-on{% else %}at-dot-off{% endif %}{% else %}at-dot-gray{% endif %}"></span>
+              {% if ar.online %}{% if ar.estado %}Ligado{% else %}Desligado{% endif %}{% else %}Offline{% endif %}
+            </span>
+          </div>
+          {% if ar.online and ar.estado %}
+          <div class="at-device-temp">{{ ar.temperatura }}°C</div>
+          <span class="at-device-mode">{{ ar.modo_display }} · {{ ar.velocidade_display }}</span>
+          {% elif ar.online %}
+          <div class="at-device-temp" style="opacity:.5">--°C</div>
+          <span class="at-device-mode">Standby</span>
+          {% else %}
+          <div class="at-device-temp" style="opacity:.3">--°C</div>
+          <span class="at-device-mode">Sem conexão</span>
+          {% endif %}
+        </div>
+        <div class="at-device-body">
+          <div class="at-device-info">
+            <span><i class="fas fa-bolt me-1"></i>{{ ar.consumo_atual|floatformat:2 }} kW/h</span>
+            {% if ar.temperatura_ambiente %}
+            <span><i class="fas fa-thermometer-half me-1"></i>{{ ar.temperatura_ambiente }}°C amb.</span>
+            {% endif %}
+          </div>
+          <div class="at-device-footer">
+            <a href="{% url 'Controle_ar:controlar_ar' ar.id %}" class="at-btn at-btn-primary"><i class="fas fa-sliders-h me-1"></i>Controlar</a>
+            {% if ar.online %}
+              {% if ar.estado %}
+              <a href="{% url 'Controle_ar:desligar_ar' ar.id %}" class="at-btn at-btn-danger"><i class="fas fa-power-off"></i></a>
+              {% else %}
+              <a href="{% url 'Controle_ar:ligar_ar' ar.id %}" class="at-btn at-btn-success"><i class="fas fa-power-off"></i></a>
+              {% endif %}
+            {% endif %}
+          </div>
+          <span class="at-device-time"><i class="far fa-clock me-1"></i>{{ ar.ultima_alteracao|date:"d/m/Y H:i" }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Dica -->
+<section class="fl-section" style="padding:0 0 4rem">
+  <div class="container">
+    <div class="at-tip">
+      <i class="fas fa-leaf at-tip-icon"></i>
+      <div>
+        <strong>Dica de economia:</strong> Mantenha a temperatura entre 23°C e 25°C para equilíbrio entre conforto e economia de energia.
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}
 
 {% block head %}
 <style>
-    .device-card {
-        transition: all 0.3s ease;
-        margin-bottom: 20px;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-    
-    .device-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    }
-    
-    .device-header {
-        padding: 15px;
-        color: white;
-    }
-    
-    .device-header-on {
-        background: linear-gradient(135deg, #4CAF50, #2E7D32);
-    }
-    
-    .device-header-off {
-        background: linear-gradient(135deg, #F44336, #B71C1C);
-    }
-    
-    .device-offline {
-        background: linear-gradient(135deg, #9E9E9E, #424242);
-        opacity: 0.8;
-    }
-    
-    .device-icon {
-        font-size: 2.5rem;
-        margin-bottom: 15px;
-    }
-    
-    .status-indicator {
-        width: 15px;
-        height: 15px;
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 5px;
-    }
-    
-    .status-on {
-        background-color: #4CAF50;
-    }
-    
-    .status-off {
-        background-color: #F44336;
-    }
-    
-    .status-offline {
-        background-color: #9E9E9E;
-    }
-    
-    .device-info {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 10px;
-        font-size: 0.9rem;
-    }
-    
-    .device-footer {
-        border-top: 1px solid #dee2e6;
-        padding-top: 15px;
-        margin-top: 15px;
-    }
-    
-    .section-title {
-        position: relative;
-        margin-bottom: 30px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #dee2e6;
-    }
-    
-    .section-title:after {
-        content: '';
-        position: absolute;
-        width: 100px;
-        height: 3px;
-        background-color: #007bff;
-        bottom: -2px;
-        left: 0;
-    }
-</style>
-{% endblock %}
+  /* Hero */
+  .at-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);padding:2.5rem 0;position:relative;overflow:hidden}
+  .at-hero::after{content:'';position:absolute;top:-40%;right:-20%;width:50%;height:180%;background:rgba(255,255,255,.04);border-radius:50%;transform:rotate(15deg)}
+  .at-hero-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1.5rem;position:relative;z-index:1}
+  .at-hero-title{font-size:2rem;font-weight:800;color:#fff;margin:0}.at-hero-sub{font-size:.92rem;color:rgba(255,255,255,.7);margin:.3rem 0 0}
+  .at-hero-stats{display:flex;align-items:center;gap:1.5rem}
+  .at-hero-stat{text-align:center}.at-hero-num{display:block;font-size:2rem;font-weight:800;color:#fff;line-height:1.2}.at-hero-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.6);font-weight:600}
+  .at-hero-divider{width:1px;height:40px;background:rgba(255,255,255,.2)}
 
-{% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="section-title">Painel de Controle de Automação</h1>
-            <p class="lead">Gerencie os dispositivos do laboratório de forma eficiente e inteligente.</p>
-        </div>
-    </div>
-    
-    <!-- Seção de Ar Condicionados -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="mb-3">Ar Condicionados</h2>
-        </div>
-        
-        {% if ares %}
-            {% for ar in ares %}
-                <div class="col-md-4">
-                    <div class="card device-card">
-                        <!-- Cabeçalho com status -->
-                        <div class="device-header {% if ar.online %}{% if ar.estado %}device-header-on{% else %}device-header-off{% endif %}{% else %}device-offline{% endif %}">
-                            <div class="text-center">
-                                <div class="device-icon">
-                                    <i class="fas {% if ar.estado %}fa-wind{% else %}fa-fan{% endif %}"></i>
-                                </div>
-                                <h3>{{ ar.nome }}</h3>
-                                <span class="badge bg-light text-dark">
-                                    {% if ar.online %}
-                                        {% if ar.estado %}
-                                            <span class="status-indicator status-on"></span> Ligado
-                                        {% else %}
-                                            <span class="status-indicator status-off"></span> Desligado
-                                        {% endif %}
-                                    {% else %}
-                                        <span class="status-indicator status-offline"></span> Offline
-                                    {% endif %}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <!-- Corpo do cartão -->
-                        <div class="card-body">
-                            {% if ar.online %}
-                                <!-- Informações do dispositivo -->
-                                {% if ar.estado %}
-                                    <div class="text-center mb-3">
-                                        <h2>{{ ar.temperatura }}°C</h2>
-                                        <p>Modo: {{ ar.modo_display }} | Velocidade: {{ ar.velocidade_display }}</p>
-                                    </div>
-                                {% endif %}
-                                
-                                <!-- Informações adicionais -->
-                                <div class="device-info">
-                                    <span><i class="fas fa-bolt"></i> {{ ar.consumo_atual|floatformat:2 }} kW/h</span>
-                                    {% if ar.temperatura_ambiente %}
-                                        <span><i class="fas fa-thermometer-half"></i> {{ ar.temperatura_ambiente }}°C (ambiente)</span>
-                                    {% endif %}
-                                </div>
-                                
-                                <!-- Última atualização -->
-                                <div class="text-muted text-center mt-2">
-                                    <small>Última atualização: {{ ar.ultima_alteracao|date:"d/m/Y H:i:s" }}</small>
-                                </div>
-                            {% else %}
-                                <!-- Mensagem de dispositivo offline -->
-                                <div class="alert alert-warning text-center">
-                                    <i class="fas fa-exclamation-triangle"></i> Dispositivo offline
-                                    <p class="small mb-0">Última conexão: {% if ar.ultimo_ping %}{{ ar.ultimo_ping|date:"d/m/Y H:i:s" }}{% else %}Nunca conectado{% endif %}</p>
-                                </div>
-                            {% endif %}
-                            
-                            <!-- Botões de controle -->
-                            <div class="device-footer text-center">
-                                <a href="{% url 'Controle_ar:controlar_ar' ar.id %}" class="btn btn-primary">
-                                    <i class="fas fa-sliders-h"></i> Controlar
-                                </a>
-                                
-                                {% if ar.online %}
-                                    {% if ar.estado %}
-                                        <a href="{% url 'Controle_ar:desligar_ar' ar.id %}" class="btn btn-outline-danger">
-                                            <i class="fas fa-power-off"></i> Desligar
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'Controle_ar:ligar_ar' ar.id %}" class="btn btn-outline-success">
-                                            <i class="fas fa-power-off"></i> Ligar
-                                        </a>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="col-12">
-                <div class="alert alert-info">
-                    Nenhum ar-condicionado configurado no sistema.
-                </div>
-            </div>
-        {% endif %}
-    </div>
-    
-    <!-- Estatísticas e Informações -->
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Consumo de Energia</h4>
-                </div>
-                <div class="card-body">
-                    <div class="text-center">
-                        <h3>
-                            {% if ares %}
-                                {{ consumo_total }} kW/h
-                            {% else %}
-                                0.00 kW/h
-                            {% endif %}
-                        </h3>
-                        <p>Consumo atual total</p>
-                    </div>
-                    
-                    <div class="alert alert-info mt-3">
-                        <i class="fas fa-info-circle"></i> Dica de economia: Mantenha a temperatura entre 23°C e 25°C para um melhor equilíbrio entre conforto e economia de energia.
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0">Status do Sistema</h4>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Dispositivos conectados
-                            <span class="badge bg-primary rounded-pill">{{ ares.count }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Dispositivos ativos
-                            <span class="badge bg-success rounded-pill">{{ ar_online }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Temperatura média
-                            <span class="badge bg-info rounded-pill">
-                                {% if temperatura_media %}
-                                    {{ temperatura_media }}°C
-                                {% else %}
-                                    N/A
-                                {% endif %}
-                            </span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+  /* Subsystem cards */
+  .at-grid{display:flex;flex-direction:column;gap:.75rem}
+  .at-subsys-card{display:flex;align-items:center;gap:1.25rem;padding:1.25rem 1.5rem;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);transition:all var(--transition);text-decoration:none;color:var(--text)}
+  .at-subsys-active:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08);border-color:var(--accent)}
+  .at-subsys-icon{width:52px;height:52px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.3rem;flex-shrink:0}
+  .at-icon-muted{background:var(--surface-alt)!important;color:var(--text-muted)!important}
+  .at-subsys-body{flex:1;min-width:0}.at-subsys-body h3{font-size:1.05rem;font-weight:700;color:var(--primary);margin:0}.at-subsys-body p{font-size:.82rem;color:var(--text-muted);margin:.15rem 0 0}
+  .at-subsys-status{display:flex;align-items:center;gap:.4rem;font-size:.82rem;font-weight:600;color:var(--text-muted);white-space:nowrap}
+  .at-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}.at-dot-on{background:#10B981;box-shadow:0 0 6px rgba(16,185,129,.4)}.at-dot-off{background:#ef4444}
+  .at-subsys-arrow{color:var(--border);transition:color var(--transition)}.at-subsys-active:hover .at-subsys-arrow{color:var(--accent)}
+  .at-subsys-soon{opacity:.6;cursor:default}
+  .at-soon-badge{padding:.25rem .7rem;background:var(--surface-alt);border-radius:50px;font-size:.72rem;font-weight:700;color:var(--text-muted);white-space:nowrap}
+
+  /* Cards */
+  .at-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .at-card-head{padding:.85rem 1.25rem;font-size:.82rem;font-weight:700;color:var(--primary);border-bottom:1px solid var(--border);background:var(--surface-alt)}
+  .at-card-body{padding:1.25rem}
+
+  /* Metrics */
+  .at-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+  .at-metric{display:flex;align-items:center;gap:1rem}
+  .at-metric-icon{width:44px;height:44px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+  .at-metric-num{display:block;font-size:1.15rem;font-weight:800;color:var(--primary);line-height:1.2}
+  .at-metric-label{font-size:.72rem;color:var(--text-muted);font-weight:500}
+
+  /* Section title */
+  .at-section-title{font-size:1.15rem;font-weight:700;color:var(--primary);margin:0 0 1.25rem}
+
+  /* Device grid */
+  .at-devices-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+  .at-device-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all var(--transition)}
+  .at-device-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+  .at-device-offline{opacity:.7}
+  .at-device-header{padding:1.25rem 1.25rem .8rem;text-align:center;position:relative}
+  .at-device-on{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
+  .at-device-standby{background:var(--surface-alt);color:var(--text)}
+  .at-device-offline .at-device-header{background:var(--surface-alt);color:var(--text-muted)}
+  .at-device-header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+  .at-device-header-top h4{font-size:.95rem;font-weight:700;margin:0}
+  .at-device-badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.7rem;font-weight:600;padding:.2rem .55rem;border-radius:50px;background:rgba(255,255,255,.15)}
+  .at-device-standby .at-device-badge,.at-device-offline .at-device-header .at-device-badge{background:rgba(0,0,0,.06)}
+  .at-dot-sm{width:6px;height:6px;border-radius:50%;display:inline-block}.at-dot-sm.at-dot-on{background:#10B981}.at-dot-sm.at-dot-off{background:#ef4444}.at-dot-sm.at-dot-gray{background:#9CA3AF}
+  .at-device-temp{font-size:2.8rem;font-weight:800;line-height:1.2;margin:.25rem 0 .1rem}
+  .at-device-mode{font-size:.78rem;opacity:.7}
+  .at-device-body{padding:1rem 1.25rem}
+  .at-device-info{display:flex;justify-content:space-between;font-size:.78rem;color:var(--text-muted);margin-bottom:.75rem}
+  .at-device-footer{display:flex;gap:.5rem}
+  .at-device-time{display:block;font-size:.68rem;color:var(--text-muted);margin-top:.5rem;text-align:center}
+  .at-btn{display:inline-flex;align-items:center;padding:.45rem .95rem;border-radius:var(--radius-sm);font-size:.82rem;font-weight:600;text-decoration:none;transition:all var(--transition);cursor:pointer;border:none;flex:1;justify-content:center}
+  .at-btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}.at-btn-primary:hover{color:#fff;transform:translateY(-1px);box-shadow:0 4px 12px rgba(11,37,69,.15)}
+  .at-btn-danger{background:rgba(239,68,68,.1);color:#dc2626;flex:0;padding:.45rem .65rem}.at-btn-danger:hover{background:#ef4444;color:#fff}
+  .at-btn-success{background:rgba(16,185,129,.1);color:#059669;flex:0;padding:.45rem .65rem}.at-btn-success:hover{background:#10b981;color:#fff}
+
+  /* Tip */
+  .at-tip{display:flex;gap:.75rem;align-items:flex-start;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:var(--radius);padding:1rem 1.25rem;font-size:.85rem;color:var(--text)}
+  .at-tip-icon{color:#10B981;font-size:1.1rem;margin-top:.1rem}
+
+  @media(max-width:768px){.at-hero-inner{flex-direction:column;text-align:center}.at-hero-stats{justify-content:center}.at-metrics{grid-template-columns:1fr}.at-devices-grid{grid-template-columns:1fr}}
+</style>
 {% endblock %}

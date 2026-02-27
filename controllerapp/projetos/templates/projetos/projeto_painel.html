@@ -1,0 +1,1046 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}{{ projeto.titulo }} — Painel{% endblock %}
+
+{% block head %}
+<style>
+/* ── Projeto Painel — Institutional Theme ── */
+
+/* Priority colors */
+:root{
+  --pp-low:#16a34a;--pp-low-bg:rgba(22,163,74,.12);
+  --pp-med:#eab308;--pp-med-bg:rgba(234,179,8,.12);
+  --pp-high:#f97316;--pp-high-bg:rgba(249,115,22,.12);
+  --pp-urg:#dc2626;--pp-urg-bg:rgba(220,38,38,.12);
+}
+
+/* ── Hero ── */
+.pp-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:2rem 0;color:#fff}
+.pp-hero h1{font-weight:800;font-size:1.75rem;margin:0}
+.pp-hero .pp-status{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .85rem;border-radius:50px;font-size:.8rem;font-weight:600;backdrop-filter:blur(8px)}
+.pp-status-em_andamento{background:rgba(234,179,8,.25);color:#fde68a}
+.pp-status-concluido{background:rgba(22,163,74,.25);color:#86efac}
+.pp-status-planejado{background:rgba(96,165,250,.25);color:#93c5fd}
+.pp-status-cancelado{background:rgba(220,38,38,.25);color:#fca5a5}
+.pp-breadcrumb a{color:var(--accent-light);text-decoration:none}
+.pp-breadcrumb a:hover{text-decoration:underline}
+.pp-breadcrumb span{color:rgba(255,255,255,.6)}
+
+/* ── Stats row ── */
+.pp-stat{background:var(--white);border-radius:var(--radius);padding:1rem 1.25rem;border:1px solid var(--border);box-shadow:0 2px 8px rgba(11,37,69,.05);text-align:center;transition:var(--transition)}
+.pp-stat:hover{box-shadow:0 4px 16px rgba(11,37,69,.1);transform:translateY(-2px)}
+.pp-stat-value{font-size:1.6rem;font-weight:800;color:var(--primary);line-height:1}
+.pp-stat-label{font-size:.78rem;color:var(--text-muted);font-weight:500;margin-top:.25rem}
+
+/* ── Tabs ── */
+.pp-tabs{background:var(--white);border-bottom:2px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(11,37,69,.04)}
+.pp-tabs .nav-link{color:var(--text-muted);font-weight:600;font-size:.9rem;padding:.85rem 1.25rem;border:none;border-bottom:3px solid transparent;border-radius:0;transition:var(--transition)}
+.pp-tabs .nav-link:hover{color:var(--primary);background:var(--surface-alt)}
+.pp-tabs .nav-link.active{color:var(--accent);border-bottom-color:var(--accent);background:transparent}
+.pp-tabs .nav-link i{margin-right:.35rem}
+
+/* ── Tab content ── */
+.pp-content{padding:1.5rem 0;min-height:50vh}
+
+/* ── Overview cards ── */
+.pp-info-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.5rem;box-shadow:0 2px 8px rgba(11,37,69,.05)}
+.pp-info-title{font-weight:700;font-size:1.05rem;color:var(--text);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.pp-info-title i{color:var(--accent)}
+.pp-link-item{display:flex;align-items:center;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--surface-alt);font-size:.88rem}
+.pp-link-item:last-child{border-bottom:none}
+.pp-link-item a{color:var(--accent);text-decoration:none;word-break:break-all}
+.pp-link-item a:hover{text-decoration:underline}
+
+/* ── Kanban (inline) ── */
+.pp-board{display:flex;overflow-x:auto;gap:1rem;padding:1rem 0 2rem;min-height:45vh}
+.pp-board::-webkit-scrollbar{height:6px}
+.pp-board::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px;opacity:.4}
+.pp-col{min-width:280px;max-width:280px;border-radius:var(--radius);background:var(--white);box-shadow:0 2px 10px rgba(11,37,69,.06);display:flex;flex-direction:column;border:1px solid var(--border);flex-shrink:0;transition:var(--transition)}
+.pp-col:hover{box-shadow:0 4px 16px rgba(11,37,69,.1)}
+.pp-col-header{padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.pp-col-title{font-weight:700;font-size:.92rem;color:var(--text);margin:0}
+.pp-col-count{background:var(--surface-alt);border-radius:50px;padding:1px 8px;font-size:.75rem;font-weight:600;color:var(--text-muted)}
+.pp-col-body{flex-grow:1;padding:.5rem;overflow-y:auto;max-height:50vh;min-height:120px}
+.pp-col-body.highlight{background:rgba(19,103,138,.06);border:2px dashed rgba(19,103,138,.3);border-radius:var(--radius-sm)}
+.pp-col-body.highlight .pp-empty-col{display:none}
+.pp-empty-col{text-align:center;padding:1.5rem .5rem;color:var(--text-muted);font-size:.8rem;pointer-events:none}
+.pp-empty-col i{font-size:1.2rem;opacity:.35;display:block;margin-bottom:.25rem}
+
+.pp-card{background:var(--white);border-radius:var(--radius-sm);padding:.75rem .85rem;margin-bottom:.6rem;box-shadow:0 1px 4px rgba(11,37,69,.05);cursor:grab;border-left:3px solid transparent;transition:var(--transition);position:relative}
+.pp-card:hover{box-shadow:0 3px 12px rgba(11,37,69,.1);transform:translateY(-1px)}
+.pp-card:active{cursor:grabbing}
+.pp-card[data-card-priority="baixa"]{border-left-color:var(--pp-low)}
+.pp-card[data-card-priority="media"]{border-left-color:var(--pp-med)}
+.pp-card[data-card-priority="alta"]{border-left-color:var(--pp-high)}
+.pp-card[data-card-priority="urgente"]{border-left-color:var(--pp-urg)}
+.pp-card.hidden-card{opacity:.5;border-style:dashed}
+.pp-card-title{font-weight:600;font-size:.85rem;color:var(--text);margin-bottom:.35rem;padding-right:20px;line-height:1.3}
+.pp-card-meta{display:flex;flex-wrap:wrap;gap:4px}
+.pp-tag{display:inline-flex;align-items:center;padding:1px 7px;border-radius:50px;font-size:.68rem;font-weight:600}
+.pp-tag-low{background:var(--pp-low-bg);color:#15803d}
+.pp-tag-med{background:var(--pp-med-bg);color:#a16207}
+.pp-tag-high{background:var(--pp-high-bg);color:#c2410c}
+.pp-tag-urg{background:var(--pp-urg-bg);color:#dc2626}
+.pp-tag-user{background:var(--surface-alt);color:var(--text-muted)}
+.pp-card-actions{position:absolute;top:4px;right:4px;opacity:0;transition:var(--transition)}
+.pp-card:hover .pp-card-actions{opacity:1}
+.pp-card-actions .btn{padding:.1rem .3rem;font-size:.7rem;color:var(--text-muted);background:transparent;border:none}
+
+/* Ghost card */
+.pp-card.dragging{opacity:.5;transform:rotate(2deg)}
+.pp-card.ghost-card{background:rgba(19,103,138,.05);border:2px dashed rgba(19,103,138,.25);box-shadow:none;cursor:default;padding:0}
+
+/* Add card btn */
+.pp-add-card{width:100%;padding:.45rem;text-align:center;border:2px dashed var(--border);border-radius:var(--radius-sm);cursor:pointer;color:var(--text-muted);font-weight:500;font-size:.8rem;background:transparent;transition:var(--transition)}
+.pp-add-card:hover{border-color:var(--accent);color:var(--accent);background:rgba(19,103,138,.04)}
+
+/* ── Todo list (inline) ── */
+.pp-task{display:flex;align-items:flex-start;gap:.75rem;padding:.85rem 1rem;background:var(--white);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:.5rem;transition:var(--transition);border-left:4px solid transparent}
+.pp-task:hover{box-shadow:0 2px 8px rgba(11,37,69,.06);transform:translateX(2px)}
+.pp-task[data-priority="baixa"]{border-left-color:var(--pp-low)}
+.pp-task[data-priority="media"]{border-left-color:var(--pp-med)}
+.pp-task[data-priority="alta"]{border-left-color:var(--pp-high)}
+.pp-task[data-priority="urgente"]{border-left-color:var(--pp-urg)}
+.pp-task.done{opacity:.55}
+.pp-task.done .pp-task-title{text-decoration:line-through}
+.pp-task-check{margin-top:3px;flex-shrink:0;accent-color:var(--accent);width:18px;height:18px;cursor:pointer}
+.pp-task-body{flex:1;min-width:0}
+.pp-task-title{font-weight:600;font-size:.9rem;color:var(--text);margin-bottom:.2rem}
+.pp-task-info{font-size:.78rem;color:var(--text-muted);display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.pp-task-actions{flex-shrink:0;display:flex;gap:.25rem}
+.pp-task-actions .btn{padding:.15rem .3rem;font-size:.75rem;color:var(--text-muted);border:none;background:transparent}
+.pp-task-actions .btn:hover{color:var(--accent)}
+
+/* ── Team ── */
+.pp-member{display:flex;align-items:center;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--surface-alt)}
+.pp-member:last-child{border-bottom:none}
+.pp-member-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-light));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.88rem;flex-shrink:0}
+.pp-member-name{font-weight:600;font-size:.92rem;color:var(--text)}
+.pp-member-role{font-size:.78rem;color:var(--text-muted)}
+
+/* ── Toast ── */
+.pp-toast{position:fixed;top:80px;right:24px;z-index:9999;min-width:280px;border-radius:var(--radius-sm);padding:.85rem 1.15rem;display:none;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.15);animation:ppSlide .3s ease;font-size:.9rem}
+.pp-toast.show{display:flex;align-items:center;gap:.5rem}
+.pp-toast.success{background:#ecfdf5;color:#065f46;border-left:4px solid var(--pp-low)}
+.pp-toast.error{background:#fef2f2;color:#991b1b;border-left:4px solid var(--pp-urg)}
+.pp-toast.info{background:#eff6ff;color:#1e40af;border-left:4px solid var(--accent)}
+@keyframes ppSlide{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── Modals ── */
+.pp-modal .modal-content{border-radius:var(--radius);border:none;overflow:hidden}
+.pp-modal .modal-header{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border:none;padding:1.15rem 1.5rem}
+.pp-modal .modal-header .btn-close{filter:invert(1);opacity:.7}
+.pp-modal .modal-title{font-weight:700;font-size:1.05rem}
+.pp-modal .modal-body{padding:1.25rem}
+.pp-modal .modal-footer{border-top:1px solid var(--border);padding:.85rem 1.25rem}
+.pp-modal .form-label{font-weight:600;font-size:.85rem;color:var(--text)}
+.pp-modal .form-control,.pp-modal .form-select{border-radius:var(--radius-sm);border:1px solid var(--border);font-size:.9rem}
+.pp-modal .form-control:focus,.pp-modal .form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(19,103,138,.15)}
+.pp-modal .btn-save{background:var(--accent);border:none;color:#fff;border-radius:var(--radius-sm);padding:.45rem 1.25rem;font-weight:600;transition:var(--transition)}
+.pp-modal .btn-save:hover{background:var(--accent-light);transform:translateY(-1px)}
+.pp-modal .btn-cancel{background:var(--surface-alt);border:none;color:var(--text-muted);border-radius:var(--radius-sm);padding:.45rem 1.25rem;font-weight:500}
+.pp-modal .btn-danger-custom{background:var(--pp-urg);border:none;color:#fff;border-radius:var(--radius-sm);padding:.45rem 1.25rem;font-weight:600}
+
+/* filter bar */
+.pp-filter-bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1rem}
+.pp-filter-bar .btn{border-radius:50px;font-size:.82rem;padding:.35rem .85rem;font-weight:500;border-color:var(--border);color:var(--text)}
+.pp-filter-bar .btn:hover{border-color:var(--accent);color:var(--accent)}
+.pp-filter-bar .btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* responsive */
+@media(max-width:768px){
+  .pp-hero h1{font-size:1.3rem}
+  .pp-tabs .nav-link{padding:.65rem .75rem;font-size:.82rem}
+  .pp-col{min-width:260px;max-width:260px}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="pp-hero">
+  <div class="container">
+    <nav class="pp-breadcrumb mb-2" style="font-size:.85rem">
+      <a href="{% url 'projetos:gestao' %}">Gestão de Projetos</a>
+      <span class="mx-1">/</span>
+      <span style="color:rgba(255,255,255,.9)">{{ projeto.titulo }}</span>
+    </nav>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div>
+        <h1>{{ projeto.titulo }}</h1>
+        <div class="d-flex align-items-center gap-2 mt-1">
+          <span class="pp-status pp-status-{{ projeto.status }}">
+            {% if projeto.status == 'em_andamento' %}<i class="fas fa-spinner fa-spin" style="font-size:.7rem"></i>{% endif %}
+            {% if projeto.status == 'concluido' %}<i class="fas fa-check-circle" style="font-size:.7rem"></i>{% endif %}
+            {% if projeto.status == 'planejado' %}<i class="fas fa-calendar" style="font-size:.7rem"></i>{% endif %}
+            {% if projeto.status == 'cancelado' %}<i class="fas fa-times-circle" style="font-size:.7rem"></i>{% endif %}
+            {{ projeto.get_status_display }}
+          </span>
+          {% if projeto.responsavel %}
+          <span style="font-size:.82rem;opacity:.8"><i class="fas fa-user me-1"></i>{{ projeto.responsavel.first_name }} {{ projeto.responsavel.last_name }}</span>
+          {% endif %}
+          {% if projeto.data_inicio %}
+          <span style="font-size:.82rem;opacity:.7"><i class="fas fa-calendar-alt me-1"></i>{{ projeto.data_inicio|date:"d/m/Y" }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <a href="{% url 'projetos:gestao' %}" class="btn btn-outline-light btn-sm" style="border-radius:50px">
+        <i class="fas fa-arrow-left me-1"></i> Todos os Projetos
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Row -->
+<div class="container mt-3 mb-2">
+  <div class="row g-3">
+    <div class="col-6 col-md-3">
+      <div class="pp-stat">
+        <div class="pp-stat-value" style="color:var(--accent)">{{ total_cards }}</div>
+        <div class="pp-stat-label">Cards Kanban</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="pp-stat">
+        <div class="pp-stat-value" style="color:var(--pp-med)">{{ tarefas_pendentes }}</div>
+        <div class="pp-stat-label">Tarefas Pendentes</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="pp-stat">
+        <div class="pp-stat-value" style="color:var(--pp-low)">{{ tarefas_concluidas_count }}</div>
+        <div class="pp-stat-label">Tarefas Concluídas</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="pp-stat">
+        <div class="pp-stat-value" style="color:var(--pp-urg)">{{ tarefas_atrasadas }}</div>
+        <div class="pp-stat-label">Atrasadas</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="pp-tabs">
+  <div class="container">
+    <ul class="nav nav-tabs border-0" id="painelTabs" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link {% if aba == 'visao_geral' %}active{% endif %}" href="?aba=visao_geral">
+          <i class="fas fa-info-circle"></i> Visão Geral
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if aba == 'kanban' %}active{% endif %}" href="?aba=kanban">
+          <i class="fas fa-columns"></i> Kanban
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if aba == 'tarefas' %}active{% endif %}" href="?aba=tarefas">
+          <i class="fas fa-tasks"></i> Tarefas
+          {% if tarefas_pendentes > 0 %}
+          <span class="badge rounded-pill" style="background:var(--pp-med);color:#fff;font-size:.65rem;margin-left:.25rem">{{ tarefas_pendentes }}</span>
+          {% endif %}
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if aba == 'equipe' %}active{% endif %}" href="?aba=equipe">
+          <i class="fas fa-users"></i> Equipe
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="pp-toast" id="ppToast">
+  <i class="fas fa-info-circle" id="ppToastIcon"></i>
+  <span id="ppToastMsg"></span>
+</div>
+
+<!-- Content -->
+<div class="pp-content">
+  <div class="container">
+
+    <!-- ═══════════ ABA: VISÃO GERAL ═══════════ -->
+    {% if aba == 'visao_geral' %}
+    <div class="row g-4">
+      <!-- Coluna principal -->
+      <div class="col-lg-8">
+        <div class="pp-info-card mb-4">
+          <h5 class="pp-info-title"><i class="fas fa-file-alt"></i> Descrição</h5>
+          {% if projeto.descricao %}
+          <p style="font-size:.92rem;color:var(--text);line-height:1.65">{{ projeto.descricao|linebreaksbr }}</p>
+          {% else %}
+          <p style="color:var(--text-muted);font-size:.9rem">Nenhuma descrição disponível.</p>
+          {% endif %}
+        </div>
+
+        {% if projeto.descricao_curta %}
+        <div class="pp-info-card mb-4">
+          <h5 class="pp-info-title"><i class="fas fa-quote-left"></i> Resumo</h5>
+          <p style="font-size:.9rem;color:var(--text-muted);font-style:italic">{{ projeto.descricao_curta }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Links -->
+        {% if projeto.link_github or projeto.link_video or projeto.link_documentacao %}
+        <div class="pp-info-card mb-4">
+          <h5 class="pp-info-title"><i class="fas fa-link"></i> Links Externos</h5>
+          {% if projeto.link_github %}
+          <div class="pp-link-item"><i class="fab fa-github" style="color:var(--text)"></i> <a href="{{ projeto.link_github }}" target="_blank">{{ projeto.link_github }}</a></div>
+          {% endif %}
+          {% if projeto.link_video %}
+          <div class="pp-link-item"><i class="fas fa-video" style="color:var(--pp-urg)"></i> <a href="{{ projeto.link_video }}" target="_blank">{{ projeto.link_video }}</a></div>
+          {% endif %}
+          {% if projeto.link_documentacao %}
+          <div class="pp-link-item"><i class="fas fa-book" style="color:var(--accent)"></i> <a href="{{ projeto.link_documentacao }}" target="_blank">{{ projeto.link_documentacao }}</a></div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        <!-- Detalhes -->
+        <div class="pp-info-card mb-4">
+          <h5 class="pp-info-title"><i class="fas fa-clipboard-list"></i> Detalhes</h5>
+          <table style="width:100%;font-size:.88rem">
+            <tr style="border-bottom:1px solid var(--surface-alt)">
+              <td style="padding:.5rem 0;color:var(--text-muted);font-weight:500">Status</td>
+              <td style="padding:.5rem 0;text-align:right"><span class="pp-tag pp-tag-{{ projeto.status|cut:'_' }}" style="background:var(--surface-alt);color:var(--text);font-weight:600;padding:3px 10px">{{ projeto.get_status_display }}</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--surface-alt)">
+              <td style="padding:.5rem 0;color:var(--text-muted);font-weight:500">Início</td>
+              <td style="padding:.5rem 0;text-align:right;color:var(--text)">{{ projeto.data_inicio|date:"d/m/Y" }}</td>
+            </tr>
+            {% if projeto.data_conclusao %}
+            <tr style="border-bottom:1px solid var(--surface-alt)">
+              <td style="padding:.5rem 0;color:var(--text-muted);font-weight:500">Conclusão</td>
+              <td style="padding:.5rem 0;text-align:right;color:var(--text)">{{ projeto.data_conclusao|date:"d/m/Y" }}</td>
+            </tr>
+            {% endif %}
+            <tr style="border-bottom:1px solid var(--surface-alt)">
+              <td style="padding:.5rem 0;color:var(--text-muted);font-weight:500">Responsável</td>
+              <td style="padding:.5rem 0;text-align:right;color:var(--text)">{{ projeto.responsavel.first_name|default:"—" }} {{ projeto.responsavel.last_name|default:"" }}</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--surface-alt)">
+              <td style="padding:.5rem 0;color:var(--text-muted);font-weight:500">Participantes</td>
+              <td style="padding:.5rem 0;text-align:right;color:var(--text)">{{ participantes.count }}</td>
+            </tr>
+            <tr>
+              <td style="padding:.5rem 0;color:var(--text-muted);font-weight:500">Atualizado</td>
+              <td style="padding:.5rem 0;text-align:right;color:var(--text)">{{ projeto.data_atualizacao|date:"d/m/Y H:i" }}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Tags -->
+        {% if projeto.tags.exists %}
+        <div class="pp-info-card mb-4">
+          <h5 class="pp-info-title"><i class="fas fa-tags"></i> Tags</h5>
+          <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+            {% for tag in projeto.tags.all %}
+            <span style="display:inline-block;padding:.25rem .65rem;background:var(--surface-alt);border-radius:50px;font-size:.8rem;font-weight:500;color:var(--text)">{{ tag.nome }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="pp-info-card">
+          <h5 class="pp-info-title"><i class="fas fa-bolt"></i> Ações Rápidas</h5>
+          <div class="d-grid gap-2">
+            <a href="?aba=kanban" class="btn btn-sm" style="background:var(--surface-alt);color:var(--text);font-weight:500;text-align:left;padding:.6rem .85rem;border-radius:var(--radius-sm)">
+              <i class="fas fa-columns me-2" style="color:var(--accent)"></i> Abrir Kanban
+              <span class="float-end" style="color:var(--text-muted)"><i class="fas fa-chevron-right"></i></span>
+            </a>
+            <a href="?aba=tarefas" class="btn btn-sm" style="background:var(--surface-alt);color:var(--text);font-weight:500;text-align:left;padding:.6rem .85rem;border-radius:var(--radius-sm)">
+              <i class="fas fa-tasks me-2" style="color:var(--pp-med)"></i> Ver Tarefas
+              <span class="float-end" style="color:var(--text-muted)"><i class="fas fa-chevron-right"></i></span>
+            </a>
+            <a href="{% url 'projetos:detalhe' projeto.slug %}" class="btn btn-sm" style="background:var(--surface-alt);color:var(--text);font-weight:500;text-align:left;padding:.6rem .85rem;border-radius:var(--radius-sm)">
+              <i class="fas fa-external-link-alt me-2" style="color:var(--pp-low)"></i> Página Pública
+              <span class="float-end" style="color:var(--text-muted)"><i class="fas fa-chevron-right"></i></span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ ABA: KANBAN ═══════════ -->
+    {% elif aba == 'kanban' %}
+
+    <!-- Kanban board inline -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <h5 style="font-weight:700;color:var(--text);margin:0"><i class="fas fa-columns me-2" style="color:var(--accent)"></i>Quadro Kanban — {{ projeto.titulo }}</h5>
+        <p style="font-size:.82rem;color:var(--text-muted);margin:0">Arraste os cards entre as colunas para atualizar o status</p>
+      </div>
+      <div class="d-flex gap-2">
+        {% if user.is_superuser %}
+        <a href="{% url 'canva:kanban' %}" class="btn btn-sm" style="border:1px solid var(--border);border-radius:50px;font-size:.82rem;color:var(--text-muted)">
+          <i class="fas fa-expand me-1"></i> Kanban Global
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="pp-board" id="kanbanBoard">
+      {% for coluna in colunas %}
+      <div class="pp-col" data-column-id="{{ coluna.id }}">
+        <div class="pp-col-header" style="border-top:3px solid {{ coluna.cor|default:'var(--primary)' }}">
+          <div class="d-flex align-items-center gap-2">
+            <h3 class="pp-col-title">{{ coluna.nome }}</h3>
+            <span class="pp-col-count column-count">{{ coluna.cards_filtrados|length }}</span>
+          </div>
+        </div>
+        <div class="pp-col-body card-dropzone" data-column-id="{{ coluna.id }}">
+          {% for card in coluna.cards_filtrados %}
+          <div class="pp-card {% if not card.visivel %}hidden-card{% endif %}"
+               data-card-id="{{ card.id }}"
+               data-card-priority="{{ card.prioridade }}"
+               data-card-user="{{ card.responsavel.id|default:'none' }}"
+               draggable="true">
+            <div class="pp-card-actions dropdown">
+              <button class="btn" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-h"></i></button>
+              <ul class="dropdown-menu dropdown-menu-end" style="font-size:.82rem;min-width:130px;border-radius:var(--radius-sm)">
+                <li><a class="dropdown-item view-card" href="#" data-card-id="{{ card.id }}"><i class="fas fa-eye me-2"></i>Ver</a></li>
+                {% if user.is_superuser or user == card.responsavel or user == card.criado_por %}
+                <li><a class="dropdown-item edit-card" href="#" data-card-id="{{ card.id }}"><i class="fas fa-edit me-2"></i>Editar</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger delete-card" href="#" data-card-id="{{ card.id }}"><i class="fas fa-trash me-2"></i>Excluir</a></li>
+                {% endif %}
+              </ul>
+            </div>
+            <div class="pp-card-title">{{ card.titulo }}</div>
+            <div class="pp-card-meta">
+              <span class="pp-tag pp-tag-{{ card.prioridade }}">{{ card.get_prioridade_display }}</span>
+              {% if card.responsavel %}
+              <span class="pp-tag pp-tag-user"><i class="fas fa-user me-1"></i>{{ card.responsavel.first_name }}</span>
+              {% endif %}
+              {% if card.prazo %}
+              <span class="pp-tag" style="background:var(--surface-alt);color:var(--text-muted)"><i class="fas fa-clock me-1"></i>{{ card.prazo|date:"d/m" }}</span>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          {% endfor %}
+          {% if not coluna.cards_filtrados %}
+          <div class="pp-empty-col">
+            <i class="fas fa-inbox"></i>
+            Arraste um card para cá
+          </div>
+          {% endif %}
+        </div>
+        <div style="padding:.4rem .5rem .5rem">
+          <button class="pp-add-card kanban-add-card" data-column-id="{{ coluna.id }}" data-bs-toggle="modal" data-bs-target="#addCardModal">
+            <i class="fas fa-plus me-1"></i> Card
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- ═══════════ ABA: TAREFAS ═══════════ -->
+    {% elif aba == 'tarefas' %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <h5 style="font-weight:700;color:var(--text);margin:0"><i class="fas fa-tasks me-2" style="color:var(--accent)"></i>Tarefas — {{ projeto.titulo }}</h5>
+      <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#addTaskModal" style="background:var(--accent);color:#fff;border-radius:50px;font-weight:600;padding:.35rem 1rem;font-size:.82rem">
+        <i class="fas fa-plus me-1"></i> Nova Tarefa
+      </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="pp-filter-bar">
+      <a href="?aba=tarefas&t_status=all" class="btn btn-sm {% if filtro_tarefa_status == 'all' %}active{% endif %}">Todas ({{ total_tarefas }})</a>
+      <a href="?aba=tarefas&t_status=pending" class="btn btn-sm {% if filtro_tarefa_status == 'pending' %}active{% endif %}">Pendentes ({{ tarefas_pendentes }})</a>
+      <a href="?aba=tarefas&t_status=completed" class="btn btn-sm {% if filtro_tarefa_status == 'completed' %}active{% endif %}">Concluídas ({{ tarefas_concluidas_count }})</a>
+      {% if tarefas_atrasadas > 0 %}
+      <a href="?aba=tarefas&t_status=pending" class="btn btn-sm" style="color:var(--pp-urg);border-color:var(--pp-urg)">
+        <i class="fas fa-exclamation-triangle me-1"></i> {{ tarefas_atrasadas }} Atrasada{{ tarefas_atrasadas|pluralize:"s" }}
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- Lista de tarefas -->
+    {% for tarefa in tarefas %}
+    <div class="pp-task {% if tarefa.concluida %}done{% endif %}" data-priority="{{ tarefa.prioridade }}" data-task-id="{{ tarefa.id }}">
+      <input type="checkbox" class="pp-task-check" {% if tarefa.concluida %}checked{% endif %}
+             onchange="toggleTask({{ tarefa.id }}, this.checked)">
+      <div class="pp-task-body">
+        <div class="pp-task-title">{{ tarefa.titulo }}</div>
+        <div class="pp-task-info">
+          <span class="pp-tag pp-tag-{{ tarefa.prioridade }}">{{ tarefa.get_prioridade_display }}</span>
+          {% if tarefa.data_limite %}
+          <span {% if tarefa.esta_atrasada %}style="color:var(--pp-urg);font-weight:600"{% endif %}>
+            <i class="fas fa-clock me-1"></i>{{ tarefa.data_limite|date:"d/m/Y" }}
+            {% if tarefa.esta_atrasada %}<i class="fas fa-exclamation-triangle ms-1"></i>{% endif %}
+          </span>
+          {% endif %}
+          {% if tarefa.grupo %}
+          <span><i class="fas fa-users me-1"></i>{{ tarefa.grupo.nome }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="pp-task-actions">
+        <button class="btn" onclick="editTask({{ tarefa.id }})" title="Editar"><i class="fas fa-edit"></i></button>
+        <button class="btn" onclick="deleteTask({{ tarefa.id }})" title="Excluir"><i class="fas fa-trash" style="color:var(--pp-urg)"></i></button>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5">
+      <i class="fas fa-clipboard-check d-block mb-2" style="font-size:3rem;color:var(--border)"></i>
+      <p style="color:var(--text-muted);font-weight:500">Nenhuma tarefa encontrada para este projeto</p>
+      <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#addTaskModal" style="background:var(--accent);color:#fff;border-radius:50px;font-weight:600;padding:.35rem 1rem;font-size:.82rem">
+        <i class="fas fa-plus me-1"></i> Criar primeira tarefa
+      </button>
+    </div>
+    {% endfor %}
+
+    <!-- ═══════════ ABA: EQUIPE ═══════════ -->
+    {% elif aba == 'equipe' %}
+
+    <div class="row g-4">
+      <!-- Responsável -->
+      <div class="col-lg-6">
+        <div class="pp-info-card">
+          <h5 class="pp-info-title"><i class="fas fa-user-tie"></i> Responsável</h5>
+          {% if responsavel %}
+          <div class="pp-member">
+            <div class="pp-member-avatar">{{ responsavel.first_name|first|upper }}{{ responsavel.last_name|first|upper }}</div>
+            <div>
+              <div class="pp-member-name">{{ responsavel.first_name }} {{ responsavel.last_name }}</div>
+              <div class="pp-member-role">{{ responsavel.email }}</div>
+            </div>
+          </div>
+          {% else %}
+          <p style="color:var(--text-muted);font-size:.9rem">Nenhum responsável definido.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Participantes -->
+      <div class="col-lg-6">
+        <div class="pp-info-card">
+          <h5 class="pp-info-title"><i class="fas fa-users"></i> Participantes ({{ participantes.count }})</h5>
+          {% for membro in participantes %}
+          <div class="pp-member">
+            <div class="pp-member-avatar" style="{% cycle 'background:linear-gradient(135deg,var(--accent),var(--accent-light))' 'background:linear-gradient(135deg,var(--primary),var(--primary-light))' 'background:linear-gradient(135deg,#059669,#10b981)' 'background:linear-gradient(135deg,#f97316,#fb923c)' %}">
+              {{ membro.first_name|first|upper }}{{ membro.last_name|first|upper }}
+            </div>
+            <div>
+              <div class="pp-member-name">{{ membro.first_name }} {{ membro.last_name }}</div>
+              <div class="pp-member-role">{{ membro.email }}</div>
+            </div>
+          </div>
+          {% empty %}
+          <p style="color:var(--text-muted);font-size:.9rem">Nenhum participante vinculado.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Grupos -->
+      {% if grupos_projeto %}
+      <div class="col-12">
+        <div class="pp-info-card">
+          <h5 class="pp-info-title"><i class="fas fa-layer-group"></i> Grupos Vinculados</h5>
+          <div class="row g-3">
+            {% for grupo in grupos_projeto %}
+            <div class="col-md-4">
+              <div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;transition:var(--transition)">
+                <h6 style="font-weight:700;color:var(--text);margin-bottom:.5rem"><i class="fas fa-users-cog me-1" style="color:var(--accent)"></i> {{ grupo.nome }}</h6>
+                {% if grupo.descricao %}
+                <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.5rem">{{ grupo.descricao|truncatechars:80 }}</p>
+                {% endif %}
+                <div style="display:flex;flex-wrap:wrap;gap:.35rem">
+                  {% for m in grupo.membros.all|slice:":5" %}
+                  <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--surface-alt);font-size:.7rem;font-weight:600;color:var(--text)" title="{{ m.first_name }} {{ m.last_name }}">
+                    {{ m.first_name|first }}{{ m.last_name|first }}
+                  </span>
+                  {% endfor %}
+                  {% if grupo.membros.count > 5 %}
+                  <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent);font-size:.65rem;font-weight:600;color:#fff">+{{ grupo.membros.count|add:"-5" }}</span>
+                  {% endif %}
+                </div>
+                <a href="{% url 'projetos:grupo_detalhe' grupo.id %}" style="display:inline-block;margin-top:.5rem;font-size:.78rem;color:var(--accent);text-decoration:none;font-weight:600">Ver grupo <i class="fas fa-arrow-right ms-1" style="font-size:.7rem"></i></a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- ═══════════════ MODAIS ═══════════════ -->
+
+<!-- Modal: Adicionar Card -->
+<div class="modal fade pp-modal" id="addCardModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Novo Card</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addCardForm">
+          {% csrf_token %}
+          <input type="hidden" name="coluna" id="cardColumn">
+          <input type="hidden" name="projeto" value="{{ projeto.id }}">
+          <div class="mb-3">
+            <label class="form-label">Título <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="titulo" required placeholder="Título do card">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descrição</label>
+            <textarea class="form-control" name="descricao" rows="3" placeholder="Descreva a atividade..."></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Prioridade</label>
+            <select class="form-select" name="prioridade">
+              <option value="baixa">Baixa</option>
+              <option value="media" selected>Média</option>
+              <option value="alta">Alta</option>
+              <option value="urgente">Urgente</option>
+            </select>
+          </div>
+          {% if usuarios %}
+          <div class="mb-3">
+            <label class="form-label">Membros</label>
+            <div style="max-height:140px;overflow-y:auto;padding:.5rem;border:1px solid var(--border);border-radius:var(--radius-sm)">
+              {% for u in usuarios %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="membros" value="{{ u.id }}" id="addMembro{{ u.id }}">
+                <label class="form-check-label" for="addMembro{{ u.id }}" style="font-size:.88rem">{{ u.first_name }} {{ u.last_name }}</label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-save" id="saveCardBtn"><i class="fas fa-check me-1"></i>Criar Card</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar/Ver Card -->
+<div class="modal fade pp-modal" id="editCardModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Detalhes do Card</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editCardId">
+        <form id="editCardForm">
+          {% csrf_token %}
+          <div id="editCardContent"><div class="text-center py-3"><div class="spinner-border" style="color:var(--accent)"></div></div></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-save" id="updateCardBtn" style="display:none"><i class="fas fa-save me-1"></i>Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Confirmar Exclusão -->
+<div class="modal fade pp-modal" id="confirmDeleteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#991b1b,#dc2626)">
+        <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirmar Exclusão</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="fas fa-trash-alt mb-3" style="font-size:2.5rem;color:var(--pp-urg)"></i>
+        <p class="mb-0" id="confirmDeleteMessage">Tem certeza?</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger-custom" id="confirmDeleteBtn"><i class="fas fa-trash me-1"></i>Excluir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Adicionar Tarefa -->
+<div class="modal fade pp-modal" id="addTaskModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Nova Tarefa</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addTaskForm" method="post" action="{% url 'projetos:add_task' %}">
+          {% csrf_token %}
+          <input type="hidden" name="projeto" value="{{ projeto.id }}">
+          <div class="mb-3">
+            <label class="form-label">Título <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="titulo" required placeholder="O que precisa ser feito?">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descrição</label>
+            <textarea class="form-control" name="descricao" rows="2" placeholder="Detalhes..."></textarea>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Prioridade</label>
+              <select class="form-select" name="prioridade">
+                <option value="baixa">Baixa</option>
+                <option value="media" selected>Média</option>
+                <option value="alta">Alta</option>
+                <option value="urgente">Urgente</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Data Limite</label>
+              <input type="date" class="form-control" name="data_limite">
+            </div>
+          </div>
+          {% if grupos_projeto %}
+          <div class="mt-3">
+            <label class="form-label">Grupo (opcional)</label>
+            <select class="form-select" name="grupo">
+              <option value="">Nenhum</option>
+              {% for g in grupos_projeto %}
+              <option value="{{ g.id }}">{{ g.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-save" onclick="document.getElementById('addTaskForm').submit()">
+          <i class="fas fa-check me-1"></i>Criar Tarefa
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar Tarefa -->
+<div class="modal fade pp-modal" id="editTaskModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Editar Tarefa</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editTaskForm" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="projeto" value="{{ projeto.id }}">
+          <div class="mb-3">
+            <label class="form-label">Título <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="titulo" id="editTaskTitle" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descrição</label>
+            <textarea class="form-control" name="descricao" id="editTaskDesc" rows="2"></textarea>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Prioridade</label>
+              <select class="form-select" name="prioridade" id="editTaskPriority">
+                <option value="baixa">Baixa</option>
+                <option value="media">Média</option>
+                <option value="alta">Alta</option>
+                <option value="urgente">Urgente</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Data Limite</label>
+              <input type="date" class="form-control" name="data_limite" id="editTaskDate">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-save" id="saveEditTaskBtn"><i class="fas fa-save me-1"></i>Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const projetoSlug = '{{ projeto.slug }}';
+  const aba = '{{ aba }}';
+  let deleteTarget = null;
+  let deleteType = null;
+
+  // ── Toast ──
+  function showToast(msg, type) {
+    const t = document.getElementById('ppToast'), i = document.getElementById('ppToastIcon'), m = document.getElementById('ppToastMsg');
+    t.className = 'pp-toast show ' + type;
+    m.textContent = msg;
+    i.className = 'fas ' + (type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : 'fa-info-circle');
+    if (type !== 'info') setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function getCsrf() {
+    const el = document.querySelector('[name=csrfmiddlewaretoken]');
+    return el ? el.value : '{{ csrf_token }}';
+  }
+
+  // ══════════════════════════════════
+  //  KANBAN (only if aba == kanban)
+  // ══════════════════════════════════
+  if (aba === 'kanban') {
+    let dragging = null, ghostCard = null, startCol = null, cardH = null, isDrag = false;
+
+    // Add card button
+    document.querySelectorAll('.kanban-add-card').forEach(btn => {
+      btn.addEventListener('click', function () { document.getElementById('cardColumn').value = this.dataset.columnId; });
+    });
+
+    // Save card
+    document.getElementById('saveCardBtn').addEventListener('click', function () {
+      showToast('Salvando...', 'info');
+      const form = document.getElementById('addCardForm');
+      const fd = new FormData(form);
+      const membros = [];
+      form.querySelectorAll('input[name="membros"]:checked').forEach(cb => membros.push(cb.value));
+      fetch('/cambam/card/add/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+        body: JSON.stringify({ titulo: fd.get('titulo'), descricao: fd.get('descricao'), coluna: fd.get('coluna'), projeto: fd.get('projeto'), prioridade: fd.get('prioridade'), membros: membros })
+      }).then(r => r.json()).then(d => {
+        if (d.status === 'success') { bootstrap.Modal.getInstance(document.getElementById('addCardModal')).hide(); showToast('Card criado!', 'success'); setTimeout(() => location.reload(), 700); }
+        else showToast('Erro: ' + d.message, 'error');
+      }).catch(e => showToast('Erro: ' + e.message, 'error'));
+    });
+
+    // View/Edit/Delete card
+    document.querySelectorAll('.view-card').forEach(b => b.addEventListener('click', e => { e.preventDefault(); openCard(b.dataset.cardId, false); }));
+    document.querySelectorAll('.edit-card').forEach(b => b.addEventListener('click', e => { e.preventDefault(); openCard(b.dataset.cardId, true); }));
+    document.querySelectorAll('.delete-card').forEach(b => b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); showDel('card', b.dataset.cardId, 'este card'); }));
+    document.querySelectorAll('.pp-card').forEach(c => c.addEventListener('dblclick', function (e) { if (isDrag) return; e.preventDefault(); openCard(this.dataset.cardId, false); }));
+
+    document.getElementById('updateCardBtn').addEventListener('click', function () {
+      const form = document.getElementById('editCardForm');
+      const cardId = document.getElementById('editCardId').value;
+      const fd = new FormData(form);
+      const data = {};
+      fd.forEach((v, k) => data[k] = v);
+      const vis = document.getElementById('editCardVisible');
+      if (vis) data.visivel = vis.checked;
+      if (document.querySelectorAll('input[name="membros"]').length > 0) { const ids = []; document.querySelectorAll('input[name="membros"]:checked').forEach(cb => ids.push(cb.value)); data.membros_ids = ids; }
+      fetch('/cambam/card/' + cardId + '/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() }, body: JSON.stringify(data) })
+      .then(r => r.json()).then(d => { if (d.status === 'success') { bootstrap.Modal.getInstance(document.getElementById('editCardModal')).hide(); showToast('Card atualizado!', 'success'); setTimeout(() => location.reload(), 700); } else showToast('Erro: ' + d.message, 'error'); })
+      .catch(e => showToast('Erro: ' + e.message, 'error'));
+    });
+
+    function openCard(id, editable) {
+      document.getElementById('editCardId').value = id;
+      document.getElementById('editCardContent').innerHTML = '<div class="text-center py-3"><div class="spinner-border" style="color:var(--accent)"></div></div>';
+      document.getElementById('updateCardBtn').style.display = editable ? 'inline-block' : 'none';
+      new bootstrap.Modal(document.getElementById('editCardModal')).show();
+      fetch('/cambam/card/' + id + '/', { headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCsrf() } })
+      .then(r => { if (!r.ok) throw Error('Erro ' + r.status); return r.text(); })
+      .then(html => { document.getElementById('editCardContent').innerHTML = html; if (!editable) document.querySelectorAll('#editCardForm input:not([type=hidden]),#editCardForm textarea,#editCardForm select').forEach(el => el.disabled = true); })
+      .catch(e => { document.getElementById('editCardContent').innerHTML = '<div class="alert alert-danger">' + e.message + '</div>'; });
+    }
+
+    // Drag & Drop
+    const dropzones = document.querySelectorAll('.card-dropzone');
+    document.querySelectorAll('.pp-card').forEach(card => {
+      card.setAttribute('draggable', 'true');
+      card.addEventListener('dragstart', function (e) {
+        if (e.target.closest('.pp-card-actions')) { e.preventDefault(); return; }
+        isDrag = true; dragging = this; startCol = this.closest('.pp-col-body');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', this.dataset.cardId);
+        cardH = this.offsetHeight;
+        setTimeout(() => { this.classList.add('dragging'); }, 0);
+      });
+      card.addEventListener('dragend', function () {
+        isDrag = false; this.classList.remove('dragging');
+        if (ghostCard && ghostCard.parentNode) ghostCard.parentNode.removeChild(ghostCard);
+        ghostCard = null;
+        dropzones.forEach(dz => dz.classList.remove('highlight'));
+        dragging = null; startCol = null; cardH = null;
+      });
+      card.querySelectorAll('.pp-card-actions button,.pp-card-actions a').forEach(b => b.addEventListener('mousedown', e => e.stopPropagation()));
+    });
+
+    dropzones.forEach(dz => {
+      dz.addEventListener('dragover', function (e) {
+        e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+        if (!dragging) return;
+        this.classList.add('highlight');
+        const after = getAfter(this, e.clientY);
+        if (!ghostCard) {
+          ghostCard = document.createElement('div'); ghostCard.classList.add('pp-card', 'ghost-card'); ghostCard.style.height = (cardH || 50) + 'px';
+        }
+        if (after) {
+          if (ghostCard.nextSibling !== after) this.insertBefore(ghostCard, after);
+        } else {
+          if (ghostCard.parentNode !== this || ghostCard.nextSibling) this.appendChild(ghostCard);
+        }
+      });
+      dz.addEventListener('dragleave', function (e) {
+        const r = this.getBoundingClientRect();
+        if (e.clientX <= r.left || e.clientX >= r.right || e.clientY <= r.top || e.clientY >= r.bottom) {
+          this.classList.remove('highlight');
+          if (ghostCard && ghostCard.parentNode === this) { this.removeChild(ghostCard); ghostCard = null; }
+        }
+      });
+      dz.addEventListener('drop', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        const cid = e.dataTransfer.getData('text/plain');
+        if (!cid || !dragging) return;
+        const sourceCol = startCol;
+        this.classList.remove('highlight');
+        if (ghostCard && ghostCard.parentNode) { ghostCard.parentNode.removeChild(ghostCard); ghostCard = null; }
+        // Remove empty placeholder from target
+        const targetEmpty = this.querySelector('.pp-empty-col');
+        if (targetEmpty) targetEmpty.remove();
+        // Move card in DOM
+        const after = getAfter(this, e.clientY);
+        after ? this.insertBefore(dragging, after) : this.appendChild(dragging);
+        // Add empty placeholder to source if needed
+        if (sourceCol && sourceCol !== this) {
+          const remaining = sourceCol.querySelectorAll('.pp-card:not(.ghost-card)');
+          if (remaining.length === 0) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'pp-empty-col';
+            emptyDiv.innerHTML = '<i class="fas fa-inbox"></i> Arraste um card para cá';
+            sourceCol.appendChild(emptyDiv);
+          }
+        }
+        const order = Array.from(this.querySelectorAll('.pp-card:not(.ghost-card)')).indexOf(dragging);
+        updateCounts(); showToast('Movendo...', 'info');
+        fetch('/cambam/card/move/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() }, body: JSON.stringify({ card_id: cid, coluna_id: this.dataset.columnId, ordem: order }) })
+        .then(r => r.json()).then(d => { if (d.status === 'success') { updateCounts(); showToast('Card movido!', 'success'); } else showToast('Erro', 'error'); })
+        .catch(e => showToast('Erro', 'error'));
+      });
+    });
+
+    function getAfter(cont, y) {
+      return [...cont.querySelectorAll('.pp-card:not(.dragging):not(.ghost-card)')].reduce((cl, ch) => {
+        const b = ch.getBoundingClientRect(), o = y - b.top - b.height / 2;
+        return (o < 0 && o > cl.offset) ? { offset: o, element: ch } : cl;
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function updateCounts() {
+      document.querySelectorAll('.pp-col').forEach(col => {
+        const n = col.querySelectorAll('.pp-card:not(.ghost-card)').length;
+        const el = col.querySelector('.column-count');
+        if (el) el.textContent = n;
+      });
+    }
+  }
+
+  // ══════════════════════════════════
+  //  TASKS (aba == tarefas)
+  // ══════════════════════════════════
+  // Toggle task done
+  window.toggleTask = function (taskId, done) {
+    fetch('/projetos/todo/' + taskId + '/update/', {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'concluida=' + (done ? 'true' : 'false')
+    }).then(r => r.json()).then(d => {
+      if (d.status === 'success') {
+        const el = document.querySelector('.pp-task[data-task-id="' + taskId + '"]');
+        if (el) { done ? el.classList.add('done') : el.classList.remove('done'); }
+        showToast(done ? 'Tarefa concluída!' : 'Tarefa reaberta', 'success');
+      }
+    }).catch(() => showToast('Erro ao atualizar', 'error'));
+  };
+
+  window.editTask = function (taskId) {
+    // Find task data from DOM
+    const taskEl = document.querySelector('.pp-task[data-task-id="' + taskId + '"]');
+    if (!taskEl) return;
+    const title = taskEl.querySelector('.pp-task-title').textContent.trim();
+    const prio = taskEl.dataset.priority;
+    document.getElementById('editTaskTitle').value = title;
+    document.getElementById('editTaskPriority').value = prio;
+    document.getElementById('editTaskForm').action = '/projetos/todo/' + taskId + '/update/';
+    document.getElementById('editTaskDesc').value = '';
+    document.getElementById('editTaskDate').value = '';
+    document.getElementById('saveEditTaskBtn').onclick = function () { document.getElementById('editTaskForm').submit(); };
+    new bootstrap.Modal(document.getElementById('editTaskModal')).show();
+  };
+
+  window.deleteTask = function (taskId) {
+    showDel('task', taskId, 'esta tarefa');
+  };
+
+  // ══════════════════════════════════
+  //  DELETE CONFIRMATION (shared)
+  // ══════════════════════════════════
+  function showDel(type, id, label) {
+    deleteType = type; deleteTarget = id;
+    document.getElementById('confirmDeleteMessage').textContent = 'Tem certeza que deseja excluir ' + label + '? Esta ação não pode ser desfeita.';
+    new bootstrap.Modal(document.getElementById('confirmDeleteModal')).show();
+  }
+
+  document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+    let url = '';
+    if (deleteType === 'card') url = '/cambam/card/' + deleteTarget + '/delete/';
+    else if (deleteType === 'task') url = '/projetos/todo/' + deleteTarget + '/delete/';
+    else return;
+
+    if (deleteType === 'task') {
+      // Task delete is a POST form redirect
+      const form = document.createElement('form');
+      form.method = 'POST'; form.action = url;
+      const csrf = document.createElement('input');
+      csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken'; csrf.value = getCsrf();
+      form.appendChild(csrf);
+      document.body.appendChild(form);
+      form.submit();
+      return;
+    }
+
+    fetch(url, { method: 'POST', headers: { 'X-CSRFToken': getCsrf() } })
+    .then(r => r.json()).then(d => {
+      if (d.status === 'success') {
+        bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
+        if (deleteType === 'card') {
+          const c = document.querySelector('.pp-card[data-card-id="' + deleteTarget + '"]');
+          if (c) c.remove();
+          updateCounts();
+        }
+        showToast('Removido!', 'success');
+      } else showToast('Erro', 'error');
+    }).catch(e => showToast('Erro', 'error'));
+  });
+
+  function updateCounts() {
+    document.querySelectorAll('.pp-col').forEach(col => {
+      const n = col.querySelectorAll('.pp-card:not(.ghost-card)').length;
+      const el = col.querySelector('.column-count');
+      if (el) el.textContent = n;
+    });
+  }
+});
+</script>
+{% csrf_token %}
+{% endblock %}

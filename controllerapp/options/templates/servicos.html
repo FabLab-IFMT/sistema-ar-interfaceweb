@@ -3,160 +3,46 @@
 
 {% block title %}Serviços do Laboratório{% endblock %}
 
-{% block head %}
-<style>
-  .service-card {
-    transition: transform 0.3s, box-shadow 0.3s;
-    height: 100%;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  
-  .service-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  }
-  
-  .service-img {
-    height: 180px;
-    object-fit: cover;
-    width: 100%;
-  }
-  
-  .category-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 10;
-  }
-  
-  .featured-services {
-    position: relative;
-    overflow: hidden;
-    margin-bottom: 3rem;
-  }
-  
-  .featured-badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: var(--accent-color);
-    color: white;
-    padding: 5px 15px;
-    transform: rotate(45deg) translate(20%, -120%);
-    width: 150px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  
-  .category-icon {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: var(--primary-color);
-  }
-  
-  .category-card {
-    text-align: center;
-    padding: 1.5rem;
-    border-radius: 8px;
-    transition: all 0.3s;
-    cursor: pointer;
-    height: 100%;
-  }
-  
-  .category-card:hover, .category-card.active {
-    background-color: var(--primary-color);
-    color: white;
-  }
-  
-  .category-card:hover .category-icon, .category-card.active .category-icon {
-    color: white;
-  }
-  
-  .banner-overlay {
-    position: relative;
-    background: linear-gradient(135deg, #007bff, #6610f2);  <!-- background-image: url('{% static "images/servicos-banner.jpg" %}'); remova esse comentário quando precisar--> 
-    background-size: cover;
-    background-position: center;
-    padding: 5rem 0;
-    color: white;
-    margin-bottom: 3rem;
-  }
-  
-  .banner-overlay:before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-  }
-  
-  .banner-content {
-    position: relative;
-    z-index: 2;
-  }
-  
-  .service-time {
-    font-size: 0.9rem;
-  }
-  
-  .animated-card {
-    animation: fadeInUp 0.5s;
-  }
-  
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .service-filter {
-    transition: all 0.3s;
-  }
-</style>
-{% endblock %}
-
 {% block content %}
-<!-- Banner de serviços -->
-<div class="banner-overlay">
-  <div class="container banner-content text-center">
-    <h1 class="display-4 mb-3 fw-bold">Serviços do FABLAB</h1>
-    <p class="lead">Conheça as tecnologias e serviços disponíveis em nosso laboratório para transformar suas ideias em realidade</p>
-    <div class="d-flex justify-content-center mt-4">
-      <a href="#categorias" class="btn btn-primary btn-lg">Explorar Serviços</a>
+<!-- Hero -->
+<section class="pg-hero">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <span class="fl-tag">CAPACIDADES</span>
+        <h1 class="pg-hero-title">Serviços do <span>FabLab</span></h1>
+        <p class="pg-hero-sub">Conheça as tecnologias e serviços disponíveis em nosso laboratório para transformar suas ideias em realidade.</p>
+        <a href="#categorias" class="fl-btn fl-btn-white mt-3">Explorar Serviços</a>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- Serviços em Destaque -->
+<!-- Destaques -->
 {% if servicos_destaque %}
-<section class="mb-5">
+<section class="fl-section">
   <div class="container">
-    <h2 class="text-center mb-4">Serviços em Destaque</h2>
-    <div class="row">
+    <div class="text-center mb-5">
+      <span class="fl-tag">DESTAQUE</span>
+      <h2 class="fl-heading">Serviços em <span>Destaque</span></h2>
+    </div>
+    <div class="row g-4">
       {% for servico in servicos_destaque %}
-      <div class="col-md-4 mb-4">
-        <div class="card service-card shadow-sm position-relative featured-services">
-          <div class="featured-badge">Destaque</div>
-          {% if servico.imagem %}
-            <img src="{{ servico.imagem.url }}" class="service-img" alt="{{ servico.nome }}">
-          {% else %}
-            <img src="{% static 'images/default-service.jpg' %}" class="service-img" alt="{{ servico.nome }}">
-          {% endif %}
-          <div class="card-body">
-            <h5 class="card-title">{{ servico.nome }}</h5>
-            <p class="card-text">{{ servico.descricao_curta }}</p>
-            <div class="d-flex justify-content-between align-items-center mt-3">
-              <span class="badge bg-primary">{{ servico.categoria.nome }}</span>
-              <a href="{% url 'options:detalhe_servico' servico.id %}" class="btn btn-outline-primary">Ver detalhes</a>
-            </div>
+      <div class="col-md-4">
+        <div class="pg-card-service pg-card-featured">
+          <div class="pg-card-service-img">
+            {% if servico.imagem %}
+              <img src="{{ servico.imagem.url }}" alt="{{ servico.nome }}">
+            {% else %}
+              <img src="{% static 'images/default-service.jpg' %}" alt="{{ servico.nome }}">
+            {% endif %}
+            <span class="pg-badge-featured"><i class="fas fa-star me-1"></i> Destaque</span>
+          </div>
+          <div class="pg-card-service-body">
+            <span class="pg-card-category">{{ servico.categoria.nome }}</span>
+            <h5>{{ servico.nome }}</h5>
+            <p>{{ servico.descricao_curta }}</p>
+            <a href="{% url 'options:detalhe_servico' servico.id %}" class="fl-link">Ver detalhes <i class="fas fa-arrow-right ms-1"></i></a>
           </div>
         </div>
       </div>
@@ -166,269 +52,225 @@
 </section>
 {% endif %}
 
-<!-- Categorias e Filtros -->
-<section class="mb-5" id="categorias">
+<!-- Categorias -->
+<section class="fl-section fl-section-alt" id="categorias">
   <div class="container">
-    <h2 class="text-center mb-4">Navegue por Categorias</h2>
-    <div class="row">
-      <div class="col-12 mb-4">
-        <a href="{% url 'options:servicos' %}" class="btn {% if not categoria_selecionada %}btn-primary{% else %}btn-outline-primary{% endif %} me-2 mb-2">Todos</a>
-        {% for categoria in categorias %}
-        <a href="{% url 'options:servicos' %}?categoria={{ categoria.id }}" class="btn {% if categoria_selecionada == categoria.id|stringformat:'s' %}btn-primary{% else %}btn-outline-primary{% endif %} me-2 mb-2">
-          <i class="fas {{ categoria.icone }}"></i> {{ categoria.nome }}
-        </a>
-        {% endfor %}
-      </div>
+    <div class="text-center mb-5">
+      <span class="fl-tag">CATEGORIAS</span>
+      <h2 class="fl-heading">Navegue por <span>Categoria</span></h2>
     </div>
-  </div>
-</section>
+    <div class="d-flex flex-wrap gap-2 justify-content-center mb-5">
+      <a href="{% url 'options:servicos' %}" class="pg-filter-btn {% if not categoria_selecionada %}active{% endif %}">Todos</a>
+      {% for categoria in categorias %}
+        <a href="{% url 'options:servicos' %}?categoria={{ categoria.id }}" class="pg-filter-btn {% if categoria_selecionada == categoria.id|stringformat:'s' %}active{% endif %}">
+          <i class="fas {{ categoria.icone }} me-1"></i> {{ categoria.nome }}
+        </a>
+      {% endfor %}
+    </div>
 
-<!-- Lista de Serviços -->
-<section class="mb-5 service-filter">
-  <div class="container">
-    <div class="row">
+    <!-- Lista -->
+    <div class="row g-4">
       {% if servicos %}
         {% for servico in servicos %}
-          <div class="col-md-4 mb-4 animated-card" style="animation-delay: {{ forloop.counter|divisibleby:3 }}00ms">
-            <div class="card service-card shadow-sm h-100">
-              <div class="position-relative">
-                {% if servico.imagem %}
-                  <img src="{{ servico.imagem.url }}" class="service-img" alt="{{ servico.nome }}">
-                {% else %}
-                  <img src="{% static 'images/default-service.jpg' %}" class="service-img" alt="{{ servico.nome }}">
-                {% endif %}
-                <span class="category-badge badge bg-secondary">{{ servico.categoria.nome }}</span>
-              </div>
-              <div class="card-body d-flex flex-column">
-                <h5 class="card-title">{{ servico.nome }}</h5>
-                <p class="card-text flex-grow-1">{{ servico.descricao_curta }}</p>
-                <div class="mt-3">
-                  {% if servico.tempo_estimado %}
-                    <div class="service-time text-muted mb-2">
-                      <i class="far fa-clock me-1"></i> Tempo médio: {{ servico.tempo_estimado }}
-                    </div>
-                  {% endif %}
-                </div>
-                <a href="{% url 'options:detalhe_servico' servico.id %}" class="btn btn-primary mt-2">
-                  Ver mais detalhes
-                </a>
-              </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="pg-card-service">
+            <div class="pg-card-service-img">
+              {% if servico.imagem %}
+                <img src="{{ servico.imagem.url }}" alt="{{ servico.nome }}">
+              {% else %}
+                <img src="{% static 'images/default-service.jpg' %}" alt="{{ servico.nome }}">
+              {% endif %}
+              <span class="pg-card-cat-badge">{{ servico.categoria.nome }}</span>
+            </div>
+            <div class="pg-card-service-body">
+              <h5>{{ servico.nome }}</h5>
+              <p>{{ servico.descricao_curta }}</p>
+              {% if servico.tempo_estimado %}
+                <div class="pg-card-meta"><i class="far fa-clock me-1"></i> {{ servico.tempo_estimado }}</div>
+              {% endif %}
+              <a href="{% url 'options:detalhe_servico' servico.id %}" class="pg-btn-details mt-2" style="display:inline-block;width:auto;padding:.5rem 1.2rem">Ver detalhes</a>
             </div>
           </div>
+        </div>
         {% endfor %}
       {% else %}
-        <div class="col-12 text-center">
-          <div class="alert alert-info">
-            <h4>Nenhum serviço encontrado</h4>
-            <p>Não há serviços disponíveis para esta categoria no momento.</p>
-          </div>
+        <div class="col-12">
+          <div class="pg-empty-state"><i class="fas fa-cogs"></i><h4>Nenhum serviço encontrado</h4><p>Não há serviços disponíveis para esta categoria no momento.</p></div>
         </div>
       {% endif %}
     </div>
-    
+
     <!-- Paginação -->
     {% if servicos.paginator.num_pages > 1 %}
-      <nav aria-label="Paginação de serviços" class="my-4">
-        <ul class="pagination justify-content-center">
-          {% if servicos.has_previous %}
-            <li class="page-item">
-              <a class="page-link" href="?{% if categoria_selecionada %}categoria={{ categoria_selecionada }}&{% endif %}page=1" aria-label="Primeira">
-                <span aria-hidden="true">&laquo;&laquo;</span>
-              </a>
-            </li>
-            <li class="page-item">
-              <a class="page-link" href="?{% if categoria_selecionada %}categoria={{ categoria_selecionada }}&{% endif %}page={{ servicos.previous_page_number }}" aria-label="Anterior">
-                <span aria-hidden="true">&laquo;</span>
-              </a>
-            </li>
+    <nav class="mt-5">
+      <ul class="pg-pagination">
+        {% if servicos.has_previous %}
+          <li><a href="?{% if categoria_selecionada %}categoria={{ categoria_selecionada }}&{% endif %}page=1">&laquo;</a></li>
+          <li><a href="?{% if categoria_selecionada %}categoria={{ categoria_selecionada }}&{% endif %}page={{ servicos.previous_page_number }}">Anterior</a></li>
+        {% endif %}
+        {% for num in servicos.paginator.page_range %}
+          {% if servicos.number == num %}
+            <li class="active"><span>{{ num }}</span></li>
+          {% elif num > servicos.number|add:'-3' and num < servicos.number|add:'3' %}
+            <li><a href="?{% if categoria_selecionada %}categoria={{ categoria_selecionada }}&{% endif %}page={{ num }}">{{ num }}</a></li>
           {% endif %}
-          
-          {% for num in servicos.paginator.page_range %}
-            {% if servicos.number == num %}
-              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-            {% elif num > servicos.number|add:'-3' and num < servicos.number|add:'3' %}
-              <li class="page-item">
-                <a class="page-link" href="?{% if categoria_selecionada %}categoria={{ categoria_selecionada }}&{% endif %}page={{ num }}">{{ num }}</a>
-              </li>
-            {% endif %}
-          {% endfor %}
-          
-          {% if servicos.has_next %}
-            <li class="page-item">
-              <a class="page-link" href="?{% if categoria_selecionada %}categoria={{ categoria_selecionada }}&{% endif %}page={{ servicos.next_page_number }}" aria-label="Próxima">
-                <span aria-hidden="true">&raquo;</span>
-              </a>
-            </li>
-            <li class="page-item">
-              <a class="page-link" href="?{% if categoria_selecionada %}categoria={{ categoria_selecionada }}&{% endif %}page={{ servicos.paginator.num_pages }}" aria-label="Última">
-                <span aria-hidden="true">&raquo;&raquo;</span>
-              </a>
-            </li>
-          {% endif %}
-        </ul>
-      </nav>
+        {% endfor %}
+        {% if servicos.has_next %}
+          <li><a href="?{% if categoria_selecionada %}categoria={{ categoria_selecionada }}&{% endif %}page={{ servicos.next_page_number }}">Próxima</a></li>
+          <li><a href="?{% if categoria_selecionada %}categoria={{ categoria_selecionada }}&{% endif %}page={{ servicos.paginator.num_pages }}">&raquo;</a></li>
+        {% endif %}
+      </ul>
+    </nav>
     {% endif %}
   </div>
 </section>
 
 <!-- Como funciona -->
-<section class="mb-5 bg-light py-5">
+<section class="fl-section">
   <div class="container">
-    <h2 class="text-center mb-3">Como Utilizar o Laboratório</h2>
-    <p class="text-center text-muted mb-5">Um processo simples e colaborativo para transformar suas ideias em projetos reais</p>
+    <div class="text-center mb-5">
+      <span class="fl-tag">PROCESSO</span>
+      <h2 class="fl-heading">Como utilizar o <span>Laboratório</span></h2>
+      <p class="fl-subheading">Um processo simples e colaborativo para transformar suas ideias em projetos reais</p>
+    </div>
     <div class="row g-4">
-      <div class="col-md-3">
-        <div class="card border-0 bg-transparent h-100">
-          <div class="card-body text-center">
-            <div class="circle-icon mb-3 mx-auto">
-              <i class="fas fa-lightbulb fa-2x text-primary"></i>
-            </div>
-            <h5 class="card-title">1. Tenha sua Ideia</h5>
-            <p class="card-text">Qualquer projeto inovador é bem-vindo! Desde protótipos simples até soluções complexas de engenharia.</p>
-          </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="pg-step-card">
+          <div class="pg-step-num">1</div>
+          <div class="pg-step-icon"><i class="fas fa-lightbulb"></i></div>
+          <h5>Tenha sua Ideia</h5>
+          <p>Qualquer projeto inovador é bem-vindo! Desde protótipos simples até soluções complexas.</p>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card border-0 bg-transparent h-100">
-          <div class="card-body text-center">
-            <div class="circle-icon mb-3 mx-auto">
-              <i class="fas fa-comments fa-2x text-primary"></i>
-            </div>
-            <h5 class="card-title">2. Entre em Contato</h5>
-            <p class="card-text">Apresente sua ideia para nossa equipe. Não se preocupe com detalhes técnicos - estamos aqui para ajudar!</p>
-          </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="pg-step-card">
+          <div class="pg-step-num">2</div>
+          <div class="pg-step-icon"><i class="fas fa-comments"></i></div>
+          <h5>Entre em Contato</h5>
+          <p>Apresente sua ideia para nossa equipe. Estamos aqui para ajudar!</p>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card border-0 bg-transparent h-100">
-          <div class="card-body text-center">
-            <div class="circle-icon mb-3 mx-auto">
-              <i class="fas fa-users fa-2x text-primary"></i>
-            </div>
-            <h5 class="card-title">3. Trabalhe com Monitores</h5>
-            <p class="card-text">Nossos monitores especializados irão orientar e apoiar você durante todo o desenvolvimento do projeto.</p>
-          </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="pg-step-card">
+          <div class="pg-step-num">3</div>
+          <div class="pg-step-icon"><i class="fas fa-users"></i></div>
+          <h5>Trabalhe com Monitores</h5>
+          <p>Nossos monitores orientam e apoiam durante todo o desenvolvimento.</p>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card border-0 bg-transparent h-100">
-          <div class="card-body text-center">
-            <div class="circle-icon mb-3 mx-auto">
-              <i class="fas fa-rocket fa-2x text-primary"></i>
-            </div>
-            <h5 class="card-title">4. Realize seu Projeto</h5>
-            <p class="card-text">Com acesso gratuito aos equipamentos e suporte da equipe, transforme sua ideia em realidade!</p>
-          </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="pg-step-card">
+          <div class="pg-step-num">4</div>
+          <div class="pg-step-icon"><i class="fas fa-rocket"></i></div>
+          <h5>Realize seu Projeto</h5>
+          <p>Com acesso gratuito aos equipamentos e suporte, transforme sua ideia em realidade!</p>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FAQ - Perguntas Frequentes -->
-<section class="mb-5 py-5 bg-light">
+<!-- FAQ -->
+<section class="fl-section fl-section-alt">
   <div class="container">
-    <h2 class="text-center mb-2">Perguntas Frequentes</h2>
-    <p class="text-center text-muted mb-5">Tire suas dúvidas sobre o funcionamento do nosso laboratório</p>
-    
+    <div class="text-center mb-5">
+      <span class="fl-tag">FAQ</span>
+      <h2 class="fl-heading">Perguntas <span>Frequentes</span></h2>
+      <p class="fl-subheading">Tire suas dúvidas sobre o funcionamento do nosso laboratório</p>
+    </div>
     <div class="row justify-content-center">
       <div class="col-lg-10">
-        <div class="accordion accordion-flush" id="accordionFAQ">
-          <div class="accordion-item rounded shadow-sm mb-3 border">
-            <h3 class="accordion-header" id="headingOne">
-              <button class="accordion-button rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                <i class="fas fa-user-friends me-3 text-primary"></i> Quem pode utilizar o laboratório?
-              </button>
-            </h3>
-            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionFAQ">
-              <div class="accordion-body">
-                O FabLab está disponível principalmente para estudantes, professores e pesquisadores do IFMT. Visitantes externos podem acessar o laboratório mediante agendamento prévio e aprovação da coordenação. Grupos educacionais e parcerias institucionais também são bem-vindos.
+        <div class="pg-accordion">
+          <div class="pg-accordion-item open">
+            <button class="pg-accordion-btn" onclick="toggleAccordion(this)">
+              <div class="pg-acc-left">
+                <span class="pg-acc-num">01</span>
+                <span class="pg-acc-icon"><i class="fas fa-user-friends"></i></span>
+                <span class="pg-acc-text">Quem pode utilizar o laboratório?</span>
+              </div>
+              <span class="pg-acc-toggle"><i class="fas fa-plus"></i><i class="fas fa-minus"></i></span>
+            </button>
+            <div class="pg-accordion-collapse">
+              <div class="pg-accordion-body">
+                <p>O FabLab está disponível principalmente para <strong>estudantes, professores e pesquisadores</strong> do IFMT. Visitantes externos podem acessar mediante agendamento prévio e aprovação da coordenação.</p>
               </div>
             </div>
           </div>
-          
-          <div class="accordion-item rounded shadow-sm mb-3 border">
-            <h3 class="accordion-header" id="headingTwo">
-              <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                <i class="fas fa-coins me-3 text-primary"></i> O uso do laboratório é gratuito?
-              </button>
-            </h3>
-            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionFAQ">
-              <div class="accordion-body">
-                <p><strong>Sim, o uso do laboratório é totalmente gratuito!</strong> O FabLab IFMT oferece acesso gratuito aos seus equipamentos e recursos para todos os membros da comunidade acadêmica.</p>
-                <p>Apenas em casos específicos de projetos que necessitem de materiais especiais, o usuário poderá precisar fornecer esses materiais. Nossa equipe está sempre disponível para orientá-lo sobre as melhores opções.</p>
+          <div class="pg-accordion-item">
+            <button class="pg-accordion-btn" onclick="toggleAccordion(this)">
+              <div class="pg-acc-left">
+                <span class="pg-acc-num">02</span>
+                <span class="pg-acc-icon"><i class="fas fa-coins"></i></span>
+                <span class="pg-acc-text">O uso do laboratório é gratuito?</span>
+              </div>
+              <span class="pg-acc-toggle"><i class="fas fa-plus"></i><i class="fas fa-minus"></i></span>
+            </button>
+            <div class="pg-accordion-collapse">
+              <div class="pg-accordion-body">
+                <div class="pg-acc-highlight"><i class="fas fa-check-circle me-2"></i> <strong>Sim, o uso é totalmente gratuito!</strong></div>
+                <p>Apenas em casos específicos de materiais especiais, o usuário pode precisar fornecê-los.</p>
               </div>
             </div>
           </div>
-          
-          <div class="accordion-item rounded shadow-sm mb-3 border">
-            <h3 class="accordion-header" id="headingThree">
-              <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                <i class="fas fa-calendar-alt me-3 text-primary"></i> Como agendar o uso de um equipamento?
-              </button>
-            </h3>
-            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionFAQ">
-              <div class="accordion-body">
-                <p>Para agendar o uso de equipamentos, siga os passos abaixo:</p>
-                <ol>
-                  <li>Faça login no sistema com suas credenciais</li>
-                  <li>Acesse a seção "Agendamentos" no menu principal</li>
-                  <li>Selecione o equipamento desejado no calendário</li>
-                  <li>Escolha a data e horário disponíveis</li>
-                  <li>Preencha o formulário com os detalhes do seu projeto</li>
-                  <li>Aguarde a confirmação por email</li>
+          <div class="pg-accordion-item">
+            <button class="pg-accordion-btn" onclick="toggleAccordion(this)">
+              <div class="pg-acc-left">
+                <span class="pg-acc-num">03</span>
+                <span class="pg-acc-icon"><i class="fas fa-calendar-alt"></i></span>
+                <span class="pg-acc-text">Como agendar o uso de um equipamento?</span>
+              </div>
+              <span class="pg-acc-toggle"><i class="fas fa-plus"></i><i class="fas fa-minus"></i></span>
+            </button>
+            <div class="pg-accordion-collapse">
+              <div class="pg-accordion-body">
+                <ol class="pg-acc-steps">
+                  <li>Faça login no sistema</li>
+                  <li>Acesse a seção <strong>"Agendamentos"</strong></li>
+                  <li>Selecione o equipamento desejado</li>
+                  <li>Escolha data e horário disponíveis</li>
+                  <li>Aguarde a confirmação por e-mail</li>
                 </ol>
-                <p class="mt-2 text-muted"><i class="fas fa-info-circle"></i> Novos usuários precisam passar primeiro pelo treinamento básico do equipamento.</p>
               </div>
             </div>
           </div>
-          
-          <div class="accordion-item rounded shadow-sm mb-3 border">
-            <h3 class="accordion-header" id="headingFour">
-              <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                <i class="fas fa-graduation-cap me-3 text-primary"></i> É necessário treinamento para usar os equipamentos?
-              </button>
-            </h3>
-            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionFAQ">
-              <div class="accordion-body">
-                <p><strong>Sim, é necessário treinamento.</strong> Para garantir a segurança de todos e a preservação dos equipamentos, exigimos que todos os usuários participem de um treinamento específico antes de utilizar qualquer equipamento.</p>
-                <p>Os treinamentos são:</p>
-                <ul>
-                  <li>Gratuitos e oferecidos regularmente</li>
-                  <li>Específicos para cada tipo de equipamento</li>
-                  <li>Práticos e teóricos, com certificação ao final</li>
-                </ul>
-                <p class="mt-2">
-                  <a href="{% url 'logs:agenda_home' %}" class="btn btn-sm btn-outline-primary">Ver Calendário de Treinamentos</a>
-                </p>
+          <div class="pg-accordion-item">
+            <button class="pg-accordion-btn" onclick="toggleAccordion(this)">
+              <div class="pg-acc-left">
+                <span class="pg-acc-num">04</span>
+                <span class="pg-acc-icon"><i class="fas fa-graduation-cap"></i></span>
+                <span class="pg-acc-text">É necessário treinamento?</span>
+              </div>
+              <span class="pg-acc-toggle"><i class="fas fa-plus"></i><i class="fas fa-minus"></i></span>
+            </button>
+            <div class="pg-accordion-collapse">
+              <div class="pg-accordion-body">
+                <p>Sim, treinamentos são <strong>gratuitos</strong>, específicos para cada equipamento e incluem certificação.</p>
+                <a href="{% url 'logs:agenda_home' %}" class="pg-acc-link"><i class="fas fa-calendar me-1"></i> Ver calendário de treinamentos</a>
               </div>
             </div>
           </div>
-          
-          <div class="accordion-item rounded shadow-sm mb-3 border">
-            <h3 class="accordion-header" id="headingFive">
-              <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-                <i class="fas fa-clock me-3 text-primary"></i> Qual o horário de funcionamento do laboratório?
-              </button>
-            </h3>
-            <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#accordionFAQ">
-              <div class="accordion-body">
-                <div class="row">
-                  <div class="col-md-12">
-                    <p class="mb-0">Trabalhamos de segunda a sexta das 8h às 18h.</p>
-                  </div>
+          <div class="pg-accordion-item">
+            <button class="pg-accordion-btn" onclick="toggleAccordion(this)">
+              <div class="pg-acc-left">
+                <span class="pg-acc-num">05</span>
+                <span class="pg-acc-icon"><i class="fas fa-clock"></i></span>
+                <span class="pg-acc-text">Qual o horário de funcionamento?</span>
+              </div>
+              <span class="pg-acc-toggle"><i class="fas fa-plus"></i><i class="fas fa-minus"></i></span>
+            </button>
+            <div class="pg-accordion-collapse">
+              <div class="pg-accordion-body">
+                <div class="pg-acc-schedule">
+                  <div class="pg-acc-schedule-row"><span>Segunda a Sexta</span><strong>8h — 18h</strong></div>
+                  <div class="pg-acc-schedule-row muted"><span>Sábado e Domingo</span><span>Fechado</span></div>
                 </div>
               </div>
             </div>
           </div>
-          
         </div>
-        
-        <div class="text-center mt-4">
+        <div class="text-center mt-5">
           <p class="text-muted">Ainda tem dúvidas?</p>
-          <a href="https://www.instagram.com/ifmtmaker/" target="_blank" class="btn btn-primary">
-            <i class="fab fa-instagram me-2"></i>Fale conosco no Instagram
-          </a>
+          <a href="https://www.instagram.com/ifmtmaker/" target="_blank" class="fl-btn"><i class="fab fa-instagram me-1"></i> Fale conosco</a>
         </div>
       </div>
     </div>
@@ -438,24 +280,123 @@
 
 {% block scripts %}
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Efeito suave de rolagem para âncoras
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        
-        const targetId = this.getAttribute('href');
-        if (targetId === "#") return;
-        
-        const targetElement = document.querySelector(targetId);
-        if (targetElement) {
-          window.scrollTo({
-            top: targetElement.offsetTop - 100,
-            behavior: 'smooth'
-          });
-        }
-      });
-    });
+function toggleAccordion(btn) {
+  var item = btn.closest('.pg-accordion-item');
+  var wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.pg-accordion-item').forEach(function(el) { el.classList.remove('open'); });
+  if (!wasOpen) { item.classList.add('open'); }
+}
+document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    e.preventDefault();
+    var t = document.querySelector(this.getAttribute('href'));
+    if (t) window.scrollTo({ top: t.offsetTop - 100, behavior: 'smooth' });
   });
+});
 </script>
+{% endblock %}
+
+{% block head %}
+<style>
+  /* ===== SHARED BASE ===== */
+  .pg-hero { background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%); padding:4rem 0 3rem; position:relative; overflow:hidden; }
+  .pg-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 80% 40%,rgba(69,196,176,.12) 0%,transparent 60%); }
+  .pg-hero-title { font-size:2.5rem; font-weight:800; color:#fff; letter-spacing:-.02em; margin-bottom:.5rem; }
+  .pg-hero-title span { color:var(--accent-light); }
+  .pg-hero-sub { color:rgba(255,255,255,.8); font-size:1.05rem; max-width:560px; }
+  .fl-tag { display:inline-block; background:linear-gradient(135deg,var(--accent),var(--accent-light)); color:#fff; font-size:.7rem; font-weight:700; letter-spacing:.12em; padding:.35rem 1rem; border-radius:999px; margin-bottom:.75rem; text-transform:uppercase; }
+  .fl-heading { font-size:2.2rem; font-weight:800; color:var(--primary); letter-spacing:-.02em; margin-bottom:.6rem; }
+  .fl-heading span { color:var(--accent); }
+  .fl-subheading { color:var(--text-muted); font-size:1.05rem; max-width:600px; margin:0 auto; }
+  .fl-section { padding:5rem 0; }
+  .fl-section-alt { background:var(--surface-alt); }
+  .fl-btn { display:inline-block; padding:.7rem 1.8rem; font-weight:600; font-size:.9rem; border-radius:var(--radius-sm); text-decoration:none; transition:all var(--transition); background:var(--accent); color:#fff; border:2px solid var(--accent); }
+  .fl-btn:hover { background:var(--primary); border-color:var(--primary); color:#fff; transform:translateY(-2px); box-shadow:var(--shadow-md); }
+  .fl-btn-white { background:#fff; color:var(--primary); border-color:#fff; }
+  .fl-btn-white:hover { background:var(--surface-alt); color:var(--primary); border-color:var(--surface-alt); }
+  .fl-link { color:var(--accent); text-decoration:none; font-weight:600; font-size:.875rem; transition:color var(--transition); }
+  .fl-link:hover { color:var(--primary); }
+
+  .pg-filter-btn { padding:.5rem 1.2rem; border:1px solid var(--border); border-radius:999px; background:var(--white); color:var(--text); font-size:.85rem; font-weight:600; cursor:pointer; text-decoration:none; transition:all var(--transition); display:inline-block; }
+  .pg-filter-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .pg-filter-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  /* Service card */
+  .pg-card-service { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; height:100%; transition:all var(--transition); }
+  .pg-card-service:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); border-color:transparent; }
+  .pg-card-service-img { position:relative; height:200px; overflow:hidden; }
+  .pg-card-service-img img { width:100%; height:100%; object-fit:cover; transition:transform .5s; }
+  .pg-card-service:hover .pg-card-service-img img { transform:scale(1.06); }
+  .pg-card-cat-badge { position:absolute; top:.75rem; right:.75rem; background:rgba(11,37,69,.75); color:#fff; padding:.3rem .7rem; border-radius:999px; font-size:.75rem; font-weight:600; }
+  .pg-badge-featured { position:absolute; top:.75rem; left:.75rem; background:#F59E0B; color:#fff; padding:.3rem .7rem; border-radius:999px; font-size:.75rem; font-weight:600; }
+  .pg-card-service-body { padding:1.25rem; display:flex; flex-direction:column; }
+  .pg-card-service-body h5 { font-size:1.05rem; font-weight:700; color:var(--primary); margin-bottom:.4rem; }
+  .pg-card-service-body p { font-size:.85rem; color:var(--text-muted); line-height:1.6; flex:1; }
+  .pg-card-category { font-size:.75rem; font-weight:600; color:var(--accent); margin-bottom:.3rem; text-transform:uppercase; letter-spacing:.05em; }
+  .pg-card-meta { font-size:.8rem; color:var(--text-muted); margin-bottom:.5rem; }
+  .pg-btn-details { padding:.6rem 1rem; border:2px solid var(--accent); background:transparent; color:var(--accent); border-radius:var(--radius-sm); font-weight:600; font-size:.85rem; cursor:pointer; text-decoration:none; transition:all var(--transition); text-align:center; }
+  .pg-btn-details:hover { background:var(--accent); color:#fff; }
+
+  /* Steps */
+  .pg-step-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:2rem 1.5rem; text-align:center; height:100%; position:relative; transition:all var(--transition); }
+  .pg-step-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); border-color:transparent; }
+  .pg-step-num { position:absolute; top:-.8rem; left:50%; transform:translateX(-50%); width:28px; height:28px; border-radius:50%; background:var(--accent); color:#fff; font-size:.75rem; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .pg-step-icon { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,rgba(19,103,138,.08),rgba(69,196,176,.12)); color:var(--accent); display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin:0 auto 1rem; transition:all .4s; }
+  .pg-step-card:hover .pg-step-icon { background:var(--accent); color:#fff; }
+  .pg-step-card h5 { font-size:1rem; font-weight:700; color:var(--primary); margin-bottom:.4rem; }
+  .pg-step-card p { font-size:.85rem; color:var(--text-muted); line-height:1.6; margin:0; }
+
+  /* Accordion — Premium */
+  .pg-accordion { display:flex; flex-direction:column; gap:.75rem; }
+  .pg-accordion-item { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; transition:all .35s cubic-bezier(.4,0,.2,1); position:relative; }
+  .pg-accordion-item::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--accent); border-radius:var(--radius) 0 0 var(--radius); transform:scaleY(0); transition:transform .3s ease; }
+  .pg-accordion-item:hover { box-shadow:0 4px 20px rgba(11,37,69,.06); border-color:rgba(19,103,138,.2); }
+  .pg-accordion-item.open { border-color:rgba(19,103,138,.25); box-shadow:0 8px 30px rgba(11,37,69,.08); }
+  .pg-accordion-item.open::before { transform:scaleY(1); }
+  .pg-accordion-btn { width:100%; display:flex; justify-content:space-between; align-items:center; padding:1.15rem 1.5rem; border:none; background:transparent; cursor:pointer; text-align:left; transition:all var(--transition); gap:1rem; }
+  .pg-acc-left { display:flex; align-items:center; gap:.85rem; min-width:0; }
+  .pg-acc-num { font-size:.7rem; font-weight:800; color:var(--accent); opacity:.5; letter-spacing:.05em; flex-shrink:0; transition:opacity .3s; }
+  .pg-accordion-item.open .pg-acc-num { opacity:1; }
+  .pg-acc-icon { width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,rgba(19,103,138,.06),rgba(69,196,176,.08)); color:var(--accent); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0; transition:all .35s; }
+  .pg-accordion-item.open .pg-acc-icon { background:linear-gradient(135deg,var(--accent),var(--accent-light)); color:#fff; box-shadow:0 4px 12px rgba(19,103,138,.25); }
+  .pg-acc-text { font-size:.95rem; font-weight:600; color:var(--primary); }
+  .pg-acc-toggle { width:30px; height:30px; border-radius:50%; background:var(--surface-alt); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .35s; }
+  .pg-acc-toggle i { position:absolute; font-size:.7rem; color:var(--text-muted); transition:all .3s; }
+  .pg-acc-toggle .fa-plus { opacity:1; transform:rotate(0deg); }
+  .pg-acc-toggle .fa-minus { opacity:0; transform:rotate(-90deg); }
+  .pg-accordion-item.open .pg-acc-toggle { background:var(--accent); }
+  .pg-accordion-item.open .pg-acc-toggle .fa-plus { opacity:0; transform:rotate(90deg); }
+  .pg-accordion-item.open .pg-acc-toggle .fa-minus { opacity:1; transform:rotate(0deg); color:#fff; }
+  .pg-accordion-collapse { max-height:0; overflow:hidden; transition:max-height .4s cubic-bezier(.4,0,.2,1); }
+  .pg-accordion-item.open .pg-accordion-collapse { max-height:400px; }
+  .pg-accordion-body { padding:.25rem 1.5rem 1.25rem 5.35rem; font-size:.9rem; color:var(--text-muted); line-height:1.75; }
+  .pg-accordion-body p { margin-bottom:.5rem; }
+  .pg-accordion-body a { color:var(--accent); font-weight:600; }
+  .pg-acc-highlight { background:linear-gradient(135deg,rgba(69,196,176,.08),rgba(19,103,138,.06)); padding:.65rem 1rem; border-radius:var(--radius-sm); margin-bottom:.65rem; color:var(--accent); font-size:.88rem; }
+  .pg-acc-steps { padding-left:1.25rem; margin:0; }
+  .pg-acc-steps li { margin-bottom:.4rem; font-size:.88rem; }
+  .pg-acc-steps li::marker { color:var(--accent); font-weight:700; }
+  .pg-acc-link { display:inline-flex; align-items:center; gap:.3rem; padding:.5rem 1rem; background:rgba(19,103,138,.06); border-radius:var(--radius-sm); color:var(--accent); text-decoration:none; font-size:.85rem; font-weight:600; margin-top:.5rem; transition:all var(--transition); }
+  .pg-acc-link:hover { background:var(--accent); color:#fff; }
+  .pg-acc-schedule { display:flex; flex-direction:column; gap:.4rem; }
+  .pg-acc-schedule-row { display:flex; justify-content:space-between; padding:.5rem .85rem; background:var(--surface-alt); border-radius:var(--radius-sm); font-size:.88rem; }
+  .pg-acc-schedule-row.muted { opacity:.6; }
+  @media(max-width:768px) { .pg-accordion-body { padding-left:1.5rem; } .pg-acc-num { display:none; } }
+
+  /* Pagination */
+  .pg-pagination { display:flex; justify-content:center; gap:.3rem; list-style:none; padding:0; }
+  .pg-pagination li a, .pg-pagination li span { display:inline-block; padding:.5rem .85rem; border-radius:var(--radius-sm); font-size:.85rem; font-weight:600; text-decoration:none; transition:all var(--transition); border:1px solid var(--border); color:var(--text); background:var(--white); }
+  .pg-pagination li a:hover { border-color:var(--accent); color:var(--accent); }
+  .pg-pagination li.active span { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  .pg-empty-state { text-align:center; padding:3rem; }
+  .pg-empty-state i { font-size:3rem; color:var(--border); margin-bottom:1rem; display:block; }
+  .pg-empty-state h4 { color:var(--text); font-weight:700; }
+  .pg-empty-state p { color:var(--text-muted); }
+
+  @media (max-width:768px) {
+    .pg-hero-title { font-size:1.8rem; }
+    .pg-hero { padding:3rem 0 2rem; }
+  }
+</style>
 {% endblock %}

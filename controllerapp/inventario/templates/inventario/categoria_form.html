@@ -1,45 +1,66 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}{{ title }} — Inventário{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <div class="card shadow mb-4">
-        <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold">{{ title }}</h6>
-        </div>
-        <div class="card-body">
-          <form method="post">
-            {% csrf_token %}
-            
-            {% for field in form %}
-              <div class="mb-3">
-                <label for="{{ field.id_for_label }}" class="form-label">
-                  {{ field.label }}
-                </label>
-                {{ field.errors }}
-                {{ field }}
-                {% if field.help_text %}
-                  <div class="form-text text-muted">{{ field.help_text }}</div>
-                {% endif %}
-              </div>
-            {% endfor %}
-            
-            <div class="mt-4">
-              <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save me-1"></i> Salvar
-              </button>
-              <a href="{% url 'inventario:categoria_list' %}" class="btn btn-secondary">
-                Cancelar
-              </a>
-            </div>
-          </form>
-        </div>
+<section style="background:var(--surface-alt);padding:1rem 0;border-bottom:1px solid var(--border)">
+  <div class="container">
+    <nav class="iv-breadcrumb"><a href="{% url 'inventario:dashboard' %}">Inventário</a> <span class="mx-2">/</span> <a href="{% url 'inventario:categoria_list' %}">Categorias</a> <span class="mx-2">/</span> <span>{{ title }}</span></nav>
+  </div>
+</section>
+
+<section class="fl-section" style="padding:3rem 0 5rem">
+  <div class="container" style="max-width:560px">
+    <div class="iv-form-card">
+      <div class="iv-form-header">
+        <div class="iv-form-icon"><i class="fas fa-tag"></i></div>
+        <div><h1>{{ title }}</h1><p>Categorize seus itens de inventário.</p></div>
       </div>
+      <form method="post" class="iv-form">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="iv-form-section" {% if forloop.last %}style="border-bottom:none;padding-bottom:0"{% endif %}>
+          <label class="iv-label">{{ field.label }}</label>
+          {{ field.errors }}{{ field }}
+          {% if field.help_text %}<span class="iv-hint">{{ field.help_text }}</span>{% endif %}
+        </div>
+        {% endfor %}
+        <div class="iv-form-actions">
+          <a href="{% url 'inventario:categoria_list' %}" class="iv-btn iv-btn-cancel"><i class="fas fa-times me-1"></i> Cancelar</a>
+          <button type="submit" class="iv-btn iv-btn-save"><i class="fas fa-check me-1"></i> Salvar</button>
+        </div>
+      </form>
     </div>
   </div>
-</div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('textarea').forEach(function(t){t.classList.add('iv-input');t.rows=3});
+  document.querySelectorAll('input[type=text]').forEach(function(i){i.classList.add('iv-input')});
+});
+</script>
+{% endblock %}
+
+{% block head %}
+<style>
+  .iv-breadcrumb{font-size:.85rem}.iv-breadcrumb a{color:var(--accent);text-decoration:none;font-weight:600}.iv-breadcrumb span:last-child{color:var(--text-muted)}
+  .iv-form-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .iv-form-header{display:flex;align-items:center;gap:1.25rem;padding:2rem;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(11,37,69,.03),rgba(19,103,138,.04))}
+  .iv-form-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;flex-shrink:0}
+  .iv-form-header h1{font-size:1.2rem;font-weight:700;color:var(--primary);margin:0}.iv-form-header p{font-size:.82rem;color:var(--text-muted);margin:.2rem 0 0}
+  .iv-form{padding:0 2rem 2rem}
+  .iv-form-section{padding:1.25rem 0;border-bottom:1px solid var(--border)}
+  .iv-label{display:block;font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:.4rem}
+  .iv-input{width:100%;padding:.6rem .85rem;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:.88rem;transition:border-color .25s;font-family:inherit;color:var(--text)}
+  .iv-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(19,103,138,.08)}
+  .iv-hint{display:block;font-size:.72rem;color:var(--text-muted);margin-top:.3rem}
+  .iv-form-actions{display:flex;justify-content:flex-end;gap:.75rem;padding-top:1.5rem;border-top:1px solid var(--border);margin-top:.25rem}
+  .iv-btn{display:inline-flex;align-items:center;padding:.55rem 1.25rem;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;text-decoration:none;transition:all var(--transition);cursor:pointer;border:none}
+  .iv-btn-cancel{background:transparent;color:var(--text-muted);border:2px solid var(--border)}.iv-btn-cancel:hover{border-color:var(--text-muted);color:var(--text)}
+  .iv-btn-save{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}.iv-btn-save:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(11,37,69,.2)}
+</style>
 {% endblock %}

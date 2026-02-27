@@ -1,556 +1,440 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}
-    Equipamentos do Laboratório
-{% endblock %}
-
-{% block extra_css %}
-<style>
-  .equipment-card {
-    transition: transform 0.2s, box-shadow 0.2s;
-    height: 100%;
-  }
-  
-  .equipment-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  
-  .filter-btn.active {
-    background-color: #0d6efd !important;
-    color: white !important;
-  }
-  
-  .modal-container img {
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-  
-  .badge-corner {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 1;
-  }
-  
-  .hidden {
-    display: none;
-  }
-  
-  .search-input {
-    border-radius: 20px;
-    padding-left: 40px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' class='bi bi-search' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: 15px center;
-  }
-  
-  .tech-specs {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-  
-  .equipment-details {
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .equipment-details::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: #0d6efd;
-  }
-  
-  .brand-badge {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    background-color: rgba(0,0,0,0.7);
-    color: white;
-    padding: 4px 8px;
-    font-size: 12px;
-    border-top-right-radius: 8px;
-  }
-  
-  .parameter-item {
-    border-left: 3px solid #0d6efd;
-    padding-left: 10px;
-    margin-bottom: 8px;
-  }
-  
-  .responsavel-card {
-    transition: transform 0.2s;
-  }
-  
-  .responsavel-card:hover {
-    transform: translateY(-2px);
-  }
-  
-  @media (max-width: 768px) {
-    .equipment-card .card-title {
-      font-size: 1.1rem;
-    }
-  }
-</style>
-{% endblock %}
+{% block title %}Equipamentos do Laboratório{% endblock %}
 
 {% block content %}
-<!-- Header Section -->
-<div class="bg-light py-5">
+<!-- Hero -->
+<section class="pg-hero">
   <div class="container">
     <div class="row align-items-center">
-      <div class="col-md-8">
-        <h1 class="display-4 fw-bold text-primary">Equipamentos do Laboratório</h1>
-        <p class="lead text-muted">
-          No FabLab, disponibilizamos as melhores ferramentas para prototipagem e fabricação digital.
-        </p>
-        <p class="mb-0">
-          Nosso objetivo é proporcionar um ambiente de aprendizado prático e colaborativo, onde a tecnologia 
-          e a criatividade se unem para transformar ideias em realidade.
-        </p>
-      </div>
-      <div class="col-md-4 d-none d-md-block">
-        <img src="{% static 'img/equipments.svg' %}" alt="Ilustração de equipamentos" class="img-fluid" 
-             onerror="this.style.display='none'">
+      <div class="col-lg-7">
+        <span class="fl-tag">INFRAESTRUTURA</span>
+        <h1 class="pg-hero-title">Equipamentos do <span>Laboratório</span></h1>
+        <p class="pg-hero-sub">No FabLab, disponibilizamos as melhores ferramentas para prototipagem e fabricação digital. Nosso objetivo é proporcionar um ambiente de aprendizado prático e colaborativo.</p>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- Main Content -->
-<div class="container py-5">
-  <!-- Search and Filter Section -->
-  <div class="row mb-4">
-    <div class="col-md-6 mb-3 mb-md-0">
-      <div class="input-group">
-        <input type="text" id="searchEquipment" class="form-control search-input" 
-               placeholder="Buscar equipamentos...">
+<!-- Search & Filter -->
+<section class="fl-section" style="padding-top:2rem">
+  <div class="container">
+    <div class="row mb-4 g-3 align-items-center">
+      <div class="col-md-6">
+        <div class="pg-search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchEquipment" class="pg-search-input" placeholder="Buscar equipamentos...">
+        </div>
       </div>
-    </div>
-    <div class="col-md-6">
-      <div class="d-flex justify-content-md-end">
-        <div class="btn-group" role="group">
-          <button type="button" class="btn btn-outline-primary filter-btn active" data-filter="all">
-            Todos
-          </button>
-          <button type="button" class="btn btn-outline-success filter-btn" data-filter="ativo">
-            Ativos
-          </button>
-          <button type="button" class="btn btn-outline-danger filter-btn" data-filter="desativado">
-            Desativados
-          </button>
+      <div class="col-md-6">
+        <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+          <button class="pg-filter-btn active" data-filter="all">Todos</button>
+          <button class="pg-filter-btn" data-filter="ativo"><i class="fas fa-check-circle me-1"></i> Ativos</button>
+          <button class="pg-filter-btn" data-filter="desativado"><i class="fas fa-times-circle me-1"></i> Desativados</button>
         </div>
       </div>
     </div>
-  </div>
-  
-  <!-- Counter Info -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <p id="equipment-counter" class="text-muted">
-        Exibindo <span id="showing-count">{{ materiais|length }}</span> de <span id="total-count">{{ materiais|length }}</span> equipamentos
-      </p>
-    </div>
-  </div>
 
-  <!-- Equipment Cards -->
-  <div class="row row-cols-1 row-cols-md-3 g-4" id="equipment-container">
-    {% for material in materiais %}
-    <div class="col equipment-item" data-status="{{ material.situacao }}">
-      <div class="card equipment-card shadow-sm {% if material.situacao == 'desativado' %}border-danger{% endif %}">
-        <div class="position-relative">
-          <img src="{{ material.imagem_do_material.url }}" class="card-img-top" alt="{{ material.nome_do_material }}" 
-               style="height: 220px; object-fit: cover;">
-          
-          <div class="badge-corner">
-            {% if material.situacao == 'desativado' %}
-            <span class="badge bg-danger">Desativado</span>
-            {% else %}
-            <span class="badge bg-success">Ativo</span>
+    <p id="equipment-counter" class="text-muted mb-4" style="font-size:.875rem">
+      Exibindo <strong id="showing-count">{{ materiais|length }}</strong> de <strong id="total-count">{{ materiais|length }}</strong> equipamentos
+    </p>
+
+    <!-- Cards -->
+    <div class="row g-4" id="equipment-container">
+      {% for material in materiais %}
+      <div class="col-md-6 col-lg-4 equipment-item" data-status="{{ material.situacao }}">
+        <div class="pg-card-equip {% if material.situacao == 'desativado' %}pg-card-disabled{% endif %}">
+          <div class="pg-card-equip-img">
+            <img src="{{ material.imagem_do_material.url }}" alt="{{ material.nome_do_material }}">
+            <div class="pg-card-equip-badges">
+              {% if material.situacao == 'desativado' %}
+                <span class="pg-badge pg-badge-danger">Desativado</span>
+              {% else %}
+                <span class="pg-badge pg-badge-success">Ativo</span>
+              {% endif %}
+            </div>
+            {% if material.marca %}
+            <span class="pg-brand-label">{{ material.marca }} {{ material.modelo }}</span>
             {% endif %}
           </div>
-          
-          {% if material.marca %}
-          <div class="brand-badge">
-            {{ material.marca }} {{ material.modelo }}
-          </div>
-          {% endif %}
-        </div>
-        
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">{{ material.nome_do_material }}</h5>
-          
-          {% if material.outras_denominacoes %}
-          <p class="card-text small text-muted mb-1">
-            Também conhecido como: {{ material.outras_denominacoes }}
-          </p>
-          {% endif %}
-          
-          <p class="card-text small mb-3">
-            {{ material.descricao_do_material|slice:":100" }}{% if material.descricao_do_material|length > 100 %}...{% endif %}
-          </p>
-          
-          <div class="mt-auto pt-2">
-            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modal{{ material.id }}">
+          <div class="pg-card-equip-body">
+            <h5>{{ material.nome_do_material }}</h5>
+            {% if material.outras_denominacoes %}
+              <p class="pg-card-alias">{{ material.outras_denominacoes }}</p>
+            {% endif %}
+            <p class="pg-card-desc">{{ material.descricao_do_material|truncatechars:100 }}</p>
+            <button type="button" class="pg-btn-details" data-bs-toggle="modal" data-bs-target="#modal{{ material.id }}">
               <i class="fas fa-info-circle me-1"></i> Ver detalhes
             </button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Modal para o material -->
-    <div class="modal fade" id="modal{{ material.id }}" tabindex="-1" aria-labelledby="modalLabel{{ material.id }}" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header {% if material.situacao == 'desativado' %}bg-danger text-white{% else %}bg-primary text-white{% endif %}">
-            <h5 class="modal-title" id="modalLabel{{ material.id }}">
-              <i class="{% if material.situacao == 'desativado' %}fas fa-times-circle{% else %}fas fa-check-circle{% endif %} me-2"></i>
-              {{ material.nome_do_material }}
-            </h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-          </div>
-          
-          <div class="modal-body equipment-details">
-            <div class="row">
-              <!-- Coluna de Imagem e Responsáveis -->
-              <div class="col-md-5 modal-container">
-                <div class="position-relative mb-3">
-                  <img src="{{ material.imagem_do_material.url }}" class="img-fluid" alt="{{ material.nome_do_material }}">
-                  <div class="position-absolute top-0 end-0 m-2">
-                    {% if material.situacao == 'ativo' %}
-                    <span class="badge bg-success fs-6 px-3 py-2">Ativo</span>
-                    {% else %}
-                    <span class="badge bg-danger fs-6 px-3 py-2">Desativado</span>
-                    {% endif %}
+      <!-- Modal -->
+      <div class="modal fade" id="modal{{ material.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content pg-modal">
+            <div class="modal-header pg-modal-header {% if material.situacao == 'desativado' %}pg-modal-header-danger{% endif %}">
+              <h5 class="modal-title">
+                <i class="{% if material.situacao == 'desativado' %}fas fa-times-circle{% else %}fas fa-check-circle{% endif %} me-2"></i>
+                {{ material.nome_do_material }}
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row g-4">
+                <div class="col-md-5">
+                  <img src="{{ material.imagem_do_material.url }}" class="img-fluid pg-modal-img" alt="{{ material.nome_do_material }}">
+                  {% if material.responsaveis.exists %}
+                  <div class="pg-resp-card mt-3">
+                    <h6><i class="fas fa-user-cog me-2"></i> Responsáveis</h6>
+                    {% for responsavel in material.responsaveis.all %}
+                    <div class="pg-resp-item">
+                      {% if responsavel.foto %}
+                        <img src="{{ responsavel.foto.url }}" alt="{{ responsavel.nome }}">
+                      {% else %}
+                        <div class="pg-resp-avatar">{{ responsavel.nome|slice:":1" }}</div>
+                      {% endif %}
+                      <div>
+                        <strong>{{ responsavel.nome }}</strong>
+                        <span>{{ responsavel.cargo }}</span>
+                        {% if responsavel.email %}<a href="mailto:{{ responsavel.email }}"><i class="fas fa-envelope me-1"></i>{{ responsavel.email }}</a>{% endif %}
+                      </div>
+                    </div>
+                    {% endfor %}
                   </div>
+                  {% endif %}
                 </div>
-                
-                {% if material.responsaveis.exists %}
-                <div class="card mt-3 border-0 shadow-sm">
-                  <div class="card-header bg-primary text-white">
-                    <h6 class="mb-0">
-                      <i class="fas fa-user-cog me-2"></i> Responsáveis pelo Equipamento
-                    </h6>
+                <div class="col-md-7">
+                  <div class="pg-specs-block">
+                    <h6><i class="fas fa-clipboard-list me-2"></i> Especificações Técnicas</h6>
+                    <div class="row g-2">
+                      {% if material.outras_denominacoes %}
+                      <div class="col-12"><div class="pg-spec-item"><strong>Outras denominações</strong><span>{{ material.outras_denominacoes }}</span></div></div>
+                      {% endif %}
+                      <div class="col-6"><div class="pg-spec-item"><strong>Marca</strong><span>{{ material.marca }}</span></div></div>
+                      <div class="col-6"><div class="pg-spec-item"><strong>Modelo</strong><span>{{ material.modelo }}</span></div></div>
+                      <div class="col-6"><div class="pg-spec-item"><strong>Fabricante</strong><span>{{ material.fabricante }}</span></div></div>
+                      {% if material.ano_aquisicao %}
+                      <div class="col-6"><div class="pg-spec-item"><strong>Ano de aquisição</strong><span>{{ material.ano_aquisicao }}</span></div></div>
+                      {% endif %}
+                      {% if material.link_fabricante %}
+                      <div class="col-12 mt-2"><a href="{{ material.link_fabricante }}" target="_blank" class="pg-link-external"><i class="fas fa-external-link-alt me-1"></i> Site do fabricante</a></div>
+                      {% endif %}
+                    </div>
                   </div>
-                  <div class="card-body p-3">
-                    <ul class="list-unstyled mb-0">
-                      {% for responsavel in material.responsaveis.all %}
-                      <li class="d-flex align-items-center responsavel-card p-2 {% if not forloop.last %}mb-2{% endif %}">
-                        {% if responsavel.foto %}
-                        <img src="{{ responsavel.foto.url }}" alt="{{ responsavel.nome }}" 
-                             class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
-                        {% else %}
-                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" 
-                             style="width: 40px; height: 40px;">
-                          {{ responsavel.nome|slice:":1" }}
-                        </div>
-                        {% endif %}
-                        <div>
-                          <strong>{{ responsavel.nome }}</strong>
-                          <br><small class="text-muted">{{ responsavel.cargo }}</small>
-                          {% if responsavel.email %}
-                          <br><small><a href="mailto:{{ responsavel.email }}" class="text-decoration-none">
-                            <i class="fas fa-envelope me-1"></i>{{ responsavel.email }}
-                          </a></small>
-                          {% endif %}
-                        </div>
-                      </li>
-                      {% endfor %}
-                    </ul>
+                  {% if material.parametros %}
+                  <div class="pg-specs-block mt-3">
+                    <h6><i class="fas fa-cogs me-2"></i> Parâmetros Técnicos</h6>
+                    <div class="pg-spec-text">{{ material.parametros|linebreaks }}</div>
                   </div>
-                </div>
-                {% endif %}
-              </div>
-              
-              <!-- Coluna de Especificações -->
-              <div class="col-md-7">
-                <div class="tech-specs p-3 mb-4">
-                  <h5 class="border-bottom pb-2 mb-3">
-                    <i class="fas fa-clipboard-list me-2 text-primary"></i>
-                    Especificações Técnicas
-                  </h5>
-                  
-                  <div class="row g-3">
-                    {% if material.outras_denominacoes %}
-                    <div class="col-12">
-                      <div class="parameter-item">
-                        <strong class="d-block">Outras denominações</strong>
-                        {{ material.outras_denominacoes }}
-                      </div>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="col-md-6">
-                      <div class="parameter-item">
-                        <strong class="d-block">Marca</strong>
-                        {{ material.marca }}
-                      </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                      <div class="parameter-item">
-                        <strong class="d-block">Modelo</strong>
-                        {{ material.modelo }}
-                      </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                      <div class="parameter-item">
-                        <strong class="d-block">Fabricante</strong>
-                        {{ material.fabricante }}
-                      </div>
-                    </div>
-                    
-                    {% if material.ano_aquisicao %}
-                    <div class="col-md-6">
-                      <div class="parameter-item">
-                        <strong class="d-block">Ano de aquisição</strong>
-                        {{ material.ano_aquisicao }}
-                      </div>
-                    </div>
-                    {% endif %}
-                    
-                    {% if material.link_fabricante %}
-                    <div class="col-12 mt-2">
-                      <a href="{{ material.link_fabricante }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-external-link-alt me-1"></i> Visitar site do fabricante
-                      </a>
-                    </div>
-                    {% endif %}
-                  </div>
-                </div>
-                
-                {% if material.parametros %}
-                <div class="tech-specs p-3 mb-4">
-                  <h5 class="border-bottom pb-2 mb-3">
-                    <i class="fas fa-cogs me-2 text-primary"></i>
-                    Parâmetros Técnicos
-                  </h5>
-                  <div class="bg-white p-3 rounded">
-                    {{ material.parametros|linebreaks }}
-                  </div>
-                </div>
-                {% endif %}
-                
-                <div class="tech-specs p-3">
-                  <h5 class="border-bottom pb-2 mb-3">
-                    <i class="fas fa-file-alt me-2 text-primary"></i>
-                    Descrição
-                  </h5>
-                  <div class="bg-white p-3 rounded">
-                    {{ material.descricao_do_material|linebreaks }}
+                  {% endif %}
+                  <div class="pg-specs-block mt-3">
+                    <h6><i class="fas fa-file-alt me-2"></i> Descrição</h6>
+                    <div class="pg-spec-text">{{ material.descricao_do_material|linebreaks }}</div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-              <i class="fas fa-times me-1"></i> Fechar
-            </button>
-            {% if material.link_fabricante %}
-            <a href="{{ material.link_fabricante }}" class="btn btn-primary" target="_blank">
-              <i class="fas fa-external-link-alt me-1"></i> Site do fabricante
-            </a>
-            {% endif %}
+            <div class="modal-footer pg-modal-footer">
+              <button type="button" class="pg-btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Fechar</button>
+              {% if material.link_fabricante %}
+              <a href="{{ material.link_fabricante }}" class="pg-btn-primary" target="_blank"><i class="fas fa-external-link-alt me-1"></i> Fabricante</a>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    {% empty %}
-    <div class="col-12">
-      <div class="alert alert-info">
-        <i class="fas fa-info-circle me-2"></i> Nenhum equipamento cadastrado no momento.
+      {% empty %}
+      <div class="col-12">
+        <div class="pg-empty-state"><i class="fas fa-tools"></i><h4>Nenhum equipamento cadastrado</h4><p>Em breve teremos nossos equipamentos listados aqui.</p></div>
       </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
-  
-  <!-- No Results Message -->
-  <div id="no-results" class="row mt-4 hidden">
-    <div class="col-12">
-      <div class="alert alert-warning">
-        <i class="fas fa-exclamation-triangle me-2"></i> Nenhum equipamento corresponde aos critérios de busca.
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- FAQ Section - Design Minimalista -->
-<div class="py-5 bg-light">
+    <div id="no-results" class="pg-empty-state" style="display:none">
+      <i class="fas fa-search"></i><h4>Nenhum resultado encontrado</h4><p>Tente outro termo de busca ou filtro.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="fl-section fl-section-alt">
   <div class="container">
     <div class="text-center mb-5">
-      <h2 class="h3 text-dark mb-3">Perguntas Frequentes</h2>
-      <p class="text-muted">Principais dúvidas sobre os equipamentos</p>
+      <span class="fl-tag">FAQ</span>
+      <h2 class="fl-heading">Perguntas <span>Frequentes</span></h2>
     </div>
-    
-    <div class="row g-4 justify-content-center">
-      <!-- FAQ 1 - Treinamento -->
-      <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body p-4">
-            <h5 class="text-primary mb-3">
-              <i class="fas fa-graduation-cap me-2"></i>É necessário treinamento?
-            </h5>
-            <p class="text-muted mb-3">
-              Sim, é obrigatório para garantir segurança e bom uso dos equipamentos.
-            </p>
-            <ul class="list-unstyled small text-muted">
-              <li><i class="fas fa-check text-success me-2"></i>Gratuito</li>
-              <li><i class="fas fa-check text-success me-2"></i>Certificado incluído</li>
-            </ul>
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="pg-accordion">
+          <div class="pg-accordion-item open">
+            <button class="pg-accordion-btn" onclick="toggleAccordion(this)">
+              <div class="pg-acc-left">
+                <span class="pg-acc-num">01</span>
+                <span class="pg-acc-icon"><i class="fas fa-graduation-cap"></i></span>
+                <span class="pg-acc-text">É necessário treinamento?</span>
+              </div>
+              <span class="pg-acc-toggle"><i class="fas fa-plus"></i><i class="fas fa-minus"></i></span>
+            </button>
+            <div class="pg-accordion-collapse">
+              <div class="pg-accordion-body">
+                <p>Sim, é obrigatório para garantir <strong>segurança e bom uso</strong> dos equipamentos.</p>
+                <div class="pg-acc-highlight"><i class="fas fa-check-circle me-2"></i> Gratuito &bull; Certificado incluído</div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      
-      <!-- FAQ 2 - Agendamento -->
-      <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body p-4">
-            <h5 class="text-primary mb-3">
-              <i class="fas fa-calendar-check me-2"></i>Como agendar?
-            </h5>
-            <p class="text-muted mb-3">
-              Pelo sistema online: faça login, acesse "Agendamentos" e escolha equipamento e horário.
-            </p>
+          <div class="pg-accordion-item">
+            <button class="pg-accordion-btn" onclick="toggleAccordion(this)">
+              <div class="pg-acc-left">
+                <span class="pg-acc-num">02</span>
+                <span class="pg-acc-icon"><i class="fas fa-calendar-check"></i></span>
+                <span class="pg-acc-text">Como agendar o uso de um equipamento?</span>
+              </div>
+              <span class="pg-acc-toggle"><i class="fas fa-plus"></i><i class="fas fa-minus"></i></span>
+            </button>
+            <div class="pg-accordion-collapse">
+              <div class="pg-accordion-body">
+                <ol class="pg-acc-steps">
+                  <li>Faça login no sistema</li>
+                  <li>Acesse a seção <strong>"Agendamentos"</strong></li>
+                  <li>Selecione o equipamento e horário</li>
+                  <li>Aguarde a confirmação por e-mail</li>
+                </ol>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      
-      <!-- FAQ 3 - Custo -->
-      <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body p-4">
-            <h5 class="text-primary mb-3">
-              <i class="fas fa-heart me-2"></i>Qual o custo?
-            </h5>
-            <div class="text-center">
-              <h4 class="text-success fw-bold">100% Gratuito</h4>
-              <p class="text-muted small mb-0">Para toda comunidade acadêmica</p>
+          <div class="pg-accordion-item">
+            <button class="pg-accordion-btn" onclick="toggleAccordion(this)">
+              <div class="pg-acc-left">
+                <span class="pg-acc-num">03</span>
+                <span class="pg-acc-icon"><i class="fas fa-coins"></i></span>
+                <span class="pg-acc-text">Qual o custo para utilizar o laboratório?</span>
+              </div>
+              <span class="pg-acc-toggle"><i class="fas fa-plus"></i><i class="fas fa-minus"></i></span>
+            </button>
+            <div class="pg-accordion-collapse">
+              <div class="pg-accordion-body">
+                <div class="pg-acc-highlight"><i class="fas fa-check-circle me-2"></i> <strong>100% Gratuito</strong> para toda comunidade acadêmica</div>
+                <p>Apenas materiais especiais podem ser de responsabilidade do usuário.</p>
+              </div>
+            </div>
+          </div>
+          <div class="pg-accordion-item">
+            <button class="pg-accordion-btn" onclick="toggleAccordion(this)">
+              <div class="pg-acc-left">
+                <span class="pg-acc-num">04</span>
+                <span class="pg-acc-icon"><i class="fas fa-clock"></i></span>
+                <span class="pg-acc-text">Qual o horário de funcionamento?</span>
+              </div>
+              <span class="pg-acc-toggle"><i class="fas fa-plus"></i><i class="fas fa-minus"></i></span>
+            </button>
+            <div class="pg-accordion-collapse">
+              <div class="pg-accordion-body">
+                <div class="pg-acc-schedule">
+                  <div class="pg-acc-schedule-row"><span>Segunda a Sexta</span><strong>8h — 18h</strong></div>
+                  <div class="pg-acc-schedule-row muted"><span>Sábado e Domingo</span><span>Fechado</span></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      
-      <!-- FAQ 4 - Horários -->
-      <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body p-4">
-            <h5 class="text-primary mb-3">
-              <i class="fas fa-clock me-2"></i>Horários
-            </h5>
-            <div class="d-flex justify-content-between mb-2">
-              <span>Segunda a Sexta:</span>
-              <strong>8h às 18h</strong>
-            </div>
-            <div class="d-flex justify-content-between">
-              <span>Finais de semana:</span>
-              <span class="text-muted">Fechado</span>
-            </div>
-          </div>
+        <div class="text-center mt-5">
+          <p class="text-muted mb-3">Ainda tem dúvidas?</p>
+          <a href="https://www.instagram.com/ifmtmaker/" target="_blank" class="fl-btn"><i class="fab fa-instagram me-1"></i> Instagram</a>
+          <a href="{% url 'logs:agenda_home' %}" class="fl-btn fl-btn-outline ms-2"><i class="fas fa-calendar me-1"></i> Agenda</a>
         </div>
       </div>
-    </div>
-    
-    <!-- Contato -->
-    <div class="text-center mt-5">
-      <p class="text-muted mb-3">Ainda tem dúvidas?</p>
-      <a href="https://www.instagram.com/ifmtmaker/" target="_blank" class="btn btn-primary me-2">
-        <i class="fab fa-instagram me-1"></i>Instagram
-      </a>
-      <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-primary">
-        <i class="fas fa-calendar me-1"></i>Agenda
-      </a>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}
 
-{% block extra_js %}
+{% block scripts %}
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Elementos do DOM
-    const searchInput = document.getElementById('searchEquipment');
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    const equipmentItems = document.querySelectorAll('.equipment-item');
-    const noResults = document.getElementById('no-results');
-    const showingCount = document.getElementById('showing-count');
-    const totalCount = document.getElementById('total-count');
-    
-    // Função para filtrar equipamentos
-    function filterEquipments() {
-      const searchValue = searchInput.value.toLowerCase();
-      const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
-      
-      let visibleCount = 0;
-      
-      equipmentItems.forEach(item => {
-        const equipmentName = item.querySelector('.card-title').textContent.toLowerCase();
-        const equipmentDesc = item.querySelector('.card-text').textContent.toLowerCase();
-        const equipmentStatus = item.dataset.status;
-        
-        const matchesSearch = equipmentName.includes(searchValue) || equipmentDesc.includes(searchValue);
-        const matchesFilter = activeFilter === 'all' || activeFilter === equipmentStatus;
-        
-        if (matchesSearch && matchesFilter) {
-          item.classList.remove('hidden');
-          visibleCount++;
-        } else {
-          item.classList.add('hidden');
-        }
-      });
-      
-      // Atualizar contador e mostrar mensagem se não houver resultados
-      showingCount.textContent = visibleCount;
-      
-      if (visibleCount === 0) {
-        noResults.classList.remove('hidden');
-      } else {
-        noResults.classList.add('hidden');
-      }
-    }
-    
-    // Event listeners
-    searchInput.addEventListener('input', filterEquipments);
-    
-    filterButtons.forEach(button => {
-      button.addEventListener('click', function() {
-        // Remover classe ativa de todos os botões
-        filterButtons.forEach(btn => btn.classList.remove('active'));
-        // Adicionar classe ativa ao botão clicado
-        this.classList.add('active');
-        // Filtrar equipamentos
-        filterEquipments();
-      });
+function toggleAccordion(btn) {
+  var item = btn.closest('.pg-accordion-item');
+  var wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.pg-accordion-item').forEach(function(el) { el.classList.remove('open'); });
+  if (!wasOpen) { item.classList.add('open'); }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var search = document.getElementById('searchEquipment');
+  var filters = document.querySelectorAll('.pg-filter-btn');
+  var items = document.querySelectorAll('.equipment-item');
+  var noRes = document.getElementById('no-results');
+  var showC = document.getElementById('showing-count');
+
+  function doFilter() {
+    var q = search.value.toLowerCase();
+    var f = document.querySelector('.pg-filter-btn.active').dataset.filter;
+    var vis = 0;
+    items.forEach(function(el) {
+      var name = el.querySelector('h5').textContent.toLowerCase();
+      var desc = (el.querySelector('.pg-card-desc') || {}).textContent || '';
+      var st = el.dataset.status;
+      var show = (name.includes(q) || desc.toLowerCase().includes(q)) && (f === 'all' || f === st);
+      el.style.display = show ? '' : 'none';
+      if (show) vis++;
     });
-    
-    // Animação de entrada para os cards
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-          }, entry.target.dataset.index * 100);
-        }
-      });
-    });
-    
-    equipmentItems.forEach((item, index) => {
-      item.style.opacity = '0';
-      item.style.transform = 'translateY(20px)';
-      item.style.transition = 'opacity 0.5s, transform 0.5s';
-      item.dataset.index = index;
-      observer.observe(item);
+    showC.textContent = vis;
+    noRes.style.display = vis === 0 ? '' : 'none';
+  }
+
+  search.addEventListener('input', doFilter);
+  filters.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      filters.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      doFilter();
     });
   });
+
+  // Fade-in animation
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { e.target.classList.add('pg-visible'); obs.unobserve(e.target); }
+    });
+  }, { threshold: .1 });
+  items.forEach(function(el) { el.classList.add('pg-fade-up'); obs.observe(el); });
+});
 </script>
+{% endblock %}
+
+{% block head %}
+<style>
+  /* ===== PAGES — Shared institutional page styles ===== */
+  .pg-hero {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    padding: 4rem 0 3rem; position: relative; overflow: hidden;
+  }
+  .pg-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 80% 40%, rgba(69,196,176,.12) 0%, transparent 60%); }
+  .pg-hero-title { font-size:2.5rem; font-weight:800; color:#fff; letter-spacing:-.02em; margin-bottom:.5rem; }
+  .pg-hero-title span { color: var(--accent-light); }
+  .pg-hero-sub { color:rgba(255,255,255,.8); font-size:1.05rem; max-width:560px; }
+
+  .fl-tag { display:inline-block; background:linear-gradient(135deg,var(--accent),var(--accent-light)); color:#fff; font-size:.7rem; font-weight:700; letter-spacing:.12em; padding:.35rem 1rem; border-radius:999px; margin-bottom:.75rem; text-transform:uppercase; }
+  .fl-heading { font-size:2.2rem; font-weight:800; color:var(--primary); letter-spacing:-.02em; margin-bottom:.6rem; }
+  .fl-heading span { color:var(--accent); }
+  .fl-section { padding:5rem 0; }
+  .fl-section-alt { background:var(--surface-alt); }
+  .fl-btn { display:inline-block; padding:.7rem 1.8rem; font-weight:600; font-size:.9rem; border-radius:var(--radius-sm); text-decoration:none; transition:all var(--transition); background:var(--accent); color:#fff; border:2px solid var(--accent); }
+  .fl-btn:hover { background:var(--primary); border-color:var(--primary); color:#fff; transform:translateY(-2px); box-shadow:var(--shadow-md); }
+  .fl-btn-outline { background:transparent; color:var(--accent); }
+  .fl-btn-outline:hover { background:var(--accent); color:#fff; }
+
+  /* Search */
+  .pg-search-box { position:relative; }
+  .pg-search-box i { position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--text-muted); }
+  .pg-search-input { width:100%; padding:.7rem 1rem .7rem 2.8rem; border:1px solid var(--border); border-radius:999px; font-size:.9rem; outline:none; transition:border var(--transition); background:var(--white); }
+  .pg-search-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(19,103,138,.1); }
+
+  /* Filter */
+  .pg-filter-btn { padding:.5rem 1.2rem; border:1px solid var(--border); border-radius:999px; background:var(--white); color:var(--text); font-size:.85rem; font-weight:600; cursor:pointer; transition:all var(--transition); }
+  .pg-filter-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .pg-filter-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  /* Equipment card */
+  .pg-card-equip { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; height:100%; transition:all var(--transition); }
+  .pg-card-equip:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); border-color:transparent; }
+  .pg-card-disabled { opacity:.75; }
+  .pg-card-equip-img { position:relative; height:220px; overflow:hidden; }
+  .pg-card-equip-img img { width:100%; height:100%; object-fit:cover; transition:transform .5s; }
+  .pg-card-equip:hover .pg-card-equip-img img { transform:scale(1.06); }
+  .pg-card-equip-badges { position:absolute; top:.75rem; right:.75rem; display:flex; gap:.4rem; }
+  .pg-badge { padding:.3rem .7rem; border-radius:999px; font-size:.75rem; font-weight:600; color:#fff; }
+  .pg-badge-success { background:#10B981; }
+  .pg-badge-danger { background:#EF4444; }
+  .pg-brand-label { position:absolute; bottom:0; left:0; background:rgba(11,37,69,.8); color:#fff; padding:.3rem .8rem; font-size:.75rem; border-top-right-radius:var(--radius-sm); }
+  .pg-card-equip-body { padding:1.25rem; display:flex; flex-direction:column; flex:1; }
+  .pg-card-equip-body h5 { font-size:1.05rem; font-weight:700; color:var(--primary); margin-bottom:.3rem; }
+  .pg-card-alias { font-size:.8rem; color:var(--text-muted); margin-bottom:.4rem; font-style:italic; }
+  .pg-card-desc { font-size:.85rem; color:var(--text-muted); line-height:1.6; flex:1; }
+  .pg-btn-details { width:100%; padding:.6rem; border:2px solid var(--accent); background:transparent; color:var(--accent); border-radius:var(--radius-sm); font-weight:600; font-size:.85rem; cursor:pointer; transition:all var(--transition); }
+  .pg-btn-details:hover { background:var(--accent); color:#fff; }
+
+  /* Modal */
+  .pg-modal { border:none; border-radius:var(--radius); overflow:hidden; }
+  .pg-modal-header { background:var(--primary); color:#fff; border:none; padding:1rem 1.5rem; }
+  .pg-modal-header-danger { background:#EF4444; }
+  .pg-modal-img { border-radius:var(--radius-sm); width:100%; }
+  .pg-modal-footer { border-top:1px solid var(--border); padding:1rem 1.5rem; }
+  .pg-btn-primary { padding:.5rem 1.2rem; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); font-weight:600; font-size:.85rem; text-decoration:none; transition:all var(--transition); }
+  .pg-btn-primary:hover { background:var(--primary); color:#fff; }
+  .pg-btn-secondary { padding:.5rem 1.2rem; background:var(--surface-alt); color:var(--text); border:1px solid var(--border); border-radius:var(--radius-sm); font-weight:600; font-size:.85rem; cursor:pointer; transition:all var(--transition); }
+  .pg-btn-secondary:hover { background:var(--border); }
+
+  /* Specs */
+  .pg-specs-block { background:var(--surface-alt); border-radius:var(--radius-sm); padding:1rem 1.2rem; }
+  .pg-specs-block h6 { font-size:.9rem; font-weight:700; color:var(--primary); margin-bottom:.8rem; padding-bottom:.5rem; border-bottom:1px solid var(--border); }
+  .pg-spec-item { border-left:3px solid var(--accent); padding:.4rem .8rem; background:var(--white); border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:.3rem; }
+  .pg-spec-item strong { display:block; font-size:.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; }
+  .pg-spec-item span { font-size:.875rem; color:var(--text); }
+  .pg-spec-text { font-size:.875rem; color:var(--text-muted); line-height:1.65; }
+  .pg-link-external { color:var(--accent); font-weight:600; text-decoration:none; font-size:.85rem; }
+  .pg-link-external:hover { color:var(--primary); }
+
+  /* Responsaveis */
+  .pg-resp-card { background:var(--surface-alt); border-radius:var(--radius-sm); padding:1rem; }
+  .pg-resp-card h6 { font-size:.85rem; font-weight:700; color:var(--primary); margin-bottom:.8rem; }
+  .pg-resp-item { display:flex; align-items:center; gap:.75rem; padding:.5rem 0; }
+  .pg-resp-item:not(:last-child) { border-bottom:1px solid var(--border); }
+  .pg-resp-item img { width:40px; height:40px; border-radius:50%; object-fit:cover; }
+  .pg-resp-avatar { width:40px; height:40px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.85rem; flex-shrink:0; }
+  .pg-resp-item strong { display:block; font-size:.85rem; color:var(--text); }
+  .pg-resp-item span { display:block; font-size:.75rem; color:var(--text-muted); }
+  .pg-resp-item a { font-size:.75rem; color:var(--accent); text-decoration:none; }
+
+  /* Accordion — Premium */
+  .pg-accordion { display:flex; flex-direction:column; gap:.75rem; }
+  .pg-accordion-item { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; transition:all .35s cubic-bezier(.4,0,.2,1); position:relative; }
+  .pg-accordion-item::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--accent); border-radius:var(--radius) 0 0 var(--radius); transform:scaleY(0); transition:transform .3s ease; }
+  .pg-accordion-item:hover { box-shadow:0 4px 20px rgba(11,37,69,.06); border-color:rgba(19,103,138,.2); }
+  .pg-accordion-item.open { border-color:rgba(19,103,138,.25); box-shadow:0 8px 30px rgba(11,37,69,.08); }
+  .pg-accordion-item.open::before { transform:scaleY(1); }
+  .pg-accordion-btn { width:100%; display:flex; justify-content:space-between; align-items:center; padding:1.15rem 1.5rem; border:none; background:transparent; cursor:pointer; text-align:left; transition:all var(--transition); gap:1rem; }
+  .pg-acc-left { display:flex; align-items:center; gap:.85rem; min-width:0; }
+  .pg-acc-num { font-size:.7rem; font-weight:800; color:var(--accent); opacity:.5; letter-spacing:.05em; flex-shrink:0; transition:opacity .3s; }
+  .pg-accordion-item.open .pg-acc-num { opacity:1; }
+  .pg-acc-icon { width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,rgba(19,103,138,.06),rgba(69,196,176,.08)); color:var(--accent); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0; transition:all .35s; }
+  .pg-accordion-item.open .pg-acc-icon { background:linear-gradient(135deg,var(--accent),var(--accent-light)); color:#fff; box-shadow:0 4px 12px rgba(19,103,138,.25); }
+  .pg-acc-text { font-size:.95rem; font-weight:600; color:var(--primary); }
+  .pg-acc-toggle { width:30px; height:30px; border-radius:50%; background:var(--surface-alt); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .35s; position:relative; }
+  .pg-acc-toggle i { position:absolute; font-size:.7rem; color:var(--text-muted); transition:all .3s; }
+  .pg-acc-toggle .fa-plus { opacity:1; transform:rotate(0deg); }
+  .pg-acc-toggle .fa-minus { opacity:0; transform:rotate(-90deg); }
+  .pg-accordion-item.open .pg-acc-toggle { background:var(--accent); }
+  .pg-accordion-item.open .pg-acc-toggle .fa-plus { opacity:0; transform:rotate(90deg); }
+  .pg-accordion-item.open .pg-acc-toggle .fa-minus { opacity:1; transform:rotate(0deg); color:#fff; }
+  .pg-accordion-collapse { max-height:0; overflow:hidden; transition:max-height .4s cubic-bezier(.4,0,.2,1); }
+  .pg-accordion-item.open .pg-accordion-collapse { max-height:400px; }
+  .pg-accordion-body { padding:.25rem 1.5rem 1.25rem 5.35rem; font-size:.9rem; color:var(--text-muted); line-height:1.75; }
+  .pg-accordion-body p { margin-bottom:.5rem; }
+  .pg-accordion-body a { color:var(--accent); font-weight:600; }
+  .pg-acc-highlight { background:linear-gradient(135deg,rgba(69,196,176,.08),rgba(19,103,138,.06)); padding:.65rem 1rem; border-radius:var(--radius-sm); margin-bottom:.65rem; color:var(--accent); font-size:.88rem; }
+  .pg-acc-steps { padding-left:1.25rem; margin:0; }
+  .pg-acc-steps li { margin-bottom:.4rem; font-size:.88rem; }
+  .pg-acc-steps li::marker { color:var(--accent); font-weight:700; }
+  .pg-acc-schedule { display:flex; flex-direction:column; gap:.4rem; }
+  .pg-acc-schedule-row { display:flex; justify-content:space-between; padding:.5rem .85rem; background:var(--surface-alt); border-radius:var(--radius-sm); font-size:.88rem; }
+  .pg-acc-schedule-row.muted { opacity:.6; }
+  @media(max-width:768px) { .pg-accordion-body { padding-left:1.5rem; } .pg-acc-num { display:none; } }
+
+  /* Empty */
+  .pg-empty-state { text-align:center; padding:3rem; }
+  .pg-empty-state i { font-size:3rem; color:var(--border); margin-bottom:1rem; display:block; }
+  .pg-empty-state h4 { color:var(--text); font-weight:700; }
+  .pg-empty-state p { color:var(--text-muted); }
+
+  /* Animations */
+  .pg-fade-up { opacity:0; transform:translateY(20px); transition:opacity .5s, transform .5s; }
+  .pg-fade-up.pg-visible { opacity:1; transform:translateY(0); }
+
+  @media (max-width: 768px) {
+    .pg-hero-title { font-size:1.8rem; }
+    .pg-hero { padding:3rem 0 2rem; }
+  }
+</style>
 {% endblock %}

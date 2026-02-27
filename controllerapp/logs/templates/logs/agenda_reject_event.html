@@ -1,155 +1,154 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}
-    Recusar Solicitação - FabLab
-{% endblock %}
+{% block title %}Recusar Solicitação — FabLab{% endblock %}
 
 {% block head %}
-    <style>
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        
-        .form-help-text {
-            font-size: 0.875rem;
-            color: #6c757d;
-            margin-top: 0.25rem;
-        }
-        
-        .card-header {
-            font-weight: bold;
-        }
-        
-        .event-info {
-            background-color: #f8f9fa;
-            border-left: 4px solid #dc3545;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .event-details {
-            display: flex;
-            margin-bottom: 5px;
-        }
-        
-        .event-label {
-            font-weight: 500;
-            width: 130px;
-            color: #555;
-        }
-    </style>
-    <!-- Adicionar jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+/* ── Rejeitar Evento ─────────────────────────────── */
+.rj-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:3rem 0 2.5rem;color:#fff;margin-bottom:2.5rem}
+.rj-hero h1{font-weight:700;font-size:1.75rem;margin:0}
+.rj-hero p{opacity:.8;margin:.5rem 0 0}
+.rj-bc{display:flex;gap:.5rem;font-size:.85rem;opacity:.7;margin-bottom:.75rem}
+.rj-bc a{color:#fff;text-decoration:none}
+.rj-bc a:hover{text-decoration:underline}
+
+.rj-card{background:var(--white);border-radius:var(--radius);box-shadow:0 4px 24px rgba(11,37,69,.07);overflow:hidden;margin-bottom:1.75rem}
+.rj-card-head{background:var(--surface-alt);padding:1.15rem 1.75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem}
+.rj-card-head i{font-size:1.1rem;color:var(--accent)}
+.rj-card-head.rj-danger i{color:#EF4444}
+.rj-card-head h2{font-size:1.05rem;font-weight:600;margin:0;color:var(--text)}
+.rj-card-body{padding:1.75rem}
+
+.rj-detail-grid{display:grid;grid-template-columns:120px 1fr;gap:.5rem .75rem}
+.rj-detail-grid .rj-lbl{font-weight:600;font-size:.85rem;color:var(--text-muted)}
+.rj-detail-grid .rj-val{font-size:.9rem;color:var(--text)}
+
+.rj-g{margin-bottom:1.35rem}
+.rj-g label{display:block;font-weight:600;font-size:.875rem;color:var(--text);margin-bottom:.4rem}
+.rj-g label .req{color:#EF4444;margin-left:2px}
+.rj-g .form-control,
+.rj-g select{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:.6rem .9rem;font-size:.9rem;transition:border var(--transition),box-shadow var(--transition);background:var(--white)}
+.rj-g .form-control:focus,
+.rj-g select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(19,103,138,.12);outline:none}
+.rj-g textarea.form-control{resize:vertical;min-height:100px}
+.rj-g .help{font-size:.8rem;color:var(--text-muted);margin-top:.3rem}
+.rj-g .err{font-size:.8rem;color:#EF4444;margin-top:.3rem}
+
+.rj-warn{display:flex;align-items:flex-start;gap:.75rem;background:rgba(239,68,68,.06);border-left:3px solid #EF4444;border-radius:var(--radius-sm);padding:1rem 1.25rem;margin-bottom:1.5rem}
+.rj-warn i{color:#EF4444;margin-top:2px}
+.rj-warn p{margin:0;font-size:.875rem;color:var(--text)}
+
+.rj-actions{display:flex;gap:.75rem;padding-top:.25rem}
+.rj-actions .fl-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.7rem 1.25rem;border-radius:var(--radius-sm);font-weight:600;font-size:.9rem;border:none;cursor:pointer;transition:all var(--transition);text-decoration:none}
+.rj-actions .fl-btn-danger{background:#EF4444;color:#fff}
+.rj-actions .fl-btn-danger:hover{background:#DC2626;transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.rj-actions .fl-btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text-muted)}
+.rj-actions .fl-btn-outline:hover{border-color:var(--text);color:var(--text)}
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <h2 class="mb-0">Recusar Solicitação</h2>
-                </div>
-                <div class="card-body">
-                    <div class="event-info mb-4">
-                        <h4>Detalhes da Solicitação</h4>
-                        <div class="event-details">
-                            <div class="event-label">Título:</div>
-                            <div>{{ event.title }}</div>
-                        </div>
-                        <div class="event-details">
-                            <div class="event-label">Tipo:</div>
-                            <div>{{ event.get_event_type_display }}</div>
-                        </div>
-                        <div class="event-details">
-                            <div class="event-label">Solicitante:</div>
-                            <div>{{ event.created_by.first_name }} {{ event.created_by.last_name }}</div>
-                        </div>
-                        <div class="event-details">
-                            <div class="event-label">Data:</div>
-                            <div>{{ event.start_time|date:"d/m/Y" }}</div>
-                        </div>
-                        <div class="event-details">
-                            <div class="event-label">Horário:</div>
-                            <div>{{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}</div>
-                        </div>
-                    </div>
-                    
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        
-                        <div class="form-group">
-                            <label for="{{ form.motivo_comum.id_for_label }}">{{ form.motivo_comum.label }}</label>
-                            {{ form.motivo_comum }}
-                            {% if form.motivo_comum.help_text %}
-                                <div class="form-help-text">{{ form.motivo_comum.help_text }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="form-group mt-3">
-                            <label for="{{ form.motivo.id_for_label }}">{{ form.motivo.label }} <span class="text-danger">*</span></label>
-                            {{ form.motivo }}
-                            {% if form.motivo.help_text %}
-                                <div class="form-help-text">{{ form.motivo.help_text }}</div>
-                            {% endif %}
-                            {% if form.motivo.errors %}
-                                <div class="text-danger">
-                                    {% for error in form.motivo.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Atenção:</strong> Esta ação não pode ser desfeita. Um email será enviado ao solicitante com o motivo da recusa.
-                        </div>
-                        
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-danger">Recusar Solicitação</button>
-                            <a href="{% if referer_url %}{{ referer_url }}{% else %}{% url 'logs:agenda_home' %}{% endif %}" class="btn btn-outline-secondary">Cancelar</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<!-- Hero -->
+<section class="rj-hero">
+  <div class="container">
+    <div class="rj-bc">
+      <a href="{% url 'logs:agenda_home' %}">Agenda</a> <span>/</span>
+      <a href="{% url 'logs:pending_events' %}">Pendentes</a> <span>/</span>
+      <span>Recusar</span>
     </div>
+    <h1><i class="fas fa-times-circle me-2"></i>Recusar Solicitação</h1>
+    <p>Informe o motivo para que o solicitante seja notificado por email.</p>
+  </div>
+</section>
+
+<div class="container" style="max-width:700px;margin-bottom:3rem">
+
+  <!-- Detalhes da solicitação -->
+  <div class="rj-card">
+    <div class="rj-card-head"><i class="fas fa-file-alt"></i><h2>Detalhes da Solicitação</h2></div>
+    <div class="rj-card-body">
+      <div class="rj-detail-grid">
+        <span class="rj-lbl">Título</span>
+        <span class="rj-val">{{ event.title }}</span>
+        <span class="rj-lbl">Tipo</span>
+        <span class="rj-val">{{ event.get_event_type_display }}</span>
+        <span class="rj-lbl">Solicitante</span>
+        <span class="rj-val">{{ event.created_by.first_name }} {{ event.created_by.last_name }}</span>
+        <span class="rj-lbl">Data</span>
+        <span class="rj-val">{{ event.start_time|date:"d/m/Y" }}</span>
+        <span class="rj-lbl">Horário</span>
+        <span class="rj-val">{{ event.start_time|date:"H:i" }} — {{ event.end_time|date:"H:i" }}</span>
+      </div>
+    </div>
+  </div>
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger mb-3">
+      {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Formulário de rejeição -->
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="rj-card">
+      <div class="rj-card-head rj-danger"><i class="fas fa-comment-slash"></i><h2>Motivo da Recusa</h2></div>
+      <div class="rj-card-body">
+        <div class="rj-g">
+          <label for="{{ form.motivo_comum.id_for_label }}">Motivo Comum</label>
+          {{ form.motivo_comum }}
+          {% if form.motivo_comum.help_text %}<div class="help">{{ form.motivo_comum.help_text }}</div>{% endif %}
+        </div>
+
+        <div class="rj-g">
+          <label for="{{ form.motivo.id_for_label }}">Detalhamento <span class="req">*</span></label>
+          {{ form.motivo }}
+          <div class="help">Esta mensagem será enviada ao solicitante por email. Seja claro e cordial.</div>
+          {% for error in form.motivo.errors %}<div class="err">{{ error }}</div>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Aviso -->
+    <div class="rj-warn">
+      <i class="fas fa-exclamation-triangle"></i>
+      <p><strong>Ação irreversível.</strong> A solicitação será excluída e um email de recusa será enviado ao solicitante.</p>
+    </div>
+
+    <!-- Ações -->
+    <div class="rj-actions">
+      <a href="{% if referer_url %}{{ referer_url }}{% else %}{% url 'logs:agenda_home' %}{% endif %}" class="fl-btn fl-btn-outline"><i class="fas fa-arrow-left"></i> Cancelar</a>
+      <button type="submit" class="fl-btn fl-btn-danger"><i class="fas fa-times"></i> Recusar Solicitação</button>
+    </div>
+  </form>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    $(document).ready(function() {
-        // Objeto com os textos detalhados para cada motivo comum
-        const motivosDetalhados = {
-            'data_indisponivel': 'Lamentamos informar que a data e horário solicitados já estão ocupados com outro evento/visita agendada anteriormente. Por favor, verifique outras datas disponíveis em nosso calendário e faça uma nova solicitação.',
-            'fora_horario': 'A solicitação não pôde ser atendida pois o horário solicitado está fora do período de funcionamento do laboratório (segunda a sexta, das 08:00 às 18:00). Pedimos que faça uma nova solicitação dentro do horário de atendimento.',
-            'lotacao_maxima': 'O número de visitantes informado excede a nossa capacidade máxima de atendimento, que é de 20 pessoas por visita. Por favor, reduza o número de visitantes ou divida a visita em grupos menores em datas diferentes.',
-            'manutencao': 'Infelizmente, o laboratório estará em período de manutenção/fechado na data solicitada. Solicitamos que verifique o calendário e faça um novo agendamento em outra data.',
-            'falta_detalhes': 'A solicitação não apresenta detalhes suficientes para que possamos avaliar adequadamente o pedido. Por favor, faça uma nova solicitação informando claramente o objetivo da visita e demais detalhes relevantes.'
-        };
-        
-        // Função para preencher o campo de detalhamento quando um motivo comum é selecionado
-        $('#id_motivo_comum').change(function() {
-            const motivoSelecionado = $(this).val();
-            
-            if (motivoSelecionado && motivoSelecionado !== 'outro') {
-                $('#id_motivo_detalhado').val(motivosDetalhados[motivoSelecionado]);
-            } else if (motivoSelecionado === 'outro') {
-                $('#id_motivo_detalhado').val('');
-                $('#id_motivo_detalhado').focus();
-            }
-        });
+document.addEventListener('DOMContentLoaded', function(){
+  const motivosDetalhados = {
+    'data_indisponivel': 'Lamentamos informar que a data e horário solicitados já estão ocupados com outro evento/visita agendada anteriormente. Por favor, verifique outras datas disponíveis em nosso calendário e faça uma nova solicitação.',
+    'fora_horario': 'A solicitação não pôde ser atendida pois o horário solicitado está fora do período de funcionamento do laboratório (segunda a sexta, das 08:00 às 18:00). Pedimos que faça uma nova solicitação dentro do horário de atendimento.',
+    'lotacao_maxima': 'O número de visitantes informado excede a nossa capacidade máxima de atendimento, que é de 20 pessoas por visita. Por favor, reduza o número de visitantes ou divida a visita em grupos menores em datas diferentes.',
+    'manutencao': 'Infelizmente, o laboratório estará em período de manutenção/fechado na data solicitada. Solicitamos que verifique o calendário e faça um novo agendamento em outra data.',
+    'falta_detalhes': 'A solicitação não apresenta detalhes suficientes para que possamos avaliar adequadamente o pedido. Por favor, faça uma nova solicitação informando claramente o objetivo da visita e demais detalhes relevantes.'
+  };
+  const sel = document.getElementById('id_motivo_comum');
+  const txt = document.getElementById('id_motivo_detalhado');
+  if(sel && txt){
+    sel.addEventListener('change', function(){
+      const v = this.value;
+      if(v && v !== 'outro' && motivosDetalhados[v]){
+        txt.value = motivosDetalhados[v];
+      } else if(v === 'outro'){
+        txt.value = '';
+        txt.focus();
+      }
     });
+  }
+});
 </script>
 {% endblock %}

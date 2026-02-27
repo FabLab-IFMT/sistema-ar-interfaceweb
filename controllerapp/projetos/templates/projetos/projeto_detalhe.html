@@ -1,674 +1,398 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}
-  {{ projeto.titulo }} - Projetos FABLAB
-{% endblock %}
+{% block title %}{{ projeto.titulo }} - Projetos FabLab IFMT{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'projetos:lista' %}">Projetos</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ projeto.titulo }}</li>
-        </ol>
+<!-- Breadcrumb -->
+<section style="background:var(--surface-alt);padding:1rem 0;border-bottom:1px solid var(--border)">
+  <div class="container">
+    <nav class="pd-breadcrumb">
+      <a href="{% url 'projetos:lista' %}"><i class="fas fa-arrow-left me-1"></i> Projetos</a>
+      <span class="mx-2">/</span>
+      <span>{{ projeto.titulo|truncatechars:40 }}</span>
     </nav>
+  </div>
+</section>
 
-    <!-- Header do projeto -->
-    <div class="project-header mb-5">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="display-4 fw-bold text-primary">{{ projeto.titulo }}</h1>
-                <p class="lead">{{ projeto.descricao_curta }}</p>
-                
-                <div class="d-flex flex-wrap align-items-center gap-3 mt-4">
-                    <div class="status-badge 
-                    {% if projeto.status == 'concluido' %}bg-success{% endif %}
-                    {% if projeto.status == 'em_andamento' %}bg-primary{% endif %}
-                    {% if projeto.status == 'planejado' %}bg-info{% endif %}
-                    {% if projeto.status == 'cancelado' %}bg-secondary{% endif %}">
-                        {{ projeto.get_status_display }}
-                    </div>
-                    
-                    <div class="project-date">
-                        <i class="far fa-calendar-alt me-1"></i> Início: {{ projeto.data_inicio|date:"d/m/Y" }}
-                        {% if projeto.data_conclusao %}
-                            <span class="mx-2">|</span>
-                            <i class="far fa-calendar-check me-1"></i> Conclusão: {{ projeto.data_conclusao|date:"d/m/Y" }}
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <div class="project-tags mt-3">
-                    {% for tag in projeto.tags.all %}
-                        <a href="{% url 'projetos:lista' %}?tag={{ tag.slug }}" class="tag-badge">{{ tag.nome }}</a>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="col-md-4 text-center text-md-end mt-4 mt-md-0">
-                <!-- Links externos do projeto -->
-                <div class="external-links">
-                    {% if projeto.link_github %}
-                        <a href="{{ projeto.link_github }}" target="_blank" class="btn btn-dark me-2">
-                            <i class="fab fa-github me-1"></i> GitHub
-                        </a>
-                    {% endif %}
-                    {% if projeto.link_video %}
-                        <a href="{{ projeto.link_video }}" target="_blank" class="btn btn-danger me-2">
-                            <i class="fab fa-youtube me-1"></i> Vídeo
-                        </a>
-                    {% endif %}
-                    {% if projeto.link_documentacao %}
-                        <a href="{{ projeto.link_documentacao }}" target="_blank" class="btn btn-info me-2">
-                            <i class="fas fa-book me-1"></i> Documentação
-                        </a>
-                    {% endif %}
-                    
-                    <!-- Novo botão para recursos do repositório -->
-                    <a href="{% url 'repositorio:project_resources' project_slug=projeto.slug %}" class="btn btn-primary me-2">
-                        <i class="fas fa-archive me-1"></i> Materiais do Projeto
-                    </a>
-                </div>
-            </div>
+<!-- Header -->
+<section class="pd-header">
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-8">
+        <span class="pd-status-badge
+          {% if projeto.status == 'concluido' %}st-success{% endif %}
+          {% if projeto.status == 'em_andamento' %}st-primary{% endif %}
+          {% if projeto.status == 'planejado' %}st-info{% endif %}
+          {% if projeto.status == 'cancelado' %}st-muted{% endif %}">
+          {{ projeto.get_status_display }}
+        </span>
+        <h1 class="pd-title">{{ projeto.titulo }}</h1>
+        <p class="pd-lead">{{ projeto.descricao_curta }}</p>
+        <div class="pd-meta">
+          <span><i class="far fa-calendar-alt me-1"></i> Início: {{ projeto.data_inicio|date:"d/m/Y" }}</span>
+          {% if projeto.data_conclusao %}<span><i class="far fa-calendar-check me-1"></i> Conclusão: {{ projeto.data_conclusao|date:"d/m/Y" }}</span>{% endif %}
         </div>
+        {% if projeto.tags.all %}
+        <div class="pg-tags-row mt-3">
+          {% for tag in projeto.tags.all %}
+            <a href="{% url 'projetos:lista' %}?tag={{ tag.slug }}">{{ tag.nome }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="col-lg-4">
+        <div class="pd-links">
+          {% if projeto.link_github %}
+            <a href="{{ projeto.link_github }}" target="_blank" rel="noopener" class="pd-ext-btn"><i class="fab fa-github me-2"></i>GitHub</a>
+          {% endif %}
+          {% if projeto.link_video %}
+            <a href="{{ projeto.link_video }}" target="_blank" rel="noopener" class="pd-ext-btn pd-btn-red"><i class="fab fa-youtube me-2"></i>Vídeo</a>
+          {% endif %}
+          {% if projeto.link_documentacao %}
+            <a href="{{ projeto.link_documentacao }}" target="_blank" rel="noopener" class="pd-ext-btn pd-btn-blue"><i class="fas fa-book me-2"></i>Docs</a>
+          {% endif %}
+          <a href="{% url 'repositorio:project_resources' project_slug=projeto.slug %}" class="pd-ext-btn pd-btn-accent"><i class="fas fa-archive me-2"></i>Materiais</a>
+        </div>
+      </div>
     </div>
-    
-    <!-- Conteúdo do projeto -->
-    <div class="row">
-        <div class="col-lg-8">
-            <!-- Imagem principal -->
-            <div class="project-main-image mb-4">
-                <img src="{{ projeto.imagem.url }}" class="img-fluid rounded shadow" alt="{{ projeto.titulo }}" onerror="this.src='https://via.placeholder.com/800x400?text=Imagem+do+Projeto'">
+  </div>
+</section>
+
+<!-- Conteúdo -->
+<section class="fl-section">
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-8">
+        <!-- Imagem principal -->
+        <div class="pd-main-img mb-4">
+          <img src="{{ projeto.imagem.url }}" alt="{{ projeto.titulo }}" onerror="this.src='https://via.placeholder.com/800x400?text=Projeto'">
+        </div>
+
+        <!-- Descrição -->
+        <div class="pd-content-card mb-4">
+          <h3><i class="fas fa-info-circle me-2"></i> Sobre o Projeto</h3>
+          <div class="pd-rich-text">
+            {{ projeto.descricao|linebreaks }}
+          </div>
+        </div>
+
+        <!-- Galeria -->
+        {% if projeto.imagens_adicionais.all %}
+        <div class="pd-content-card mb-4">
+          <h3><i class="fas fa-images me-2"></i> Galeria</h3>
+          <div class="pd-gallery">
+            {% for imagem in projeto.imagens_adicionais.all %}
+            <a href="{{ imagem.imagem.url }}" class="pd-gallery-item" data-lightbox="project-gallery" data-title="{{ imagem.legenda|default:imagem.titulo }}">
+              <img src="{{ imagem.imagem.url }}" alt="{{ imagem.titulo }}">
+              <div class="pd-gallery-overlay"><i class="fas fa-expand"></i></div>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Comentários -->
+        <div class="pd-content-card" id="comentarios">
+          <h3>
+            <i class="fas fa-comments me-2"></i> Comentários
+            <span class="pd-comment-count">{{ comentarios.count }}</span>
+          </h3>
+
+          {% if user.is_authenticated %}
+          <form id="comment-form" action="{% url 'projetos:comentar' projeto.id %}" method="post" class="pd-comment-form mb-4">
+            {% csrf_token %}
+            <input type="hidden" name="comentario_pai" value="" id="comentario_pai_id">
+            <textarea name="texto" id="comment-text" rows="3" placeholder="Compartilhe suas ideias sobre este projeto..." required></textarea>
+            <div class="pd-comment-form-footer">
+              <div id="reply-info" class="pd-reply-info d-none">
+                <i class="fas fa-reply me-1"></i> Respondendo a: <strong id="reply-to-name"></strong>
+                <button type="button" class="cancel-reply"><i class="fas fa-times"></i></button>
+              </div>
+              <button type="submit" class="pd-btn-submit"><i class="far fa-paper-plane me-1"></i> Enviar</button>
             </div>
-            
-            <!-- Descrição do projeto -->
-            <div class="project-description bg-white p-4 rounded shadow mb-4">
-                <h3 class="border-bottom pb-2 mb-4">Sobre o projeto</h3>
-                <div class="rich-text">
-                    {{ projeto.descricao|linebreaks }}
-                </div>
-                
-                <!-- Imagens adicionais em galeria -->
-                {% if projeto.imagens_adicionais.all %}
-                    <div class="project-gallery mt-5">
-                        <h3 class="border-bottom pb-2 mb-4">Galeria</h3>
-                        <div class="row g-3">
-                            {% for imagem in projeto.imagens_adicionais.all %}
-                                <div class="col-6 col-md-4">
-                                    <a href="{{ imagem.imagem.url }}" class="gallery-item" data-lightbox="project-gallery" data-title="{{ imagem.legenda|default:imagem.titulo }}">
-                                        <img src="{{ imagem.imagem.url }}" class="img-fluid rounded" alt="{{ imagem.titulo }}">
-                                    </a>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- Nova seção de comentários -->
-            <div class="project-comments bg-white p-4 rounded shadow">
-                <h3 class="border-bottom pb-2 mb-4">
-                    <i class="fas fa-comments text-primary me-2"></i>
-                    Comentários e Discussão
-                    <span class="badge bg-secondary ms-2">{{ comentarios.count }}</span>
-                </h3>
-                
-                <!-- Formulário para novo comentário -->
-                {% if user.is_authenticated %}
-                    <div class="comment-form mb-4">
-                        <form id="comment-form" action="{% url 'projetos:comentar' projeto.id %}" method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="comentario_pai" value="" id="comentario_pai_id">
-                            
-                            <div class="mb-3">
-                                <label for="comment-text" class="form-label">Deixe seu comentário</label>
-                                <textarea class="form-control" id="comment-text" name="texto" 
-                                          rows="3" placeholder="Compartilhe suas ideias ou faça perguntas sobre este projeto..."></textarea>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div id="reply-info" class="text-muted small d-none">
-                                    <i class="fas fa-reply me-1"></i> Respondendo a: <span id="reply-to-name"></span>
-                                    <button type="button" class="btn btn-sm text-danger border-0 cancel-reply">
-                                        <i class="fas fa-times"></i> Cancelar
-                                    </button>
-                                </div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="far fa-paper-plane me-1"></i> Enviar Comentário
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+          </form>
+          {% else %}
+          <div class="pd-login-prompt mb-4">
+            <i class="fas fa-lock me-2"></i>
+            <a href="{% url 'users:login' %}?next={{ request.path }}#comentarios">Faça login</a> para participar da discussão.
+          </div>
+          {% endif %}
+
+          <div class="pd-comments-list">
+            {% for comentario in comentarios %}
+            <div class="pd-comment {% if comentario.destacado %}pd-comment-featured{% endif %}" id="comment-{{ comentario.id }}">
+              <div class="pd-comment-avatar">
+                {% if comentario.autor.foto %}
+                  <img src="{{ comentario.autor.foto.url }}" alt="{{ comentario.autor.get_full_name }}">
                 {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <a href="{% url 'users:login' %}?next={{ request.path }}">Faça login</a> para participar da discussão.
-                    </div>
+                  <span>{{ comentario.autor.first_name|first }}{{ comentario.autor.last_name|first }}</span>
                 {% endif %}
-                
-                <!-- Lista de comentários -->
-                <div class="comments-list">
-                    {% if comentarios %}
-                        {% for comentario in comentarios %}
-                            <div class="comment-item {% if comentario.destacado %}featured-comment{% endif %}" id="comment-{{ comentario.id }}">
-                                <div class="d-flex">
-                                    <div class="comment-avatar me-3">
-                                        {% if comentario.autor.foto %}
-                                            <img src="{{ comentario.autor.foto.url }}" class="rounded-circle" alt="{{ comentario.autor.get_full_name }}" width="50" height="50">
-                                        {% else %}
-                                            <div class="default-avatar rounded-circle d-flex align-items-center justify-content-center">
-                                                {{ comentario.autor.first_name|first }}{{ comentario.autor.last_name|first }}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="comment-content flex-grow-1">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <div>
-                                                <h6 class="mb-0">{{ comentario.autor.get_full_name }}</h6>
-                                                <span class="text-muted small">{{ comentario.data_criacao|date:"d/m/Y H:i" }}</span>
-                                                {% if comentario.destacado %}
-                                                    <span class="badge bg-warning ms-2">Destacado</span>
-                                                {% endif %}
-                                            </div>
-                                            <div>
-                                                {% if user.is_authenticated %}
-                                                    <button class="btn btn-sm text-primary reply-btn border-0" 
-                                                            data-comment-id="{{ comentario.id }}" 
-                                                            data-author="{{ comentario.autor.get_full_name }}">
-                                                        <i class="fas fa-reply"></i> Responder
-                                                    </button>
-                                                {% endif %}
-                                                {% if user == comentario.autor or user.is_staff %}
-                                                    <form class="d-inline delete-comment-form" action="{% url 'projetos:excluir_comentario' comentario.id %}" method="post">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="btn btn-sm text-danger border-0 delete-comment-btn">
-                                                            <i class="fas fa-trash-alt"></i> Excluir
-                                                        </button>
-                                                    </form>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                        <div class="comment-text mb-2">
-                                            {{ comentario.texto|linebreaks }}
-                                        </div>
-                                        
-                                        <!-- Respostas ao comentário -->
-                                        {% if comentario.respostas.all %}
-                                            <div class="comment-replies mt-3">
-                                                {% for resposta in comentario.respostas.all|dictsort:"data_criacao" %}
-                                                    {% if resposta.aprovado %}
-                                                        <div class="reply-item" id="comment-{{ resposta.id }}">
-                                                            <div class="d-flex">
-                                                                <div class="comment-avatar me-2">
-                                                                    {% if resposta.autor.foto %}
-                                                                        <img src="{{ resposta.autor.foto.url }}" class="rounded-circle" alt="{{ resposta.autor.get_full_name }}" width="35" height="35">
-                                                                    {% else %}
-                                                                        <div class="default-avatar rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; font-size: 0.8rem;">
-                                                                            {{ resposta.autor.first_name|first }}{{ resposta.autor.last_name|first }}
-                                                                        </div>
-                                                                    {% endif %}
-                                                                </div>
-                                                                <div class="reply-content flex-grow-1">
-                                                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                        <div>
-                                                                            <h6 class="mb-0 fs-6">{{ resposta.autor.get_full_name }}</h6>
-                                                                            <span class="text-muted small">{{ resposta.data_criacao|date:"d/m/Y H:i" }}</span>
-                                                                        </div>
-                                                                        <div>
-                                                                            {% if user == resposta.autor or user.is_staff %}
-                                                                                <form class="d-inline delete-comment-form" action="{% url 'projetos:excluir_comentario' resposta.id %}" method="post">
-                                                                                    {% csrf_token %}
-                                                                                    <button type="submit" class="btn btn-sm text-danger border-0 delete-comment-btn">
-                                                                                        <i class="fas fa-trash-alt"></i>
-                                                                                    </button>
-                                                                                </form>
-                                                                            {% endif %}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="reply-text">
-                                                                        {{ resposta.texto|linebreaks }}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="text-center py-4">
-                            <div class="text-muted">
-                                <i class="far fa-comments fs-3 mb-2"></i>
-                                <p>Ainda não há comentários. Seja o primeiro a comentar!</p>
-                            </div>
-                        </div>
+              </div>
+              <div class="pd-comment-body">
+                <div class="pd-comment-head">
+                  <div>
+                    <strong>{{ comentario.autor.get_full_name }}</strong>
+                    <time>{{ comentario.data_criacao|date:"d/m/Y H:i" }}</time>
+                    {% if comentario.destacado %}<span class="pd-badge-highlight"><i class="fas fa-star me-1"></i>Destaque</span>{% endif %}
+                  </div>
+                  <div class="pd-comment-actions">
+                    {% if user.is_authenticated %}
+                      <button class="reply-btn" data-comment-id="{{ comentario.id }}" data-author="{{ comentario.autor.get_full_name }}"><i class="fas fa-reply"></i></button>
                     {% endif %}
+                    {% if user == comentario.autor or user.is_staff %}
+                      <form class="d-inline delete-comment-form" action="{% url 'projetos:excluir_comentario' comentario.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="delete-comment-btn"><i class="fas fa-trash-alt"></i></button>
+                      </form>
+                    {% endif %}
+                  </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4">
-            <!-- Informações sobre a equipe -->
-            <div class="project-team bg-white p-4 rounded shadow mb-4">
-                <h3 class="border-bottom pb-2 mb-3">Equipe</h3>
-                
-                {% if projeto.responsavel %}
-                    <div class="mb-4">
-                        <h5 class="text-primary mb-3">Responsável</h5>
-                        <div class="d-flex align-items-center">
-                            <div class="team-avatar me-3">
-                                {% if projeto.responsavel.foto %}
-                                    <img src="{{ projeto.responsavel.foto.url }}" class="img-fluid rounded-circle" alt="{{ projeto.responsavel }}">
-                                {% else %}
-                                    <div class="avatar-placeholder">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <h6 class="mb-1">{{ projeto.responsavel.get_full_name }}</h6>
-                                {% if projeto.responsavel.email %}
-                                    <p class="text-muted small mb-0">
-                                        <i class="fas fa-envelope me-1"></i> {{ projeto.responsavel.email }}
-                                    </p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-                
-                {% if projeto.participantes.all %}
-                    <div>
-                        <h5 class="text-primary mb-3">Participantes</h5>
-                        <ul class="list-unstyled">
-                            {% for participante in projeto.participantes.all %}
-                                <li class="mb-2">
-                                    <div class="d-flex align-items-center">
-                                        <div class="team-avatar-sm me-2">
-                                            {% if participante.foto %}
-                                                <img src="{{ participante.foto.url }}" class="img-fluid rounded-circle" alt="{{ participante }}">
-                                            {% else %}
-                                                <div class="avatar-placeholder-sm">
-                                                    <i class="fas fa-user"></i>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                        <span>{{ participante.get_full_name }}</span>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- Projetos relacionados -->
-            {% if projetos_relacionados %}
-                <div class="related-projects bg-white p-4 rounded shadow">
-                    <h3 class="border-bottom pb-2 mb-3">Projetos Relacionados</h3>
-                    <div class="list-group">
-                        {% for projeto_rel in projetos_relacionados %}
-                            <a href="{% url 'projetos:detalhe' projeto_rel.slug %}" class="list-group-item list-group-item-action">
-                                <div class="d-flex align-items-center">
-                                    <div class="related-project-image me-3">
-                                        <img src="{{ projeto_rel.imagem.url }}" class="img-fluid rounded" alt="{{ projeto_rel.titulo }}" onerror="this.src='https://via.placeholder.com/50x50?text=P'">
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-1">{{ projeto_rel.titulo }}</h6>
-                                        <p class="text-muted small mb-0">{{ projeto_rel.get_status_display }}</p>
-                                    </div>
-                                </div>
-                            </a>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-    </div>
+                <div class="pd-comment-text">{{ comentario.texto|linebreaks }}</div>
 
-    <!-- Seção de Contato e Dúvidas - Simplificada -->
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-12">
-                <div class="contact-section bg-light p-4 rounded shadow-sm">
-                    <h3 class="border-bottom pb-2 mb-3"><i class="fas fa-envelope-open-text me-2 text-primary"></i> Dúvidas sobre este projeto?</h3>
-                    
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <p class="mb-3">Tem interesse em saber mais detalhes sobre este projeto ou gostaria de implementar algo semelhante?</p>
-                            <p>Entre em contato com {% if projeto.responsavel %}{{ projeto.responsavel.get_full_name }}{% else %}nossa equipe{% endif %} para obter mais informações.</p>
-                            
-                            <div class="contact-details mt-3">
-                                <p class="mb-1">
-                                    <i class="fas fa-envelope text-primary me-2"></i> Envie um email para: 
-                                    <a href="{% if projeto.responsavel and projeto.responsavel.email %}mailto:{{ projeto.responsavel.email }}{% else %}mailto:fablab@ifmt.edu.br{% endif %}?subject=Dúvida sobre projeto: {{ projeto.titulo }}">
-                                        <strong>{% if projeto.responsavel and projeto.responsavel.email %}{{ projeto.responsavel.email }}{% else %}fablab@ifmt.edu.br{% endif %}</strong>
-                                    </a>
-                                </p>
-                            </div>
+                {% if comentario.respostas.all %}
+                <div class="pd-replies">
+                  {% for resposta in comentario.respostas.all|dictsort:"data_criacao" %}
+                    {% if resposta.aprovado %}
+                    <div class="pd-reply" id="comment-{{ resposta.id }}">
+                      <div class="pd-comment-avatar sm">
+                        {% if resposta.autor.foto %}
+                          <img src="{{ resposta.autor.foto.url }}" alt="{{ resposta.autor.get_full_name }}">
+                        {% else %}
+                          <span>{{ resposta.autor.first_name|first }}{{ resposta.autor.last_name|first }}</span>
+                        {% endif %}
+                      </div>
+                      <div class="pd-comment-body">
+                        <div class="pd-comment-head">
+                          <div><strong>{{ resposta.autor.get_full_name }}</strong> <time>{{ resposta.data_criacao|date:"d/m/Y H:i" }}</time></div>
+                          {% if user == resposta.autor or user.is_staff %}
+                          <form class="d-inline delete-comment-form" action="{% url 'projetos:excluir_comentario' resposta.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="delete-comment-btn"><i class="fas fa-trash-alt"></i></button>
+                          </form>
+                          {% endif %}
                         </div>
-                        <div class="col-md-4 text-center mt-4 mt-md-0">
-                            <div class="contact-illustration">
-                                <i class="fas fa-comments text-primary" style="font-size: 5rem; opacity: 0.2;"></i>
-                            </div>
-                        </div>
+                        <div class="pd-comment-text">{{ resposta.texto|linebreaks }}</div>
+                      </div>
                     </div>
-                    
-                    <div class="alert alert-info mt-3 mb-0">
-                        <i class="fas fa-info-circle me-2"></i> Você também pode visitar o laboratório para conhecer este e outros projetos. <a href="{% url 'logs:request_visit' %}" class="alert-link">Agende uma visita aqui</a>.
-                    </div>
+                    {% endif %}
+                  {% endfor %}
                 </div>
+                {% endif %}
+              </div>
             </div>
+            {% empty %}
+            <div class="pd-no-comments">
+              <i class="far fa-comments"></i>
+              <p>Ainda não há comentários. Seja o primeiro!</p>
+            </div>
+            {% endfor %}
+          </div>
         </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        <div class="sticky-lg-top" style="top:100px">
+          <!-- Equipe -->
+          <div class="pg-sidebar-card mb-4">
+            <h5><i class="fas fa-users me-2"></i> Equipe</h5>
+            {% if projeto.responsavel %}
+            <div class="pd-team-lead mb-3">
+              <span class="pd-team-label">Responsável</span>
+              <div class="pd-team-member">
+                <div class="pd-team-avatar">
+                  {% if projeto.responsavel.foto %}
+                    <img src="{{ projeto.responsavel.foto.url }}" alt="{{ projeto.responsavel.get_full_name }}">
+                  {% else %}
+                    <span><i class="fas fa-user"></i></span>
+                  {% endif %}
+                </div>
+                <div>
+                  <strong>{{ projeto.responsavel.get_full_name }}</strong>
+                  {% if projeto.responsavel.email %}<small>{{ projeto.responsavel.email }}</small>{% endif %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            {% if projeto.participantes.all %}
+            <span class="pd-team-label">Participantes</span>
+            {% for p in projeto.participantes.all %}
+            <div class="pd-team-member sm">
+              <div class="pd-team-avatar sm">
+                {% if p.foto %}<img src="{{ p.foto.url }}" alt="{{ p.get_full_name }}">{% else %}<span><i class="fas fa-user"></i></span>{% endif %}
+              </div>
+              <strong>{{ p.get_full_name }}</strong>
+            </div>
+            {% endfor %}
+            {% endif %}
+          </div>
+
+          <!-- Relacionados -->
+          {% if projetos_relacionados %}
+          <div class="pg-sidebar-card mb-4">
+            <h5><i class="fas fa-project-diagram me-2"></i> Relacionados</h5>
+            {% for rel in projetos_relacionados %}
+            <a href="{% url 'projetos:detalhe' rel.slug %}" class="pd-related-item">
+              <div class="pd-related-img"><img src="{{ rel.imagem.url }}" alt="{{ rel.titulo }}" onerror="this.src='https://via.placeholder.com/60x45?text=P'"></div>
+              <div class="pd-related-info">
+                <span>{{ rel.titulo|truncatechars:45 }}</span>
+                <small>{{ rel.get_status_display }}</small>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <!-- Contato -->
+          <div class="pg-sidebar-card">
+            <h5><i class="fas fa-envelope me-2"></i> Dúvidas?</h5>
+            <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:.75rem">Tem interesse neste projeto? Entre em contato.</p>
+            <a href="{% if projeto.responsavel and projeto.responsavel.email %}mailto:{{ projeto.responsavel.email }}?subject=Dúvida sobre: {{ projeto.titulo }}{% else %}mailto:fablab@ifmt.edu.br{% endif %}" class="pd-btn-contact"><i class="fas fa-envelope me-1"></i> Enviar e-mail</a>
+            <a href="{% url 'logs:request_visit' %}" class="pd-btn-contact mt-2" style="background:transparent;color:var(--accent);border:2px solid var(--accent)"><i class="fas fa-calendar me-1"></i> Agendar visita</a>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+</section>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Inicialização de lightbox para a galeria (se existir)
-    document.addEventListener('DOMContentLoaded', function() {
-        // Verificar se existe uma biblioteca de lightbox instalada
-        if (window.lightbox) {
-            lightbox.option({
-                'resizeDuration': 200,
-                'wrapAround': true
-            });
-        }
-        
-        // Funcionalidade para resposta aos comentários
-        const replyBtns = document.querySelectorAll('.reply-btn');
-        const cancelReplyBtns = document.querySelectorAll('.cancel-reply');
-        const replyInfo = document.getElementById('reply-info');
-        const replyToName = document.getElementById('reply-to-name');
-        const commentParentInput = document.getElementById('comentario_pai_id');
-        const commentForm = document.getElementById('comment-form');
-        const commentText = document.getElementById('comment-text');
-        
-        // Configurar botões de resposta
-        if (replyBtns) {
-            replyBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const commentId = this.dataset.commentId;
-                    const authorName = this.dataset.author;
-                    
-                    // Configurar formulário para resposta
-                    commentParentInput.value = commentId;
-                    replyToName.textContent = authorName;
-                    replyInfo.classList.remove('d-none');
-                    
-                    // Focar no campo de texto e rolar até o formulário
-                    commentText.focus();
-                    commentForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                });
-            });
-        }
-        
-        // Configurar botão para cancelar resposta
-        if (cancelReplyBtns) {
-            cancelReplyBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    // Resetar formulário
-                    commentParentInput.value = '';
-                    replyInfo.classList.add('d-none');
-                });
-            });
-        }
-        
-        // Confirmar exclusão de comentário
-        const deleteButtons = document.querySelectorAll('.delete-comment-btn');
-        if (deleteButtons) {
-            deleteButtons.forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    if (!confirm('Tem certeza que deseja excluir este comentário?')) {
-                        e.preventDefault();
-                    }
-                });
-            });
-        }
-        
-        // Verificar se há um hash na URL para rolar até um comentário específico
-        if (window.location.hash && window.location.hash.startsWith('#comment-')) {
-            const commentId = window.location.hash;
-            const commentElement = document.querySelector(commentId);
-            
-            if (commentElement) {
-                setTimeout(() => {
-                    commentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    commentElement.classList.add('highlight-comment');
-                    
-                    // Remover destaque após alguns segundos
-                    setTimeout(() => {
-                        commentElement.classList.remove('highlight-comment');
-                    }, 3000);
-                }, 500);
-            }
-        }
+document.addEventListener('DOMContentLoaded', function() {
+  var replyBtns = document.querySelectorAll('.reply-btn');
+  var cancelBtns = document.querySelectorAll('.cancel-reply');
+  var replyInfo = document.getElementById('reply-info');
+  var replyName = document.getElementById('reply-to-name');
+  var parentInput = document.getElementById('comentario_pai_id');
+  var commentText = document.getElementById('comment-text');
+  var commentForm = document.getElementById('comment-form');
+
+  if(replyBtns) replyBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      parentInput.value = this.dataset.commentId;
+      replyName.textContent = this.dataset.author;
+      replyInfo.classList.remove('d-none');
+      commentText.focus();
+      commentForm.scrollIntoView({behavior:'smooth',block:'center'});
     });
+  });
+  if(cancelBtns) cancelBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){ parentInput.value=''; replyInfo.classList.add('d-none'); });
+  });
+  document.querySelectorAll('.delete-comment-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){ if(!confirm('Excluir este comentário?')) e.preventDefault(); });
+  });
+  if(window.location.hash && window.location.hash.startsWith('#comment-')){
+    var el = document.querySelector(window.location.hash);
+    if(el){ setTimeout(function(){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.background='rgba(19,103,138,.08)'; },500); }
+  }
+});
 </script>
 {% endblock %}
 
 {% block head %}
 <style>
-    /* Estilos para página de detalhes do projeto */
-    .project-header {
-        padding-bottom: 2rem;
-        border-bottom: 1px solid #eee;
-    }
-    
-    .status-badge {
-        font-size: 0.8rem;
-        padding: 0.4rem 1rem;
-        border-radius: 50rem;
-        color: #fff;
-        white-space: nowrap;
-    }
-    
-    .project-date {
-        font-size: 0.95rem;
-        color: #666;
-    }
-    
-    .project-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-    
-    .tag-badge {
-        background-color: rgba(13, 110, 253, 0.1);
-        color: var(--bs-primary);
-        padding: 5px 15px;
-        border-radius: 50rem;
-        font-size: 0.85rem;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-    
-    .tag-badge:hover {
-        background-color: var(--bs-primary);
-        color: white;
-    }
-    
-    .external-links {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 8px;
-    }
-    
-    .project-main-image img {
-        width: 100%;
-        max-height: 500px;
-        object-fit: cover;
-    }
-    
-    .rich-text {
-        font-size: 1.05rem;
-        line-height: 1.7;
-    }
-    
-    .rich-text p:last-child {
-        margin-bottom: 0;
-    }
-    
-    .gallery-item {
-        display: block;
-        position: relative;
-        overflow: hidden;
-        border-radius: 8px;
-    }
-    
-    .gallery-item img {
-        transition: transform 0.3s ease;
-    }
-    
-    .gallery-item:hover img {
-        transform: scale(1.05);
-    }
-    
-    .team-avatar, .avatar-placeholder {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        overflow: hidden;
-    }
-    
-    .team-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    .avatar-placeholder {
-        background-color: #e9ecef;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #6c757d;
-        font-size: 1.5rem;
-    }
-    
-    .team-avatar-sm, .avatar-placeholder-sm {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        overflow: hidden;
-    }
-    
-    .avatar-placeholder-sm {
-        background-color: #e9ecef;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #6c757d;
-        font-size: 1rem;
-    }
-    
-    .related-project-image {
-        width: 60px;
-        height: 60px;
-        overflow: hidden;
-    }
-    
-    .related-project-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    /* Estilos para a seção de comentários */
-    .project-comments {
-        margin-top: 2rem;
-    }
-    
-    .comment-item {
-        padding: 1.25rem;
-        border-radius: 12px;
-        background-color: #f8f9fa;
-        margin-bottom: 1.5rem;
-        transition: all 0.3s ease;
-    }
-    
-    .comment-item:hover {
-        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-        transform: translateY(-3px);
-    }
-    
-    .featured-comment {
-        border-left: 4px solid #ffc107;
-        background-color: rgba(255, 193, 7, 0.05);
-    }
-    
-    .highlight-comment {
-        background-color: rgba(13, 110, 253, 0.1);
-        animation: pulse-highlight 2s;
-    }
-    
-    @keyframes pulse-highlight {
-        0% { background-color: rgba(13, 110, 253, 0.3); }
-        100% { background-color: rgba(13, 110, 253, 0.05); }
-    }
-    
-    .default-avatar {
-        width: 50px;
-        height: 50px;
-        background-color: var(--bs-primary);
-        color: white;
-        font-size: 1.2rem;
-        font-weight: 600;
-    }
-    
-    .comment-text {
-        white-space: pre-line;
-        line-height: 1.6;
-    }
-    
-    .comment-text p:last-child {
-        margin-bottom: 0;
-    }
-    
-    .comment-replies {
-        margin-left: 2rem;
-        border-left: 2px solid rgba(0,0,0,0.1);
-        padding-left: 1.5rem;
-    }
-    
-    .reply-item {
-        padding: 1rem;
-        margin-bottom: 1rem;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    
-    .reply-btn:hover, .cancel-reply:hover {
-        text-decoration: underline;
-    }
-    
-    .delete-comment-btn:hover {
-        background-color: rgba(220, 53, 69, 0.1);
-    }
-    
-    /* Animação para novos comentários adicionados via AJAX */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .new-comment {
-        animation: fadeInUp 0.5s ease-out;
-    }
+  .fl-section { padding:5rem 0; }
+  .pd-breadcrumb { font-size:.85rem; }
+  .pd-breadcrumb a { color:var(--accent); text-decoration:none; font-weight:600; }
+  .pd-breadcrumb span:last-child { color:var(--text-muted); }
+
+  .pd-header { background:var(--white); padding:3rem 0; border-bottom:1px solid var(--border); }
+  .pd-title { font-size:2.4rem; font-weight:800; color:var(--primary); line-height:1.25; margin:.5rem 0 .5rem; }
+  .pd-lead { font-size:1.05rem; color:var(--text-muted); max-width:600px; line-height:1.6; }
+  .pd-meta { display:flex; flex-wrap:wrap; gap:1.25rem; font-size:.85rem; color:var(--text-muted); margin-top:.75rem; }
+  .pd-status-badge { display:inline-block; padding:.3rem .8rem; border-radius:999px; font-size:.75rem; font-weight:700; color:#fff; }
+  .st-success { background:#10B981; } .st-primary { background:var(--accent); } .st-info { background:#3B82F6; } .st-muted { background:#6B7280; }
+
+  .pg-tags-row { display:flex; flex-wrap:wrap; gap:.35rem; }
+  .pg-tags-row a { background:rgba(19,103,138,.08); color:var(--accent); padding:.25rem .65rem; border-radius:999px; font-size:.75rem; font-weight:600; text-decoration:none; transition:all var(--transition); }
+  .pg-tags-row a:hover { background:var(--accent); color:#fff; }
+
+  .pd-links { display:flex; flex-wrap:wrap; gap:.5rem; justify-content:flex-end; }
+  .pd-ext-btn { display:inline-flex; align-items:center; padding:.55rem 1.1rem; border-radius:var(--radius-sm); font-size:.85rem; font-weight:600; text-decoration:none; transition:all var(--transition); background:#1F2937; color:#fff; }
+  .pd-ext-btn:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.15); color:#fff; }
+  .pd-btn-red { background:#DC2626; } .pd-btn-blue { background:#3B82F6; } .pd-btn-accent { background:var(--accent); }
+
+  .pd-main-img { border-radius:var(--radius); overflow:hidden; max-height:450px; }
+  .pd-main-img img { width:100%; height:100%; object-fit:cover; }
+
+  .pd-content-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.75rem; }
+  .pd-content-card h3 { font-size:1.15rem; font-weight:700; color:var(--primary); margin-bottom:1.25rem; padding-bottom:.75rem; border-bottom:1px solid var(--border); }
+  .pd-content-card h3 i { color:var(--accent); }
+
+  .pd-rich-text { font-size:1.05rem; line-height:1.8; color:var(--text); }
+  .pd-rich-text p:last-child { margin-bottom:0; }
+  .pd-rich-text img { max-width:100%; border-radius:var(--radius-sm); margin:1rem 0; }
+
+  .pd-gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.75rem; }
+  .pd-gallery-item { position:relative; border-radius:var(--radius-sm); overflow:hidden; aspect-ratio:4/3; display:block; }
+  .pd-gallery-item img { width:100%; height:100%; object-fit:cover; transition:transform .4s; }
+  .pd-gallery-item:hover img { transform:scale(1.08); }
+  .pd-gallery-overlay { position:absolute; inset:0; background:rgba(11,37,69,.4); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.2rem; opacity:0; transition:opacity .3s; }
+  .pd-gallery-item:hover .pd-gallery-overlay { opacity:1; }
+
+  /* Comments */
+  .pd-comment-count { background:var(--surface-alt); color:var(--text-muted); font-size:.75rem; font-weight:700; padding:.2rem .6rem; border-radius:999px; margin-left:.5rem; }
+  .pd-comment-form textarea { width:100%; padding:.85rem 1rem; border:2px solid var(--border); border-radius:var(--radius-sm); font-size:.9rem; resize:vertical; transition:border-color .25s; font-family:inherit; }
+  .pd-comment-form textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 4px rgba(19,103,138,.08); }
+  .pd-comment-form-footer { display:flex; justify-content:space-between; align-items:center; margin-top:.75rem; }
+  .pd-reply-info { font-size:.82rem; color:var(--text-muted); }
+  .pd-reply-info .cancel-reply { background:none; border:none; color:#DC2626; cursor:pointer; margin-left:.5rem; }
+  .pd-btn-submit { padding:.55rem 1.25rem; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); font-weight:600; font-size:.85rem; cursor:pointer; transition:all var(--transition); }
+  .pd-btn-submit:hover { background:var(--primary); transform:translateY(-1px); }
+  .pd-login-prompt { background:rgba(59,130,246,.06); border:1px solid rgba(59,130,246,.12); border-radius:var(--radius-sm); padding:.75rem 1rem; font-size:.88rem; color:#374151; }
+  .pd-login-prompt a { color:var(--accent); font-weight:700; }
+
+  .pd-comment { display:flex; gap:1rem; padding:1.25rem; background:var(--surface); border-radius:var(--radius-sm); margin-bottom:1rem; transition:background .3s; }
+  .pd-comment-featured { border-left:4px solid #F59E0B; background:rgba(245,158,11,.04); }
+  .pd-comment-avatar { width:44px; height:44px; border-radius:50%; overflow:hidden; flex-shrink:0; background:var(--accent); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:.85rem; }
+  .pd-comment-avatar.sm { width:34px; height:34px; font-size:.75rem; }
+  .pd-comment-avatar img { width:100%; height:100%; object-fit:cover; }
+  .pd-comment-body { flex:1; min-width:0; }
+  .pd-comment-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:.4rem; }
+  .pd-comment-head strong { font-size:.88rem; color:var(--primary); }
+  .pd-comment-head time { font-size:.75rem; color:var(--text-muted); margin-left:.5rem; }
+  .pd-badge-highlight { background:#F59E0B; color:#fff; font-size:.65rem; padding:.15rem .5rem; border-radius:999px; margin-left:.5rem; font-weight:600; }
+  .pd-comment-actions { display:flex; gap:.25rem; }
+  .pd-comment-actions button, .delete-comment-btn { background:none; border:none; color:var(--text-muted); cursor:pointer; padding:.25rem .4rem; border-radius:var(--radius-sm); font-size:.8rem; transition:all var(--transition); }
+  .pd-comment-actions .reply-btn:hover { color:var(--accent); background:rgba(19,103,138,.06); }
+  .delete-comment-btn:hover { color:#DC2626; background:rgba(220,38,38,.06); }
+  .pd-comment-text { font-size:.88rem; color:var(--text); line-height:1.65; }
+  .pd-comment-text p:last-child { margin-bottom:0; }
+
+  .pd-replies { margin-top:1rem; padding-left:1rem; border-left:2px solid var(--border); display:flex; flex-direction:column; gap:.75rem; }
+  .pd-reply { display:flex; gap:.75rem; padding:.85rem; background:var(--white); border-radius:var(--radius-sm); }
+
+  .pd-no-comments { text-align:center; padding:2rem; color:var(--text-muted); }
+  .pd-no-comments i { font-size:2rem; margin-bottom:.5rem; display:block; opacity:.4; }
+
+  /* Sidebar */
+  .pg-sidebar-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; }
+  .pg-sidebar-card h5 { font-size:.95rem; font-weight:700; color:var(--primary); margin-bottom:1rem; }
+  .pd-team-label { display:block; font-size:.72rem; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:.08em; margin-bottom:.5rem; }
+  .pd-team-member { display:flex; align-items:center; gap:.75rem; padding:.5rem 0; }
+  .pd-team-member.sm { padding:.35rem 0; }
+  .pd-team-member strong { font-size:.88rem; color:var(--primary); display:block; }
+  .pd-team-member small { font-size:.75rem; color:var(--text-muted); display:block; }
+  .pd-team-avatar { width:44px; height:44px; border-radius:50%; overflow:hidden; background:var(--surface-alt); display:flex; align-items:center; justify-content:center; color:var(--text-muted); flex-shrink:0; }
+  .pd-team-avatar.sm { width:34px; height:34px; }
+  .pd-team-avatar img { width:100%; height:100%; object-fit:cover; }
+
+  .pd-related-item { display:flex; gap:.75rem; padding:.6rem 0; border-bottom:1px solid var(--border); text-decoration:none; transition:all var(--transition); }
+  .pd-related-item:last-child { border-bottom:none; }
+  .pd-related-item:hover span:first-child { color:var(--accent); }
+  .pd-related-img { width:55px; height:40px; border-radius:var(--radius-sm); overflow:hidden; flex-shrink:0; }
+  .pd-related-img img { width:100%; height:100%; object-fit:cover; }
+  .pd-related-info { display:flex; flex-direction:column; }
+  .pd-related-info span { font-size:.82rem; font-weight:600; color:var(--primary); line-height:1.3; transition:color var(--transition); }
+  .pd-related-info small { color:var(--text-muted); font-size:.72rem; }
+
+  .pd-btn-contact { display:block; text-align:center; padding:.65rem 1rem; background:var(--accent); color:#fff; border-radius:var(--radius-sm); font-size:.85rem; font-weight:600; text-decoration:none; transition:all var(--transition); }
+  .pd-btn-contact:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(19,103,138,.25); color:#fff; }
+
+  @media(max-width:991px){ .pd-links{justify-content:flex-start;} }
+  @media(max-width:768px){ .pd-title{font-size:1.7rem;} .pd-header{padding:2rem 0;} .pd-replies{padding-left:.5rem;} }
 </style>
 {% endblock %}

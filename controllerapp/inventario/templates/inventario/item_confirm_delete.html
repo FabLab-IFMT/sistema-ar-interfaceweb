@@ -1,64 +1,60 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}Excluir Item{% endblock %}
+{% block title %}Excluir — {{ item.nome }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'inventario:item_list' %}">Itens</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'inventario:item_detail' item.pk %}">{{ item.nome }}</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Excluir</li>
-    </ol>
-  </nav>
+<section style="background:var(--surface-alt);padding:1rem 0;border-bottom:1px solid var(--border)">
+  <div class="container">
+    <nav class="iv-breadcrumb"><a href="{% url 'inventario:dashboard' %}">Inventário</a> <span class="mx-2">/</span> <a href="{% url 'inventario:item_list' %}">Itens</a> <span class="mx-2">/</span> <span>Excluir</span></nav>
+  </div>
+</section>
 
-  <div class="card shadow">
-    <div class="card-header py-3">
-      <h6 class="m-0 font-weight-bold text-danger">Confirmar Exclusão</h6>
-    </div>
-    <div class="card-body">
-      <div class="alert alert-danger mb-4">
-        <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i> Atenção!</h5>
-        <p class="mb-0">Você está prestes a excluir o item <strong>{{ item.nome }}</strong> (código: {{ item.codigo }}) do inventário. Esta ação não pode ser desfeita.</p>
-      </div>
-      
-      <div class="card mb-4">
-        <div class="card-header">
-          <h6 class="m-0">Resumo do Item</h6>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6">
-              <p><strong>Nome:</strong> {{ item.nome }}</p>
-              <p><strong>Código:</strong> {{ item.codigo }}</p>
-              <p><strong>Categoria:</strong> {{ item.categoria.nome|default:"Não definida" }}</p>
-            </div>
-            <div class="col-md-6">
-              <p><strong>Quantidade:</strong> {{ item.quantidade }} {{ item.get_unidade_display }}</p>
-              <p><strong>Valor unitário:</strong> {% if item.valor_unitario %}R$ {{ item.valor_unitario|floatformat:2 }}{% else %}Não definido{% endif %}</p>
-              <p><strong>Data de cadastro:</strong> {{ item.data_cadastro|date:"d/m/Y" }}</p>
-            </div>
-          </div>
+<section class="fl-section" style="padding:3rem 0 5rem">
+  <div class="container" style="max-width:600px">
+    <div class="iv-delete-card">
+      <div class="iv-delete-icon"><i class="fas fa-trash-alt"></i></div>
+      <h2>Excluir item?</h2>
+      <p class="iv-delete-msg">Você está prestes a excluir <strong>{{ item.nome }}</strong> ({{ item.codigo }}).<br>Esta ação não pode ser desfeita.</p>
+
+      <div class="iv-delete-summary">
+        <div class="row g-2">
+          <div class="col-6"><span class="iv-ds-label">Categoria</span><span class="iv-ds-val">{{ item.categoria.nome|default:"—" }}</span></div>
+          <div class="col-6"><span class="iv-ds-label">Quantidade</span><span class="iv-ds-val">{{ item.quantidade }} {{ item.get_unidade_display }}</span></div>
+          <div class="col-6"><span class="iv-ds-label">Valor unit.</span><span class="iv-ds-val">{% if item.valor_unitario %}R$ {{ item.valor_unitario|floatformat:2 }}{% else %}—{% endif %}</span></div>
+          <div class="col-6"><span class="iv-ds-label">Cadastro</span><span class="iv-ds-val">{{ item.data_cadastro|date:"d/m/Y" }}</span></div>
         </div>
       </div>
-      
+
       {% if item.emprestimos.exists %}
-        <div class="alert alert-warning mb-4">
-          <h5 class="alert-heading"><i class="fas fa-exclamation-circle me-2"></i> Aviso</h5>
-          <p class="mb-0">Este item possui histórico de empréstimos. Ao excluí-lo, você também excluirá todo o histórico de empréstimos associado.</p>
-        </div>
+      <div class="iv-delete-warn"><i class="fas fa-exclamation-circle me-2"></i> Este item possui empréstimos. Ao excluí-lo, o histórico também será removido.</div>
       {% endif %}
-      
+
       <form method="post">
         {% csrf_token %}
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-          <a href="{% url 'inventario:item_detail' item.pk %}" class="btn btn-secondary me-md-2">Cancelar</a>
-          <button type="submit" class="btn btn-danger">Sim, excluir item</button>
+        <div class="iv-delete-actions">
+          <a href="{% url 'inventario:item_detail' item.pk %}" class="iv-btn iv-btn-cancel">Cancelar</a>
+          <button type="submit" class="iv-btn iv-btn-destroy"><i class="fas fa-trash-alt me-1"></i> Sim, excluir</button>
         </div>
       </form>
     </div>
   </div>
-</div>
+</section>
+{% endblock %}
+
+{% block head %}
+<style>
+  .iv-breadcrumb{font-size:.85rem}.iv-breadcrumb a{color:var(--accent);text-decoration:none;font-weight:600}.iv-breadcrumb span:last-child{color:var(--text-muted)}
+  .iv-delete-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:2.5rem;text-align:center}
+  .iv-delete-icon{width:64px;height:64px;border-radius:50%;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;color:#DC2626;font-size:1.5rem}
+  .iv-delete-card h2{font-size:1.4rem;font-weight:700;color:var(--primary);margin-bottom:.5rem}
+  .iv-delete-msg{font-size:.9rem;color:var(--text-muted);line-height:1.6;margin-bottom:1.5rem}
+  .iv-delete-summary{background:var(--surface);border-radius:var(--radius-sm);padding:1.25rem;text-align:left;margin-bottom:1.5rem}
+  .iv-ds-label{display:block;font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}.iv-ds-val{font-size:.88rem;font-weight:600;color:var(--primary)}
+  .iv-delete-warn{background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-sm);padding:.75rem 1rem;font-size:.82rem;color:#92400E;text-align:left;margin-bottom:1.5rem}
+  .iv-delete-actions{display:flex;justify-content:center;gap:.75rem}
+  .iv-btn{display:inline-flex;align-items:center;padding:.6rem 1.5rem;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;text-decoration:none;transition:all var(--transition);cursor:pointer;border:none}
+  .iv-btn-cancel{background:transparent;color:var(--text-muted);border:2px solid var(--border)}.iv-btn-cancel:hover{border-color:var(--text-muted);color:var(--text)}
+  .iv-btn-destroy{background:#DC2626;color:#fff}.iv-btn-destroy:hover{background:#B91C1C;transform:translateY(-1px);box-shadow:0 4px 12px rgba(220,38,38,.25)}
+</style>
 {% endblock %}

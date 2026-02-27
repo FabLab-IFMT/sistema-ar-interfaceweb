@@ -1,884 +1,658 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}
-  FabLab - Laboratório de Fabricação Digital
-{% endblock %}
+{% block title %}FabLab - Laboratório de Fabricação Digital{% endblock %}
 
 {% block content %}
-  <!-- Debug info - Visível apenas com debug=True -->
-  {% if debug %}
-  <div class="alert alert-info">
-    <strong>Debug:</strong> Carrossel com {{ carousel_images|length }} imagens.
-    {% for img in carousel_images %}
-      <p>Imagem #{{ forloop.counter }}: {{ img.image.url }}</p>
-    {% endfor %}
-  </div>
-  {% endif %}
 
-  <!-- Carrossel principal - Banner rotativo da página inicial -->
-  <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
-    <!-- Indicadores - Pontos de navegação do carrossel -->
-    <div class="carousel-indicators">
-      {% for image in carousel_images %}
-        <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="{{ forloop.counter0 }}" 
-              {% if forloop.first %}class="active" aria-current="true"{% endif %} 
-              aria-label="Slide {{ forloop.counter }}"></button>
-      {% empty %}
-        <!-- Indicadores padrão caso não haja imagens cadastradas -->
-        <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active" 
-              aria-current="true" aria-label="Slide 1"></button>
-        <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-        <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
-      {% endfor %}
-    </div>
+  <!-- ===== Hero / Carrossel ===== -->
+  <section class="fl-hero">
+    <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-indicators">
+        {% for image in carousel_images %}
+          <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="{{ forloop.counter0 }}"
+                {% if forloop.first %}class="active" aria-current="true"{% endif %}
+                aria-label="Slide {{ forloop.counter }}"></button>
+        {% empty %}
+          <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
+          <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1"></button>
+          <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2"></button>
+        {% endfor %}
+      </div>
 
-      <!-- Itens do Carrossel -->
       <div class="carousel-inner">
         {% for image in carousel_images %}
           <div class="carousel-item {% if forloop.first %}active{% endif %}">
             {% if image.link %}<a href="{{ image.link }}">{% endif %}
-              <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ image.caption|default:'Imagem do carrossel' }}" 
-                   height="500" style="object-fit: cover; width: 100%;">
+              <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ image.caption|default:'FabLab IFMT' }}">
             {% if image.link %}</a>{% endif %}
             {% if image.caption or image.description %}
               <div class="carousel-caption d-none d-md-block">
-                {% if image.caption %}<h2 class="display-4 fw-bold text-shadow">{{ image.caption }}</h2>{% endif %}
-                {% if image.description %}<p class="lead fs-3 text-shadow">{{ image.description }}</p>{% endif %}
+                {% if image.caption %}<h2>{{ image.caption }}</h2>{% endif %}
+                {% if image.description %}<p>{{ image.description }}</p>{% endif %}
               </div>
             {% endif %}
           </div>
         {% empty %}
           <div class="carousel-item active">
-            <img src="{% static 'images/carrossel/imagem1.png' %}" class="d-block w-100" alt="Imagem 1" 
-                 height="600" style="object-fit: cover; width: 100%;">
+            <img src="{% static 'images/carrossel/imagem1.png' %}" class="d-block w-100" alt="FabLab">
             <div class="carousel-caption d-none d-md-block">
-              <h2 class="display-4 fw-bold text-shadow">Crie. Aprenda. Inove.</h2>
-              <p class="lead fs-3 text-shadow">Explore as possibilidades no FabLab IFMT</p>
+              <h2>Crie. Aprenda. Inove.</h2>
+              <p>Explore as possibilidades no FabLab IFMT</p>
             </div>
           </div>
           <div class="carousel-item">
-            <img src="{% static 'images/carrossel/imagem2.png' %}" class="d-block w-100" alt="Imagem 2" 
-                 height="600" style="object-fit: cover; width: 100%;">
+            <img src="{% static 'images/carrossel/imagem2.png' %}" class="d-block w-100" alt="Tecnologia">
             <div class="carousel-caption d-none d-md-block">
-              <h2 class="display-4 fw-bold text-shadow">Tecnologia ao seu alcance</h2>
-              <p class="lead fs-3 text-shadow">Equipamentos de última geração para seus projetos</p>
+              <h2>Tecnologia ao seu alcance</h2>
+              <p>Equipamentos de última geração para seus projetos</p>
             </div>
           </div>
           <div class="carousel-item">
-            <img src="{% static 'images/carrossel/imagem3.png' %}" class="d-block w-100" alt="Imagem 3" 
-                 height="600" style="object-fit: cover; width: 100%;">
+            <img src="{% static 'images/carrossel/imagem3.png' %}" class="d-block w-100" alt="Comunidade">
             <div class="carousel-caption d-none d-md-block">
-              <h2 class="display-4 fw-bold text-shadow">Comunidade Maker</h2>
-              <p class="lead fs-3 text-shadow">Aprenda e compartilhe conhecimento</p>
+              <h2>Comunidade Maker</h2>
+              <p>Aprenda e compartilhe conhecimento</p>
             </div>
           </div>
         {% endfor %}
       </div>
 
-      <!-- Controles de navegação do carrossel -->
       <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Anterior</span>
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Anterior</span>
       </button>
       <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
-        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Próximo</span>
+        <span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Próximo</span>
       </button>
     </div>
-  </div>
-  
-  <!-- O que oferecemos - Cards interativos -->
-  <div class="container mt-5 pt-3">
-    <div class="row text-center">
-      <div class="col-12 mb-5">
-        <span class="badge bg-primary text-white px-3 py-2 mb-2">NOSSO ESPAÇO</span>
-        <h2 class="display-5 fw-bold">O que você encontra no <span class="text-primary">FabLab</span></h2>
-        <p class="lead col-lg-8 mx-auto">Um ambiente criativo completo para transformar suas ideias em projetos reais</p>
-      </div>
-    </div>
-    
-    <div class="row g-4">
-      <!-- Card 1 - Impressão 3D -->
-      <div class="col-md-6 col-lg-3">
-        <div class="feature-card h-100">
-          <div class="feature-icon">
-            <i class="fas fa-cube"></i>
-          </div>
-          <h3>Impressão 3D</h3>
-          <p>Crie objetos tridimensionais a partir de modelos digitais com nossas impressoras de última geração.</p>
-          <a href="{% url 'options:equipamentos' %}" class="btn btn-sm btn-outline-primary mt-auto">Ver mais</a>
-        </div>
-      </div>
-      
-      <!-- Card 2 - Corte a Laser -->
-      <div class="col-md-6 col-lg-3">
-        <div class="feature-card h-100">
-          <div class="feature-icon">
-            <i class="fas fa-project-diagram"></i>
-          </div>
-          <h3>Corte a Laser</h3>
-          <p>Corte e grave com precisão milimétrica em diversos materiais como madeira, acrílico e tecido.</p>
-          <a href="{% url 'options:equipamentos' %}" class="btn btn-sm btn-outline-primary mt-auto">Ver mais</a>
-        </div>
-      </div>
-      
-      <!-- Card 3 - Eletrônica -->
-      <div class="col-md-6 col-lg-3">
-        <div class="feature-card h-100">
-          <div class="feature-icon">
-            <i class="fas fa-microchip"></i>
-          </div>
-          <h3>Eletrônica</h3>
-          <p>Desenvolva projetos eletrônicos com nossa bancada completa de componentes e ferramentas.</p>
-          <a href="{% url 'options:equipamentos' %}" class="btn btn-sm btn-outline-primary mt-auto">Ver mais</a>
-        </div>
-      </div>
-      
-      <!-- Card 4 - Prototipagem -->
-      <div class="col-md-6 col-lg-3">
-        <div class="feature-card h-100">
-          <div class="feature-icon">
-            <i class="fas fa-cogs"></i>
-          </div>
-          <h3>Prototipagem</h3>
-          <p>Transforme sua ideia em um protótipo funcional com suporte técnico especializado.</p>
-          <a href="{% url 'options:servicos' %}" class="btn btn-sm btn-outline-primary mt-auto">Ver mais</a>
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
 
-  <!-- Sobre o laboratório - Seção informativa -->
-  <div class="container-fluid bg-light py-5 mt-5">
+  <!-- ===== O que oferecemos ===== -->
+  <section class="fl-section">
     <div class="container">
-      <div class="row align-items-center">
-        <div class="col-lg-6 order-lg-2">
-          <div class="p-lg-4">
-            <img src="{% static 'images/sobre/imagem monitores.jpeg' %}" class="img-fluid rounded-4 shadow" 
-                 alt="Interior do laboratório" onerror="this.src='https://via.placeholder.com/600x400?text=FabLab'">
-          </div>
-        </div>
-        <div class="col-lg-6 order-lg-1 mt-4 mt-lg-0">
-          <span class="badge bg-primary text-white px-3 py-2 mb-2">QUEM SOMOS</span>
-          <h2 class="display-5 fw-bold mb-4">Conheça o <span class="text-primary">FabLab IFMT</span></h2>
-          <p class="lead mb-4">O Laboratório de Fabricação Digital do IFMT é um espaço colaborativo dedicado à inovação, aprendizagem e desenvolvimento de projetos tecnológicos.</p>
-          <ul class="feature-list">
-            <li><i class="fas fa-check-circle text-primary"></i> Parte da rede mundial de laboratórios de fabricação digital</li>
-            <li><i class="fas fa-check-circle text-primary"></i> Equipamentos modernos para prototipagem rápida</li>
-            <li><i class="fas fa-check-circle text-primary"></i> Professores e técnicos especializados para orientação</li>
-            <li><i class="fas fa-check-circle text-primary"></i> Aberto à comunidade acadêmica e parcerias externas</li>
-          </ul>
-          <a href="{% url 'about' %}" class="btn btn-primary mt-3">Saiba mais sobre nós</a>
-        </div>
+      <div class="text-center mb-5">
+        <span class="fl-tag">NOSSO ESPAÇO</span>
+        <h2 class="fl-heading">O que você encontra no <span>FabLab</span></h2>
+        <p class="fl-subheading">Um ambiente criativo completo para transformar suas ideias em projetos reais</p>
       </div>
-    </div>
-  </div>
 
-  <!-- Projetos em destaque - apenas quando houver projetos selecionados para a home -->
-  {% if tem_projetos %}
-  <div class="container py-5 mt-3">
-    <div class="row mb-4 text-center">
-      <div class="col">
-        <span class="badge bg-primary text-white px-3 py-2 mb-2">PROJETOS</span>
-        <h2 class="display-5 fw-bold">Projetos em <span class="text-primary">Destaque</span></h2>
-        <p class="lead col-lg-8 mx-auto">Conheça alguns dos projetos desenvolvidos em nosso laboratório</p>
-      </div>
-    </div>
-    
-    <div class="row g-4">
-      {% for projeto in projetos_destaque %}
+      <div class="row g-4">
         <div class="col-md-6 col-lg-3">
-          <div class="project-card h-100">
-            <img src="{{ projeto.imagem.url }}" class="project-img" alt="{{ projeto.titulo }}" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto'">
-            <div class="project-content">
-              <h4>{{ projeto.titulo }}</h4>
-              <p>{{ projeto.descricao_curta|truncatechars:100 }}</p>
-              <div class="project-tags">
-                {% for tag in projeto.tags.all %}
-                  <span>{{ tag.nome }}</span>
-                {% endfor %}
-              </div>
-            </div>
+          <div class="fl-card-feature">
+            <div class="fl-card-icon"><i class="fas fa-cube"></i></div>
+            <h3>Impressão 3D</h3>
+            <p>Crie objetos tridimensionais a partir de modelos digitais com nossas impressoras de última geração.</p>
+            <a href="{% url 'options:equipamentos' %}" class="fl-link">Ver mais <i class="fas fa-arrow-right ms-1"></i></a>
           </div>
         </div>
-      {% endfor %}
+        <div class="col-md-6 col-lg-3">
+          <div class="fl-card-feature">
+            <div class="fl-card-icon"><i class="fas fa-project-diagram"></i></div>
+            <h3>Corte a Laser</h3>
+            <p>Corte e grave com precisão milimétrica em diversos materiais como madeira, acrílico e tecido.</p>
+            <a href="{% url 'options:equipamentos' %}" class="fl-link">Ver mais <i class="fas fa-arrow-right ms-1"></i></a>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="fl-card-feature">
+            <div class="fl-card-icon"><i class="fas fa-microchip"></i></div>
+            <h3>Eletrônica</h3>
+            <p>Desenvolva projetos eletrônicos com nossa bancada completa de componentes e ferramentas.</p>
+            <a href="{% url 'options:equipamentos' %}" class="fl-link">Ver mais <i class="fas fa-arrow-right ms-1"></i></a>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="fl-card-feature">
+            <div class="fl-card-icon"><i class="fas fa-cogs"></i></div>
+            <h3>Prototipagem</h3>
+            <p>Transforme sua ideia em um protótipo funcional com suporte técnico especializado.</p>
+            <a href="{% url 'options:servicos' %}" class="fl-link">Ver mais <i class="fas fa-arrow-right ms-1"></i></a>
+          </div>
+        </div>
+      </div>
     </div>
-    
-    <div class="text-center mt-4">
-      <a href="{% url 'projetos:lista' %}" class="btn btn-outline-primary btn-lg">Ver todos os projetos</a>
+  </section>
+
+  <!-- ===== Sobre ===== -->
+  <section class="fl-section fl-section-alt">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6 order-lg-2">
+          <img src="{% static 'images/sobre/imagem monitores.jpeg' %}" class="img-fluid fl-img-rounded" alt="Interior do laboratório"
+               onerror="this.src='https://via.placeholder.com/600x400?text=FabLab'">
+        </div>
+        <div class="col-lg-6 order-lg-1">
+          <span class="fl-tag">QUEM SOMOS</span>
+          <h2 class="fl-heading">Conheça o <span>FabLab IFMT</span></h2>
+          <p class="fl-subheading mb-4">O Laboratório de Fabricação Digital do IFMT é um espaço colaborativo dedicado à inovação, aprendizagem e desenvolvimento de projetos tecnológicos.</p>
+          <ul class="fl-check-list">
+            <li><i class="fas fa-check-circle"></i> Parte da rede mundial de laboratórios de fabricação digital</li>
+            <li><i class="fas fa-check-circle"></i> Equipamentos modernos para prototipagem rápida</li>
+            <li><i class="fas fa-check-circle"></i> Professores e técnicos especializados para orientação</li>
+            <li><i class="fas fa-check-circle"></i> Aberto à comunidade acadêmica e parcerias externas</li>
+          </ul>
+          <a href="{% url 'about' %}" class="fl-btn mt-3">Saiba mais sobre nós</a>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
+
+  <!-- ===== Projetos em destaque ===== -->
+  {% if tem_projetos %}
+  <section class="fl-section">
+    <div class="container">
+      <div class="text-center mb-5">
+        <span class="fl-tag">PROJETOS</span>
+        <h2 class="fl-heading">Projetos em <span>Destaque</span></h2>
+        <p class="fl-subheading">Conheça alguns dos projetos desenvolvidos em nosso laboratório</p>
+      </div>
+      <div class="row g-4">
+        {% for projeto in projetos_destaque %}
+          <div class="col-md-6 col-lg-3">
+            <a href="{% url 'projetos:detalhe' projeto.slug %}" class="fl-card-project">
+              <div class="fl-card-project-img">
+                {% if projeto.imagem %}
+                <img src="{{ projeto.imagem.url }}" alt="{{ projeto.titulo }}" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto'">
+                {% else %}
+                <div style="height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--primary),var(--primary-light))"><i class="fas fa-project-diagram" style="font-size:2rem;color:rgba(255,255,255,.4)"></i></div>
+                {% endif %}
+              </div>
+              <div class="fl-card-project-body">
+                <h4>{{ projeto.titulo }}</h4>
+                <p>{{ projeto.descricao_curta|truncatechars:100 }}</p>
+                <div class="fl-tags-row">
+                  {% for tag in projeto.tags.all %}<span>{{ tag.nome }}</span>{% endfor %}
+                </div>
+                <span class="fl-link mt-auto">Ver projeto <i class="fas fa-arrow-right ms-1"></i></span>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="text-center mt-5">
+        <a href="{% url 'projetos:lista' %}" class="fl-btn fl-btn-outline">Ver todos os projetos</a>
+      </div>
+    </div>
+  </section>
   {% endif %}
 
-  <!-- Estatísticas com contador animado -->
-  <div class="container mt-5 py-5">
-    <div class="row">
-      <div class="col-lg-6">
-        <span class="badge bg-primary text-white px-3 py-2 mb-2">IMPACTO</span>
-        <h2 class="display-5 fw-bold mb-4">Nosso impacto <br><span class="text-primary">em números</span></h2>
-        <p class="lead">Ao longo dos anos, temos trabalhado para criar um ambiente onde ideias inovadoras possam ganhar vida, impactando estudantes, pesquisadores e a comunidade.</p>
-        <a href="{% url 'about' %}" class="btn btn-outline-primary mt-3">Saiba mais sobre nós</a>
-      </div>
-      <div class="col-lg-6">
-        <div class="row g-4 mt-3">
-          <!-- Estatística 1: Equipamentos -->
-          <div class="col-6">
-            <div class="stats-card">
-              <div class="stats-icon">
-                <i class="fas fa-tools"></i>
+  <!-- ===== Estatísticas ===== -->
+  <section class="fl-section fl-section-alt">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-5">
+          <span class="fl-tag">IMPACTO</span>
+          <h2 class="fl-heading">Nosso impacto<br><span>em números</span></h2>
+          <p class="fl-subheading">Ao longo dos anos, temos trabalhado para criar um ambiente onde ideias inovadoras possam ganhar vida, impactando estudantes, pesquisadores e a comunidade.</p>
+          <a href="{% url 'about' %}" class="fl-btn fl-btn-outline mt-3">Saiba mais sobre nós</a>
+        </div>
+        <div class="col-lg-7">
+          <div class="row g-4">
+            <div class="col-6">
+              <div class="fl-stat-card">
+                <div class="fl-stat-icon"><i class="fas fa-tools"></i></div>
+                <div class="fl-stat-number count-up" data-count="12">0</div>
+                <div class="fl-stat-label">Equipamentos</div>
               </div>
-              <div class="stats-number count-up" data-count="12">0</div>
-              <div class="stats-label">Equipamentos</div>
             </div>
-          </div>
-          
-          <!-- Estatística 2: Projetos -->
-          <div class="col-6">
-            <div class="stats-card">
-              <div class="stats-icon">
-                <i class="fas fa-project-diagram"></i>
+            <div class="col-6">
+              <div class="fl-stat-card">
+                <div class="fl-stat-icon"><i class="fas fa-project-diagram"></i></div>
+                <div class="fl-stat-number count-up" data-count="50">0</div>
+                <div class="fl-stat-label">Projetos realizados</div>
               </div>
-              <div class="stats-number count-up" data-count="50">0</div>
-              <div class="stats-label">Projetos realizados</div>
             </div>
-          </div>
-          
-          <!-- Estatística 3: Usuários -->
-          <div class="col-6">
-            <div class="stats-card">
-              <div class="stats-icon">
-                <i class="fas fa-users"></i>
+            <div class="col-6">
+              <div class="fl-stat-card">
+                <div class="fl-stat-icon"><i class="fas fa-users"></i></div>
+                <div class="fl-stat-number count-up" data-count="20">0</div>
+                <div class="fl-stat-label">Usuários ativos</div>
               </div>
-              <div class="stats-number count-up" data-count="20">0</div>
-              <div class="stats-label">Usuários ativos</div>
             </div>
-          </div>
-          
-          <!-- Estatística 4: Horas -->
-          <div class="col-6">
-            <div class="stats-card">
-              <div class="stats-icon">
-                <i class="fas fa-clock"></i>
+            <div class="col-6">
+              <div class="fl-stat-card">
+                <div class="fl-stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="fl-stat-number count-up" data-count="1000">0</div>
+                <div class="fl-stat-label">Horas de uso</div>
               </div>
-              <div class="stats-number count-up" data-count="1000">0</div>
-              <div class="stats-label">Horas de uso</div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Seção de Notícias - Mostrada apenas quando existem notícias cadastradas -->
+  <!-- ===== Notícias ===== -->
   {% if tem_noticias %}
-  <div class="container-fluid bg-light py-5 mt-5">
+  <section class="fl-section">
     <div class="container">
-      <div class="row mb-4 text-center">
-        <div class="col">
-          <span class="badge bg-primary text-white px-3 py-2 mb-2">NOVIDADES</span>
-          <h2 class="display-5 fw-bold">Últimas <span class="text-primary">Notícias</span></h2>
-          <p class="lead col-lg-8 mx-auto">Fique por dentro das novidades do FabLab</p>
-        </div>
+      <div class="text-center mb-5">
+        <span class="fl-tag">NOVIDADES</span>
+        <h2 class="fl-heading">Últimas <span>Notícias</span></h2>
+        <p class="fl-subheading">Fique por dentro das novidades do FabLab</p>
       </div>
-      
-      <!-- Grade de notícias - Loop pelas notícias disponíveis -->
       <div class="row g-4">
         {% for noticia in noticias %}
           <div class="col-lg-4 col-md-6">
-            <div class="news-card">
-              <!-- Imagem e badges da notícia -->
-              <div class="position-relative">
-                <img src="{{ noticia.imagem.url }}" class="card-img-top" alt="{{ noticia.titulo }}">
-                <span class="news-date">
-                  {{ noticia.data_publicacao|date:"d/m/Y" }}
-                </span>
-                {% if noticia.destaque %}
-                  <span class="news-featured">
-                    <i class="fas fa-star me-1"></i> Destaque
-                  </span>
-                {% endif %}
+            <a href="{{ noticia.get_absolute_url }}" class="fl-card-news">
+              <div class="fl-card-news-img">
+                <img src="{{ noticia.imagem.url }}" alt="{{ noticia.titulo }}">
+                <span class="fl-news-date">{{ noticia.data_publicacao|date:"d/m/Y" }}</span>
+                {% if noticia.destaque %}<span class="fl-news-featured"><i class="fas fa-star me-1"></i> Destaque</span>{% endif %}
               </div>
-              <!-- Corpo da notícia -->
-              <div class="news-body">
+              <div class="fl-card-news-body">
                 <h5>{{ noticia.titulo }}</h5>
-                <p class="text-muted">{{ noticia.resumo|truncatechars:120 }}</p>
-                
-                <!-- Hashtags relacionadas -->
+                <p>{{ noticia.resumo|truncatechars:120 }}</p>
                 {% if noticia.hashtags.all %}
-                <div class="news-tags">
+                <div class="fl-tags-row mb-3">
                   {% for tag in noticia.hashtags.all %}
-                    <a href="{% url 'options:noticias_por_tag' tag.slug %}" class="news-tag">
-                      #{{ tag.nome }}
-                    </a>
+                    <span>#{{ tag.nome }}</span>
                   {% endfor %}
                 </div>
                 {% endif %}
-                
-                <a href="{{ noticia.get_absolute_url }}" class="btn btn-link p-0">Leia mais <i class="fas fa-arrow-right ms-1"></i></a>
+                <span class="fl-link">Leia mais <i class="fas fa-arrow-right ms-1"></i></span>
               </div>
-            </div>
+            </a>
           </div>
         {% endfor %}
       </div>
-      
-      <!-- Link para mais notícias -->
-      <div class="row mt-5">
-        <div class="col-12 text-center">
-          <a href="{% url 'options:noticias' %}" class="btn btn-primary px-4">Ver todas as notícias</a>
-        </div>
+      <div class="text-center mt-5">
+        <a href="{% url 'options:noticias' %}" class="fl-btn">Ver todas as notícias</a>
       </div>
     </div>
-  </div>
+  </section>
   {% endif %}
 
-  <!-- Call to Action Final -->
-  <div class="cta-section mt-5">
+  <!-- ===== CTA ===== -->
+  <section class="fl-cta">
     <div class="container">
       <div class="row">
         <div class="col-lg-8 mx-auto text-center">
-          <h2 class="display-5 fw-bold text-white mb-4">Pronto para começar seu projeto?</h2>
-          <p class="lead text-white mb-5">Venha conhecer nosso espaço e descobrir como podemos ajudar a transformar suas ideias em realidade.</p>
-          <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-            <a href="{% url 'logs:request_visit' %}" class="btn btn-light btn-lg px-4 gap-3">Agendar Visita</a>
-            <a href="{% url 'logs:agenda_home' %}" class="btn btn-outline-light btn-lg px-4">Ver Agenda</a>
+          <h2>Pronto para começar seu projeto?</h2>
+          <p>Venha conhecer nosso espaço e descobrir como podemos ajudar a transformar suas ideias em realidade.</p>
+          <div class="d-flex flex-wrap gap-3 justify-content-center mt-4">
+            <a href="{% url 'logs:request_visit' %}" class="fl-btn fl-btn-white">Agendar Visita</a>
+            <a href="{% url 'logs:agenda_home' %}" class="fl-btn fl-btn-outline-white">Ver Agenda</a>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Seção de próximos eventos -->
+  <!-- ===== Próximos eventos ===== -->
   {% if tem_eventos %}
-  <div class="container py-5">
-    <div class="row mb-4">
-      <div class="col-12 text-center">
-        <span class="badge bg-primary text-white px-3 py-2 mb-2">AGENDA</span>
-        <h2 class="display-5 fw-bold">Próximos <span class="text-primary">eventos</span></h2>
-        <p class="lead col-lg-8 mx-auto">Participe das atividades do nosso laboratório</p>
+  <section class="fl-section">
+    <div class="container">
+      <div class="text-center mb-5">
+        <span class="fl-tag">AGENDA</span>
+        <h2 class="fl-heading">Próximos <span>eventos</span></h2>
+        <p class="fl-subheading">Participe das atividades do nosso laboratório</p>
       </div>
-    </div>
-    
-    <div class="row">
-      <div class="col-lg-8 mx-auto">
-        <!-- Lista de eventos próximos estilizada -->
-        <div class="events-timeline">
-          {% for evento in proximos_eventos %}
-            {% with evento_tipo=evento.event_type %}
-              <div class="event-item">
-                <div class="event-date">
-                  <div class="event-day">{{ evento.start_time|date:"d" }}</div>
-                  <div class="event-month">{{ evento.start_time|date:"M" }}</div>
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <div class="fl-timeline">
+            {% for evento in proximos_eventos %}
+              <div class="fl-timeline-item">
+                <div class="fl-timeline-date">
+                  <span class="fl-timeline-day">{{ evento.start_time|date:"d" }}</span>
+                  <span class="fl-timeline-month">{{ evento.start_time|date:"M" }}</span>
                 </div>
-                <div class="event-content">
-                  <div class="event-time">
-                    <i class="far fa-clock"></i> {{ evento.start_time|date:"H:i" }} - {{ evento.end_time|date:"H:i" }}
-                  </div>
+                <div class="fl-timeline-content">
+                  <div class="fl-timeline-time"><i class="far fa-clock me-1"></i> {{ evento.start_time|date:"H:i" }} - {{ evento.end_time|date:"H:i" }}</div>
                   <h4>{{ evento.title }}</h4>
-                  <span class="event-badge 
-                    {% if evento_tipo == 'internal' %}bg-primary{% endif %}
-                    {% if evento_tipo == 'workshop' %}bg-success{% endif %}
-                    {% if evento_tipo == 'maintenance' %}bg-warning{% endif %}">
+                  <span class="fl-event-badge
+                    {% if evento.event_type == 'internal' %}fl-event-internal{% endif %}
+                    {% if evento.event_type == 'workshop' %}fl-event-workshop{% endif %}
+                    {% if evento.event_type == 'maintenance' %}fl-event-maintenance{% endif %}">
                     {{ evento.get_event_type_display }}
                   </span>
-                  {% if evento.description %}
-                    <p>{{ evento.description|truncatechars:120 }}</p>
-                  {% endif %}
-                  <a href="{% url 'logs:agenda_event_detail' evento.id %}" class="btn btn-sm btn-outline-primary">Ver detalhes</a>
+                  {% if evento.description %}<p>{{ evento.description|truncatechars:120 }}</p>{% endif %}
+                  <a href="{% url 'logs:agenda_event_detail' evento.id %}" class="fl-link">Ver detalhes <i class="fas fa-arrow-right ms-1"></i></a>
                 </div>
               </div>
-            {% endwith %}
-          {% endfor %}
-        </div>
-        
-        <!-- Link para agenda completa -->
-        <div class="text-center mt-4">
-          <a href="{% url 'logs:agenda_home' %}" class="btn btn-primary">Ver agenda completa</a>
+            {% endfor %}
+          </div>
+          <div class="text-center mt-4">
+            <a href="{% url 'logs:agenda_home' %}" class="fl-btn">Ver agenda completa</a>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
   {% endif %}
+
 {% endblock %}
 
 {% block scripts %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Inicialização do carrossel
-    var mainCarousel = new bootstrap.Carousel(document.getElementById('mainCarousel'), {
-      interval: 6000,
-      wrap: true
-    });
-    
-    // Animação para contador de estatísticas
+    // Carrossel
+    new bootstrap.Carousel(document.getElementById('mainCarousel'), { interval: 6000, wrap: true });
+
+    // Contadores animados
     function animateCounters() {
-      const counters = document.querySelectorAll('.count-up');
-      const speed = 200; // Quanto menor, mais rápido
-      
-      counters.forEach(counter => {
-        const target = +counter.getAttribute('data-count');
-        let count = 0;
-        
-        const updateCount = () => {
-          const increment = target / speed;
-          
-          if (count < target) {
-            count += increment;
-            counter.innerText = Math.ceil(count);
-            setTimeout(updateCount, 1);
-          } else {
-            counter.innerText = target;
-          }
-        };
-        
-        updateCount();
+      document.querySelectorAll('.count-up').forEach(function(el) {
+        var target = +el.dataset.count, count = 0;
+        var step = target / 120;
+        (function update() {
+          count += step;
+          if (count < target) { el.textContent = Math.ceil(count); requestAnimationFrame(update); }
+          else { el.textContent = target; }
+        })();
       });
     }
-    
-    // Observador de interseção para iniciar a animação quando os contadores estiverem visíveis
-    const statsSection = document.querySelector('.stats-card');
-    
-    if (statsSection) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            animateCounters();
-            observer.unobserve(entry.target);
-          }
-        });
-      }, {threshold: 0.5});
-        observer.observe(statsSection);
+
+    var stats = document.querySelector('.fl-stat-card');
+    if (stats) {
+      new IntersectionObserver(function(entries, obs) {
+        entries.forEach(function(e) { if (e.isIntersecting) { animateCounters(); obs.unobserve(e.target); } });
+      }, { threshold: .4 }).observe(stats);
     }
-    
-    // Debug para verificar se os botões da CTA estão clicáveis
-    const ctaButtons = document.querySelectorAll('.cta-section .btn');
-    ctaButtons.forEach(function(button, index) {
-      button.addEventListener('click', function(e) {
-        console.log('Botão CTA clicado:', index, button.href);
-        // Se o link estiver vazio ou com problema, prevenir navegação
-        if (!button.href || button.href === '#') {
-          e.preventDefault();
-          console.error('Link do botão está vazio ou inválido');
-          return false;
-        }
-      });
-      
-      // Adicionar feedback visual ao hover
-      button.addEventListener('mouseenter', function() {
-        console.log('Mouse entrou no botão:', index);
-      });
-    });
   });
 </script>
 {% endblock %}
 
 {% block head %}
 <style>
-  /* Estilos para a página inicial atualizada */
-  
-  /* === Hero Section === */
-  .hero-section {
-    position: relative;
-  }
-  
-  .hero-carousel .carousel-item {
-    height: 600px;
-  }
-  
-  .hero-carousel img {
-    height: 100%;
-    object-fit: cover;
-    filter: brightness(0.85);
-  }
-  
-  .text-shadow {
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
-  }
-  
-  /* === Banner CTA === */
-  .cta-banner {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-    border-left: 6px solid #0a58ca;
-    margin-top: -20px;
-    position: relative;
-    z-index: 10;
-  }
-  
-  /* === Feature Cards === */
-  .feature-card {
-    background-color: #fff;
-    border-radius: 10px;
-    padding: 30px 25px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-  
-  .feature-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-  }
-  
-  .feature-icon {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-    margin-bottom: 20px;
-    background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(13, 110, 253, 0.2) 100%);
-    color: var(--bs-primary);
-    transition: all 0.3s ease;
-  }
-  
-  .feature-card:hover .feature-icon {
-    background: var(--bs-primary);
-    color: white;
-    transform: rotateY(360deg);
-    transition: transform 0.8s ease, background 0.3s ease, color 0.3s ease;
-  }
-  
-  .feature-card h3 {
-    font-size: 1.4rem;
-    margin-bottom: 15px;
-    font-weight: 600;
-  }
-  
-  /* === Sobre o laboratório === */
-  .feature-list {
-    list-style: none;
-    padding-left: 0;
-    margin-top: 20px;
-  }
-  
-  .feature-list li {
-    margin-bottom: 12px;
-    padding-left: 30px;
-    position: relative;
-    font-size: 1.1rem;
-  }
-  
-  .feature-list li i {
-    position: absolute;
-    left: 0;
-    top: 4px;
-  }
-  
-  /* === Project Cards === */
-  .project-card {
-    background-color: #fff;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-    height: 100%;
-  }
-  
-  .project-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-  }
-  
-  .project-img {
-    height: 200px;
-    width: 100%;
-    object-fit: cover;
-    transition: transform 0.5s ease;
-  }
-  
-  .project-card:hover .project-img {
-    transform: scale(1.05);
-  }
-  
-  .project-content {
-    padding: 20px;
-  }
-  
-  .project-content h4 {
-    margin-bottom: 10px;
-    font-weight: 600;
-  }
-  
-  .project-tags {
-    display: flex;
-    flex-wrap: wrap;
-    margin-top: 15px;
-    gap: 5px;
-  }
-  
-  .project-tags span {
-    background-color: rgba(13, 110, 253, 0.1);
-    color: var(--bs-primary);
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-  }
-  
-  /* === Stats Cards === */
-  .stats-card {
-    background-color: #fff;
-    border-radius: 10px;
-    padding: 25px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  /* ===== HOME — Design Institucional Moderno ===== */
+
+  /* Hero */
+  .fl-hero { position: relative; overflow: hidden; }
+  .fl-hero .carousel-item { height: 560px; }
+  .fl-hero .carousel-item img { height: 100%; object-fit: cover; filter: brightness(.7); }
+  .fl-hero .carousel-caption {
+    bottom: 15%; left: 0; right: 0;
     text-align: center;
-    transition: transform 0.3s ease;
   }
-  
-  .stats-card:hover {
-    transform: translateY(-10px);
+  .fl-hero .carousel-caption h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 3rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 2px 20px rgba(0,0,0,.45);
+    letter-spacing: -.02em;
+    margin-bottom: .5rem;
   }
-  
-  .stats-icon {
-    font-size: 2rem;
-    color: var(--bs-primary);
-    margin-bottom: 15px;
+  .fl-hero .carousel-caption p {
+    font-size: 1.15rem;
+    color: rgba(255,255,255,.9);
+    font-weight: 400;
+    text-shadow: 0 1px 8px rgba(0,0,0,.4);
   }
-  
-  .stats-number {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 5px;
+  .fl-hero .carousel-indicators button {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.6);
+    background: transparent;
+    opacity: .7;
+    transition: all .3s;
   }
-  
-  .stats-label {
-    color: #666;
-    font-weight: 500;
+  .fl-hero .carousel-indicators button.active {
+    background: #fff;
+    opacity: 1;
+    transform: scale(1.25);
   }
-  
-  /* === News Cards === */
-  .news-card {
-    background-color: #fff;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-    transition: all 0.3s ease;
-    height: 100%;
-  }
-  
-  .news-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-  }
-  
-  .news-card img {
-    height: 200px;
-    width: 100%;
-    object-fit: cover;
-    transition: transform 0.5s ease;
-  }
-  
-  .news-card:hover img {
-    transform: scale(1.05);
-  }
-  
-  .news-date {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background-color: var(--bs-primary);
-    color: white;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-  }
-  
-  .news-featured {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: #ffc107;
-    color: #212529;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-  }
-  
-  .news-body {
-    padding: 20px;
-  }
-  
-  .news-body h5 {
-    margin-bottom: 10px;
-    font-weight: 600;
-    line-height: 1.4;
-  }
-  
-  .news-tags {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 15px 0;
-    gap: 5px;
-  }
-  
-  .news-tag {
-    background-color: rgba(13, 110, 253, 0.1);
-    color: var(--bs-primary);
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    text-decoration: none;
-    transition: all 0.3s ease;
-  }
-  
-  .news-tag:hover {
-    background-color: var(--bs-primary);
-    color: white;
-  }
-  
-  /* === CTA Section === */
-  .cta-section {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-    padding: 80px 0;
-    position: relative;
-    overflow: hidden;
-    z-index: 10;
-  }
-    .cta-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('data:image/svg+xml,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" fill="rgba(255,255,255,0.05)"/></svg>');
-    opacity: 0.3;
-    z-index: 1;
-  }
-  
-  .cta-section .container {
-    position: relative;
-    z-index: 2;
-  }
-    .cta-section .btn {
-    position: relative;
-    z-index: 3;
-    pointer-events: auto;
-    cursor: pointer;
+
+  /* Section helpers */
+  .fl-section { padding: 5rem 0; }
+  .fl-section-alt { background: var(--surface-alt); }
+
+  .fl-tag {
     display: inline-block;
-    text-decoration: none;
-  }
-  
-  .cta-section .d-grid {
-    position: relative;
-    z-index: 3;
-  }
-  
-  /* === Events Timeline === */
-  .events-timeline {
-    position: relative;
-    margin: 40px 0;
-  }
-  
-  .events-timeline::after {
-    content: '';
-    position: absolute;
-    width: 2px;
-    background-color: #eee;
-    top: 0;
-    bottom: 0;
-    left: 20px;
-    margin-left: -1px;
-  }
-  
-  .event-item {
-    position: relative;
-    margin-bottom: 40px;
-    padding-left: 60px;
-  }
-  
-  .event-date {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    text-align: center;
-    background-color: var(--bs-primary);
-    color: white;
-    z-index: 1;
-    left: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    line-height: 1.2;
-  }
-  
-  .event-day {
-    font-weight: bold;
-    font-size: 1rem;
-  }
-  
-  .event-month {
-    font-size: 0.6rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    padding: .35rem 1rem;
+    border-radius: 999px;
+    margin-bottom: .75rem;
     text-transform: uppercase;
   }
-  
-  .event-content {
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+
+  .fl-heading {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -.02em;
+    margin-bottom: .6rem;
   }
-  
-  .event-time {
-    color: #666;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
+  .fl-heading span { color: var(--accent); }
+
+  .fl-subheading {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    max-width: 600px;
+    margin: 0 auto;
   }
-  
-  .event-badge {
+
+  /* Buttons */
+  .fl-btn {
     display: inline-block;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    color: white;
-    margin: 10px 0;
+    padding: .7rem 1.8rem;
+    font-weight: 600;
+    font-size: .9rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: all var(--transition);
+    background: var(--accent);
+    color: #fff;
+    border: 2px solid var(--accent);
   }
-  
-  /* === General Styles === */
-  .badge.bg-primary {
-    padding: 8px 15px;
-    font-weight: 500;
-    letter-spacing: 1px;
+  .fl-btn:hover { background: var(--primary); border-color: var(--primary); color: #fff; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .fl-btn-outline { background: transparent; color: var(--accent); }
+  .fl-btn-outline:hover { background: var(--accent); color: #fff; }
+  .fl-btn-white { background: #fff; color: var(--primary); border-color: #fff; }
+  .fl-btn-white:hover { background: var(--surface-alt); color: var(--primary); border-color: var(--surface-alt); }
+  .fl-btn-outline-white { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
+  .fl-btn-outline-white:hover { background: rgba(255,255,255,.15); border-color: #fff; color: #fff; }
+
+  .fl-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: .875rem;
+    transition: color var(--transition);
   }
-  
-  .display-5 {
-    font-weight: 700;
-    margin-bottom: 20px;
-  }
-  
-  @media (max-width: 992px) {
-    .hero-carousel .carousel-item {
-      height: 500px;
-    }
-    
-    .cta-banner .col-lg-4 {
-      text-align: center !important;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .hero-carousel .carousel-item {
-      height: 400px;
-    }
-    
-    .cta-banner {
-      margin-top: 0;
-    }
-  }
-  
-  /* Estilo temporário para garantir que os botões na seção 'Call to Action Final' sejam clicáveis */
-  .cta-section {
+  .fl-link:hover { color: var(--primary); }
+
+  /* Feature cards */
+  .fl-card-feature {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 2rem 1.5rem;
+    height: 100%;
+    display: flex; flex-direction: column;
+    border: 1px solid var(--border);
+    transition: all var(--transition);
     position: relative;
-    z-index: 1000;
+    overflow: hidden;
   }
-  .cta-section a {
-    pointer-events: auto;
-    z-index: 1001;
+  .fl-card-feature::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light));
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+  .fl-card-feature:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: transparent; }
+  .fl-card-feature:hover::before { opacity: 1; }
+  .fl-card-icon {
+    width: 56px; height: 56px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 1.2rem;
+    background: linear-gradient(135deg, rgba(19,103,138,.08), rgba(69,196,176,.12));
+    color: var(--accent);
+    transition: all .4s;
+  }
+  .fl-card-feature:hover .fl-card-icon { background: var(--accent); color: #fff; }
+  .fl-card-feature h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: .6rem; color: var(--primary); }
+  .fl-card-feature p { font-size: .875rem; color: var(--text-muted); line-height: 1.65; flex: 1; }
+
+  /* Img rounded */
+  .fl-img-rounded { border-radius: var(--radius); box-shadow: var(--shadow-lg); }
+
+  /* Check list */
+  .fl-check-list { list-style: none; padding: 0; }
+  .fl-check-list li {
+    padding: .5rem 0 .5rem 1.8rem;
+    position: relative;
+    font-size: 1rem;
+    color: var(--text);
+  }
+  .fl-check-list li i { position: absolute; left: 0; top: .65rem; color: var(--accent-light); }
+
+  /* Project cards */
+  a.fl-card-project, a.fl-card-news { text-decoration: none; color: inherit; display: flex; flex-direction: column; }
+  a.fl-card-project:hover, a.fl-card-news:hover { color: inherit; text-decoration: none; }
+  .fl-card-project {
+    background: var(--white);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: all var(--transition);
+    height: 100%;
+    cursor: pointer;
+  }
+  .fl-card-project:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: transparent; }
+  .fl-card-project-img { height: 200px; overflow: hidden; }
+  .fl-card-project-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
+  .fl-card-project:hover .fl-card-project-img img { transform: scale(1.06); }
+  .fl-card-project-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+  .fl-card-project-body h4 { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: .4rem; }
+  .fl-card-project-body p { font-size: .85rem; color: var(--text-muted); }
+
+  .fl-tags-row { display: flex; flex-wrap: wrap; gap: .35rem; }
+  .fl-tags-row span, .fl-tags-row a {
+    background: rgba(19,103,138,.08);
+    color: var(--accent);
+    padding: .25rem .65rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--transition);
+  }
+  .fl-tags-row a:hover { background: var(--accent); color: #fff; }
+
+  /* Stat cards */
+  .fl-stat-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 1.8rem;
+    text-align: center;
+    border: 1px solid var(--border);
+    transition: all var(--transition);
+  }
+  .fl-stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: transparent; }
+  .fl-stat-icon { font-size: 1.8rem; color: var(--accent); margin-bottom: .8rem; }
+  .fl-stat-number { font-size: 2.4rem; font-weight: 800; color: var(--primary); line-height: 1; margin-bottom: .25rem; }
+  .fl-stat-label { font-size: .8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+
+  /* News cards */
+  .fl-card-news {
+    background: var(--white);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: all var(--transition);
+    height: 100%;
+    cursor: pointer;
+  }
+  .fl-card-news:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: transparent; }
+  .fl-card-news-img { position: relative; height: 200px; overflow: hidden; }
+  .fl-card-news-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
+  .fl-card-news:hover .fl-card-news-img img { transform: scale(1.06); }
+  .fl-news-date {
+    position: absolute; top: .75rem; left: .75rem;
+    background: var(--accent); color: #fff;
+    padding: .3rem .7rem; border-radius: 999px;
+    font-size: .75rem; font-weight: 600;
+  }
+  .fl-news-featured {
+    position: absolute; top: .75rem; right: .75rem;
+    background: #F59E0B; color: #fff;
+    padding: .3rem .7rem; border-radius: 999px;
+    font-size: .75rem; font-weight: 600;
+  }
+  .fl-card-news-body { padding: 1.25rem; }
+  .fl-card-news-body h5 { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: .4rem; line-height: 1.4; }
+  .fl-card-news-body p { font-size: .85rem; color: var(--text-muted); line-height: 1.6; }
+
+  /* CTA */
+  .fl-cta {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    padding: 5rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .fl-cta::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(69,196,176,.15) 0%, transparent 60%);
+  }
+  .fl-cta h2 { font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: .8rem; }
+  .fl-cta p { font-size: 1.05rem; color: rgba(255,255,255,.8); max-width: 520px; margin: 0 auto; }
+
+  /* Timeline */
+  .fl-timeline { position: relative; padding-left: 2.5rem; }
+  .fl-timeline::before {
+    content: '';
+    position: absolute; left: 18px; top: 0; bottom: 0;
+    width: 2px; background: var(--border);
+  }
+  .fl-timeline-item { position: relative; margin-bottom: 2rem; }
+  .fl-timeline-date {
+    position: absolute; left: -2.5rem; top: 0;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    line-height: 1.1; z-index: 1;
+  }
+  .fl-timeline-day { font-weight: 800; font-size: .85rem; }
+  .fl-timeline-month { font-size: .55rem; text-transform: uppercase; font-weight: 600; }
+  .fl-timeline-content {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    transition: box-shadow var(--transition);
+  }
+  .fl-timeline-content:hover { box-shadow: var(--shadow-md); }
+  .fl-timeline-time { font-size: .8rem; color: var(--text-muted); margin-bottom: .3rem; }
+  .fl-timeline-content h4 { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: .4rem; }
+  .fl-event-badge {
+    display: inline-block;
+    padding: .25rem .6rem;
+    border-radius: 999px;
+    font-size: .7rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: .5rem;
+  }
+  .fl-event-internal { background: var(--accent); }
+  .fl-event-workshop { background: #10B981; }
+  .fl-event-maintenance { background: #F59E0B; }
+  .fl-timeline-content p { font-size: .875rem; color: var(--text-muted); margin-bottom: .5rem; }
+
+  /* Responsive */
+  @media (max-width: 992px) {
+    .fl-hero .carousel-item { height: 420px; }
+    .fl-hero .carousel-caption h2 { font-size: 2rem; }
+    .fl-heading { font-size: 1.8rem; }
+    .fl-section { padding: 3.5rem 0; }
+  }
+  @media (max-width: 576px) {
+    .fl-hero .carousel-item { height: 300px; }
+    .fl-hero .carousel-caption h2 { font-size: 1.5rem; }
+    .fl-hero .carousel-caption p { font-size: .9rem; }
+    .fl-heading { font-size: 1.5rem; }
   }
 </style>
 {% endblock %}

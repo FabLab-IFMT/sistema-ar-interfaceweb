@@ -1,104 +1,318 @@
 {% extends 'layout.html' %}
 {% load static %}
 {% load widget_tweaks %}
-{% block title %}{{ titulo }} | {% endblock %}
+
+{% block title %}{{ acao }} Projeto — FabLab IFMT{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">{{ titulo }}</h4>
+<!-- Breadcrumb -->
+<section style="background:var(--surface-alt);padding:1rem 0;border-bottom:1px solid var(--border)">
+  <div class="container">
+    <nav class="pf-breadcrumb">
+      <a href="{% url 'projetos:gestao' %}"><i class="fas fa-arrow-left me-1"></i> Gestão de Projetos</a>
+      <span class="mx-2">/</span>
+      <span>{{ acao }} Projeto</span>
+    </nav>
+  </div>
+</section>
+
+<section class="pf-section">
+  <div class="container" style="max-width:860px">
+    <div class="pf-card">
+      <!-- Header -->
+      <div class="pf-card-header">
+        <div class="pf-icon"><i class="fas fa-folder-plus"></i></div>
+        <div>
+          <h1>{{ acao }} Projeto</h1>
+          <p>Preencha os campos abaixo para configurar o projeto.</p>
         </div>
-        <div class="card-body">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                
-                {% if form.errors %}
-                <div class="alert alert-danger">
-                    <strong>Por favor, corrija os erros abaixo:</strong>
-                    {{ form.errors }}
-                </div>
-                {% endif %}
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="{{ form.titulo.id_for_label }}">Título:</label>
-                        {{ form.titulo|add_class:"form-control" }}
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="{{ form.slug.id_for_label }}">Slug:</label>
-                        {{ form.slug|add_class:"form-control" }}
-                        <small class="text-muted">Identificador único para URL (gerado automaticamente)</small>
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="{{ form.descricao.id_for_label }}">Descrição:</label>
-                    {{ form.descricao|add_class:"form-control" }}
-                </div>
-                
-                <div class="mb-3">
-                    <label for="{{ form.conteudo.id_for_label }}">Conteúdo:</label>
-                    {{ form.conteudo|add_class:"form-control" }}
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="{{ form.data_inicio.id_for_label }}">Data de Início:</label>
-                        {{ form.data_inicio|add_class:"form-control" }}
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="{{ form.data_fim.id_for_label }}">Data de Fim:</label>
-                        {{ form.data_fim|add_class:"form-control" }}
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="{{ form.imagem.id_for_label }}">Imagem:</label>
-                    {{ form.imagem|add_class:"form-control" }}
-                </div>
-                
-                <div class="mb-3">
-                    <label for="{{ form.categorias.id_for_label }}">Categorias:</label>
-                    {{ form.categorias|add_class:"form-control" }}
-                </div>
-                
-                <div class="mb-3">
-                    <label for="{{ form.participantes.id_for_label }}">Participantes:</label>
-                    {{ form.participantes|add_class:"form-control" }}
-                </div>
-                
-                <div class="form-check mb-3">
-                    {{ form.ativo }}
-                    <label class="form-check-label" for="{{ form.ativo.id_for_label }}">
-                        Projeto Ativo
-                    </label>
-                </div>
-                
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                    <a href="{% url 'projetos:lista' %}" class="btn btn-secondary">Cancelar</a>
-                </div>
-            </form>
+      </div>
+
+      {% if form.errors %}
+      <div class="pf-alert-error">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <div>
+          <strong>Corrija os erros abaixo:</strong>
+          <ul class="mb-0 mt-1">
+            {% for field, errors in form.errors.items %}
+              {% for error in errors %}
+                <li><strong>{{ field }}:</strong> {{ error }}</li>
+              {% endfor %}
+            {% endfor %}
+          </ul>
         </div>
+      </div>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data" class="pf-form" novalidate>
+        {% csrf_token %}
+
+        <!-- ══ 1. Informações Básicas ══ -->
+        <div class="pf-form-section">
+          <h3><span class="pf-section-num">1</span> Informações Básicas</h3>
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label for="{{ form.titulo.id_for_label }}" class="pf-label">Título <span class="pf-required">*</span></label>
+              {{ form.titulo|add_class:"pf-input"|attr:"placeholder:Nome do projeto" }}
+              {% if form.titulo.errors %}<span class="pf-field-error">{{ form.titulo.errors.0 }}</span>{% endif %}
+              <span class="pf-field-hint"><i class="fas fa-info-circle me-1"></i>O slug será gerado automaticamente a partir do título</span>
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.status.id_for_label }}" class="pf-label">Status</label>
+              {{ form.status|add_class:"pf-select" }}
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 2. Conteúdo ══ -->
+        <div class="pf-form-section">
+          <h3><span class="pf-section-num">2</span> Conteúdo</h3>
+          <div class="mb-3">
+            <label for="{{ form.descricao_curta.id_for_label }}" class="pf-label">Descrição Curta</label>
+            {{ form.descricao_curta|add_class:"pf-input"|attr:"placeholder:Breve descrição para exibição em cards (máx. 250 caracteres)" }}
+            {% if form.descricao_curta.errors %}<span class="pf-field-error">{{ form.descricao_curta.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="mb-0">
+            <label for="{{ form.descricao.id_for_label }}" class="pf-label">Descrição Completa</label>
+            {{ form.descricao|add_class:"pf-input"|attr:"rows:6|placeholder:Descrição detalhada do projeto..." }}
+            {% if form.descricao.errors %}<span class="pf-field-error">{{ form.descricao.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+
+        <!-- ══ 3. Datas e Imagem ══ -->
+        <div class="pf-form-section">
+          <h3><span class="pf-section-num">3</span> Datas e Imagem</h3>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="{{ form.data_inicio.id_for_label }}" class="pf-label">Data de Início <span class="pf-required">*</span></label>
+              {{ form.data_inicio|add_class:"pf-input" }}
+              {% if form.data_inicio.errors %}<span class="pf-field-error">{{ form.data_inicio.errors.0 }}</span>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.data_conclusao.id_for_label }}" class="pf-label">Data de Conclusão</label>
+              {{ form.data_conclusao|add_class:"pf-input" }}
+              {% if form.data_conclusao.errors %}<span class="pf-field-error">{{ form.data_conclusao.errors.0 }}</span>{% endif %}
+            </div>
+            <div class="col-12">
+              <label for="{{ form.imagem.id_for_label }}" class="pf-label">Imagem de Capa</label>
+              <div class="pf-file-area" id="fileDropArea">
+                {{ form.imagem|add_class:"pf-file-input" }}
+                <div class="pf-file-placeholder" id="filePlaceholder">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <span>Arraste ou clique para selecionar uma imagem</span>
+                  <small style="color:var(--text-muted);font-size:.72rem">JPG, PNG ou WebP — máx. 5MB</small>
+                </div>
+                <div class="pf-file-selected" id="fileSelected" style="display:none">
+                  <i class="fas fa-image" style="color:var(--accent);font-size:1.5rem"></i>
+                  <span id="fileName" style="font-size:.85rem;font-weight:500;color:var(--text)"></span>
+                  <button type="button" id="fileClear" class="pf-file-clear"><i class="fas fa-times"></i></button>
+                </div>
+              </div>
+              {% if form.imagem.errors %}<span class="pf-field-error">{{ form.imagem.errors.0 }}</span>{% endif %}
+              {% if form.instance.imagem %}
+              <div class="pf-current-image mt-2">
+                <img src="{{ form.instance.imagem.url }}" alt="Imagem atual" style="height:60px;border-radius:var(--radius-sm);border:1px solid var(--border)">
+                <span style="font-size:.78rem;color:var(--text-muted);margin-left:.5rem">Imagem atual</span>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 4. Equipe ══ -->
+        <div class="pf-form-section">
+          <h3><span class="pf-section-num">4</span> Equipe</h3>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="{{ form.responsavel.id_for_label }}" class="pf-label">Responsável</label>
+              {{ form.responsavel|add_class:"pf-select" }}
+              <span class="pf-field-hint">Coordenador principal do projeto</span>
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.participantes.id_for_label }}" class="pf-label">Participantes</label>
+              {{ form.participantes|add_class:"pf-input pf-multi-select" }}
+              <span class="pf-field-hint">Segure Ctrl para selecionar múltiplos</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 5. Categorias ══ -->
+        <div class="pf-form-section">
+          <h3><span class="pf-section-num">5</span> Categorias (Tags)</h3>
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="{{ form.tags.id_for_label }}" class="pf-label">Tags do Projeto</label>
+              {{ form.tags|add_class:"pf-input pf-multi-select" }}
+              <span class="pf-field-hint">Segure Ctrl para selecionar múltiplas categorias</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 6. Links Externos ══ -->
+        <div class="pf-form-section">
+          <h3><span class="pf-section-num">6</span> Links Externos</h3>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="{{ form.link_github.id_for_label }}" class="pf-label"><i class="fab fa-github me-1"></i> GitHub</label>
+              {{ form.link_github|add_class:"pf-input"|attr:"placeholder:https://github.com/..." }}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.link_video.id_for_label }}" class="pf-label"><i class="fas fa-video me-1"></i> Vídeo</label>
+              {{ form.link_video|add_class:"pf-input"|attr:"placeholder:https://youtube.com/..." }}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.link_documentacao.id_for_label }}" class="pf-label"><i class="fas fa-book me-1"></i> Documentação</label>
+              {{ form.link_documentacao|add_class:"pf-input"|attr:"placeholder:https://docs..." }}
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 7. Visibilidade ══ -->
+        <div class="pf-form-section" style="border-bottom:none;padding-bottom:0">
+          <h3><span class="pf-section-num">7</span> Visibilidade</h3>
+          <div class="pf-toggles-grid">
+            <div class="pf-toggle-row">
+              <div>
+                <strong>Publicado</strong>
+                <span class="pf-field-hint d-block">O projeto estará visível no site</span>
+              </div>
+              <label class="pf-switch">
+                {{ form.publicado }}
+                <span class="pf-slider"></span>
+              </label>
+            </div>
+            <div class="pf-toggle-row">
+              <div>
+                <strong>Mostrar na Home</strong>
+                <span class="pf-field-hint d-block">Exibir na página inicial do site</span>
+              </div>
+              <label class="pf-switch">
+                {{ form.mostrar_na_home }}
+                <span class="pf-slider"></span>
+              </label>
+            </div>
+            <div class="pf-toggle-row">
+              <div>
+                <strong>Destaque</strong>
+                <span class="pf-field-hint d-block">Recebe destaque visual na listagem</span>
+              </div>
+              <label class="pf-switch">
+                {{ form.destaque }}
+                <span class="pf-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ações -->
+        <div class="pf-actions">
+          <a href="{% url 'projetos:gestao' %}" class="pf-btn-cancel"><i class="fas fa-times me-1"></i> Cancelar</a>
+          <button type="submit" class="pf-btn-save"><i class="fas fa-check me-1"></i> Salvar Projeto</button>
+        </div>
+      </form>
     </div>
-</div>
+  </div>
+</section>
 {% endblock %}
 
-{% block extra_js %}
+{% block scripts %}
 <script>
-    // Script para gerar o slug automaticamente a partir do título
-    document.addEventListener('DOMContentLoaded', function() {
-        const tituloField = document.getElementById('{{ form.titulo.id_for_label }}');
-        const slugField = document.getElementById('{{ form.slug.id_for_label }}');
-        
-        tituloField.addEventListener('keyup', function() {
-            const titulo = this.value;
-            const slug = titulo.toLowerCase()
-                .replace(/[^\w\s]/gi, '')
-                .replace(/\s+/g, '-');
-            slugField.value = slug;
-        });
+document.addEventListener('DOMContentLoaded', function() {
+  // File upload visual feedback
+  const fileInput = document.querySelector('.pf-file-input');
+  const placeholder = document.getElementById('filePlaceholder');
+  const selected = document.getElementById('fileSelected');
+  const fileName = document.getElementById('fileName');
+  const clearBtn = document.getElementById('fileClear');
+  const dropArea = document.getElementById('fileDropArea');
+
+  if (fileInput) {
+    fileInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        placeholder.style.display = 'none';
+        selected.style.display = 'flex';
+        fileName.textContent = this.files[0].name;
+        dropArea.style.borderColor = 'var(--accent)';
+      }
     });
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        fileInput.value = '';
+        placeholder.style.display = 'flex';
+        selected.style.display = 'none';
+        dropArea.style.borderColor = '';
+      });
+    }
+  }
+});
 </script>
+{% endblock %}
+
+{% block head %}
+<style>
+  .pf-section { padding:3rem 0 5rem; }
+  .pf-breadcrumb { font-size:.85rem; }
+  .pf-breadcrumb a { color:var(--accent); text-decoration:none; font-weight:600; }
+  .pf-breadcrumb span:last-child { color:var(--text-muted); }
+
+  .pf-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+  .pf-card-header { display:flex; align-items:center; gap:1.25rem; padding:2rem 2rem 1.5rem; border-bottom:1px solid var(--border); background:linear-gradient(135deg,rgba(11,37,69,.03),rgba(19,103,138,.04)); }
+  .pf-icon { width:52px; height:52px; background:linear-gradient(135deg,var(--primary),var(--accent)); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.3rem; flex-shrink:0; }
+  .pf-card-header h1 { font-size:1.35rem; font-weight:700; color:var(--primary); margin:0; }
+  .pf-card-header p { font-size:.85rem; color:var(--text-muted); margin:.25rem 0 0; }
+
+  .pf-alert-error { display:flex; align-items:flex-start; gap:.75rem; padding:1rem 1.25rem; margin:1.5rem 2rem 0; background:#FEF2F2; border:1px solid #FECACA; border-radius:var(--radius-sm); color:#991B1B; font-size:.85rem; }
+  .pf-alert-error ul { list-style:disc; padding-left:1.1rem; }
+
+  .pf-form { padding:0 2rem 2rem; }
+  .pf-form-section { padding:1.75rem 0; border-bottom:1px solid var(--border); }
+  .pf-form-section h3 { font-size:1rem; font-weight:700; color:var(--primary); margin-bottom:1.25rem; display:flex; align-items:center; gap:.65rem; }
+  .pf-section-num { width:28px; height:28px; background:var(--accent); color:#fff; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:.78rem; font-weight:700; }
+
+  .pf-label { display:block; font-size:.82rem; font-weight:600; color:var(--text); margin-bottom:.4rem; }
+  .pf-required { color:#DC2626; }
+  .pf-field-error { display:block; font-size:.75rem; color:#DC2626; font-weight:500; margin-top:.3rem; }
+  .pf-input, .pf-select { width:100%; padding:.65rem .9rem; border:2px solid var(--border); border-radius:var(--radius-sm); font-size:.9rem; font-family:inherit; background:var(--white); transition:border-color .25s,box-shadow .25s; color:var(--text); }
+  .pf-input:focus, .pf-select:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 4px rgba(19,103,138,.08); }
+  select.pf-multi-select { min-height:100px; }
+  .pf-select { height:auto; }
+
+  .pf-field-hint { display:block; font-size:.72rem; color:var(--text-muted); margin-top:.3rem; }
+
+  .pf-file-area { position:relative; border:2px dashed var(--border); border-radius:var(--radius-sm); padding:1.5rem; text-align:center; transition:border-color .25s; cursor:pointer; }
+  .pf-file-area:hover { border-color:var(--accent); }
+  .pf-file-input { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2; }
+  .pf-file-placeholder { display:flex; flex-direction:column; align-items:center; gap:.5rem; color:var(--text-muted); pointer-events:none; }
+  .pf-file-placeholder i { font-size:1.8rem; color:var(--accent); }
+  .pf-file-placeholder span { font-size:.85rem; }
+  .pf-file-selected { display:flex; align-items:center; justify-content:center; gap:.75rem; pointer-events:none; }
+  .pf-file-clear { background:none; border:none; color:#DC2626; cursor:pointer; font-size:.85rem; pointer-events:all; position:relative; z-index:3; padding:.25rem .5rem; border-radius:4px; }
+  .pf-file-clear:hover { background:#FEE2E2; }
+  .pf-current-image { display:flex; align-items:center; }
+
+  .pf-toggles-grid { display:flex; flex-direction:column; gap:.75rem; }
+  .pf-toggle-row { display:flex; align-items:center; justify-content:space-between; background:var(--surface-alt); padding:.85rem 1rem; border-radius:var(--radius-sm); }
+  .pf-toggle-row strong { font-size:.88rem; color:var(--text); }
+  .pf-switch { position:relative; width:48px; height:26px; display:inline-block; flex-shrink:0; }
+  .pf-switch input { opacity:0; width:0; height:0; }
+  .pf-slider { position:absolute; inset:0; background:var(--border); border-radius:999px; cursor:pointer; transition:all .25s; }
+  .pf-slider::before { content:''; position:absolute; left:3px; top:3px; width:20px; height:20px; background:#fff; border-radius:50%; transition:transform .25s; box-shadow:0 1px 3px rgba(0,0,0,.15); }
+  .pf-switch input:checked + .pf-slider { background:var(--accent); }
+  .pf-switch input:checked + .pf-slider::before { transform:translateX(22px); }
+
+  .pf-actions { display:flex; justify-content:flex-end; gap:.75rem; padding-top:1.75rem; margin-top:.5rem; border-top:1px solid var(--border); }
+  .pf-btn-cancel { padding:.65rem 1.5rem; background:transparent; color:var(--text-muted); border:2px solid var(--border); border-radius:var(--radius-sm); font-weight:600; font-size:.88rem; text-decoration:none; transition:all var(--transition); display:inline-flex; align-items:center; }
+  .pf-btn-cancel:hover { border-color:var(--text-muted); color:var(--text); }
+  .pf-btn-save { padding:.65rem 1.75rem; background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; border:none; border-radius:var(--radius-sm); font-weight:700; font-size:.88rem; cursor:pointer; transition:all var(--transition); display:inline-flex; align-items:center; }
+  .pf-btn-save:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(11,37,69,.2); }
+
+  @media(max-width:768px){
+    .pf-card-header { padding:1.5rem; }
+    .pf-form { padding:0 1.25rem 1.5rem; }
+    .pf-card-header h1 { font-size:1.15rem; }
+    .pf-actions { flex-direction:column-reverse; }
+    .pf-btn-save, .pf-btn-cancel { width:100%; justify-content:center; }
+  }
+</style>
 {% endblock %}

@@ -9,12 +9,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 
-# Em produção, DEBUG é sempre False
-DEBUG = False
-
-# CORRIGIDO: Sem https:// no ALLOWED_HOSTS
-ALLOWED_HOSTS = ['ifmaker.cba.ifmt.edu.br', '127.0.0.1', 'localhost']
-CSRF_TRUSTED_ORIGINS = ['https://ifmaker.cba.ifmt.edu.br']
+# Configurações por ambiente
+DEBUG = config('DEBUG', default=True, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='ifmaker.cba.ifmt.edu.br,127.0.0.1,localhost').split(',')
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='https://ifmaker.cba.ifmt.edu.br,http://127.0.0.1,http://localhost'
+).split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -33,10 +34,9 @@ INSTALLED_APPS = [
     'acesso_e_ponto',
     'canva',
     'inventario',
-    'gestao_projetos',
     'Controle_ar',
     'Email_notificacoes',
-    'todo',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -75,16 +75,34 @@ TEMPLATES = [
 WSGI_APPLICATION = 'controllerapp.wsgi.application'
 
 # CORRIGIDO: Configuração para o banco de dados PostgreSQL
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'fablab_db',
-        'USER': 'fablab_user',
-        'PASSWORD': 'fablab_pass',
-        'HOST': 'db',
-        'PORT': '5432',
+if DEBUG:
+    # Fallback simples para desenvolvimento local sem Postgres
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    if DEBUG:
+        # Fallback para ambiente local: usar SQLite se não houver Postgres configurado
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': config('DB_NAME', default='fablab_db'),
+                'USER': config('DB_USER', default='fablab_user'),
+                'PASSWORD': config('DB_PASSWORD', default='fablab_pass'),
+                'HOST': config('DB_HOST', default='db'),
+                'PORT': config('DB_PORT', default='5432'),
+            }
+        }
 
 # Password validation (sem alterações)
 AUTH_PASSWORD_VALIDATORS = [
@@ -133,9 +151,23 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
         },
+        'error_file': {
+            'class': 'logging.FileHandler',
+            'filename': str(BASE_DIR / 'error.log'),
+            'level': 'ERROR',
+        },
     },
     'root': {
-        'handlers': ['console'],
+        'handlers': ['console', 'error_file'],
         'level': 'INFO', # Mostra mensagens informativas, de aviso e de erro
     },
 }
+
+# Regras de segurança para produção
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True

@@ -1,154 +1,173 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}Dashboard de Ar Condicionado - FabLab{% endblock %}
-
-{% block head %}
-<link rel="stylesheet" href="{% static 'controle_ar.css' %}">
-<style>
-    #toast-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1050;
-    }
-    
-    .ar-card.processing {
-        position: relative;
-    }
-    
-    .ar-card.processing::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.05);
-        border-radius: inherit;
-        pointer-events: none;
-    }
-    
-    .spinner-border-sm {
-        width: 1rem;
-        height: 1rem;
-        border-width: 0.15em;
-    }
-</style>
-{% endblock %}
+{% block title %}Ar Condicionado — Automação{% endblock %}
 
 {% block content %}
-<!-- Container de toast para notificações -->
-<div id="toast-container"></div>
+<!-- Toast container -->
+<div id="toast-container" style="position:fixed;top:20px;right:20px;z-index:1050"></div>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Controle de Ar Condicionado</h1>
-        <div>
-            <button id="refresh-btn" class="btn btn-ar-primary me-2" onclick="checkAllDevices()">
-                <i class="fas fa-sync-alt me-1"></i> Atualizar Status
-            </button>
-            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-1"></i> Voltar
-            </a>
+<!-- Breadcrumb -->
+<section style="background:var(--surface-alt);padding:1rem 0;border-bottom:1px solid var(--border)">
+  <div class="container">
+    <nav class="at-breadcrumb">
+      <a href="{% url 'Controle_ar:automacao_home' %}">Automação</a>
+      <span class="mx-2">/</span>
+      <span>Ar Condicionado</span>
+    </nav>
+  </div>
+</section>
+
+<section class="fl-section" style="padding:2rem 0 4rem">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="at-header">
+      <div>
+        <h1 class="at-title"><i class="fas fa-snowflake me-2"></i>Ar Condicionado</h1>
+        <span class="at-subtitle">{{ ars.count }} aparelho{{ ars.count|pluralize:"s" }} cadastrado{{ ars.count|pluralize:"s" }}</span>
+      </div>
+      <button id="refresh-btn" class="at-btn at-btn-outline" onclick="checkAllDevices()">
+        <i class="fas fa-sync-alt me-1"></i> Atualizar Status
+      </button>
+    </div>
+
+    {% if ars %}
+    <!-- Device Grid -->
+    <div class="at-devices-grid">
+      {% for ar in ars %}
+      <div class="at-device-card {% if not ar.online %}at-device-offline{% endif %}" data-ar-id="{{ ar.id }}">
+        <!-- Header -->
+        <div class="at-device-head {% if ar.online %}{% if ar.estado %}at-head-on{% else %}at-head-standby{% endif %}{% else %}at-head-off{% endif %}">
+          <div class="at-device-head-top">
+            <h4>{{ ar.nome }}</h4>
+            <span class="at-status-pill {% if ar.online %}{% if ar.estado %}at-pill-on{% else %}at-pill-standby{% endif %}{% else %}at-pill-off{% endif %}">
+              <span class="at-dot-sm"></span>
+              {{ ar.online|yesno:"Online,Offline" }}
+            </span>
+          </div>
+          <div class="at-temp-display temperatura-display">{{ ar.temperatura }}°C</div>
+          <span class="at-mode-label modo-display">{{ ar.modo_display }}</span>
         </div>
-    </div>
-    
-    <div class="row">
-        {% if ars %}
-            {% for ar in ars %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card ar-card h-100" data-ar-id="{{ ar.id }}">
-                    <div class="ar-card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">{{ ar.nome }}</h5>
-                            <span class="badge {% if ar.online %}badge-online{% else %}badge-offline{% endif %}">
-                                {{ ar.online|yesno:"Online,Offline" }}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-6 text-center mb-3">
-                                <div class="h3 temperatura-display">{{ ar.temperatura }}°C</div>
-                                <div class="text-muted">Temperatura</div>
-                            </div>
-                            <div class="col-6 text-center mb-3">
-                                <div class="h3 modo-display">{{ ar.modo_display }}</div>
-                                <div class="text-muted">Modo</div>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="w-100">
-                                <div class="mb-2 d-flex align-items-center">
-                                    <div class="me-auto">
-                                        <span class="text-muted">Status: </span>
-                                        <span class="fw-bold estado-display {% if ar.estado %}text-success{% else %}text-secondary{% endif %}">
-                                            {{ ar.estado|yesno:"Ligado,Desligado" }}
-                                        </span>
-                                        <i class="fas fa-power-off {% if ar.estado %}text-success{% else %}text-danger{% endif %} estado-icon ms-1"></i>
-                                    </div>
-                                    <button class="btn btn-sm {% if ar.estado %}btn-danger{% else %}btn-success{% endif %}" 
-                                            onclick="toggleDevicePower({{ ar.id }}, {{ ar.estado|yesno:'true,false' }})"
-                                            {% if not ar.online %}disabled{% endif %}>
-                                        {% if ar.estado %}Desligar{% else %}Ligar{% endif %}
-                                    </button>
-                                </div>
-                                <div>
-                                    <span class="text-muted">Consumo: </span>
-                                    <span class="fw-bold consumo-display">
-                                        {% if ar.estado and ar.online %}
-                                            {{ ar.consumo_atual|floatformat:2 }} kW/h
-                                        {% else %}
-                                            0.00 kW/h
-                                        {% endif %}
-                                    </span>
-                                </div>
-                            </div>
-                            <a href="{% url 'Controle_ar:controlar_ar' ar.id %}" class="btn btn-ar-primary">
-                                <i class="fas fa-sliders-h me-1"></i> Controlar
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-footer text-muted">
-                        <small>
-                            <i class="far fa-clock me-1"></i>
-                            Última atualização: 
-                            <span class="last-check">
-                                {% if ar.ultimo_ping %}
-                                    {{ ar.ultimo_ping|date:"d/m/Y H:i:s" }}
-                                {% else %}
-                                    Nunca
-                                {% endif %}
-                            </span>
-                        </small>
-                    </div>
-                </div>
+
+        <!-- Body -->
+        <div class="at-device-body">
+          <div class="at-info-row">
+            <div class="at-info-cell">
+              <span class="at-info-label">Status</span>
+              <span class="at-info-value estado-display {% if ar.estado %}at-text-on{% else %}at-text-off{% endif %}">
+                <i class="fas fa-power-off me-1 estado-icon"></i>{{ ar.estado|yesno:"Ligado,Desligado" }}
+              </span>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="col-12">
-                <div class="empty-state">
-                    <i class="fas fa-snowflake"></i>
-                    <h3>Nenhum ar-condicionado cadastrado</h3>
-                    <p class="text-muted">
-                        Não há aparelhos de ar-condicionado cadastrados no sistema.
-                        Entre em contato com o administrador para adicionar novos dispositivos.
-                    </p>
-                </div>
+            <div class="at-info-cell">
+              <span class="at-info-label">Consumo</span>
+              <span class="at-info-value consumo-display">
+                {% if ar.estado and ar.online %}{{ ar.consumo_atual|floatformat:2 }}{% else %}0.00{% endif %} kW/h
+              </span>
             </div>
-        {% endif %}
+          </div>
+
+          <div class="at-device-actions">
+            <button class="at-btn {% if ar.estado %}at-btn-danger{% else %}at-btn-success{% endif %} at-btn-sm"
+                    onclick="toggleDevicePower({{ ar.id }}, {{ ar.estado|yesno:'true,false' }})"
+                    {% if not ar.online %}disabled{% endif %}>
+              <i class="fas fa-power-off me-1"></i>{% if ar.estado %}Desligar{% else %}Ligar{% endif %}
+            </button>
+            <a href="{% url 'Controle_ar:controlar_ar' ar.id %}" class="at-btn at-btn-primary at-btn-sm">
+              <i class="fas fa-sliders-h me-1"></i> Controlar
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="at-device-foot">
+          <i class="far fa-clock me-1"></i> 
+          <span class="last-check">
+            {% if ar.ultimo_ping %}{{ ar.ultimo_ping|date:"d/m/Y H:i:s" }}{% else %}Nunca{% endif %}
+          </span>
+        </div>
+      </div>
+      {% endfor %}
     </div>
-</div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="at-empty">
+      <div class="at-empty-icon"><i class="fas fa-snowflake"></i></div>
+      <h3>Nenhum ar-condicionado cadastrado</h3>
+      <p>Entre em contato com o administrador para adicionar novos dispositivos.</p>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
 {% endblock %}
 
 {% block scripts %}
 <script src="{% static 'js/dashboard_controller.js' %}"></script>
 <script>
-    // Inicia a verificação periódica dos dispositivos
-    document.addEventListener('DOMContentLoaded', function() {
-        initDashboardRefresh(30000); // Atualiza a cada 30 segundos
-    });
+document.addEventListener('DOMContentLoaded', function() {
+  initDashboardRefresh(30000);
+});
 </script>
+{% endblock %}
+
+{% block head %}
+<style>
+  .at-breadcrumb{font-size:.85rem}.at-breadcrumb a{color:var(--accent);text-decoration:none;font-weight:600}.at-breadcrumb span:last-child{color:var(--text-muted)}
+  .at-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:2rem}
+  .at-title{font-size:1.55rem;font-weight:800;color:var(--primary);margin:0}.at-subtitle{font-size:.82rem;color:var(--text-muted)}
+
+  .at-btn{display:inline-flex;align-items:center;padding:.5rem 1.1rem;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;text-decoration:none;transition:all var(--transition);cursor:pointer;border:none;justify-content:center}
+  .at-btn-outline{background:transparent;color:var(--text-muted);border:2px solid var(--border)}.at-btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+  .at-btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}.at-btn-primary:hover{color:#fff;transform:translateY(-1px);box-shadow:0 4px 12px rgba(11,37,69,.15)}
+  .at-btn-danger{background:rgba(239,68,68,.1);color:#dc2626}.at-btn-danger:hover{background:#ef4444;color:#fff}
+  .at-btn-success{background:rgba(16,185,129,.1);color:#059669}.at-btn-success:hover{background:#10b981;color:#fff}
+  .at-btn-sm{padding:.4rem .85rem;font-size:.8rem}
+  .at-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+  /* Device Grid */
+  .at-devices-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem}
+  .at-device-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all var(--transition)}
+  .at-device-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.08)}
+  .at-device-offline{opacity:.65}
+  .at-device-card.processing{position:relative}.at-device-card.processing::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.03);border-radius:inherit;pointer-events:none}
+
+  /* Head */
+  .at-device-head{padding:1.5rem 1.25rem 1rem;text-align:center;position:relative}
+  .at-head-on{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
+  .at-head-standby{background:var(--surface-alt);color:var(--text)}
+  .at-head-off{background:var(--surface-alt);color:var(--text-muted)}
+  .at-device-head-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+  .at-device-head-top h4{font-size:.95rem;font-weight:700;margin:0}
+
+  .at-status-pill{display:inline-flex;align-items:center;gap:.3rem;font-size:.68rem;font-weight:700;padding:.2rem .6rem;border-radius:50px;text-transform:uppercase;letter-spacing:.3px}
+  .at-pill-on{background:rgba(255,255,255,.15);color:#fff}.at-pill-on .at-dot-sm{background:#10B981;box-shadow:0 0 4px rgba(16,185,129,.5)}
+  .at-pill-standby{background:rgba(0,0,0,.06);color:var(--text-muted)}.at-pill-standby .at-dot-sm{background:#ef4444}
+  .at-pill-off{background:rgba(0,0,0,.06);color:var(--text-muted)}.at-pill-off .at-dot-sm{background:#9CA3AF}
+  .at-dot-sm{width:6px;height:6px;border-radius:50%;display:inline-block}
+
+  .at-temp-display{font-size:3rem;font-weight:800;line-height:1.2;margin:.25rem 0 .15rem}
+  .at-mode-label{font-size:.78rem;opacity:.65;font-weight:500}
+
+  /* Body */
+  .at-device-body{padding:1rem 1.25rem 1.25rem}
+  .at-info-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+  .at-info-cell{text-align:center;padding:.5rem;background:var(--surface-alt);border-radius:var(--radius-sm)}
+  .at-info-label{display:block;font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--text-muted);margin-bottom:.15rem}
+  .at-info-value{font-size:.85rem;font-weight:600;color:var(--text)}
+  .at-text-on{color:#059669}.at-text-off{color:var(--text-muted)}
+
+  .at-device-actions{display:flex;gap:.5rem}
+  .at-device-actions .at-btn{flex:1}
+
+  /* Footer */
+  .at-device-foot{padding:.6rem 1.25rem;border-top:1px solid var(--border);font-size:.68rem;color:var(--text-muted);text-align:center}
+
+  /* Empty */
+  .at-empty{text-align:center;padding:4rem 2rem;background:var(--white);border:1px solid var(--border);border-radius:var(--radius)}
+  .at-empty-icon{font-size:3rem;color:var(--border);margin-bottom:1rem}
+  .at-empty h3{font-size:1.1rem;font-weight:700;color:var(--primary);margin:0 0 .5rem}.at-empty p{color:var(--text-muted);font-size:.88rem;margin:0}
+
+  @media(max-width:768px){.at-header{flex-direction:column;align-items:flex-start}.at-devices-grid{grid-template-columns:1fr}}
+</style>
 {% endblock %}

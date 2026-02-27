@@ -1,157 +1,152 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}{{ title }} — Inventário{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'inventario:item_list' %}">Itens</a></li>
-      <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
-    </ol>
-  </nav>
+<section style="background:var(--surface-alt);padding:1rem 0;border-bottom:1px solid var(--border)">
+  <div class="container">
+    <nav class="iv-breadcrumb"><a href="{% url 'inventario:dashboard' %}">Inventário</a> <span class="mx-2">/</span> <a href="{% url 'inventario:item_list' %}">Itens</a> <span class="mx-2">/</span> <span>{{ title }}</span></nav>
+  </div>
+</section>
 
-  <div class="card shadow">
-    <div class="card-header py-3">
-      <h6 class="m-0 font-weight-bold">{{ title }}</h6>
-    </div>
-    <div class="card-body">
-      <form method="post" enctype="multipart/form-data">
+<section class="fl-section" style="padding:2.5rem 0 4rem">
+  <div class="container" style="max-width:820px">
+    <div class="iv-form-card">
+      <div class="iv-form-header">
+        <div class="iv-form-icon"><i class="fas fa-cube"></i></div>
+        <div><h1>{{ title }}</h1><p>Preencha os dados do item de inventário.</p></div>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" class="iv-form">
         {% csrf_token %}
-        
-        <div class="row mb-3">
-          <div class="col-md-4">
-            <label for="{{ form.codigo.id_for_label }}" class="form-label">Código*</label>
-            {{ form.codigo.errors }}
-            <input type="text" name="{{ form.codigo.name }}" id="{{ form.codigo.id_for_label }}" 
-                  class="form-control {% if form.codigo.errors %}is-invalid{% endif %}" 
-                  value="{{ form.codigo.value|default:'' }}" required>
-            {% if form.codigo.help_text %}
-              <div class="form-text text-muted">{{ form.codigo.help_text }}</div>
-            {% endif %}
-          </div>
-          
-          <div class="col-md-8">
-            <label for="{{ form.nome.id_for_label }}" class="form-label">Nome*</label>
-            {{ form.nome.errors }}
-            <input type="text" name="{{ form.nome.name }}" id="{{ form.nome.id_for_label }}" 
-                  class="form-control {% if form.nome.errors %}is-invalid{% endif %}" 
-                  value="{{ form.nome.value|default:'' }}" required>
+
+        {% if form.errors %}
+        <div class="iv-alert-error"><i class="fas fa-exclamation-triangle me-2"></i>
+          <div><strong>Corrija os erros:</strong>
+            <ul class="mb-0 mt-1">{% for field, errors in form.errors.items %}{% for e in errors %}<li>{{ e }}</li>{% endfor %}{% endfor %}</ul>
           </div>
         </div>
-        
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="{{ form.categoria.id_for_label }}" class="form-label">Categoria</label>
-            {{ form.categoria.errors }}
-            {{ form.categoria }}
-            <div class="mt-2">
-              <a href="{% url 'inventario:categoria_create' %}" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-plus me-1"></i> Nova categoria
-              </a>
+        {% endif %}
+
+        <div class="iv-form-section">
+          <h3><span class="iv-sec-num">1</span> Identificação</h3>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="iv-label">Código <span class="iv-req">*</span></label>
+              {{ form.codigo.errors }}
+              <input type="text" name="{{ form.codigo.name }}" id="{{ form.codigo.id_for_label }}" class="iv-input {% if form.codigo.errors %}iv-input-error{% endif %}" value="{{ form.codigo.value|default:'' }}" required>
             </div>
-          </div>
-          
-          <div class="col-md-6">
-            <label for="{{ form.imagem.id_for_label }}" class="form-label">Imagem</label>
-            {{ form.imagem.errors }}
-            {{ form.imagem }}
-            {% if form.instance.imagem %}
-              <div class="mt-2">
-                <p>Imagem atual:</p>
-                <img src="{{ form.instance.imagem.url }}" alt="{{ form.instance.nome }}" style="max-height: 100px;">
-              </div>
-            {% endif %}
-          </div>
-        </div>
-        
-        <div class="row mb-3">
-          <div class="col-md-12">
-            <label for="{{ form.descricao.id_for_label }}" class="form-label">Descrição</label>
-            {{ form.descricao.errors }}
-            {{ form.descricao }}
-          </div>
-        </div>
-        
-        <div class="row mb-3">
-          <div class="col-md-3">
-            <label for="{{ form.quantidade.id_for_label }}" class="form-label">Quantidade*</label>
-            {{ form.quantidade.errors }}
-            <input type="number" name="{{ form.quantidade.name }}" id="{{ form.quantidade.id_for_label }}" 
-                  class="form-control {% if form.quantidade.errors %}is-invalid{% endif %}" 
-                  value="{{ form.quantidade.value|default:'0' }}" step="0.01" required>
-          </div>
-          
-          <div class="col-md-3">
-            <label for="{{ form.quantidade_minima.id_for_label }}" class="form-label">Quantidade Mínima*</label>
-            {{ form.quantidade_minima.errors }}
-            <input type="number" name="{{ form.quantidade_minima.name }}" id="{{ form.quantidade_minima.id_for_label }}" 
-                  class="form-control {% if form.quantidade_minima.errors %}is-invalid{% endif %}" 
-                  value="{{ form.quantidade_minima.value|default:'0' }}" step="0.01" required>
-          </div>
-          
-          <div class="col-md-3">
-            <label for="{{ form.unidade.id_for_label }}" class="form-label">Unidade*</label>
-            {{ form.unidade.errors }}
-            {{ form.unidade }}
-          </div>
-          
-          <div class="col-md-3">
-            <label for="{{ form.valor_unitario.id_for_label }}" class="form-label">Valor unitário</label>
-            {{ form.valor_unitario.errors }}
-            <div class="input-group">
-              <span class="input-group-text">R$</span>
-              <input type="number" name="{{ form.valor_unitario.name }}" id="{{ form.valor_unitario.id_for_label }}" 
-                    class="form-control {% if form.valor_unitario.errors %}is-invalid{% endif %}" 
-                    value="{{ form.valor_unitario.value|default:'' }}" step="0.01">
+            <div class="col-md-8">
+              <label class="iv-label">Nome <span class="iv-req">*</span></label>
+              {{ form.nome.errors }}
+              <input type="text" name="{{ form.nome.name }}" id="{{ form.nome.id_for_label }}" class="iv-input {% if form.nome.errors %}iv-input-error{% endif %}" value="{{ form.nome.value|default:'' }}" required>
             </div>
           </div>
         </div>
-        
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="{{ form.localizacao.id_for_label }}" class="form-label">Localização</label>
-            {{ form.localizacao.errors }}
-            <input type="text" name="{{ form.localizacao.name }}" id="{{ form.localizacao.id_for_label }}" 
-                  class="form-control {% if form.localizacao.errors %}is-invalid{% endif %}" 
-                  value="{{ form.localizacao.value|default:'' }}" placeholder="Ex: Prateleira 3, Armário 2">
+
+        <div class="iv-form-section">
+          <h3><span class="iv-sec-num">2</span> Detalhes</h3>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="iv-label">Categoria</label>
+              {{ form.categoria.errors }}{{ form.categoria }}
+              <a href="{% url 'inventario:categoria_create' %}" class="iv-form-hint-link"><i class="fas fa-plus me-1"></i> Nova categoria</a>
+            </div>
+            <div class="col-md-6">
+              <label class="iv-label">Imagem</label>
+              {{ form.imagem.errors }}
+              <div class="iv-file-area">{{ form.imagem }}<div class="iv-file-ph"><i class="fas fa-cloud-upload-alt"></i><span>Selecione</span></div></div>
+              {% if form.instance.imagem %}<div class="mt-2"><img src="{{ form.instance.imagem.url }}" alt="" style="max-height:60px;border-radius:6px"></div>{% endif %}
+            </div>
+            <div class="col-12">
+              <label class="iv-label">Descrição</label>
+              {{ form.descricao.errors }}{{ form.descricao }}
+            </div>
           </div>
         </div>
-        
-        <div class="row mb-3">
-          <div class="col-md-12">
-            <label for="{{ form.observacoes.id_for_label }}" class="form-label">Observações</label>
-            {{ form.observacoes.errors }}
-            {{ form.observacoes }}
+
+        <div class="iv-form-section">
+          <h3><span class="iv-sec-num">3</span> Estoque</h3>
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="iv-label">Quantidade <span class="iv-req">*</span></label>
+              {{ form.quantidade.errors }}
+              <input type="number" name="{{ form.quantidade.name }}" id="{{ form.quantidade.id_for_label }}" class="iv-input" value="{{ form.quantidade.value|default:'0' }}" step="0.01" required>
+            </div>
+            <div class="col-md-3">
+              <label class="iv-label">Mínimo <span class="iv-req">*</span></label>
+              {{ form.quantidade_minima.errors }}
+              <input type="number" name="{{ form.quantidade_minima.name }}" id="{{ form.quantidade_minima.id_for_label }}" class="iv-input" value="{{ form.quantidade_minima.value|default:'0' }}" step="0.01" required>
+            </div>
+            <div class="col-md-3">
+              <label class="iv-label">Unidade <span class="iv-req">*</span></label>
+              {{ form.unidade.errors }}{{ form.unidade }}
+            </div>
+            <div class="col-md-3">
+              <label class="iv-label">Valor unitário</label>
+              {{ form.valor_unitario.errors }}
+              <div class="iv-input-group"><span>R$</span><input type="number" name="{{ form.valor_unitario.name }}" id="{{ form.valor_unitario.id_for_label }}" class="iv-input" value="{{ form.valor_unitario.value|default:'' }}" step="0.01"></div>
+            </div>
+            <div class="col-md-6">
+              <label class="iv-label">Localização</label>
+              {{ form.localizacao.errors }}
+              <input type="text" name="{{ form.localizacao.name }}" id="{{ form.localizacao.id_for_label }}" class="iv-input" value="{{ form.localizacao.value|default:'' }}" placeholder="Ex: Prateleira 3, Armário 2">
+            </div>
           </div>
         </div>
-        
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-          <a href="{% url 'inventario:item_list' %}" class="btn btn-secondary me-md-2">Cancelar</a>
-          <button type="submit" class="btn btn-primary">Salvar</button>
+
+        <div class="iv-form-section" style="border-bottom:none;padding-bottom:0">
+          <h3><span class="iv-sec-num">4</span> Observações</h3>
+          {{ form.observacoes.errors }}{{ form.observacoes }}
+        </div>
+
+        <div class="iv-form-actions">
+          <a href="{% url 'inventario:item_list' %}" class="iv-btn iv-btn-cancel"><i class="fas fa-times me-1"></i> Cancelar</a>
+          <button type="submit" class="iv-btn iv-btn-save"><i class="fas fa-check me-1"></i> Salvar</button>
         </div>
       </form>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Estilize os selects
-    document.querySelectorAll('select').forEach(function(select) {
-      select.classList.add('form-select');
-    });
-    
-    // Estilize as textareas
-    document.querySelectorAll('textarea').forEach(function(textarea) {
-      if (!textarea.classList.contains('form-control')) {
-        textarea.classList.add('form-control');
-      }
-    });
-  });
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('select').forEach(function(s){s.classList.add('iv-input')});
+  document.querySelectorAll('textarea').forEach(function(t){if(!t.classList.contains('iv-input')){t.classList.add('iv-input');t.rows=3}});
+});
 </script>
+{% endblock %}
+
+{% block head %}
+<style>
+  .iv-breadcrumb{font-size:.85rem}.iv-breadcrumb a{color:var(--accent);text-decoration:none;font-weight:600}.iv-breadcrumb span:last-child{color:var(--text-muted)}
+  .iv-form-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .iv-form-header{display:flex;align-items:center;gap:1.25rem;padding:2rem;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(11,37,69,.03),rgba(19,103,138,.04))}
+  .iv-form-icon{width:52px;height:52px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.3rem;flex-shrink:0}
+  .iv-form-header h1{font-size:1.3rem;font-weight:700;color:var(--primary);margin:0}.iv-form-header p{font-size:.85rem;color:var(--text-muted);margin:.2rem 0 0}
+  .iv-form{padding:0 2rem 2rem}
+  .iv-form-section{padding:1.75rem 0;border-bottom:1px solid var(--border)}
+  .iv-form-section h3{font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:1.25rem;display:flex;align-items:center;gap:.65rem}
+  .iv-sec-num{width:28px;height:28px;background:var(--accent);color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700}
+  .iv-label{display:block;font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:.4rem}.iv-req{color:#DC2626}
+  .iv-input{width:100%;padding:.6rem .85rem;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:.88rem;transition:border-color .25s,box-shadow .25s;font-family:inherit;color:var(--text);background:var(--white)}
+  .iv-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(19,103,138,.08)}
+  .iv-input-error{border-color:#DC2626!important}
+  .iv-input-group{display:flex}.iv-input-group span{padding:.6rem .75rem;background:var(--surface-alt);border:2px solid var(--border);border-right:none;border-radius:var(--radius-sm) 0 0 var(--radius-sm);font-size:.82rem;color:var(--text-muted);font-weight:600;white-space:nowrap}
+  .iv-input-group .iv-input{border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+  .iv-file-area{position:relative;border:2px dashed var(--border);border-radius:var(--radius-sm);padding:1rem;text-align:center;transition:border-color .25s;cursor:pointer}
+  .iv-file-area:hover{border-color:var(--accent)}.iv-file-area input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2}
+  .iv-file-ph{pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:.3rem;color:var(--text-muted)}.iv-file-ph i{font-size:1.4rem;color:var(--accent)}.iv-file-ph span{font-size:.8rem}
+  .iv-form-hint-link{display:inline-block;margin-top:.4rem;font-size:.78rem;color:var(--accent);font-weight:600;text-decoration:none}
+  .iv-alert-error{display:flex;align-items:flex-start;gap:.75rem;padding:1rem 1.25rem;margin:1.5rem 0 0;background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius-sm);color:#991B1B;font-size:.85rem}
+  .iv-alert-error ul{list-style:disc;padding-left:1rem}
+  .iv-form-actions{display:flex;justify-content:flex-end;gap:.75rem;padding-top:1.75rem;margin-top:.5rem;border-top:1px solid var(--border)}
+  .iv-btn{display:inline-flex;align-items:center;padding:.6rem 1.5rem;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;text-decoration:none;transition:all var(--transition);cursor:pointer;border:none}
+  .iv-btn-cancel{background:transparent;color:var(--text-muted);border:2px solid var(--border)}.iv-btn-cancel:hover{border-color:var(--text-muted);color:var(--text)}
+  .iv-btn-save{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}.iv-btn-save:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(11,37,69,.2)}
+  @media(max-width:768px){.iv-form{padding:0 1.25rem 1.5rem}.iv-form-header{padding:1.5rem}}
+</style>
 {% endblock %}

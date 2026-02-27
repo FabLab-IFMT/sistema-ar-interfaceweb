@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, JsonResponse, Http404, HttpResponse
@@ -44,7 +45,7 @@ def index(request):
             category = ResourceCategory.objects.get(slug=category_filter)
             resources = resources.filter(category=category)
         except ResourceCategory.DoesNotExist:
-            pass
+            logging.warning("Categoria %s não encontrada ao filtrar recursos", category_filter)
     
     if type_filter:
         resources = resources.filter(resource_type=type_filter)

@@ -1,595 +1,285 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}Hub de Gestão de Projetos{% endblock %}
+{% block title %}Gestão de Projetos{% endblock %}
 
 {% block head %}
 <style>
-  /* Estatísticas */
-  .stats-row {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-  }
-  
-  .stat-card {
-    flex: 1;
-    min-width: 220px;
-    border-radius: 10px;
-    padding: 25px;
-    background-color: white;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    display: flex;
-    align-items: center;
-  }
-  
-  .stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 25px rgba(0,0,0,0.1);
-  }
-  
-  .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 20px;
-    font-size: 1.8rem;
-    color: white;
-  }
-  
-  .stat-info h3 {
-    font-size: 28px;
-    margin: 0;
-    font-weight: 600;
-    line-height: 1;
-    margin-bottom: 5px;
-  }
-  
-  .stat-info p {
-    margin: 0;
-    color: #6c757d;
-    font-size: 16px;
-  }
-  
-  /* Cores para os ícones */
-  .bg-primary-light {
-    background-color: rgba(13, 110, 253, 0.2);
-    color: #0d6efd !important;
-  }
-  
-  .bg-warning-light {
-    background-color: rgba(255, 193, 7, 0.2);
-    color: #ffc107 !important;
-  }
-  
-  .bg-success-light {
-    background-color: rgba(25, 135, 84, 0.2);
-    color: #198754 !important;
-  }
-  
-  .bg-danger-light {
-    background-color: rgba(220, 53, 69, 0.2);
-    color: #dc3545 !important;
-  }
-  
-  /* Avatares de membros nos cards */
-  .member-avatars {
-    display: flex;
-    margin-top: 10px;
-    margin-bottom: 15px;
-  }
-  
-  .member-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.75rem;
-    border: 2px solid white;
-    position: relative;
-    margin-left: -8px;
-    text-transform: uppercase;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  
-  .member-avatar:first-child {
-    margin-left: 0;
-  }
-  
-  .member-avatar:nth-child(1) { background-color: #4B89DC; }
-  .member-avatar:nth-child(2) { background-color: #967ADC; }
-  .member-avatar:nth-child(3) { background-color: #D770AD; }
-  .member-avatar:nth-child(4) { background-color: #F6BB42; }
-  .member-avatar:nth-child(5) { background-color: #37BC9B; }
-  
-  .member-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-  }
-  
-  .member-avatar.more-members {
-    background-color: #656D78;
-  }
-  
-  /* Ferramentas de gestão */
-  .tools-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 30px;
-    margin-top: 40px;
-  }
-  
-  .tool-card {
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    height: 100%;
-    position: relative;
-  }
-  
-  .tool-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.12);
-    color: inherit;
-    text-decoration: none;
-  }
-  
-  .tool-card-img {
-    height: 180px;
-    overflow: hidden;
-    position: relative;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-  
-  .tool-card-body {
-    padding: 25px;
-    text-align: center;
-  }
-  
-  .tool-card-title {
-    font-size: 22px;
-    font-weight: 600;
-    margin-bottom: 15px;
-  }
-  
-  .tool-card-text {
-    color: #6c757d;
-    margin-bottom: 25px;
-  }
-  
-  /* Cards de atividades recentes e projetos */
-  .recent-activities {
-    margin-top: 40px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-  }
-  
-  .card-activities {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    height: 100%;
-  }
-  
-  .card-header {
-    background-color: transparent;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    padding: 20px;
-    font-weight: 600;
-    font-size: 18px;
-  }
-  
-  .activity-item {
-    padding: 15px 20px;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-    position: relative;
-  }
-  
-  .activity-item:last-child {
-    border-bottom: none;
-  }
-  
-  .activity-title {
-    font-weight: 600;
-    margin-bottom: 5px;
-  }
-  
-  .activity-meta {
-    display: flex;
-    justify-content: space-between;
-    color: #6c757d;
-    font-size: 14px;
-  }
+/* ── Hub de Gestão de Projetos — Institutional Theme ── */
 
-  .activity-badge {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-  }
+/* Hero */
+.gh-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:2.5rem 0;color:#fff}
+.gh-hero h1{font-weight:800;font-size:2rem;margin:0}
+.gh-hero p{opacity:.8;margin:.25rem 0 0;font-size:.92rem}
 
-  /* Badge de prioridade */
-  .priority-badge {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-  }
+/* Stats strip */
+.gh-stats{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:-1.5rem;position:relative;z-index:2}
+.gh-stat{flex:1;min-width:130px;background:var(--white);border-radius:var(--radius);padding:.85rem 1rem;text-align:center;border:1px solid var(--border);box-shadow:0 2px 8px rgba(11,37,69,.05);transition:var(--transition)}
+.gh-stat:hover{box-shadow:0 6px 18px rgba(11,37,69,.1);transform:translateY(-2px)}
+.gh-stat-value{font-size:1.5rem;font-weight:800;line-height:1}
+.gh-stat-label{font-size:.72rem;color:var(--text-muted);font-weight:500;margin-top:.15rem}
 
-  .priority-baixa {
-    background-color: rgba(25, 135, 84, 0.1);
-    color: #198754;
-  }
+/* Section headers */
+.gh-section{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin:2rem 0 1rem}
+.gh-section h2{font-weight:700;font-size:1.15rem;color:var(--text);margin:0;display:flex;align-items:center;gap:.5rem}
+.gh-section h2 i{color:var(--accent)}
 
-  .priority-media {
-    background-color: rgba(255, 193, 7, 0.1);
-    color: #ffc107;
-  }
+/* Filter bar */
+.gh-filters{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem}
+.gh-filters .btn{border-radius:50px;font-size:.82rem;padding:.35rem .85rem;font-weight:500;border-color:var(--border);color:var(--text)}
+.gh-filters .btn:hover,.gh-filters .btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.gh-filters .form-control{border-radius:50px;font-size:.85rem;max-width:240px;border:1px solid var(--border)}
+.gh-filters .form-control:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(19,103,138,.15)}
 
-  .priority-alta {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: #dc3545;
-  }
-  
-  .empty-list {
-    padding: 30px;
-    text-align: center;
-    color: #6c757d;
-  }
+/* Project cards */
+.gh-project{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;transition:var(--transition);height:100%;display:flex;flex-direction:column;text-decoration:none;color:inherit}
+.gh-project:hover{box-shadow:0 8px 28px rgba(11,37,69,.1);transform:translateY(-3px);color:inherit;text-decoration:none}
+.gh-project-img{height:140px;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.gh-project-img img{width:100%;height:100%;object-fit:cover}
+.gh-project-img .gh-proj-placeholder{font-size:2.5rem;color:rgba(255,255,255,.4)}
+.gh-project-status{position:absolute;top:.65rem;right:.65rem;padding:.2rem .65rem;border-radius:50px;font-size:.7rem;font-weight:600;backdrop-filter:blur(4px)}
+.gh-status-em_andamento{background:rgba(234,179,8,.85);color:#fff}
+.gh-status-concluido{background:rgba(22,163,74,.85);color:#fff}
+.gh-status-planejado{background:rgba(96,165,250,.85);color:#fff}
+.gh-status-cancelado{background:rgba(220,38,38,.85);color:#fff}
+.gh-project-body{padding:1rem 1.15rem;flex:1;display:flex;flex-direction:column}
+.gh-project-title{font-weight:700;font-size:1rem;color:var(--text);margin-bottom:.35rem;line-height:1.3}
+.gh-project-desc{font-size:.82rem;color:var(--text-muted);line-height:1.45;margin-bottom:.75rem;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gh-project-footer{display:flex;align-items:center;justify-content:space-between;padding-top:.6rem;border-top:1px solid var(--surface-alt)}
+.gh-project-meta{display:flex;gap:.5rem;font-size:.75rem;color:var(--text-muted);font-weight:500}
+.gh-project-meta span{display:flex;align-items:center;gap:.25rem}
+.gh-project-arrow{color:var(--accent);font-size:.9rem;transition:var(--transition)}
+.gh-project:hover .gh-project-arrow{transform:translateX(3px)}
 
-  .empty-list i {
-    font-size: 2.5rem;
-    margin-bottom: 15px;
-    opacity: 0.5;
-  }
+/* Group cards */
+.gh-group{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.15rem;transition:var(--transition);height:100%}
+.gh-group:hover{box-shadow:0 6px 20px rgba(11,37,69,.1);transform:translateY(-2px)}
+.gh-group-icon{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-light));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;margin-bottom:.75rem}
+.gh-group-title{font-weight:700;font-size:.95rem;color:var(--text);margin-bottom:.35rem}
+.gh-group-desc{font-size:.8rem;color:var(--text-muted);margin-bottom:.65rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gh-group-avatars{display:flex;gap:-.15rem;margin-bottom:.5rem}
+.gh-group-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:600;border:2px solid var(--white);margin-left:-4px}
+.gh-group-avatar:first-child{margin-left:0}
+.gh-group-stats{display:flex;gap:.75rem;font-size:.75rem;color:var(--text-muted)}
+.gh-group-stats span{display:flex;align-items:center;gap:.25rem}
 
-  /* Botão ver todos */
-  .view-all {
-    text-align: center;
-    padding: 10px;
-    background-color: #f8f9fa;
-    border-top: 1px solid rgba(0,0,0,0.05);
-  }
+/* Empty state */
+.gh-empty{text-align:center;padding:3rem 1rem}
+.gh-empty i{font-size:3rem;color:var(--border);margin-bottom:.75rem;display:block}
+.gh-empty p{color:var(--text-muted);font-weight:500;margin-bottom:1rem}
+
+/* Pagination */
+.gh-pagination .page-link{border-radius:var(--radius-sm);margin:0 2px;border:1px solid var(--border);color:var(--text);font-size:.85rem;font-weight:500}
+.gh-pagination .page-link:hover{background:var(--surface-alt);border-color:var(--accent);color:var(--accent)}
+.gh-pagination .page-item.active .page-link{background:var(--accent);border-color:var(--accent);color:#fff}
+
+@media(max-width:768px){
+  .gh-hero h1{font-size:1.5rem}
+  .gh-stats{flex-direction:column}
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-  <!-- Cabeçalho da página -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h2 class="mb-0"><i class="fas fa-project-diagram me-2"></i>Hub de Gestão de Projetos</h2>
-      <p class="text-muted mb-0">Gerencie seus projetos e tarefas com facilidade</p>
+<!-- Hero -->
+<section class="gh-hero">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div>
+        <h1><i class="fas fa-project-diagram me-2"></i>Gestão de Projetos</h1>
+        <p class="mb-0">Gerencie seus projetos, tarefas e equipes em um só lugar</p>
+      </div>
+      <div class="d-flex gap-2">
+        {% if user.is_superuser %}
+        <a href="{% url 'projetos:novo' %}" class="btn btn-light btn-sm" style="border-radius:50px;font-weight:600;color:var(--primary)">
+          <i class="fas fa-plus me-1"></i> Novo Projeto
+        </a>
+        {% endif %}
+      </div>
     </div>
   </div>
-  
-  <!-- Cards de estatísticas -->
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-icon bg-primary-light">
-        <i class="fas fa-clipboard-list"></i>
-      </div>
-      <div class="stat-info">
-        <h3>{{ total_projetos }}</h3>
-        <p>Todos os Projetos</p>
-      </div>
+</section>
+
+<!-- Stats -->
+<div class="container">
+  <div class="gh-stats">
+    <div class="gh-stat">
+      <div class="gh-stat-value" style="color:var(--primary)">{{ total_projetos }}</div>
+      <div class="gh-stat-label">Total de Projetos</div>
     </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon bg-warning-light">
-        <i class="fas fa-spinner"></i>
-      </div>
-      <div class="stat-info">
-        <h3>{{ projetos_ativos }}</h3>
-        <p>Em Andamento</p>
-      </div>
+    <div class="gh-stat">
+      <div class="gh-stat-value" style="color:#eab308">{{ projetos_em_andamento }}</div>
+      <div class="gh-stat-label">Em Andamento</div>
     </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon bg-success-light">
-        <i class="fas fa-check-circle"></i>
-      </div>
-      <div class="stat-info">
-        <h3>{{ projetos_concluidos }}</h3>
-        <p>Concluídos</p>
-      </div>
+    <div class="gh-stat">
+      <div class="gh-stat-value" style="color:#16a34a">{{ projetos_concluidos }}</div>
+      <div class="gh-stat-label">Concluídos</div>
     </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon bg-danger-light">
-        <i class="fas fa-exclamation-triangle"></i>
-      </div>
-      <div class="stat-info">
-        <h3>{{ projetos_atrasados }}</h3>
-        <p>Com Atraso</p>
-      </div>
+    <div class="gh-stat">
+      <div class="gh-stat-value" style="color:#60a5fa">{{ projetos_planejados }}</div>
+      <div class="gh-stat-label">Planejados</div>
     </div>
-    
-    {% if user.is_superuser %}
-    <div class="stat-card">
-      <div class="stat-icon" style="background-color: rgba(138, 43, 226, 0.2); color: blueviolet;">
-        <i class="fas fa-users"></i>
-      </div>
-      <div class="stat-info">
-        <h3>{{ total_grupos }}</h3>
-        <p>Grupos de Projetos</p>
-      </div>
-    </div>
-    {% endif %}
-  </div>
-  
-  <!-- Grade de ferramentas de gestão -->
-  <h3 class="mt-5 mb-4"><i class="fas fa-tools me-2"></i>Ferramentas de Gestão</h3>
-  <div class="tools-grid">
-    <!-- Ferramenta Kanban -->
-    <a href="{% url 'canva:kanban' %}" class="tool-card">
-      <div class="tool-card-img" style="background-image: url('{% static 'images/kanban-bg.jpg' %}');">
-        <div class="overlay"></div>
-      </div>
-      <div class="tool-card-body">
-        <h4 class="tool-card-title"><i class="fas fa-columns me-2"></i>Kanban</h4>
-        <p class="tool-card-text">Organize as tarefas em colunas para visualizar o fluxo de trabalho e monitorar o progresso.</p>
-        <button class="btn btn-outline-primary">Acessar Kanban</button>
-      </div>
-    </a>
-    
-    <!-- Ferramenta Roadmap -->
-    <a href="#" class="tool-card">
-      <div class="tool-card-img" style="background-image: url('{% static 'images/roadmap-bg.jpg' %}');">
-        <div class="overlay"></div>
-      </div>
-      <div class="tool-card-body">
-        <h4 class="tool-card-title"><i class="fas fa-map-signs me-2"></i>Roadmap</h4>
-        <p class="tool-card-text">Visualize a timeline dos projetos e marcos importantes em uma linha do tempo clara.</p>
-        <button class="btn btn-outline-primary">Acessar Roadmap</button>
-      </div>
-    </a>
-    
-    <!-- Ferramenta Todo List -->
-    <a href="{% url 'projetos:todo_list' %}" class="tool-card">
-      <div class="tool-card-img" style="background-image: url('{% static 'images/todolist-bg.jpg' %}');">
-        <div class="overlay"></div>
-      </div>
-      <div class="tool-card-body">
-        <h4 class="tool-card-title"><i class="fas fa-check-square me-2"></i>Todo List</h4>
-        <p class="tool-card-text">Gerencie tarefas individuais com uma lista de afazeres simples e eficiente.</p>
-        <button class="btn btn-outline-primary">Acessar Todo List</button>
-      </div>
-    </a>
-    
-    <!-- Ferramenta Gestão de Grupos -->
-    {% if user.is_superuser %}
-    <a href="{% url 'projetos:grupos_lista' %}" class="tool-card">
-      <div class="tool-card-img" style="background-image: url('{% static 'images/groups-bg.jpg' %}');">
-        <div class="overlay"></div>
-      </div>
-      <div class="tool-card-body">
-        <h4 class="tool-card-title"><i class="fas fa-users me-2"></i>Grupos de Projetos</h4>
-        <p class="tool-card-text">Gerencie grupos de usuários para atribuir tarefas a equipes específicas.</p>
-        
-        <!-- Contadores e estatísticas -->
-        <div class="d-flex justify-content-between mb-3">
-          <div>
-            <span class="badge bg-info rounded-pill">{{ total_grupos }} grupo{{ total_grupos|pluralize }}</span>
-          </div>
-          <div>
-            <span class="badge bg-light text-dark rounded-pill" title="Membros únicos em todos os grupos">
-              <i class="fas fa-user-friends"></i> {{ total_membros|default:0 }} membro{{ total_membros|pluralize }}
-            </span>
-          </div>
-        </div>
-        
-        {% if grupos_recentes %}
-        <div class="border-top pt-3 mb-3">
-          <small class="text-muted d-block mb-2">Grupos recentes:</small>
-          {% for grupo in grupos_recentes %}
-            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
-              <div class="me-2">
-                <i class="fas fa-user-friends text-secondary"></i>
-              </div>
-              <div class="flex-grow-1">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <strong>{{ grupo.nome }}</strong>
-                  <span class="badge bg-light text-dark rounded-pill">{{ grupo.membros.count }} membro{{ grupo.membros.count|pluralize }}</span>
-                </div>
-                {% if grupo.membros.exists %}
-                  <div class="member-avatars">
-                    {% for membro in grupo.membros.all|slice:":5" %}
-                      <div class="member-avatar" title="{{ membro.get_full_name|default:membro.username }}">
-                        {{ membro.first_name|slice:":1" }}{{ membro.last_name|slice:":1" }}
-                      </div>
-                    {% endfor %}
-                    {% if grupo.membros.count > 5 %}
-                      <div class="member-avatar more-members" title="E mais {{ grupo.membros.count|add:"-5" }} membro{{ grupo.membros.count|add:"-5"|pluralize }}">
-                        +{{ grupo.membros.count|add:"-5" }}
-                      </div>
-                    {% endif %}
-                  </div>
-                {% else %}
-                  <small class="text-muted">Nenhum membro atribuído</small>
-                {% endif %}
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-        {% endif %}
-        
-        <button class="btn btn-outline-primary">Gerenciar Grupos</button>
-      </div>
-    </a>
-    {% endif %}
-  </div>
-  
-  <!-- Seção de Atividades Recentes e Projetos -->
-  <div class="recent-activities">
-    <!-- Card de Atividades Recentes -->
-    <div class="card-activities">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="fas fa-history me-2"></i>Atividades Recentes</span>
-        <span class="badge bg-primary">{{ cards_recentes|length }}</span>
-      </div>
-      
-      <div class="card-body p-0">
-        {% if cards_recentes %}
-          {% for card in cards_recentes %}
-          <div class="activity-item">
-            <div class="activity-title">{{ card.titulo }}</div>
-            <div class="activity-meta">
-              <span>
-                {% if card.responsavel %}
-                <i class="fas fa-user me-1"></i> {{ card.responsavel.first_name }}
-                {% endif %}
-              </span>
-              <span>
-                <i class="fas fa-clock me-1"></i> {{ card.data_atualizacao|date:"d/m/Y H:i" }}
-              </span>
-            </div>
-            <span class="activity-badge priority-badge priority-{{ card.prioridade }}">
-              {{ card.get_prioridade_display }}
-            </span>
-          </div>
-          {% endfor %}
-          <div class="view-all">
-            <a href="{% url 'canva:kanban' %}" class="btn btn-sm btn-outline-secondary">Ver Todos</a>
-          </div>
-        {% else %}
-          <div class="empty-list">
-            <i class="fas fa-clipboard"></i>
-            <h5>Nenhuma atividade recente</h5>
-            <p>As atividades aparecerão aqui quando forem criadas</p>
-          </div>
-        {% endif %}
-      </div>
-    </div>
-    
-    <!-- Card de Meus Grupos -->
-    <div class="card-activities">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="fas fa-users me-2"></i>Meus Grupos</span>
-        <span class="badge bg-primary">{{ meus_grupos|length }}</span>
-      </div>
-      
-      <div class="card-body p-0">
-        {% if meus_grupos %}
-          {% for grupo in meus_grupos %}
-          <div class="activity-item">
-            <div class="activity-title">{{ grupo.nome }}</div>
-            <div class="activity-meta">
-              <span>
-                <i class="fas fa-user-friends me-1"></i> {{ grupo.membros.count }} membro{{ grupo.membros.count|pluralize }}
-              </span>
-              <span>
-                <i class="fas fa-tasks me-1"></i> {{ grupo.tarefas.count }} tarefa{{ grupo.tarefas.count|pluralize }}
-              </span>
-            </div>
-            <div class="mt-2">
-              {% for membro in grupo.membros.all|slice:":4" %}
-                <span class="member-avatar" style="width: 24px; height: 24px; display: inline-flex; position: static; margin-left: -5px;" title="{{ membro.get_full_name|default:membro.username }}">
-                  {{ membro.first_name|slice:":1" }}{{ membro.last_name|slice:":1" }}
-                </span>
-              {% endfor %}
-              {% if grupo.membros.count > 4 %}
-                <small class="text-muted ms-1">+{{ grupo.membros.count|add:"-4" }}</small>
-              {% endif %}
-            </div>
-          </div>
-          {% endfor %}
-          <div class="view-all">
-            <a href="{% url 'projetos:grupos_lista' %}" class="btn btn-sm btn-outline-secondary">Ver Todos</a>
-          </div>
-        {% else %}
-          <div class="empty-list">
-            <i class="fas fa-users"></i>
-            <h5>Você não pertence a nenhum grupo</h5>
-            <p>Quando você for adicionado a um grupo, ele aparecerá aqui</p>
-          </div>
-        {% endif %}
-      </div>
-    </div>
-    
-    <!-- Card de Projetos Recentes -->
-    <div class="card-activities">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="fas fa-project-diagram me-2"></i>Projetos Recentes</span>
-        <span class="badge bg-primary">{{ projetos_recentes|length }}</span>
-      </div>
-      
-      <div class="card-body p-0">
-        {% if projetos_recentes %}
-          {% for projeto in projetos_recentes %}
-          <div class="activity-item">
-            <div class="activity-title">{{ projeto.titulo }}</div>
-            <div class="activity-meta">
-              <span>
-                {% if projeto.responsavel %}
-                <i class="fas fa-user me-1"></i> {{ projeto.responsavel.first_name }}
-                {% endif %}
-              </span>
-              <span>
-                <i class="fas fa-calendar me-1"></i> {{ projeto.data_atualizacao|date:"d/m/Y" }}
-              </span>
-            </div>
-            <span class="badge {% if projeto.status == 'Ativo' %}bg-warning{% elif projeto.status == 'Concluído' %}bg-success{% else %}bg-secondary{% endif %} activity-badge">
-              {{ projeto.status }}
-            </span>
-          </div>
-          {% endfor %}
-          <div class="view-all">
-            <a href="{% url 'projetos:lista' %}" class="btn btn-sm btn-outline-secondary">Ver Todos</a>
-          </div>
-        {% else %}
-          <div class="empty-list">
-            <i class="fas fa-folder-open"></i>
-            <h5>Nenhum projeto encontrado</h5>
-            <p>Crie um projeto para começar a gerenciar suas tarefas</p>
-          </div>
-        {% endif %}
-      </div>
+    <div class="gh-stat">
+      <div class="gh-stat-value" style="color:var(--accent)">{{ grupos.count }}</div>
+      <div class="gh-stat-label">Grupos</div>
     </div>
   </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Verificar se as imagens de fundo existem, caso contrário usar cores alternativas
-    const toolCards = document.querySelectorAll('.tool-card-img');
-    
-    toolCards.forEach(card => {
-      const img = new Image();
-      img.src = card.style.backgroundImage.slice(5, -2);
-      img.onerror = function() {
-        // Se a imagem não existir, usar cores de fundo alternativas
-        if (card.closest('.tool-card').querySelector('.tool-card-title').textContent.includes('Kanban')) {
-          card.style.backgroundColor = '#e8f0fe';
-        } else if (card.closest('.tool-card').querySelector('.tool-card-title').textContent.includes('Roadmap')) {
-          card.style.backgroundColor = '#fff3cd';
-        } else if (card.closest('.tool-card').querySelector('.tool-card-title').textContent.includes('Todo')) {
-          card.style.backgroundColor = '#d1e7dd';
-        } else if (card.closest('.tool-card').querySelector('.tool-card-title').textContent.includes('Grupos')) {
-          card.style.backgroundColor = '#f8d7da';  // Cor rosa claro para grupos
-        }
-      };
-    });
-  });
-</script>
+<div class="container py-2">
+
+  <!-- ═══════ PROJETOS ═══════ -->
+  <div class="gh-section">
+    <h2><i class="fas fa-folder-open"></i> Projetos</h2>
+    <span style="font-size:.82rem;color:var(--text-muted)">Clique em um projeto para acessar seu painel completo</span>
+  </div>
+
+  <!-- Filtros -->
+  <form method="get" class="gh-filters">
+    <a href="{% url 'projetos:gestao' %}" class="btn btn-sm {% if not filtro_status %}active{% endif %}">Todos</a>
+    {% for value, label in status_opcoes %}
+    <a href="?status={{ value }}" class="btn btn-sm {% if filtro_status == value %}active{% endif %}">{{ label }}</a>
+    {% endfor %}
+    <div class="ms-auto d-flex gap-2">
+      <input type="text" name="busca" class="form-control form-control-sm" placeholder="Buscar projeto..." value="{{ busca }}">
+      <button type="submit" class="btn btn-sm" style="background:var(--accent);color:#fff;border-radius:50px;padding:.35rem .85rem"><i class="fas fa-search"></i></button>
+    </div>
+  </form>
+
+  <!-- Grid de projetos -->
+  <div class="row g-3">
+    {% for projeto in projetos %}
+    <div class="col-md-4 col-sm-6">
+      <a href="{% url 'projetos:projeto_painel' projeto.slug %}" class="gh-project">
+        <div class="gh-project-img">
+          {% if projeto.imagem %}
+          <img src="{{ projeto.imagem.url }}" alt="{{ projeto.titulo }}">
+          {% else %}
+          <i class="fas fa-project-diagram gh-proj-placeholder"></i>
+          {% endif %}
+          <span class="gh-project-status gh-status-{{ projeto.status }}">
+            {{ projeto.get_status_display }}
+          </span>
+        </div>
+        <div class="gh-project-body">
+          <div class="gh-project-title">{{ projeto.titulo }}</div>
+          <div class="gh-project-desc">{{ projeto.descricao_curta }}</div>
+          <div class="gh-project-footer">
+            <div class="gh-project-meta">
+              <span><i class="fas fa-columns"></i> {{ projeto.total_cards }} cards</span>
+              <span><i class="fas fa-tasks"></i> {{ projeto.total_tarefas }} tarefas</span>
+            </div>
+            <i class="fas fa-arrow-right gh-project-arrow"></i>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="gh-empty">
+        <i class="fas fa-folder-open"></i>
+        <p>Nenhum projeto encontrado</p>
+        {% if user.is_superuser %}
+        <a href="{% url 'projetos:novo' %}" class="btn btn-sm" style="background:var(--accent);color:#fff;border-radius:50px;font-weight:600;padding:.4rem 1.25rem">
+          <i class="fas fa-plus me-1"></i> Criar Projeto
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Paginação -->
+  {% if projetos.has_other_pages %}
+  <nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination gh-pagination mb-0">
+      {% if projetos.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ projetos.previous_page_number }}{% if filtro_status %}&status={{ filtro_status }}{% endif %}{% if busca %}&busca={{ busca }}{% endif %}">&laquo;</a></li>
+      {% endif %}
+      {% for num in projetos.paginator.page_range %}
+      <li class="page-item {% if projetos.number == num %}active{% endif %}">
+        <a class="page-link" href="?page={{ num }}{% if filtro_status %}&status={{ filtro_status }}{% endif %}{% if busca %}&busca={{ busca }}{% endif %}">{{ num }}</a>
+      </li>
+      {% endfor %}
+      {% if projetos.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ projetos.next_page_number }}{% if filtro_status %}&status={{ filtro_status }}{% endif %}{% if busca %}&busca={{ busca }}{% endif %}">&raquo;</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  <!-- ═══════ GRUPOS ═══════ -->
+  <div class="gh-section">
+    <h2><i class="fas fa-layer-group"></i> Grupos de Projeto</h2>
+    {% if user.is_superuser %}
+    <div class="d-flex gap-2">
+      <a href="{% url 'projetos:grupos_lista' %}" class="btn btn-sm" style="border:1px solid var(--border);border-radius:50px;font-size:.82rem;color:var(--text-muted);font-weight:500">
+        <i class="fas fa-list me-1"></i> Ver Todos
+      </a>
+      <a href="{% url 'projetos:grupo_novo' %}" class="btn btn-sm" style="background:var(--accent);color:#fff;border-radius:50px;font-size:.82rem;font-weight:600">
+        <i class="fas fa-plus me-1"></i> Novo Grupo
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="row g-3 mb-4">
+    {% for grupo in grupos %}
+    <div class="col-md-4 col-sm-6">
+      <div class="gh-group">
+        <div class="gh-group-icon"><i class="fas fa-users"></i></div>
+        <div class="gh-group-title">{{ grupo.nome }}</div>
+        {% if grupo.descricao %}
+        <div class="gh-group-desc">{{ grupo.descricao }}</div>
+        {% endif %}
+        <div class="gh-group-avatars mb-2">
+          {% for m in grupo.membros.all|slice:":6" %}
+          <div class="gh-group-avatar"
+               style="{% cycle 'background:var(--accent);color:#fff' 'background:var(--primary);color:#fff' 'background:#059669;color:#fff' 'background:#f97316;color:#fff' 'background:#8b5cf6;color:#fff' 'background:#ec4899;color:#fff' %}"
+               title="{{ m.first_name }} {{ m.last_name }}">
+            {{ m.first_name|first }}{{ m.last_name|first }}
+          </div>
+          {% endfor %}
+          {% if grupo.membros.count > 6 %}
+          <div class="gh-group-avatar" style="background:var(--surface-alt);color:var(--text-muted)">+{{ grupo.membros.count|add:"-6" }}</div>
+          {% endif %}
+        </div>
+        <div class="gh-group-stats">
+          <span><i class="fas fa-users"></i> {{ grupo.membros.count }} membros</span>
+          <span><i class="fas fa-folder"></i> {{ grupo.projetos.count }} projetos</span>
+        </div>
+        <a href="{% url 'projetos:grupo_detalhe' grupo.id %}" style="display:inline-block;margin-top:.65rem;font-size:.8rem;color:var(--accent);text-decoration:none;font-weight:600">
+          Ver detalhes <i class="fas fa-arrow-right ms-1" style="font-size:.7rem"></i>
+        </a>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="gh-empty" style="padding:2rem">
+        <i class="fas fa-layer-group" style="font-size:2rem"></i>
+        <p>Nenhum grupo encontrado</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Quick links -->
+  <div style="background:var(--surface-alt);border-radius:var(--radius);padding:1.25rem;margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
+    <span style="font-size:.88rem;color:var(--text);font-weight:600"><i class="fas fa-compass me-2" style="color:var(--accent)"></i>Acesso rápido</span>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'canva:kanban' %}" style="font-size:.82rem;color:var(--accent);text-decoration:none;font-weight:600;padding:.35rem .85rem;border:1px solid var(--border);border-radius:50px;background:var(--white);transition:var(--transition)">
+        <i class="fas fa-columns me-1"></i> Kanban Global
+      </a>
+      <a href="{% url 'projetos:todo_list' %}" style="font-size:.82rem;color:var(--accent);text-decoration:none;font-weight:600;padding:.35rem .85rem;border:1px solid var(--border);border-radius:50px;background:var(--white);transition:var(--transition)">
+        <i class="fas fa-tasks me-1"></i> Todas as Tarefas
+      </a>
+      {% if user.is_superuser %}
+      <a href="{% url 'projetos:grupos_lista' %}" style="font-size:.82rem;color:var(--accent);text-decoration:none;font-weight:600;padding:.35rem .85rem;border:1px solid var(--border);border-radius:50px;background:var(--white);transition:var(--transition)">
+        <i class="fas fa-users-cog me-1"></i> Gerenciar Grupos
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
 {% endblock %}

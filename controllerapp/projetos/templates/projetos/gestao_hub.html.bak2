@@ -1,0 +1,228 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Gestão de Projetos{% endblock %}
+
+{% block head %}
+<style>
+  .gp-hero{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:2.5rem 0 2rem;position:relative;overflow:hidden}
+  .gp-hero::after{content:'';position:absolute;top:-30%;right:-15%;width:50%;height:160%;background:rgba(255,255,255,.04);border-radius:50%;transform:rotate(15deg)}
+  .gp-hero-title{font-size:1.55rem;font-weight:800;margin:0}
+  .gp-hero-sub{opacity:.7;font-size:.88rem;margin:.3rem 0 0}
+
+  .gp-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.85rem;margin-top:-2rem;position:relative;z-index:2}
+  .gp-stat{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;display:flex;align-items:center;gap:.85rem;transition:all var(--transition)}
+  .gp-stat:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(11,37,69,.08)}
+  .gp-stat-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+  .gp-stat-val{font-size:1.55rem;font-weight:800;line-height:1;color:var(--text)}
+  .gp-stat-lbl{font-size:.72rem;color:var(--text-muted);font-weight:500}
+
+  .gp-section-title{font-size:1.05rem;font-weight:700;color:var(--primary);margin:2.5rem 0 1.25rem;display:flex;align-items:center;gap:.5rem}
+  .gp-tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+  .gp-tool{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;text-decoration:none;color:inherit;transition:all var(--transition);display:flex;flex-direction:column}
+  .gp-tool:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(11,37,69,.1);color:inherit;text-decoration:none}
+  .gp-tool-header{padding:1.5rem 1.25rem 1rem;display:flex;align-items:center;gap:1rem}
+  .gp-tool-icon{width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+  .gp-tool-name{font-size:.95rem;font-weight:700;color:var(--text)}
+  .gp-tool-desc{font-size:.78rem;color:var(--text-muted);line-height:1.45}
+  .gp-tool-body{flex:1;padding:0 1.25rem 1.25rem}
+  .gp-tool-body p{font-size:.8rem;color:var(--text-muted);line-height:1.5;margin:0}
+  .gp-tool-footer{padding:.65rem 1.25rem;background:var(--surface-alt);border-top:1px solid var(--border);font-size:.76rem;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:.35rem}
+
+  .gp-recents{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:1rem}
+  .gp-rcard{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+  .gp-rcard-head{padding:.85rem 1.1rem;background:var(--surface-alt);border-bottom:1px solid var(--border);font-size:.85rem;font-weight:700;color:var(--primary);display:flex;justify-content:space-between;align-items:center}
+  .gp-rcard-body{flex:1;padding:0}
+  .gp-rcard-item{padding:.75rem 1.1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:.75rem;transition:background var(--transition)}
+  .gp-rcard-item:last-child{border-bottom:none}
+  .gp-rcard-item:hover{background:var(--surface)}
+  .gp-rcard-item-info{flex:1;min-width:0}
+  .gp-rcard-item-title{font-size:.82rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gp-rcard-item-meta{font-size:.7rem;color:var(--text-muted);margin-top:.15rem;display:flex;gap:.75rem}
+  .gp-rcard-foot{padding:.6rem 1.1rem;border-top:1px solid var(--border);text-align:center}
+  .gp-rcard-foot a{font-size:.76rem;font-weight:600;color:var(--accent);text-decoration:none}
+  .gp-rcard-foot a:hover{text-decoration:underline}
+  .gp-badge{display:inline-flex;align-items:center;padding:.15rem .5rem;border-radius:50px;font-size:.65rem;font-weight:700;letter-spacing:.2px}
+  .gp-badge-num{background:rgba(19,103,138,.1);color:var(--accent);min-width:22px;text-align:center;border-radius:50px;padding:.1rem .45rem;font-size:.7rem;font-weight:700}
+  .gp-empty{padding:2rem 1rem;text-align:center;color:var(--text-muted)}
+  .gp-empty i{font-size:1.8rem;opacity:.3;display:block;margin-bottom:.5rem}
+  .gp-empty p{font-size:.82rem;margin:0}
+  .gp-avatars{display:flex;margin-top:.4rem}
+  .gp-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;border:2px solid var(--white);margin-left:-6px;text-transform:uppercase}
+  .gp-avatar:first-child{margin-left:0}
+  .gp-avatar-1{background:#4B89DC}.gp-avatar-2{background:#967ADC}.gp-avatar-3{background:#D770AD}.gp-avatar-4{background:#F6BB42}.gp-avatar-5{background:#37BC9B}
+  .gp-avatar-more{background:var(--text-muted)}
+  .gp-pri-baixa{background:rgba(16,185,129,.1);color:#059669}
+  .gp-pri-media{background:rgba(245,158,11,.1);color:#D97706}
+  .gp-pri-alta{background:rgba(239,68,68,.1);color:#DC2626}
+  .gp-pri-urgente{background:rgba(220,38,38,.15);color:#B91C1C;font-weight:700}
+  .gp-st-em_andamento,.gp-st-ativo{background:rgba(59,130,246,.1);color:#2563EB}
+  .gp-st-concluido,.gp-st-concluído{background:rgba(16,185,129,.1);color:#059669}
+  .gp-st-planejado{background:rgba(139,92,246,.1);color:#7C3AED}
+  .gp-st-cancelado{background:rgba(107,114,128,.1);color:#6B7280}
+  @media(max-width:768px){.gp-stats{grid-template-columns:repeat(2,1fr)}.gp-tools{grid-template-columns:1fr}.gp-recents{grid-template-columns:1fr}}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="gp-hero">
+  <div class="container">
+    <h1 class="gp-hero-title"><i class="fas fa-project-diagram me-2"></i>Gestão de Projetos</h1>
+    <p class="gp-hero-sub">Hub central para gerenciar projetos, tarefas e equipes</p>
+  </div>
+</section>
+
+<div class="container" style="padding-bottom:3rem">
+  <div class="gp-stats">
+    <div class="gp-stat">
+      <div class="gp-stat-icon" style="background:rgba(59,130,246,.1);color:#3B82F6"><i class="fas fa-clipboard-list"></i></div>
+      <div><span class="gp-stat-val">{{ total_projetos }}</span><span class="gp-stat-lbl">Total Projetos</span></div>
+    </div>
+    <div class="gp-stat">
+      <div class="gp-stat-icon" style="background:rgba(245,158,11,.1);color:#F59E0B"><i class="fas fa-spinner"></i></div>
+      <div><span class="gp-stat-val">{{ projetos_ativos }}</span><span class="gp-stat-lbl">Em Andamento</span></div>
+    </div>
+    <div class="gp-stat">
+      <div class="gp-stat-icon" style="background:rgba(16,185,129,.1);color:#10B981"><i class="fas fa-check-circle"></i></div>
+      <div><span class="gp-stat-val">{{ projetos_concluidos }}</span><span class="gp-stat-lbl">Concluídos</span></div>
+    </div>
+    <div class="gp-stat">
+      <div class="gp-stat-icon" style="background:rgba(239,68,68,.1);color:#EF4444"><i class="fas fa-exclamation-triangle"></i></div>
+      <div><span class="gp-stat-val">{{ projetos_atrasados }}</span><span class="gp-stat-lbl">Com Atraso</span></div>
+    </div>
+    {% if user.is_superuser %}
+    <div class="gp-stat">
+      <div class="gp-stat-icon" style="background:rgba(139,92,246,.1);color:#8B5CF6"><i class="fas fa-users"></i></div>
+      <div><span class="gp-stat-val">{{ total_grupos }}</span><span class="gp-stat-lbl">Grupos</span></div>
+    </div>
+    {% endif %}
+  </div>
+
+  <h3 class="gp-section-title"><i class="fas fa-th-large"></i> Ferramentas</h3>
+  <div class="gp-tools">
+    <a href="{% url 'canva:kanban' %}" class="gp-tool">
+      <div class="gp-tool-header">
+        <div class="gp-tool-icon" style="background:linear-gradient(135deg,#3B82F6,#6366F1);color:#fff"><i class="fas fa-columns"></i></div>
+        <div><span class="gp-tool-name">Quadro Kanban</span><br><span class="gp-tool-desc">Fluxo visual de tarefas</span></div>
+      </div>
+      <div class="gp-tool-body"><p>Organize tarefas em colunas, arraste entre etapas e acompanhe o progresso da equipe em tempo real.</p></div>
+      <div class="gp-tool-footer"><i class="fas fa-arrow-right"></i> Acessar</div>
+    </a>
+    <a href="{% url 'projetos:todo_list' %}" class="gp-tool">
+      <div class="gp-tool-header">
+        <div class="gp-tool-icon" style="background:linear-gradient(135deg,#10B981,#34D399);color:#fff"><i class="fas fa-check-square"></i></div>
+        <div><span class="gp-tool-name">Lista de Tarefas</span><br><span class="gp-tool-desc">Gerenciamento individual</span></div>
+      </div>
+      <div class="gp-tool-body"><p>Crie, filtre e acompanhe tarefas pessoais ou de grupo com prioridades e prazos definidos.</p></div>
+      <div class="gp-tool-footer"><i class="fas fa-arrow-right"></i> Acessar</div>
+    </a>
+    <a href="#" class="gp-tool" style="opacity:.55;pointer-events:none">
+      <div class="gp-tool-header">
+        <div class="gp-tool-icon" style="background:linear-gradient(135deg,#F59E0B,#FBBF24);color:#fff"><i class="fas fa-map-signs"></i></div>
+        <div><span class="gp-tool-name">Roadmap</span><br><span class="gp-tool-desc">Timeline de projetos</span></div>
+      </div>
+      <div class="gp-tool-body"><p>Visualize marcos, datas e progresso dos projetos em uma linha do tempo interativa.</p></div>
+      <div class="gp-tool-footer"><i class="fas fa-clock"></i> Em breve</div>
+    </a>
+    {% if user.is_superuser %}
+    <a href="{% url 'projetos:grupos_lista' %}" class="gp-tool">
+      <div class="gp-tool-header">
+        <div class="gp-tool-icon" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA);color:#fff"><i class="fas fa-users-cog"></i></div>
+        <div><span class="gp-tool-name">Grupos</span><br><span class="gp-tool-desc">{{ total_grupos }} grupo{{ total_grupos|pluralize }}</span></div>
+      </div>
+      <div class="gp-tool-body">
+        <p>Gerencie equipes, atribua membros a projetos e distribua tarefas.</p>
+        {% if grupos_recentes %}
+        <div style="margin-top:.65rem">
+          {% for grupo in grupos_recentes %}
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:.35rem 0;{% if not forloop.last %}border-bottom:1px solid var(--border);{% endif %}">
+            <span style="font-size:.76rem;font-weight:600;color:var(--text)">{{ grupo.nome }}</span>
+            <span class="gp-badge-num">{{ grupo.membros.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="gp-tool-footer"><i class="fas fa-arrow-right"></i> Gerenciar</div>
+    </a>
+    {% endif %}
+  </div>
+
+  <h3 class="gp-section-title"><i class="fas fa-history"></i> Atividade Recente</h3>
+  <div class="gp-recents">
+    <div class="gp-rcard">
+      <div class="gp-rcard-head"><span><i class="fas fa-columns me-1"></i> Kanban</span><span class="gp-badge-num">{{ cards_recentes|length }}</span></div>
+      <div class="gp-rcard-body">
+        {% if cards_recentes %}
+          {% for card in cards_recentes %}
+          <div class="gp-rcard-item">
+            <div class="gp-rcard-item-info">
+              <div class="gp-rcard-item-title">{{ card.titulo }}</div>
+              <div class="gp-rcard-item-meta">
+                {% if card.responsavel %}<span><i class="fas fa-user me-1"></i>{{ card.responsavel.first_name }}</span>{% endif %}
+                <span><i class="fas fa-clock me-1"></i>{{ card.data_atualizacao|date:"d/m H:i" }}</span>
+              </div>
+            </div>
+            <span class="gp-badge gp-pri-{{ card.prioridade }}">{{ card.get_prioridade_display }}</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="gp-empty"><i class="fas fa-clipboard"></i><p>Nenhuma atividade recente</p></div>
+        {% endif %}
+      </div>
+      {% if cards_recentes %}<div class="gp-rcard-foot"><a href="{% url 'canva:kanban' %}">Ver tudo <i class="fas fa-chevron-right ms-1"></i></a></div>{% endif %}
+    </div>
+
+    <div class="gp-rcard">
+      <div class="gp-rcard-head"><span><i class="fas fa-users me-1"></i> Meus Grupos</span><span class="gp-badge-num">{{ meus_grupos|length }}</span></div>
+      <div class="gp-rcard-body">
+        {% if meus_grupos %}
+          {% for grupo in meus_grupos %}
+          <div class="gp-rcard-item" style="flex-direction:column;align-items:flex-start">
+            <div style="display:flex;width:100%;justify-content:space-between;align-items:center">
+              <span class="gp-rcard-item-title">{{ grupo.nome }}</span>
+              <div style="display:flex;gap:.35rem">
+                <span class="gp-badge-num"><i class="fas fa-user me-1"></i>{{ grupo.membros.count }}</span>
+                <span class="gp-badge-num"><i class="fas fa-tasks me-1"></i>{{ grupo.tarefas.count }}</span>
+              </div>
+            </div>
+            <div class="gp-avatars" style="margin-top:.35rem">
+              {% for membro in grupo.membros.all|slice:":5" %}
+              <span class="gp-avatar gp-avatar-{{ forloop.counter }}" title="{{ membro.get_full_name|default:membro.username }}">{{ membro.first_name|slice:":1" }}{{ membro.last_name|slice:":1" }}</span>
+              {% endfor %}
+              {% if grupo.membros.count > 5 %}<span class="gp-avatar gp-avatar-more">+{{ grupo.membros.count|add:"-5" }}</span>{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="gp-empty"><i class="fas fa-users"></i><p>Você não pertence a nenhum grupo</p></div>
+        {% endif %}
+      </div>
+      {% if meus_grupos %}<div class="gp-rcard-foot"><a href="{% url 'projetos:grupos_lista' %}">Ver todos <i class="fas fa-chevron-right ms-1"></i></a></div>{% endif %}
+    </div>
+
+    <div class="gp-rcard">
+      <div class="gp-rcard-head"><span><i class="fas fa-folder-open me-1"></i> Projetos Recentes</span><span class="gp-badge-num">{{ projetos_recentes|length }}</span></div>
+      <div class="gp-rcard-body">
+        {% if projetos_recentes %}
+          {% for projeto in projetos_recentes %}
+          <div class="gp-rcard-item">
+            <div class="gp-rcard-item-info">
+              <div class="gp-rcard-item-title">{{ projeto.titulo }}</div>
+              <div class="gp-rcard-item-meta">
+                {% if projeto.responsavel %}<span><i class="fas fa-user me-1"></i>{{ projeto.responsavel.first_name }}</span>{% endif %}
+                <span><i class="fas fa-calendar me-1"></i>{{ projeto.data_atualizacao|date:"d/m/Y" }}</span>
+              </div>
+            </div>
+            <span class="gp-badge gp-st-{{ projeto.status|lower }}">{{ projeto.get_status_display }}</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="gp-empty"><i class="fas fa-folder-open"></i><p>Nenhum projeto encontrado</p></div>
+        {% endif %}
+      </div>
+      {% if projetos_recentes %}<div class="gp-rcard-foot"><a href="{% url 'projetos:lista' %}">Ver todos <i class="fas fa-chevron-right ms-1"></i></a></div>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

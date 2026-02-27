@@ -1,265 +1,212 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}Controle de Ar Condicionado - {{ ar.nome }} - FabLab{% endblock %}
-
-{% block head %}
-<link rel="stylesheet" href="{% static 'controle_ar.css' %}">
-<style>
-    #toast-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1050;
-    }
-    .offline-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        color: white;
-        display: {% if not ar.online %}flex{% else %}none{% endif %};
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 100;
-        border-radius: inherit;
-    }
-    .ar-controls {
-        display: {% if ar.estado and ar.online %}block{% else %}none{% endif %};
-    }
-</style>
-{% endblock %}
+{% block title %}{{ ar.nome }} — Controle{% endblock %}
 
 {% block content %}
-<!-- Container de toast para notificações -->
-<div id="toast-container"></div>
+<!-- Toast container -->
+<div id="toast-container" style="position:fixed;top:20px;right:20px;z-index:1050"></div>
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <div class="card ar-status-card relative">
-                <div class="offline-overlay">
-                    <i class="fas fa-wifi-slash fa-3x mb-3"></i>
-                    <h3>Dispositivo Offline</h3>
-                    <p class="mb-0">O dispositivo está desconectado.</p>
-                    <div class="mt-3">
-                        <button onclick="checkStatus({{ ar.id }})" class="btn btn-outline-light">
-                            <i class="fas fa-sync-alt me-1"></i> Verificar Conexão
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="ar-status-header">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h3 class="mb-0">{{ ar.nome }}</h3>
-                        <div>
-                            <span class="badge {% if ar.online %}badge-online{% else %}badge-offline{% endif %}">
-                                {{ ar.online|yesno:"Online,Offline" }}
-                            </span>
-                            {% if ar.online %}
-                                <i class="fas fa-signal ms-2"></i>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="row align-items-center">
-                        <div class="col-6 text-center">
-                            <div class="temperature-display">
-                                {{ ar.temperatura }}°C
-                            </div>
-                            <div class="text-white-50">Temperatura Configurada</div>
-                        </div>
-                        <div class="col-6 text-center">
-                            <div class="d-flex align-items-center justify-content-center">
-                                <div class="ambient-temp px-3 py-2">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-thermometer-half me-2"></i>
-                                        <span class="h4 mb-0">{{ ar.temperatura_ambiente|default:"--" }}°C</span>
-                                    </div>
-                                    <div class="small mt-1">Temperatura Ambiente</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card-body">
-                    {% csrf_token %}
-                    <div class="power-controls text-center mb-4">
-                        <button id="power-btn" onclick="togglePower({{ ar.id }}, '{% if ar.estado %}desligar{% else %}ligar{% endif %}')"
-                                class="btn btn-lg {% if ar.estado %}btn-ar-danger{% else %}btn-ar-success{% endif %}">
-                            <i class="fas fa-power-off me-2"></i> {% if ar.estado %}Desligar{% else %}Ligar{% endif %}
-                        </button>
-                    </div>
-                    
-                    <div class="ar-controls">
-                        <!-- Controle de Temperatura -->
-                        <div class="ar-control-group">
-                            <h4>Temperatura</h4>
-                            <div class="d-flex align-items-center justify-content-between">
-                                <button onclick="adjustTemperature({{ ar.id }}, {{ ar.temperatura|add:'-1' }})" class="temp-btn temp-btn-lg">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                
-                                <div class="text-center">
-                                    <span class="display-4 fw-bold">{{ ar.temperatura }}°C</span>
-                                    <button type="button" class="btn btn-sm btn-outline-primary d-block mx-auto mt-2" data-bs-toggle="modal" data-bs-target="#defineTempModal">
-                                        <i class="fas fa-keyboard me-1"></i> Definir
-                                    </button>
-                                </div>
-                                
-                                <button onclick="adjustTemperature({{ ar.id }}, {{ ar.temperatura|add:'1' }})" class="temp-btn temp-btn-lg">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Controle de Modo -->
-                        <div class="ar-control-group">
-                            <h4>Modo</h4>
-                            <div class="row">
-                                <div class="col-4">
-                                    <button onclick="adjustMode({{ ar.id }}, 'cold')" data-mode="cold" 
-                                            class="ar-mode-btn mode-cold {% if ar.modo == 'cold' %}active-mode-btn{% endif %}">
-                                        <i class="fas fa-snowflake"></i><br>Refrigeração
-                                    </button>
-                                </div>
-                                <div class="col-4">
-                                    <button onclick="adjustMode({{ ar.id }}, 'heat')" data-mode="heat"
-                                            class="ar-mode-btn mode-heat {% if ar.modo == 'heat' %}active-mode-btn{% endif %}">
-                                        <i class="fas fa-fire"></i><br>Aquecimento
-                                    </button>
-                                </div>
-                                <div class="col-4">
-                                    <button onclick="adjustMode({{ ar.id }}, 'fan')" data-mode="fan"
-                                            class="ar-mode-btn mode-fan {% if ar.modo == 'fan' %}active-mode-btn{% endif %}">
-                                        <i class="fas fa-fan"></i><br>Ventilação
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Controle de Velocidade -->
-                        <div class="ar-control-group">
-                            <h4>Velocidade do Ventilador</h4>
-                            <div class="row">
-                                <div class="col-3">
-                                    <button onclick="adjustSpeed({{ ar.id }}, 1)" data-speed="1"
-                                            class="ar-mode-btn ar-speed-btn {% if ar.velocidade == 1 %}active-mode-btn{% endif %}">
-                                        <i class="fas fa-wind opacity-25"></i><br>Baixa
-                                    </button>
-                                </div>
-                                <div class="col-3">
-                                    <button onclick="adjustSpeed({{ ar.id }}, 2)" data-speed="2"
-                                            class="ar-mode-btn ar-speed-btn {% if ar.velocidade == 2 %}active-mode-btn{% endif %}">
-                                        <i class="fas fa-wind opacity-50"></i><br>Média
-                                    </button>
-                                </div>
-                                <div class="col-3">
-                                    <button onclick="adjustSpeed({{ ar.id }}, 3)" data-speed="3"
-                                            class="ar-mode-btn ar-speed-btn {% if ar.velocidade == 3 %}active-mode-btn{% endif %}">
-                                        <i class="fas fa-wind"></i><br>Alta
-                                    </button>
-                                </div>
-                                <div class="col-3">
-                                    <button onclick="adjustSpeed({{ ar.id }}, 4)" data-speed="4"
-                                            class="ar-mode-btn ar-speed-btn {% if ar.velocidade == 4 %}active-mode-btn{% endif %}">
-                                        <i class="fas fa-magic"></i><br>Auto
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Controle de Swing -->
-                        <div class="ar-control-group">
-                            <h4>Direção do Ar</h4>
-                            <div class="text-center">
-                                <button id="swing-btn" onclick="toggleSwing({{ ar.id }})"
-                                        class="ar-mode-btn wide-btn {% if ar.swing %}active-mode-btn{% endif %}">
-                                    <i class="fas fa-exchange-alt fa-rotate-90"></i><br>
-                                    Swing {% if ar.swing %}Ativado{% else %}Desativado{% endif %}
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Informações Adicionais -->
-                        <div class="ar-control-group">
-                            <h4>Informações de Uso</h4>
-                            <div class="row align-items-center">
-                                <div class="col-md-6">
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-3">
-                                            <i class="fas fa-bolt text-warning fa-2x"></i>
-                                        </div>
-                                        <div>
-                                            <div class="small text-muted">Consumo Atual</div>
-                                            <div class="fw-bold">
-                                                {% if ar.consumo_atual %}
-                                                    {{ ar.consumo_atual|floatformat:2 }} kW/h
-                                                {% else %}
-                                                    0.00 kW/h
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
-                                        <div class="me-3">
-                                            <i class="fas fa-history text-success fa-2x"></i>
-                                        </div>
-                                        <div>
-                                            <div class="small text-muted">Última Atualização</div>
-                                            <div class="fw-bold last-update">
-                                                {% if ar.ultimo_ping %}
-                                                    {{ ar.ultimo_ping|date:"d/m/Y H:i:s" }}
-                                                {% else %}
-                                                    Nunca
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="d-flex justify-content-between mt-3">
-                <a href="{% url 'Controle_ar:ar_dashboard' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-1"></i> Voltar
-                </a>
-                
-                <button onclick="checkStatus({{ ar.id }})" class="btn btn-ar-primary">
-                    <i class="fas fa-sync-alt me-1"></i> Atualizar Status
-                </button>
-            </div>
+<!-- Breadcrumb -->
+<section style="background:var(--surface-alt);padding:1rem 0;border-bottom:1px solid var(--border)">
+  <div class="container">
+    <nav class="at-breadcrumb">
+      <a href="{% url 'Controle_ar:automacao_home' %}">Automação</a>
+      <span class="mx-2">/</span>
+      <a href="{% url 'Controle_ar:ar_dashboard' %}">Ar Condicionado</a>
+      <span class="mx-2">/</span>
+      <span>{{ ar.nome }}</span>
+    </nav>
+  </div>
+</section>
+
+<section class="fl-section" style="padding:2rem 0 4rem">
+  <div class="container" style="max-width:780px">
+
+    <!-- Status Card -->
+    <div class="ar-panel">
+      <!-- Offline Overlay -->
+      <div class="ar-offline-overlay" style="display:{% if not ar.online %}flex{% else %}none{% endif %}">
+        <i class="fas fa-wifi-slash" style="font-size:2.5rem;margin-bottom:.75rem;opacity:.6"></i>
+        <h3>Dispositivo Offline</h3>
+        <p>O dispositivo está desconectado da rede.</p>
+        <button onclick="checkStatus({{ ar.id }})" class="at-btn at-btn-outline-white">
+          <i class="fas fa-sync-alt me-1"></i> Verificar Conexão
+        </button>
+      </div>
+
+      <!-- Header com temperatura -->
+      <div class="ar-panel-head {% if ar.estado %}ar-head-active{% else %}ar-head-idle{% endif %}">
+        <div class="ar-panel-head-top">
+          <div>
+            <h2 class="ar-panel-title">{{ ar.nome }}</h2>
+            <span class="ar-panel-tag">{{ ar.tag }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <span class="at-status-pill {% if ar.online %}at-pill-on{% else %}at-pill-off{% endif %}">
+              <span class="at-dot-sm"></span>
+              {{ ar.online|yesno:"Online,Offline" }}
+            </span>
+          </div>
         </div>
-    </div>
-</div>
 
-<!-- Modal para definir temperatura -->
-<div class="modal fade" id="defineTempModal" tabindex="-1" aria-labelledby="defineTempModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="defineTempModalLabel">Definir Temperatura</h5>
+        <div class="ar-temp-row">
+          <div class="ar-temp-main">
+            <span class="ar-temp-value">{{ ar.temperatura }}°C</span>
+            <span class="ar-temp-label">Temperatura configurada</span>
+          </div>
+          <div class="ar-temp-divider"></div>
+          <div class="ar-temp-ambient">
+            <i class="fas fa-thermometer-half me-1"></i>
+            <span class="ar-ambient-val">{{ ar.temperatura_ambiente|default:"--" }}°C</span>
+            <span class="ar-temp-label">Ambiente</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="ar-panel-body">
+        {% csrf_token %}
+
+        <!-- Power Toggle -->
+        <div class="ar-power-section">
+          <button id="power-btn"
+                  onclick="togglePower({{ ar.id }}, '{% if ar.estado %}desligar{% else %}ligar{% endif %}')"
+                  class="at-btn at-btn-lg {% if ar.estado %}at-btn-danger{% else %}at-btn-success{% endif %}">
+            <i class="fas fa-power-off me-2"></i> {% if ar.estado %}Desligar{% else %}Ligar{% endif %}
+          </button>
+        </div>
+
+        <!-- Controls (só visíveis quando ligado) -->
+        <div class="ar-controls" style="display:{% if ar.estado and ar.online %}block{% else %}none{% endif %}">
+
+          <!-- Temperatura -->
+          <div class="ar-control-section">
+            <div class="ar-ctrl-header">
+              <h4><i class="fas fa-thermometer-half me-2"></i>Temperatura</h4>
+            </div>
+            <div class="ar-temp-control">
+              <button onclick="adjustTemperature({{ ar.id }}, {{ ar.temperatura|add:'-1' }})" class="ar-temp-btn ar-temp-minus">
+                <i class="fas fa-minus"></i>
+              </button>
+              <div class="ar-temp-center">
+                <span class="ar-temp-big">{{ ar.temperatura }}°C</span>
+                <button type="button" class="ar-define-btn" data-bs-toggle="modal" data-bs-target="#defineTempModal">
+                  <i class="fas fa-keyboard me-1"></i> Digitar
+                </button>
+              </div>
+              <button onclick="adjustTemperature({{ ar.id }}, {{ ar.temperatura|add:'1' }})" class="ar-temp-btn ar-temp-plus">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Modo -->
+          <div class="ar-control-section">
+            <div class="ar-ctrl-header">
+              <h4><i class="fas fa-cog me-2"></i>Modo</h4>
+            </div>
+            <div class="ar-mode-grid">
+              <button onclick="adjustMode({{ ar.id }}, 'cold')" data-mode="cold"
+                      class="ar-mode-opt {% if ar.modo == 'cold' %}ar-mode-active{% endif %}">
+                <i class="fas fa-snowflake"></i><span>Refrigeração</span>
+              </button>
+              <button onclick="adjustMode({{ ar.id }}, 'heat')" data-mode="heat"
+                      class="ar-mode-opt {% if ar.modo == 'heat' %}ar-mode-active{% endif %}">
+                <i class="fas fa-fire"></i><span>Aquecimento</span>
+              </button>
+              <button onclick="adjustMode({{ ar.id }}, 'fan')" data-mode="fan"
+                      class="ar-mode-opt {% if ar.modo == 'fan' %}ar-mode-active{% endif %}">
+                <i class="fas fa-fan"></i><span>Ventilação</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Velocidade -->
+          <div class="ar-control-section">
+            <div class="ar-ctrl-header">
+              <h4><i class="fas fa-wind me-2"></i>Velocidade</h4>
+            </div>
+            <div class="ar-speed-grid">
+              <button onclick="adjustSpeed({{ ar.id }}, 1)" data-speed="1"
+                      class="ar-speed-opt {% if ar.velocidade == 1 %}ar-speed-active{% endif %}">
+                <i class="fas fa-wind" style="opacity:.3"></i><span>Baixa</span>
+              </button>
+              <button onclick="adjustSpeed({{ ar.id }}, 2)" data-speed="2"
+                      class="ar-speed-opt {% if ar.velocidade == 2 %}ar-speed-active{% endif %}">
+                <i class="fas fa-wind" style="opacity:.6"></i><span>Média</span>
+              </button>
+              <button onclick="adjustSpeed({{ ar.id }}, 3)" data-speed="3"
+                      class="ar-speed-opt {% if ar.velocidade == 3 %}ar-speed-active{% endif %}">
+                <i class="fas fa-wind"></i><span>Alta</span>
+              </button>
+              <button onclick="adjustSpeed({{ ar.id }}, 4)" data-speed="4"
+                      class="ar-speed-opt {% if ar.velocidade == 4 %}ar-speed-active{% endif %}">
+                <i class="fas fa-magic"></i><span>Auto</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Swing -->
+          <div class="ar-control-section">
+            <div class="ar-ctrl-header">
+              <h4><i class="fas fa-arrows-alt-v me-2"></i>Direção do Ar</h4>
+            </div>
+            <div style="text-align:center">
+              <button id="swing-btn" onclick="toggleSwing({{ ar.id }})"
+                      class="ar-swing-btn {% if ar.swing %}ar-swing-on{% endif %}">
+                <i class="fas fa-exchange-alt fa-rotate-90 me-2"></i>
+                Swing {% if ar.swing %}Ativado{% else %}Desativado{% endif %}
+              </button>
+            </div>
+          </div>
+
+          <!-- Info row -->
+          <div class="ar-info-footer">
+            <div class="ar-info-item">
+              <i class="fas fa-bolt" style="color:#F59E0B"></i>
+              <div><span class="ar-info-val">{% if ar.consumo_atual %}{{ ar.consumo_atual|floatformat:2 }}{% else %}0.00{% endif %} kW/h</span><span class="ar-info-lbl">Consumo</span></div>
+            </div>
+            <div class="ar-info-item">
+              <i class="fas fa-history" style="color:#10B981"></i>
+              <div><span class="ar-info-val last-update">{% if ar.ultimo_ping %}{{ ar.ultimo_ping|date:"d/m/Y H:i" }}{% else %}Nunca{% endif %}</span><span class="ar-info-lbl">Atualização</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="ar-bottom-nav">
+      <a href="{% url 'Controle_ar:ar_dashboard' %}" class="at-btn at-btn-outline">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+      </a>
+      <button onclick="checkStatus({{ ar.id }})" class="at-btn at-btn-primary-solid">
+        <i class="fas fa-sync-alt me-1"></i> Atualizar
+      </button>
+    </div>
+
+  </div>
+</section>
+
+<!-- Modal Temperatura -->
+<div class="modal fade" id="defineTempModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content" style="border:none;border-radius:var(--radius);overflow:hidden">
+      <div class="modal-header" style="background:var(--surface-alt);border-bottom:1px solid var(--border);padding:.85rem 1.25rem">
+        <h5 style="font-size:.92rem;font-weight:700;color:var(--primary);margin:0"><i class="fas fa-thermometer-half me-2"></i>Definir Temperatura</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
       </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <label for="temp" class="form-label">Temperatura desejada:</label>
-          <input type="number" class="form-control" id="temp" value="{{ ar.temperatura }}" min="17" max="28" required>
-          <div class="form-text">Escolha uma temperatura entre 17°C e 28°C</div>
-        </div>
+      <div class="modal-body" style="padding:1.5rem">
+        <label for="temp" style="font-size:.82rem;font-weight:600;color:var(--text);display:block;margin-bottom:.4rem">Temperatura desejada:</label>
+        <input type="number" id="temp" value="{{ ar.temperatura }}" min="17" max="28" required
+               style="width:100%;padding:.6rem .85rem;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:1.1rem;font-weight:700;text-align:center;color:var(--primary);font-family:inherit"
+               onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <span style="display:block;font-size:.72rem;color:var(--text-muted);margin-top:.3rem;text-align:center">Entre 17°C e 28°C</span>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" id="confirmTemp" class="btn btn-ar-primary">Confirmar</button>
+      <div class="modal-footer" style="border-top:1px solid var(--border);padding:.75rem 1.25rem">
+        <button type="button" class="at-btn at-btn-outline at-btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="confirmTemp" class="at-btn at-btn-primary-solid at-btn-sm">Confirmar</button>
       </div>
     </div>
   </div>
@@ -269,19 +216,116 @@
 {% block scripts %}
 <script src="{% static 'js/ar_controller.js' %}"></script>
 <script>
-  // Inicia verificação periódica de status
-  {% if ar.online %}
-  document.addEventListener('DOMContentLoaded', function() {
-    initStatusCheck({{ ar.id }}, 10000); // Verificar a cada 10 segundos
-  });
-  {% endif %}
-
-  // Configuração do modal de temperatura
-  document.getElementById("confirmTemp").addEventListener("click", function() {
-    var temperatura = document.getElementById("temp").value;
-    var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("defineTempModal"));
-    modal.hide();
-    adjustTemperature({{ ar.id }}, temperatura);
-  });
+{% if ar.online %}
+document.addEventListener('DOMContentLoaded', function() {
+  initStatusCheck({{ ar.id }}, 10000);
+});
+{% endif %}
+document.getElementById("confirmTemp").addEventListener("click", function() {
+  var temp = document.getElementById("temp").value;
+  var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("defineTempModal"));
+  modal.hide();
+  adjustTemperature({{ ar.id }}, temp);
+});
 </script>
+{% endblock %}
+
+{% block head %}
+<style>
+  .at-breadcrumb{font-size:.85rem}.at-breadcrumb a{color:var(--accent);text-decoration:none;font-weight:600}.at-breadcrumb span:last-child{color:var(--text-muted)}
+
+  /* Panel */
+  .ar-panel{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;position:relative}
+  .ar-offline-overlay{position:absolute;inset:0;background:rgba(11,37,69,.92);color:#fff;flex-direction:column;align-items:center;justify-content:center;z-index:100;border-radius:inherit;text-align:center;padding:2rem}
+  .ar-offline-overlay h3{font-size:1.1rem;font-weight:700;margin:0 0 .35rem}.ar-offline-overlay p{font-size:.85rem;opacity:.7;margin:0 0 1rem}
+
+  /* Head */
+  .ar-panel-head{padding:2rem 2rem 1.5rem;position:relative;overflow:hidden}
+  .ar-head-active{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
+  .ar-head-active::after{content:'';position:absolute;top:-40%;right:-25%;width:50%;height:180%;background:rgba(255,255,255,.04);border-radius:50%;transform:rotate(15deg)}
+  .ar-head-idle{background:var(--surface-alt);color:var(--text)}
+  .ar-panel-head-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;position:relative;z-index:1}
+  .ar-panel-title{font-size:1.2rem;font-weight:700;margin:0}
+  .ar-panel-tag{font-size:.72rem;opacity:.6;font-family:monospace}
+
+  .at-status-pill{display:inline-flex;align-items:center;gap:.3rem;font-size:.68rem;font-weight:700;padding:.2rem .6rem;border-radius:50px;text-transform:uppercase;letter-spacing:.3px}
+  .at-pill-on{background:rgba(255,255,255,.15);color:#fff}.at-pill-on .at-dot-sm{background:#10B981;box-shadow:0 0 4px rgba(16,185,129,.5)}
+  .at-pill-off{background:rgba(0,0,0,.08);color:var(--text-muted)}.at-pill-off .at-dot-sm{background:#9CA3AF}
+  .at-dot-sm{width:6px;height:6px;border-radius:50%;display:inline-block}
+
+  .ar-temp-row{display:flex;align-items:center;justify-content:center;gap:2rem;position:relative;z-index:1}
+  .ar-temp-main,.ar-temp-ambient{text-align:center}
+  .ar-temp-value{display:block;font-size:4rem;font-weight:800;line-height:1.1}
+  .ar-ambient-val{display:block;font-size:1.8rem;font-weight:700;line-height:1.2}
+  .ar-temp-label{display:block;font-size:.72rem;opacity:.6;margin-top:.2rem;font-weight:500}
+  .ar-temp-divider{width:1px;height:60px;background:rgba(255,255,255,.15)}
+  .ar-head-idle .ar-temp-divider{background:var(--border)}
+
+  /* Body */
+  .ar-panel-body{padding:1.5rem 2rem 2rem}
+
+  /* Power */
+  .ar-power-section{text-align:center;margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+
+  /* Buttons */
+  .at-btn{display:inline-flex;align-items:center;justify-content:center;padding:.5rem 1.1rem;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;text-decoration:none;transition:all var(--transition);cursor:pointer;border:none}
+  .at-btn-lg{padding:.65rem 2rem;font-size:.95rem}
+  .at-btn-sm{padding:.4rem .85rem;font-size:.8rem}
+  .at-btn-outline{background:transparent;color:var(--text-muted);border:2px solid var(--border)}.at-btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+  .at-btn-outline-white{background:transparent;color:rgba(255,255,255,.9);border:2px solid rgba(255,255,255,.3)}.at-btn-outline-white:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.5)}
+  .at-btn-primary-solid{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}.at-btn-primary-solid:hover{color:#fff;transform:translateY(-1px);box-shadow:0 4px 12px rgba(11,37,69,.15)}
+  .at-btn-danger{background:rgba(239,68,68,.1);color:#dc2626}.at-btn-danger:hover{background:#ef4444;color:#fff}
+  .at-btn-success{background:rgba(16,185,129,.1);color:#059669}.at-btn-success:hover{background:#10b981;color:#fff}
+
+  /* Control sections */
+  .ar-control-section{margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+  .ar-control-section:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:.5rem}
+  .ar-ctrl-header h4{font-size:.88rem;font-weight:700;color:var(--primary);margin:0 0 1rem}
+
+  /* Temperature control */
+  .ar-temp-control{display:flex;align-items:center;justify-content:center;gap:1.5rem}
+  .ar-temp-btn{width:52px;height:52px;border-radius:50%;border:2px solid var(--border);background:var(--white);color:var(--text);font-size:1.1rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--transition)}
+  .ar-temp-minus:hover{border-color:#3B82F6;color:#3B82F6;background:rgba(59,130,246,.06)}
+  .ar-temp-plus:hover{border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,.06)}
+  .ar-temp-center{text-align:center}
+  .ar-temp-big{display:block;font-size:2.5rem;font-weight:800;color:var(--primary);line-height:1.2}
+  .ar-define-btn{background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);padding:.2rem .65rem;font-size:.72rem;font-weight:600;color:var(--text-muted);cursor:pointer;margin-top:.3rem;transition:all var(--transition)}
+  .ar-define-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* Mode grid */
+  .ar-mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem}
+  .ar-mode-opt{display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--white);color:var(--text-muted);font-size:.78rem;font-weight:600;cursor:pointer;transition:all var(--transition)}
+  .ar-mode-opt i{font-size:1.3rem}
+  .ar-mode-opt:hover{border-color:var(--accent);color:var(--accent)}
+  .ar-mode-active{border-color:var(--accent)!important;background:rgba(19,103,138,.06);color:var(--accent)!important}
+
+  /* Speed grid */
+  .ar-speed-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.65rem}
+  .ar-speed-opt{display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.75rem .3rem;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--white);color:var(--text-muted);font-size:.72rem;font-weight:600;cursor:pointer;transition:all var(--transition)}
+  .ar-speed-opt i{font-size:1.1rem}
+  .ar-speed-opt:hover{border-color:var(--accent);color:var(--accent)}
+  .ar-speed-active{border-color:var(--accent)!important;background:rgba(19,103,138,.06);color:var(--accent)!important}
+
+  /* Swing */
+  .ar-swing-btn{padding:.65rem 2rem;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--white);color:var(--text-muted);font-size:.85rem;font-weight:600;cursor:pointer;transition:all var(--transition)}
+  .ar-swing-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .ar-swing-on{border-color:var(--accent);background:rgba(19,103,138,.06);color:var(--accent)}
+
+  /* Info footer */
+  .ar-info-footer{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+  .ar-info-item{display:flex;align-items:center;gap:.75rem}
+  .ar-info-item i{font-size:1.3rem}
+  .ar-info-val{display:block;font-size:.85rem;font-weight:600;color:var(--text)}
+  .ar-info-lbl{display:block;font-size:.68rem;color:var(--text-muted)}
+
+  /* Bottom nav */
+  .ar-bottom-nav{display:flex;justify-content:space-between;margin-top:1.25rem}
+
+  @media(max-width:600px){
+    .ar-panel-body{padding:1.25rem}
+    .ar-panel-head{padding:1.5rem 1.25rem 1.25rem}
+    .ar-temp-row{flex-direction:column;gap:1rem}.ar-temp-divider{display:none}
+    .ar-temp-value{font-size:3rem}.ar-speed-grid{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
 {% endblock %}

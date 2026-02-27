@@ -1,0 +1,196 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}{{ item.nome }} — Inventário{% endblock %}
+
+{% block content %}
+<section style="background:var(--surface-alt);padding:1rem 0;border-bottom:1px solid var(--border)">
+  <div class="container">
+    <nav class="iv-breadcrumb"><a href="{% url 'inventario:dashboard' %}">Inventário</a> <span class="mx-2">/</span> <a href="{% url 'inventario:item_list' %}">Itens</a> <span class="mx-2">/</span> <span>{{ item.nome|truncatechars:35 }}</span></nav>
+  </div>
+</section>
+
+<section class="iv-header">
+  <div class="container">
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <code class="iv-code-lg">{{ item.codigo }}</code>
+          {% if item.estoque_baixo %}<span class="iv-badge iv-badge-red"><i class="fas fa-exclamation-triangle me-1"></i> Estoque Crítico</span>
+          {% else %}<span class="iv-badge iv-badge-green"><i class="fas fa-check-circle me-1"></i> Estoque OK</span>{% endif %}
+        </div>
+        <h1 class="iv-page-title">{{ item.nome }}</h1>
+        {% if item.categoria %}<span style="font-size:.85rem;color:var(--text-muted)"><i class="fas fa-tag me-1"></i> {{ item.categoria.nome }}</span>{% endif %}
+      </div>
+      <div class="iv-header-actions">
+        <a href="{% url 'inventario:item_update' item.pk %}" class="iv-btn iv-btn-primary"><i class="fas fa-edit me-1"></i> Editar</a>
+        <a href="{% url 'inventario:item_delete' item.pk %}" class="iv-btn iv-btn-danger-outline"><i class="fas fa-trash-alt me-1"></i> Excluir</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="fl-section" style="padding-top:2rem">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <!-- Imagem -->
+        {% if item.imagem %}
+        <div class="iv-detail-img mb-4">
+          <img src="{{ item.imagem.url }}" alt="{{ item.nome }}">
+        </div>
+        {% endif %}
+
+        <!-- Info grid -->
+        <div class="iv-card mb-4">
+          <div class="iv-card-head"><h3><i class="fas fa-info-circle me-2"></i> Informações</h3></div>
+          <div class="iv-detail-grid">
+            <div class="iv-detail-item">
+              <span class="iv-detail-label">Quantidade</span>
+              <span class="iv-detail-value {% if item.estoque_baixo %}iv-danger-text{% endif %}">{{ item.quantidade }} {{ item.get_unidade_display }}</span>
+            </div>
+            <div class="iv-detail-item">
+              <span class="iv-detail-label">Quantidade Mínima</span>
+              <span class="iv-detail-value">{{ item.quantidade_minima }} {{ item.get_unidade_display }}</span>
+            </div>
+            <div class="iv-detail-item">
+              <span class="iv-detail-label">Valor Unitário</span>
+              <span class="iv-detail-value">{% if item.valor_unitario %}R$ {{ item.valor_unitario|floatformat:2 }}{% else %}—{% endif %}</span>
+            </div>
+            <div class="iv-detail-item">
+              <span class="iv-detail-label">Valor Total</span>
+              <span class="iv-detail-value">{% if item.valor_total %}R$ {{ item.valor_total|floatformat:2 }}{% else %}—{% endif %}</span>
+            </div>
+            <div class="iv-detail-item">
+              <span class="iv-detail-label">Localização</span>
+              <span class="iv-detail-value">{{ item.localizacao|default:"Não definida" }}</span>
+            </div>
+            <div class="iv-detail-item">
+              <span class="iv-detail-label">Cadastro</span>
+              <span class="iv-detail-value">{{ item.data_cadastro|date:"d/m/Y H:i" }}</span>
+            </div>
+          </div>
+        </div>
+
+        {% if item.descricao %}
+        <div class="iv-card mb-4">
+          <div class="iv-card-head"><h3><i class="fas fa-align-left me-2"></i> Descrição</h3></div>
+          <div style="padding:1.25rem;font-size:.92rem;line-height:1.7;color:var(--text)">{{ item.descricao|linebreaks }}</div>
+        </div>
+        {% endif %}
+
+        {% if item.observacoes %}
+        <div class="iv-card mb-4">
+          <div class="iv-card-head"><h3><i class="fas fa-sticky-note me-2"></i> Observações</h3></div>
+          <div style="padding:1.25rem;font-size:.88rem;line-height:1.6;color:var(--text-muted)">{{ item.observacoes|linebreaks }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Histórico de empréstimos -->
+        <div class="iv-card">
+          <div class="iv-card-head"><h3><i class="fas fa-history me-2"></i> Empréstimos Recentes</h3></div>
+          {% if emprestimos %}
+          <div class="iv-table-wrap">
+            <table class="iv-table">
+              <thead><tr><th>Data</th><th>Usuário</th><th>Qtd.</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                {% for emp in emprestimos %}
+                <tr>
+                  <td>{{ emp.data_emprestimo|date:"d/m/Y" }}</td>
+                  <td>{{ emp.usuario.get_full_name }}</td>
+                  <td>{{ emp.quantidade }} {{ item.get_unidade_display }}</td>
+                  <td>
+                    {% if emp.status == 'devolvido' %}<span class="iv-badge iv-badge-green">Devolvido</span>
+                    {% elif emp.status == 'atrasado' %}<span class="iv-badge iv-badge-red">Atrasado</span>
+                    {% else %}<span class="iv-badge iv-badge-blue">Emprestado</span>{% endif %}
+                  </td>
+                  <td><a href="{% url 'inventario:emprestimo_detail' emp.pk %}" class="iv-action-btn"><i class="fas fa-eye"></i></a></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:.88rem"><i class="fas fa-clipboard-list" style="font-size:1.5rem;opacity:.3;display:block;margin-bottom:.5rem"></i> Nenhum empréstimo registrado.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        <div class="sticky-lg-top" style="top:100px">
+          <!-- Status card -->
+          <div class="iv-status-card mb-4 {% if item.estoque_baixo %}iv-status-danger{% else %}iv-status-ok{% endif %}">
+            <div class="iv-status-icon"><i class="fas {% if item.estoque_baixo %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %}"></i></div>
+            <div>
+              <strong>{% if item.estoque_baixo %}Estoque Abaixo do Mínimo{% else %}Estoque Adequado{% endif %}</strong>
+              <span>{{ item.quantidade }} / {{ item.quantidade_minima }} {{ item.get_unidade_display }}</span>
+            </div>
+          </div>
+
+          <!-- Ações rápidas -->
+          <div class="iv-card mb-4">
+            <div class="iv-card-head"><h3><i class="fas fa-bolt me-2"></i> Ações Rápidas</h3></div>
+            <div style="padding:1rem;display:flex;flex-direction:column;gap:.5rem">
+              <a href="{% url 'inventario:item_update' item.pk %}" class="iv-sidebar-action"><i class="fas fa-edit"></i> Editar Item</a>
+              {% if item.disponivel_para_emprestimo %}
+              <a href="{% url 'inventario:emprestimo_create' %}?item={{ item.pk }}" class="iv-sidebar-action iv-sidebar-accent"><i class="fas fa-hand-holding"></i> Emprestar</a>
+              {% endif %}
+              <a href="{% url 'inventario:item_delete' item.pk %}" class="iv-sidebar-action iv-sidebar-danger"><i class="fas fa-trash-alt"></i> Excluir</a>
+            </div>
+          </div>
+
+          <!-- Última atualização -->
+          <div class="iv-card">
+            <div style="padding:1rem;font-size:.82rem;color:var(--text-muted);text-align:center">
+              <i class="fas fa-clock me-1"></i> Última atualização: {{ item.data_atualizacao|date:"d/m/Y H:i" }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block head %}
+<style>
+  .iv-header{background:var(--white);padding:2rem 0;border-bottom:1px solid var(--border)}
+  .iv-page-title{font-size:1.6rem;font-weight:800;color:var(--primary);margin:.25rem 0 .25rem}
+  .iv-breadcrumb{font-size:.85rem}.iv-breadcrumb a{color:var(--accent);text-decoration:none;font-weight:600}.iv-breadcrumb span:last-child{color:var(--text-muted)}
+  .iv-header-actions{display:flex;gap:.5rem}
+  .iv-btn{display:inline-flex;align-items:center;padding:.55rem 1.1rem;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;text-decoration:none;transition:all var(--transition)}
+  .iv-btn-primary{background:var(--primary);color:#fff}.iv-btn-primary:hover{background:var(--primary-light);color:#fff;transform:translateY(-1px)}
+  .iv-btn-danger-outline{background:transparent;color:#DC2626;border:2px solid #FECACA}.iv-btn-danger-outline:hover{background:#FEF2F2;border-color:#DC2626}
+  .iv-code-lg{background:var(--surface-alt);padding:.25rem .65rem;border-radius:var(--radius-sm);font-size:.88rem;color:var(--primary);font-weight:600}
+  .iv-badge{display:inline-block;padding:.25rem .65rem;border-radius:999px;font-size:.72rem;font-weight:700}
+  .iv-badge-green{background:rgba(16,185,129,.1);color:#059669}.iv-badge-red{background:rgba(220,38,38,.1);color:#DC2626}.iv-badge-blue{background:rgba(59,130,246,.1);color:#2563EB}
+  .iv-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .iv-card-head{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border)}
+  .iv-card-head h3{font-size:.95rem;font-weight:700;color:var(--primary);margin:0}.iv-card-head h3 i{color:var(--accent)}
+  .iv-detail-img{border-radius:var(--radius);overflow:hidden;max-height:400px}.iv-detail-img img{width:100%;height:100%;object-fit:cover}
+  .iv-detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0}
+  .iv-detail-item{padding:1rem 1.25rem;border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
+  .iv-detail-item:nth-child(even){border-right:none}
+  .iv-detail-label{display:block;font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem}
+  .iv-detail-value{font-size:1rem;font-weight:600;color:var(--primary)}
+  .iv-danger-text{color:#DC2626;font-weight:700}
+  .iv-table-wrap{overflow-x:auto}
+  .iv-table{width:100%;border-collapse:collapse;font-size:.85rem}
+  .iv-table thead th{padding:.7rem 1rem;font-weight:600;color:var(--text-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:var(--surface)}
+  .iv-table tbody td{padding:.7rem 1rem;border-bottom:1px solid var(--border);vertical-align:middle}
+  .iv-table tbody tr:last-child td{border-bottom:none}
+  .iv-action-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:var(--radius-sm);color:var(--text-muted);transition:all var(--transition);text-decoration:none}.iv-action-btn:hover{background:rgba(19,103,138,.08);color:var(--accent)}
+  .iv-status-card{display:flex;align-items:center;gap:1rem;padding:1.25rem;border-radius:var(--radius);border:1px solid var(--border)}
+  .iv-status-card strong{display:block;font-size:.88rem;color:var(--primary)}.iv-status-card span{font-size:.78rem;color:var(--text-muted)}
+  .iv-status-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+  .iv-status-ok{background:rgba(16,185,129,.04);border-color:rgba(16,185,129,.2)}.iv-status-ok .iv-status-icon{background:rgba(16,185,129,.1);color:#10B981}
+  .iv-status-danger{background:rgba(220,38,38,.04);border-color:rgba(220,38,38,.2)}.iv-status-danger .iv-status-icon{background:rgba(220,38,38,.1);color:#DC2626}
+  .iv-sidebar-action{display:flex;align-items:center;gap:.75rem;padding:.65rem .85rem;border-radius:var(--radius-sm);border:1px solid var(--border);text-decoration:none;color:var(--text);font-size:.85rem;font-weight:500;transition:all var(--transition)}
+  .iv-sidebar-action:hover{border-color:var(--accent);color:var(--accent);background:rgba(19,103,138,.02)}
+  .iv-sidebar-action i{width:18px;text-align:center;color:var(--accent)}
+  .iv-sidebar-accent{border-color:rgba(16,185,129,.3);color:#059669}.iv-sidebar-accent:hover{border-color:#10B981;color:#059669;background:rgba(16,185,129,.04)}.iv-sidebar-accent i{color:#10B981}
+  .iv-sidebar-danger{border-color:rgba(220,38,38,.2);color:#DC2626}.iv-sidebar-danger:hover{border-color:#DC2626;background:rgba(220,38,38,.03)}.iv-sidebar-danger i{color:#DC2626}
+  @media(max-width:768px){.iv-detail-grid{grid-template-columns:1fr}.iv-detail-item{border-right:none!important}}
+</style>
+{% endblock %}

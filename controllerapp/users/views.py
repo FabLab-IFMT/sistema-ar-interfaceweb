@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -210,9 +211,9 @@ def profile(request, user_id=None):
             membro = Membro.objects.get(email=profile_user.email)
             is_team_member = True
         except Membro.DoesNotExist:
-            pass
+            logging.info("Perfil %s não corresponde a um Membro cadastrado", profile_user.email)
     except ImportError:
-        pass
+        logging.warning("App options.Membro não disponível para perfis")
     
     # Busca projetos relacionados a este usuário
     projetos = []
@@ -222,7 +223,7 @@ def profile(request, user_id=None):
             Q(responsavel=profile_user) | Q(participantes=profile_user)
         ).distinct()
     except ImportError:
-        pass
+        logging.warning("App projetos.Projeto não disponível para perfis")
     
     # Busca tarefas do kanban relacionadas a este usuário
     kanban_cards = []
@@ -230,7 +231,7 @@ def profile(request, user_id=None):
         from canva.models import Card
         kanban_cards = Card.objects.filter(usuario_responsavel=profile_user)
     except ImportError:
-        pass
+        logging.warning("App canva.Card não disponível para perfis")
     
     # Busca eventos agendados relacionados a este usuário
     eventos = []
@@ -241,7 +242,7 @@ def profile(request, user_id=None):
             start_time__gte=timezone.now()
         ).order_by('start_time')[:5]
     except ImportError:
-        pass
+        logging.warning("App logs.Event não disponível para perfis")
     
     # Busca sessões de acesso recentes
     sessoes_recentes = []
@@ -251,7 +252,7 @@ def profile(request, user_id=None):
             user=profile_user
         ).order_by('-entry_time')[:5]
     except ImportError:
-        pass
+        logging.warning("App acesso_e_ponto.Session não disponível para perfis")
     
     # Busca empréstimos ativos (se for o próprio usuário ou admin)
     emprestimos_ativos = []
@@ -263,7 +264,7 @@ def profile(request, user_id=None):
                 data_devolucao__isnull=True
             ).order_by('-data_emprestimo')
         except ImportError:
-            pass
+            logging.warning("App inventario.Emprestimo não disponível para perfis")
     
     # Se for o próprio usuário, mostra formulário de edição
     if is_self:

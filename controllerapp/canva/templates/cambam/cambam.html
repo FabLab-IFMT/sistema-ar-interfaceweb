@@ -1,1637 +1,1043 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}Quadro de Atividades{% endblock %}
+{% block title %}Quadro Kanban{% endblock %}
 
 {% block head %}
 <style>
-    .kanban-container {
-        display: flex;
-        overflow-x: auto;
-        min-height: 70vh;
-        padding-bottom: 1rem;
-        gap: 1rem;
-        padding: 1rem;
-        /* Melhorar a experiência de rolagem */
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(0,0,0,0.2) rgba(0,0,0,0.05);
-    }
-    
-    .kanban-container::-webkit-scrollbar {
-        height: 8px;
-    }
-    
-    .kanban-container::-webkit-scrollbar-track {
-        background: rgba(0,0,0,0.05);
-        border-radius: 4px;
-    }
-    
-    .kanban-container::-webkit-scrollbar-thumb {
-        background: rgba(0,0,0,0.2);
-        border-radius: 4px;
-    }
-    
-    .kanban-column {
-        min-width: 300px;
-        max-width: 300px;
-        margin-right: 0; /* Removido margin-right e adicionado gap acima */
-        border-radius: 12px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-        display: flex;
-        flex-direction: column;
-        transition: transform 0.2s, box-shadow 0.2s;
-        border: 1px solid rgba(0,0,0,0.1);
-    }
-    
-    .kanban-column:hover {
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        transform: translateY(-3px);
-    }
-    
-    .column-header {
-        padding: 1.2rem;
-        border-bottom: 1px solid rgba(0,0,0,0.1);
-        position: relative;
-        border-radius: 12px 12px 0 0;
-        transition: background-color 0.2s;
-    }
-    
-    .column-header h3 {
-        margin: 0;
-        font-size: 1.2rem;
-        font-weight: 600;
-        display: inline-block;
-        color: #333;
-        text-shadow: 0 1px 0 rgba(255,255,255,0.5);
-    }
-    
-    .column-count {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0,0,0,0.1);
-        border-radius: 20px;
-        padding: 2px 10px;
-        font-size: 0.85rem;
-        margin-left: 8px;
-        font-weight: 600;
-        transition: background-color 0.3s;
-        min-width: 28px;
-        height: 24px;
-    }
-    
-    .column-body {
-        flex-grow: 1;
-        min-height: 50px;
-        padding: 1rem;
-        overflow-y: auto;
-        max-height: 70vh;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(0,0,0,0.2) rgba(0,0,0,0.05);
-        transition: background-color 0.3s ease;
-    }
-    
-    .column-body::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .column-body::-webkit-scrollbar-track {
-        background: rgba(0,0,0,0.03);
-        border-radius: 3px;
-    }
-    
-    .column-body::-webkit-scrollbar-thumb {
-        background: rgba(0,0,0,0.15);
-        border-radius: 3px;
-    }
-    
-    .kanban-card {
-        background: white;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        cursor: grab;
-        position: relative;
-        transition: all 0.25s ease;
-        border-left: 4px solid transparent;
-        animation: fadeIn 0.3s ease;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .kanban-card:hover {
-        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-        transform: translateY(-3px);
-    }
-    
-    .kanban-card:active {
-        cursor: grabbing;
-        transform: translateY(-5px) rotate(1deg);
-    }
-    
-    /* Estilos de borda com cores para prioridades */
-    .kanban-card[data-card-priority="baixa"] {
-        border-left-color: #28a745;
-    }
-    
-    .kanban-card[data-card-priority="media"] {
-        border-left-color: #ffc107;
-    }
-    
-    .kanban-card[data-card-priority="alta"] {
-        border-left-color: #fd7e14;
-    }
-    
-    .kanban-card[data-card-priority="urgente"] {
-        border-left-color: #dc3545;
-    }
-    
-    .card-title {
-        font-weight: 600;
-        margin-bottom: 0.8rem;
-        padding-right: 25px;
-        word-break: break-word;
-        line-height: 1.3;
-        color: #333;
-        font-size: 1.05rem;
-    }
-    
-    .card-meta {
-        display: flex;
-        flex-wrap: wrap;
-        margin-top: 15px;
-        font-size: 0.8rem;
-        gap: 8px;
-    }
-    
-    .card-tag {
-        display: inline-flex;
-        align-items: center;
-        padding: 3px 10px;
-        border-radius: 50px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        margin-right: 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    
-    .priority-baixa {
-        background-color: rgba(40, 167, 69, 0.15);
-        color: #155724;
-    }
-    
-    .priority-media {
-        background-color: rgba(255, 193, 7, 0.15);
-        color: #856404;
-    }
-    
-    .priority-alta {
-        background-color: rgba(253, 126, 20, 0.15);
-        color: #8a3c02;
-    }
-    
-    .priority-urgente {
-        background-color: rgba(220, 53, 69, 0.15);
-        color: #721c24;
-        font-weight: 600;
-    }
-    
-    .priority-urgente::before {
-        content: "⚠️ ";
-        margin-right: 3px;
-    }
-    
-    .card-actions {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        opacity: 0.6;
-        transition: opacity 0.2s;
-    }
-    
-    .kanban-card:hover .card-actions {
-        opacity: 1;
-    }
-    
-    .card-actions button {
-        color: #6c757d;
-        transition: color 0.2s;
-    }
-    
-    .card-actions button:hover {
-        color: #343a40;
-    }
-    
-    .dragging {
-        opacity: 0.7;
-        transform: rotate(2deg);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
-        cursor: grabbing;
-    }
-    
-    .ghost-card {
-        background-color: rgba(13, 110, 253, 0.05);
-        border: 2px dashed rgba(13, 110, 253, 0.3);
-        height: 80px;
-    }
-    
-    .kanban-add-card {
-        width: 100%;
-        padding: 0.7rem;
-        text-align: center;
-        border: 2px dashed rgba(0,0,0,0.15);
-        border-radius: 8px;
-        margin-top: 0.5rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        color: #6c757d;
-        font-weight: 500;
-        background: rgba(255,255,255,0.7);
-    }
-    
-    .kanban-add-card:hover {
-        background: rgba(13, 110, 253, 0.05);
-        border-color: rgba(13, 110, 253, 0.3);
-        color: #0d6efd;
-    }
-    
-    .kanban-add-column {
-        min-width: 300px;
-        max-width: 300px;
-        padding: 1.5rem;
-        border-radius: 12px;
-        border: 2px dashed rgba(0,0,0,0.1);
-        height: 120px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        background: rgba(255,255,255,0.8);
-        margin-right: 0;
-    }
-    
-    .kanban-add-column:hover {
-        background: rgba(13, 110, 253, 0.05);
-        border-color: rgba(13, 110, 253, 0.3);
-        transform: translateY(-3px);
-    }
-    
-    .kanban-add-column i {
-        transition: transform 0.3s;
-    }
-    
-    .kanban-add-column:hover i {
-        transform: scale(1.2);
-        color: #0d6efd;
-    }
-    
-    .card-modal .modal-header,
-    .column-modal .modal-header {
-        background-color: #f8f9fa;
-        border-bottom: 3px solid #0d6efd;
-    }
-    
-    .card-dropzone {
-        min-height: 30px;
-        transition: background-color 0.3s;
-    }
-    
-    .card-dropzone.highlight {
-        background-color: rgba(13, 110, 253, 0.08);
-        animation: pulse-light 1.5s infinite;
-    }
-    
-    @keyframes pulse-light {
-        0% { background-color: rgba(13, 110, 253, 0.08); }
-        50% { background-color: rgba(13, 110, 253, 0.15); }
-        100% { background-color: rgba(13, 110, 253, 0.08); }
-    }
-    
-    .card-assignee {
-        display: flex;
-        align-items: center;
-        margin-right: 0;
-        padding: 2px 10px;
-        background-color: rgba(108, 117, 125, 0.1);
-        border-radius: 50px;
-    }
-    
-    .card-assignee img, .card-assignee i {
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        margin-right: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .card-project {
-        display: inline-flex;
-        align-items: center;
-        padding: 2px 10px;
-        border-radius: 50px;
-        background-color: rgba(13, 110, 253, 0.1);
-        color: #0d6efd;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-    
-    .card-project i {
-        margin-right: 4px;
-        font-size: 0.9em;
-    }
-    
-    .kanban-controls {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 1.5rem;
-        padding: 1rem;
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 1px 5px rgba(0,0,0,0.1);
-    }
-    
-    .kanban-filters {
-        display: flex;
-        gap: 0.8rem;
-        flex-wrap: wrap;
-    }
-    
-    .kanban-filters .dropdown-toggle {
-        border-radius: 50px;
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-    
-    .kanban-actions .btn {
-        border-radius: 50px;
-        padding-left: 20px;
-        padding-right: 20px;
-    }
-    
-    /* Efeito de indicação de movimento */
-    @keyframes move-indicator {
-        0%, 100% { background-position: 0% 0%; }
-        50% { background-position: 100% 0%; }
-    }
-    
-    .moving-card-indicator {
-        background: linear-gradient(90deg, 
-                  rgba(13, 110, 253, 0.1),
-                  rgba(13, 110, 253, 0.2),
-                  rgba(13, 110, 253, 0.1));
-        background-size: 200% 100%;
-        animation: move-indicator 1.5s infinite;
-    }
+/* ── Kanban Board — Institutional Theme ── */
+:root{
+  --kb-low:#16a34a;--kb-low-bg:rgba(22,163,74,.12);
+  --kb-med:#eab308;--kb-med-bg:rgba(234,179,8,.12);
+  --kb-high:#f97316;--kb-high-bg:rgba(249,115,22,.12);
+  --kb-urg:#dc2626;--kb-urg-bg:rgba(220,38,38,.12);
+}
+/* ── Hero ── */
+.kb-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:2.5rem 0;color:#fff;margin-bottom:0}
+.kb-hero h1{font-weight:800;font-size:2rem;margin:0}
+.kb-hero p{opacity:.8;margin:.25rem 0 0}
+.kb-breadcrumb a{color:var(--accent-light);text-decoration:none}
+.kb-breadcrumb a:hover{text-decoration:underline}
+.kb-breadcrumb span{color:rgba(255,255,255,.6)}
 
-    /* Impedir efeitos hover durante o arrasto */
-    .dragging-active .kanban-card:not(.dragging):hover {
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
-        transform: none !important;
-    }
-    
-    /* Estilo específico para o card sendo arrastado */
-    .kanban-card.dragging {
-        opacity: 0.8;
-        transform: rotate(2deg) !important;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
-        cursor: grabbing;
-        pointer-events: none;
-        z-index: 1000;
-    }
+/* ── Status toast ── */
+.kb-toast{position:fixed;top:80px;right:24px;z-index:9999;min-width:300px;border-radius:var(--radius-sm);padding:1rem 1.25rem;display:none;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.15);animation:kbSlideIn .3s ease}
+.kb-toast.show{display:flex;align-items:center;gap:.5rem}
+.kb-toast.success{background:#ecfdf5;color:#065f46;border-left:4px solid var(--kb-low)}
+.kb-toast.error{background:#fef2f2;color:#991b1b;border-left:4px solid var(--kb-urg)}
+.kb-toast.info{background:#eff6ff;color:#1e40af;border-left:4px solid var(--accent)}
+@keyframes kbSlideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
 
-    /* Corrigir piscadas durante o arrasto */
-    .card-dropzone.highlight {
-        background-color: rgba(13, 110, 253, 0.08) !important;
-    }
-    
-    /* Tornar o indicador de ghost card mais visível */
-    .ghost-card {
-        background-color: rgba(13, 110, 253, 0.08);
-        border: 2px dashed rgba(13, 110, 253, 0.5);
-        pointer-events: none;
-        height: 80px;
-        margin-bottom: 1rem;
-    }
-    
-    /* Cursor de arrastar para cards */
-    .kanban-card {
-        cursor: grab;
-    }
-    .kanban-card:active {
-        cursor: grabbing;
-    }
+/* ── Controls bar ── */
+.kb-controls{background:var(--white);border-radius:var(--radius);box-shadow:0 2px 12px rgba(11,37,69,.06);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
+.kb-filters{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.kb-filters .btn{border-radius:50px;font-size:.85rem;padding:.4rem 1rem;font-weight:500;border-color:var(--border);color:var(--text)}
+.kb-filters .btn:hover,.kb-filters .btn:focus{border-color:var(--accent);color:var(--accent)}
+.kb-actions{display:flex;gap:.5rem;align-items:center}
+.kb-actions .btn-primary-custom{background:var(--accent);border:none;color:#fff;border-radius:50px;padding:.4rem 1.25rem;font-size:.85rem;font-weight:600;transition:var(--transition)}
+.kb-actions .btn-primary-custom:hover{background:var(--accent-light);transform:translateY(-1px)}
 
-    /* Classe para impedir eventos hover/click durante arrasto */
-    .disable-pointer-events {
-        pointer-events: none;
-    }
+/* ── Board container ── */
+.kb-board{display:flex;overflow-x:auto;gap:1.25rem;padding:1.25rem .5rem 2rem;min-height:68vh;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+.kb-board::-webkit-scrollbar{height:8px}
+.kb-board::-webkit-scrollbar-track{background:var(--surface-alt);border-radius:4px}
+.kb-board::-webkit-scrollbar-thumb{background:var(--primary);border-radius:4px;opacity:.5}
+
+/* ── Column ── */
+.kb-column{min-width:310px;max-width:310px;border-radius:var(--radius);background:var(--white);box-shadow:0 2px 12px rgba(11,37,69,.07);display:flex;flex-direction:column;border:1px solid var(--border);transition:var(--transition);flex-shrink:0}
+.kb-column:hover{box-shadow:0 6px 20px rgba(11,37,69,.1);transform:translateY(-2px)}
+.kb-col-header{padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;position:relative}
+.kb-col-header::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:var(--radius) var(--radius) 0 0}
+.kb-col-title{font-weight:700;font-size:1rem;color:var(--text);margin:0}
+.kb-col-count{display:inline-flex;align-items:center;justify-content:center;background:var(--surface-alt);border-radius:50px;padding:2px 10px;font-size:.8rem;font-weight:600;color:var(--text-muted);min-width:26px;height:24px;margin-left:.5rem;transition:var(--transition)}
+.kb-col-menu .btn{color:var(--text-muted);font-size:.85rem;padding:.25rem .5rem}
+.kb-col-menu .btn:hover{color:var(--primary)}
+.kb-col-menu .dropdown-menu{border-radius:var(--radius-sm);border:1px solid var(--border);box-shadow:0 8px 24px rgba(11,37,69,.1)}
+.kb-col-menu .dropdown-item{font-size:.85rem;padding:.5rem 1rem}
+.kb-col-menu .dropdown-item:hover{background:var(--surface-alt)}
+.kb-col-menu .dropdown-item.text-danger:hover{background:#fef2f2}
+
+/* ── Column body / dropzone ── */
+.kb-col-body{flex-grow:1;padding:.75rem;overflow-y:auto;max-height:65vh;min-height:150px;transition:background .3s}
+.kb-col-body::-webkit-scrollbar{width:5px}
+.kb-col-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.kb-col-body.highlight{background:rgba(19,103,138,.06);border:2px dashed rgba(19,103,138,.3);border-radius:var(--radius-sm)}
+.kb-col-body.highlight .kb-empty-col{display:none}
+
+/* Empty column placeholder */
+.kb-empty-col{text-align:center;padding:2rem .5rem;color:var(--text-muted);font-size:.85rem;pointer-events:none}
+.kb-empty-col i{font-size:1.5rem;opacity:.35;display:block;margin-bottom:.35rem}
+
+/* ── Card ── */
+.kb-card{background:var(--white);border-radius:var(--radius-sm);padding:.85rem 1rem;margin-bottom:.75rem;box-shadow:0 1px 6px rgba(11,37,69,.06);cursor:grab;position:relative;transition:var(--transition);border-left:4px solid transparent;animation:kbFadeIn .3s ease}
+@keyframes kbFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.kb-card:hover{box-shadow:0 4px 16px rgba(11,37,69,.1);transform:translateY(-2px)}
+.kb-card:active{cursor:grabbing;transform:rotate(1deg) translateY(-4px)}
+.kb-card[data-card-priority="baixa"]{border-left-color:var(--kb-low)}
+.kb-card[data-card-priority="media"]{border-left-color:var(--kb-med)}
+.kb-card[data-card-priority="alta"]{border-left-color:var(--kb-high)}
+.kb-card[data-card-priority="urgente"]{border-left-color:var(--kb-urg)}
+.kb-card.hidden-card{opacity:.55;border-style:dashed}
+.kb-card-title{font-weight:600;font-size:.92rem;color:var(--text);margin-bottom:.5rem;padding-right:24px;line-height:1.35;word-break:break-word}
+.kb-card-desc{font-size:.8rem;color:var(--text-muted);margin-bottom:.6rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.kb-card-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.kb-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:50px;font-size:.7rem;font-weight:600}
+.kb-tag-low{background:var(--kb-low-bg);color:#15803d}
+.kb-tag-med{background:var(--kb-med-bg);color:#a16207}
+.kb-tag-high{background:var(--kb-high-bg);color:#c2410c}
+.kb-tag-urg{background:var(--kb-urg-bg);color:#dc2626}
+.kb-tag-project{background:rgba(19,103,138,.1);color:var(--accent)}
+.kb-tag-user{background:var(--surface-alt);color:var(--text-muted)}
+.kb-card-actions{position:absolute;top:6px;right:6px;opacity:0;transition:var(--transition)}
+.kb-card:hover .kb-card-actions{opacity:1}
+.kb-card-actions .btn{padding:.15rem .35rem;font-size:.75rem;color:var(--text-muted);background:transparent;border:none}
+.kb-card-actions .btn:hover{color:var(--primary)}
+.kb-card-actions .dropdown-menu{font-size:.85rem;border-radius:var(--radius-sm);min-width:140px}
+
+/* Drag states */
+.kb-card.dragging{opacity:.6;transform:rotate(2deg);box-shadow:0 12px 28px rgba(11,37,69,.18)!important;cursor:grabbing}
+.kb-card.ghost-card{background:rgba(19,103,138,.05);border:2px dashed rgba(19,103,138,.25);box-shadow:none;padding:0;cursor:default}
+.moving-indicator{background:linear-gradient(90deg,rgba(19,103,138,.06),rgba(19,103,138,.12),rgba(19,103,138,.06));background-size:200% 100%;animation:kbMove 1.5s infinite}
+@keyframes kbMove{0%,100%{background-position:0% 0%}50%{background-position:100% 0%}}
+
+/* ── Add card / Add column ── */
+.kb-add-card{width:100%;padding:.6rem;text-align:center;border:2px dashed var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);color:var(--text-muted);font-weight:500;font-size:.85rem;background:transparent}
+.kb-add-card:hover{border-color:var(--accent);color:var(--accent);background:rgba(19,103,138,.04)}
+.kb-add-column{min-width:310px;max-width:310px;border-radius:var(--radius);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;height:120px;cursor:pointer;transition:var(--transition);background:var(--white);flex-shrink:0}
+.kb-add-column:hover{border-color:var(--accent);transform:translateY(-2px);background:rgba(19,103,138,.04)}
+.kb-add-column:hover i{color:var(--accent);transform:scale(1.2)}
+.kb-add-column i{color:var(--text-muted);transition:var(--transition)}
+
+/* ── Modals ── */
+.kb-modal .modal-content{border-radius:var(--radius);border:none;overflow:hidden}
+.kb-modal .modal-header{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border:none;padding:1.25rem 1.5rem}
+.kb-modal .modal-header .btn-close{filter:invert(1);opacity:.7}
+.kb-modal .modal-header .btn-close:hover{opacity:1}
+.kb-modal .modal-title{font-weight:700}
+.kb-modal .modal-body{padding:1.5rem}
+.kb-modal .modal-footer{border-top:1px solid var(--border);padding:1rem 1.5rem}
+.kb-modal .form-label{font-weight:600;font-size:.85rem;color:var(--text)}
+.kb-modal .form-control,.kb-modal .form-select{border-radius:var(--radius-sm);border:1px solid var(--border);font-size:.9rem;padding:.6rem .85rem}
+.kb-modal .form-control:focus,.kb-modal .form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(19,103,138,.15)}
+.kb-modal .btn-save{background:var(--accent);border:none;color:#fff;border-radius:var(--radius-sm);padding:.5rem 1.5rem;font-weight:600;transition:var(--transition)}
+.kb-modal .btn-save:hover{background:var(--accent-light);transform:translateY(-1px)}
+.kb-modal .btn-cancel{background:var(--surface-alt);border:none;color:var(--text-muted);border-radius:var(--radius-sm);padding:.5rem 1.5rem;font-weight:500}
+.kb-modal .btn-danger-custom{background:var(--kb-urg);border:none;color:#fff;border-radius:var(--radius-sm);padding:.5rem 1.5rem;font-weight:600}
+
+/* Color preview */
+.kb-color-preview{width:40px;height:40px;border-radius:var(--radius-sm);border:2px solid var(--border);transition:var(--transition)}
+
+/* Responsive */
+@media(max-width:768px){
+  .kb-hero h1{font-size:1.5rem}
+  .kb-controls{flex-direction:column;align-items:stretch}
+  .kb-filters{flex-direction:column}
+  .kb-board{padding:.5rem}
+  .kb-column{min-width:280px;max-width:280px}
+  .kb-add-column{min-width:280px;max-width:280px}
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="display-6 fw-bold">Quadro de Atividades dos Projetos</h1>
-            <p class="text-muted">Gerencie e acompanhe seus projetos e tarefas de forma visual</p>
-        </div>
+<!-- Hero -->
+<section class="kb-hero">
+  <div class="container">
+    <nav class="kb-breadcrumb mb-2" style="font-size:.85rem">
+      <a href="{% url 'projetos:gestao' %}">Gestão de Projetos</a>
+      <span class="mx-1">/</span>
+      <span style="color:rgba(255,255,255,.9)">Quadro Kanban</span>
+    </nav>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div>
+        <h1><i class="fas fa-columns me-2"></i>Quadro Kanban</h1>
+        <p class="mb-0">Organize e acompanhe suas atividades de forma visual</p>
+      </div>
+      <a href="{% url 'projetos:gestao' %}" class="btn btn-outline-light btn-sm" style="border-radius:50px">
+        <i class="fas fa-arrow-left me-1"></i> Voltar ao Hub
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Toast -->
+<div class="kb-toast" id="kbToast">
+  <i class="fas fa-info-circle" id="kbToastIcon"></i>
+  <span id="kbToastMsg"></span>
+</div>
+
+<div class="container-fluid py-3 px-md-4">
+
+  <!-- Controls -->
+  <div class="kb-controls mb-3">
+    <div class="kb-filters">
+      <!-- Projeto -->
+      <div class="dropdown">
+        <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" id="filterProjects">
+          <i class="fas fa-folder me-1"></i> Projetos
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#" data-filter-project="all">Todos os projetos</a></li>
+          <li><a class="dropdown-item" href="#" data-filter-project="none">Sem projeto</a></li>
+          <li><hr class="dropdown-divider"></li>
+          {% for p in projetos %}
+          <li><a class="dropdown-item" href="#" data-filter-project="{{ p.id }}">{{ p.titulo }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      <!-- Prioridade -->
+      <div class="dropdown">
+        <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" id="filterPriority">
+          <i class="fas fa-exclamation-circle me-1"></i> Prioridade
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#" data-filter-priority="all">Todas</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#" data-filter-priority="baixa"><span class="kb-tag kb-tag-low me-1">Baixa</span></a></li>
+          <li><a class="dropdown-item" href="#" data-filter-priority="media"><span class="kb-tag kb-tag-med me-1">Média</span></a></li>
+          <li><a class="dropdown-item" href="#" data-filter-priority="alta"><span class="kb-tag kb-tag-high me-1">Alta</span></a></li>
+          <li><a class="dropdown-item" href="#" data-filter-priority="urgente"><span class="kb-tag kb-tag-urg me-1">Urgente</span></a></li>
+        </ul>
+      </div>
+      <!-- Usuário (superuser) -->
+      {% if user.is_superuser %}
+      <div class="dropdown">
+        <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" id="filterUsers">
+          <i class="fas fa-user me-1"></i> Usuário
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#" data-filter-user="all">Todos</a></li>
+          <li><hr class="dropdown-divider"></li>
+          {% for u in usuarios %}
+          <li><a class="dropdown-item" href="#" data-filter-user="{{ u.id }}">{{ u.first_name }} {{ u.last_name }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      <!-- Limpar filtros -->
+      <button class="btn btn-sm" id="clearFilters" title="Limpar filtros" style="color:var(--text-muted)">
+        <i class="fas fa-times-circle"></i>
+      </button>
     </div>
 
-    <!-- Controles e filtros -->
-    <div class="kanban-controls">
-        <div class="kanban-filters">
-            <!-- Filtro por projeto -->
-            {% if projetos %}
-            <div class="dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterProjects" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-folder me-1"></i> Projetos
-                </button>
-                <ul class="dropdown-menu shadow" aria-labelledby="filterProjects">
-                    <li><a class="dropdown-item" href="#" data-filter-project="all">Todos os projetos</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    {% for projeto in projetos %}
-                    <li><a class="dropdown-item" href="#" data-filter-project="{{ projeto.id }}">{{ projeto.titulo }}</a></li>
-                    {% endfor %}
-                    <li><a class="dropdown-item" href="#" data-filter-project="none">Sem projeto</a></li>
-                </ul>
-            </div>
-            {% endif %}
-
-            <!-- Filtro por prioridade -->
-            <div class="dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterPriority" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-exclamation-circle me-1"></i> Prioridade
-                </button>
-                <ul class="dropdown-menu shadow" aria-labelledby="filterPriority">
-                    <li><a class="dropdown-item" href="#" data-filter-priority="all">Todas as prioridades</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" href="#" data-filter-priority="urgente">
-                        <i class="fas fa-exclamation-triangle me-1"></i> Urgente
-                    </a></li>
-                    <li><a class="dropdown-item text-warning" href="#" data-filter-priority="alta">
-                        <i class="fas fa-arrow-up me-1"></i> Alta
-                    </a></li>
-                    <li><a class="dropdown-item text-primary" href="#" data-filter-priority="media">
-                        <i class="fas fa-equals me-1"></i> Média
-                    </a></li>
-                    <li><a class="dropdown-item text-success" href="#" data-filter-priority="baixa">
-                        <i class="fas fa-arrow-down me-1"></i> Baixa
-                    </a></li>
-                </ul>
-            </div>
-
-            <!-- Filtro por usuário (apenas para superuser) -->
-            {% if user.is_superuser and usuarios %}
-            <div class="dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterUsers" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-user me-1"></i> Usuário
-                </button>
-                <ul class="dropdown-menu shadow" aria-labelledby="filterUsers">
-                    <li><a class="dropdown-item" href="#" data-filter-user="all">Todos os usuários</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    {% for usuario in usuarios %}
-                    <li><a class="dropdown-item" href="#" data-filter-user="{{ usuario.id }}">{{ usuario.first_name }} {{ usuario.last_name }}</a></li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-            
-            <!-- Botão para limpar filtros -->
-            <button class="btn btn-outline-dark" id="clearFilters">
-                <i class="fas fa-times-circle me-1"></i> Limpar filtros
-            </button>
-        </div>
-
-        <!-- Botões de ação -->
-        <div class="kanban-actions">
-            {% if user.is_superuser %}
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addColumnModal">
-                <i class="fas fa-plus me-1"></i> Nova Coluna
-            </button>
-            {% endif %}
-        </div>
+    <div class="kb-actions">
+      {% if user.is_superuser %}
+      <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addColumnModal">
+        <i class="fas fa-plus me-1"></i> Nova Coluna
+      </button>
+      {% endif %}
     </div>
+  </div>
 
-    <!-- Container principal do Kanban -->
-    <div class="kanban-container">
-        <!-- Colunas do Kanban -->
-        {% for coluna in colunas %}
-        <div class="kanban-column" data-column-id="{{ coluna.id }}" style="background-color: {{ coluna.cor }};">
-            <div class="column-header">
-                <h3>{{ coluna.nome }}</h3>
-                <span class="column-count">{{ coluna.cards_filtrados|length }}</span>
-                {% if user.is_superuser %}
-                <div class="dropdown float-end">
-                    <button class="btn btn-sm btn-link text-dark p-0" type="button" id="dropdownColumn{{ coluna.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownColumn{{ coluna.id }}">
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editColumnModal" data-column-id="{{ coluna.id }}" data-column-name="{{ coluna.nome }}" data-column-color="{{ coluna.cor }}">
-                            <i class="fas fa-edit me-2"></i> Editar coluna
-                        </a></li>
-                        <li><a class="dropdown-item text-danger delete-column" href="#" data-column-id="{{ coluna.id }}">
-                            <i class="fas fa-trash-alt me-2"></i> Excluir coluna
-                        </a></li>
-                    </ul>
-                </div>
-                {% endif %}
-            </div>
-            <div class="column-body card-dropzone" data-column-id="{{ coluna.id }}">
-                <!-- Cards da coluna -->
-                {% for card in coluna.cards_filtrados %}
-                <div class="kanban-card" 
-                     data-card-id="{{ card.id }}" 
-                     data-card-project="{% if card.projeto %}{{ card.projeto.id }}{% else %}none{% endif %}" 
-                     data-card-priority="{{ card.prioridade }}"
-                     data-card-user="{% if card.responsavel %}{{ card.responsavel.id }}{% endif %}">
-                    <div class="card-title">{{ card.titulo }}</div>
-                    <div class="card-tag priority-{{ card.prioridade }}">{{ card.get_prioridade_display }}</div>
-                    <div class="card-meta">
-                        {% if card.responsavel %}
-                        <div class="card-assignee">
-                            <i class="fas fa-user-circle"></i>
-                            <span>{{ card.responsavel.first_name }}</span>
-                        </div>
-                        {% endif %}
-                        {% if card.projeto %}
-                        <div class="card-project" title="{{ card.projeto.titulo }}">
-                            <i class="fas fa-folder me-1"></i> {{ card.projeto.titulo|truncatechars:20 }}
-                        </div>
-                        {% endif %}
-                    </div>
-                    <div class="card-actions">
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-link p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow">
-                                <li><a class="dropdown-item view-card" href="#" data-card-id="{{ card.id }}">
-                                    <i class="fas fa-eye me-2"></i> Ver detalhes
-                                </a></li>
-                                {% if user.is_superuser or user == card.responsavel %}
-                                <li><a class="dropdown-item edit-card" href="#" data-card-id="{{ card.id }}">
-                                    <i class="fas fa-edit me-2"></i> Editar
-                                </a></li>
-                                {% endif %}
-                                {% if user.is_superuser or user == card.criado_por %}
-                                <li><a class="dropdown-item text-danger delete-card" href="#" data-card-id="{{ card.id }}">
-                                    <i class="fas fa-trash-alt me-2"></i> Excluir
-                                </a></li>
-                                {% endif %}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- Botão para adicionar card -->
-            <div class="kanban-add-card" data-bs-toggle="modal" data-bs-target="#addCardModal" data-column-id="{{ coluna.id }}">
-                <i class="fas fa-plus me-1"></i> Adicionar Card
-            </div>
+  <!-- Kanban Board -->
+  <div class="kb-board" id="kanbanBoard">
+    {% for coluna in colunas %}
+    <div class="kb-column" data-column-id="{{ coluna.id }}" style="--col-color:{{ coluna.cor|default:'#0B2545' }}">
+      <div class="kb-col-header" style="border-top:4px solid {{ coluna.cor|default:'var(--primary)' }}">
+        <div class="d-flex align-items-center">
+          <h3 class="kb-col-title">{{ coluna.nome }}</h3>
+          <span class="kb-col-count column-count">{{ coluna.cards_filtrados|length }}</span>
         </div>
-        {% endfor %}
-
-        <!-- Botão para adicionar coluna (apenas superuser) -->
         {% if user.is_superuser %}
-        <div class="kanban-add-column" data-bs-toggle="modal" data-bs-target="#addColumnModal">
-            <div class="text-center">
-                <i class="fas fa-plus mb-2 fs-4"></i>
-                <div>Adicionar Coluna</div>
-            </div>
+        <div class="kb-col-menu dropdown">
+          <button class="btn" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <a class="dropdown-item edit-column" href="#" data-bs-toggle="modal" data-bs-target="#editColumnModal"
+                 data-column-id="{{ coluna.id }}" data-column-name="{{ coluna.nome }}" data-column-color="{{ coluna.cor }}">
+                <i class="fas fa-edit me-2"></i>Editar Coluna
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item text-danger delete-column" href="#" data-column-id="{{ coluna.id }}">
+                <i class="fas fa-trash me-2"></i>Excluir Coluna
+              </a>
+            </li>
+          </ul>
         </div>
         {% endif %}
-    </div>
+      </div>
 
-    <!-- Status indicator panel -->
-    <div class="alert alert-info mt-4 d-none" id="statusIndicator">
-        <i class="fas fa-info-circle me-2"></i>
-        <span id="statusMessage">Carregando...</span>
-    </div>
-</div>
+      <div class="kb-col-body card-dropzone" data-column-id="{{ coluna.id }}">
+        {% for card in coluna.cards_filtrados %}
+        <div class="kb-card {% if not card.visivel %}hidden-card{% endif %}"
+             data-card-id="{{ card.id }}"
+             data-card-project="{{ card.projeto.id|default:'none' }}"
+             data-card-priority="{{ card.prioridade }}"
+             data-card-user="{{ card.responsavel.id|default:'none' }}"
+             draggable="true">
 
-<!-- Modal para adicionar card -->
-<div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addCardModalLabel">Adicionar Novo Card</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addCardForm">
-                    <input type="hidden" id="cardColumn" name="coluna" value="">
-                    
-                    <div class="mb-3">
-                        <label for="cardTitle" class="form-label">Título</label>
-                        <input type="text" class="form-control" id="cardTitle" name="titulo" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="cardDescription" class="form-label">Descrição</label>
-                        <textarea class="form-control" id="cardDescription" name="descricao" rows="3"></textarea>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="cardPriority" class="form-label">Prioridade</label>
-                        <select class="form-select" id="cardPriority" name="prioridade">
-                            <option value="baixa">Baixa</option>
-                            <option value="media" selected>Média</option>
-                            <option value="alta">Alta</option>
-                            <option value="urgente">Urgente</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="cardProject" class="form-label">Projeto</label>
-                        <select class="form-select" id="cardProject" name="projeto">
-                            <option value="">Sem projeto</option>
-                            {% for projeto in projetos %}
-                            <option value="{{ projeto.id }}">{{ projeto.titulo }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    {% if user.is_superuser and usuarios %}
-                    <div class="mb-3">
-                        <label class="form-label">Membros</label>
-                        <div class="card p-3">
-                            {% for usuario in usuarios %}
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="{{ usuario.id }}" id="usuario{{ usuario.id }}" name="membros">
-                                <label class="form-check-label" for="usuario{{ usuario.id }}">
-                                    {{ usuario.first_name }} {{ usuario.last_name }}
-                                </label>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="saveCardBtn">
-                    <i class="fas fa-save me-1"></i> Salvar
-                </button>
-            </div>
+          <div class="kb-card-actions dropdown">
+            <button class="btn" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-h"></i></button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item view-card" href="#" data-card-id="{{ card.id }}"><i class="fas fa-eye me-2"></i>Ver</a></li>
+              {% if user.is_superuser or user == card.responsavel or user == card.criado_por %}
+              <li><a class="dropdown-item edit-card" href="#" data-card-id="{{ card.id }}"><i class="fas fa-edit me-2"></i>Editar</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger delete-card" href="#" data-card-id="{{ card.id }}"><i class="fas fa-trash me-2"></i>Excluir</a></li>
+              {% endif %}
+            </ul>
+          </div>
+
+          <div class="kb-card-title">{{ card.titulo }}</div>
+          {% if card.descricao %}
+          <div class="kb-card-desc">{{ card.descricao }}</div>
+          {% endif %}
+
+          <div class="kb-card-meta">
+            <span class="kb-tag kb-tag-{{ card.prioridade }}">
+              {% if card.prioridade == 'urgente' %}<i class="fas fa-exclamation-triangle me-1"></i>{% endif %}
+              {{ card.get_prioridade_display }}
+            </span>
+            {% if card.projeto %}
+            <span class="kb-tag kb-tag-project"><i class="fas fa-folder me-1"></i>{{ card.projeto.titulo|truncatechars:18 }}</span>
+            {% endif %}
+            {% if card.responsavel %}
+            <span class="kb-tag kb-tag-user"><i class="fas fa-user me-1"></i>{{ card.responsavel.first_name }}</span>
+            {% endif %}
+            {% if not card.visivel %}
+            <span class="kb-tag" style="background:rgba(107,114,128,.1);color:var(--text-muted)"><i class="fas fa-eye-slash me-1"></i>Oculto</span>
+            {% endif %}
+          </div>
+
+          {% if card.prazo %}
+          <div class="mt-2" style="font-size:.72rem;color:var(--text-muted)">
+            <i class="fas fa-clock me-1"></i> Prazo: {{ card.prazo|date:"d/m/Y" }}
+          </div>
+          {% endif %}
         </div>
+        {% empty %}
+        {% endfor %}
+        {% if not coluna.cards_filtrados %}
+        <div class="kb-empty-col">
+          <i class="fas fa-inbox"></i>
+          Arraste um card para cá
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Add card button -->
+      <div style="padding:.5rem .75rem .75rem">
+        <button class="kb-add-card kanban-add-card" data-column-id="{{ coluna.id }}" data-bs-toggle="modal" data-bs-target="#addCardModal">
+          <i class="fas fa-plus me-1"></i> Novo Card
+        </button>
+      </div>
     </div>
+    {% endfor %}
+
+    {% if user.is_superuser %}
+    <div class="kb-add-column" data-bs-toggle="modal" data-bs-target="#addColumnModal">
+      <div class="text-center">
+        <i class="fas fa-plus-circle d-block mb-2" style="font-size:2rem"></i>
+        <span style="font-weight:600;font-size:.9rem;color:var(--text-muted)">Nova Coluna</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
 </div>
 
-<!-- Modal para editar/visualizar card -->
-<div class="modal fade" id="editCardModal" tabindex="-1" aria-labelledby="editCardModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editCardModalLabel">Detalhes do Card</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- ═══════════════ MODAIS ═══════════════ -->
+
+<!-- Modal: Adicionar Card -->
+<div class="modal fade kb-modal" id="addCardModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Novo Card</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addCardForm">
+          {% csrf_token %}
+          <input type="hidden" name="coluna" id="cardColumn">
+          <div class="mb-3">
+            <label class="form-label">Título <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="titulo" required placeholder="Título do card">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descrição</label>
+            <textarea class="form-control" name="descricao" rows="3" placeholder="Descreva a atividade..."></textarea>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Prioridade</label>
+              <select class="form-select" name="prioridade">
+                <option value="baixa">Baixa</option>
+                <option value="media" selected>Média</option>
+                <option value="alta">Alta</option>
+                <option value="urgente">Urgente</option>
+              </select>
             </div>
-            <div class="modal-body">
-                <form id="editCardForm">
-                    <input type="hidden" id="editCardId" name="card_id">
-                    
-                    <!-- Conteúdo do formulário será carregado dinamicamente -->
-                    <div id="editCardContent">
-                        <div class="text-center py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Carregando...</span>
-                            </div>
-                        </div>
-                    </div>
-                </form>
+            <div class="col-md-6">
+              <label class="form-label">Projeto</label>
+              <select class="form-select" name="projeto">
+                <option value="">Nenhum</option>
+                {% for p in projetos %}
+                <option value="{{ p.id }}">{{ p.titulo }}</option>
+                {% endfor %}
+              </select>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                {% if user.is_superuser or user.is_staff %}
-                <button type="button" class="btn btn-primary" id="updateCardBtn">Salvar alterações</button>
-                {% endif %}
+          </div>
+          {% if usuarios %}
+          <div class="mt-3">
+            <label class="form-label">Membros</label>
+            <div style="max-height:160px;overflow-y:auto;padding:.5rem;border:1px solid var(--border);border-radius:var(--radius-sm)">
+              {% for u in usuarios %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="membros" value="{{ u.id }}" id="addMembro{{ u.id }}">
+                <label class="form-check-label" for="addMembro{{ u.id }}" style="font-size:.9rem">
+                  {{ u.first_name }} {{ u.last_name }}
+                </label>
+              </div>
+              {% endfor %}
             </div>
-        </div>
+          </div>
+          {% endif %}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-save" id="saveCardBtn"><i class="fas fa-check me-1"></i>Criar Card</button>
+      </div>
     </div>
+  </div>
 </div>
 
-<!-- Modal para adicionar coluna -->
-<div class="modal fade" id="addColumnModal" tabindex="-1" aria-labelledby="addColumnModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addColumnModalLabel">Adicionar Nova Coluna</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Modal: Editar/Visualizar Card -->
+<div class="modal fade kb-modal" id="editCardModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Detalhes do Card</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editCardId">
+        <form id="editCardForm">
+          {% csrf_token %}
+          <div id="editCardContent">
+            <div class="text-center py-4">
+              <div class="spinner-border" role="status" style="color:var(--accent)">
+                <span class="visually-hidden">Carregando...</span>
+              </div>
             </div>
-            <div class="modal-body">
-                <form id="addColumnForm">
-                    <div class="mb-3">
-                        <label for="columnName" class="form-label">Nome da Coluna</label>
-                        <input type="text" class="form-control" id="columnName" name="nome" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="columnColor" class="form-label">Cor de fundo</label>
-                        <input type="color" class="form-control form-control-color" id="columnColor" name="cor" value="#f8f9fa" title="Escolha uma cor">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="saveColumnBtn">Salvar</button>
-            </div>
-        </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-save" id="updateCardBtn" style="display:none">
+          <i class="fas fa-save me-1"></i>Salvar Alterações
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
-<!-- Modal de confirmação de exclusão -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Exclusão</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Modal: Adicionar Coluna -->
+<div class="modal fade kb-modal" id="addColumnModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-columns me-2"></i>Nova Coluna</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addColumnForm">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Nome da Coluna <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="nome" required placeholder="Ex: Em progresso">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Cor</label>
+            <div class="d-flex align-items-center gap-2">
+              <input type="color" class="form-control form-control-color" name="cor" value="#0B2545" style="width:50px;height:40px">
+              <div class="kb-color-preview" id="newColPreview" style="background:#0B2545"></div>
             </div>
-            <div class="modal-body">
-                <p id="confirmDeleteMessage">Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
-            </div>
-        </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-save" id="addColumnBtn"><i class="fas fa-plus me-1"></i>Criar Coluna</button>
+      </div>
     </div>
+  </div>
 </div>
 
-<!-- Adicionando o Modal de Edição de Coluna -->
-<div class="modal fade" id="editColumnModal" tabindex="-1" aria-labelledby="editColumnModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editColumnModalLabel">Editar Coluna</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editColumnForm">
-                    <input type="hidden" id="editColumnId" name="column_id">
-                    
-                    <div class="mb-3">
-                        <label for="editColumnName" class="form-label">Nome da Coluna</label>
-                        <input type="text" class="form-control" id="editColumnName" name="nome" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="editColumnColor" class="form-label">Cor de fundo</label>
-                        <input type="color" class="form-control form-control-color" id="editColumnColor" name="cor" value="#f8f9fa" title="Escolha uma cor">
-                        <div class="form-text">Pré-visualização da cor da coluna</div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <div class="card p-2" id="colorPreview" style="height: 50px; background-color: #f8f9fa;">
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="updateColumnBtn">Salvar alterações</button>
-            </div>
-        </div>
+<!-- Modal: Confirmar Exclusão -->
+<div class="modal fade kb-modal" id="confirmDeleteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#991b1b,#dc2626)">
+        <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirmar Exclusão</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="fas fa-trash-alt mb-3" style="font-size:2.5rem;color:var(--kb-urg)"></i>
+        <p class="mb-0" id="confirmDeleteMessage">Tem certeza que deseja excluir este item?</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger-custom" id="confirmDeleteBtn">
+          <i class="fas fa-trash me-1"></i>Excluir
+        </button>
+      </div>
     </div>
+  </div>
 </div>
+
+<!-- Modal: Editar Coluna -->
+<div class="modal fade kb-modal" id="editColumnModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Editar Coluna</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editColumnForm">
+          {% csrf_token %}
+          <input type="hidden" id="editColumnId">
+          <div class="mb-3">
+            <label class="form-label">Nome da Coluna <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="editColumnName" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Cor</label>
+            <div class="d-flex align-items-center gap-2">
+              <input type="color" class="form-control form-control-color" id="editColumnColor" style="width:50px;height:40px">
+              <div class="kb-color-preview" id="colorPreview"></div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-save" id="updateColumnBtn">
+          <i class="fas fa-save me-1"></i>Salvar Alterações
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Variáveis globais
-        let draggingCard = null;
-        let deleteTarget = null;
-        let deleteType = null;
-        let dropTargetColumn = null;
-        let dragStartColumn = null;
-        let cardHeight = null;
-        let ghostCard = null;
-        let currentFilters = {
-            project: 'all',
-            priority: 'all',
-            user: 'all',
-            visibility: 'visible'  // Novo filtro de visibilidade
-        };
-        let isDragging = false;
-        let lastClickTime = 0;
-        
-        // Inicialização dos filtros
-        initFilters();
-        
-        // Inicialização do Drag and Drop
-        initDragAndDrop();
-        
-        // Função para inicializar os filtros
-        function initFilters() {
-            // Filtro por projeto
-            document.querySelectorAll('[data-filter-project]').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const projectFilter = this.dataset.filterProject;
-                    applyFilter('project', projectFilter);
-                    document.getElementById('filterProjects').textContent = this.textContent.trim();
-                });
-            });
-            
-            // Filtro por prioridade
-            document.querySelectorAll('[data-filter-priority]').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const priorityFilter = this.dataset.filterPriority;
-                    applyFilter('priority', priorityFilter);
-                    document.getElementById('filterPriority').textContent = this.textContent.trim();
-                });
-            });
-            
-            // Filtro por usuário
-            document.querySelectorAll('[data-filter-user]').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const userFilter = this.dataset.filterUser;
-                    applyFilter('user', userFilter);
-                    document.getElementById('filterUsers').textContent = this.textContent.trim();
-                });
-            });
-            
-            // Limpar filtros
-            document.getElementById('clearFilters').addEventListener('click', function() {
-                currentFilters = {
-                    project: 'all',
-                    priority: 'all',
-                    user: 'all',
-                    visibility: currentFilters.visibility
-                };
-                applyAllFilters();
-                // Resetar textos dos dropdowns
-                document.getElementById('filterProjects').innerHTML = '<i class="fas fa-folder me-1"></i> Projetos';
-                document.getElementById('filterPriority').innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Prioridade';
-                if (document.getElementById('filterUsers')) {
-                    document.getElementById('filterUsers').innerHTML = '<i class="fas fa-user me-1"></i> Usuário';
-                }
-            });
-            
-            // Aplicar filtros ao carregar a página
-            applyAllFilters();
-        }
-        
-        // Função para aplicar um filtro específico
-        function applyFilter(filterType, value) {
-            currentFilters[filterType] = value;
-            applyAllFilters();
-        }
-        
-        // Função para aplicar todos os filtros
-        function applyAllFilters() {
-            const cards = document.querySelectorAll('.kanban-card');
-            
-            cards.forEach(card => {
-                // Começa assumindo que o card deve ser visível
-                let isVisible = true;
-                
-                // Filtro de projeto
-                if (currentFilters.project !== 'all') {
-                    if (currentFilters.project === 'none') {
-                        isVisible = isVisible && (!card.dataset.cardProject || card.dataset.cardProject === 'none');
-                    } else {
-                        isVisible = isVisible && (card.dataset.cardProject === currentFilters.project);
-                    }
-                }
-                
-                // Filtro de prioridade
-                if (currentFilters.priority !== 'all') {
-                    isVisible = isVisible && (card.dataset.cardPriority === currentFilters.priority);
-                }
-                
-                // Filtro de usuário
-                if (currentFilters.user !== 'all') {
-                    isVisible = isVisible && (card.dataset.cardUser === currentFilters.user);
-                }
-                
-                // Aplicar a visibilidade
-                card.style.display = isVisible ? 'block' : 'none';
-            });
-            
-            // Atualizar os contadores das colunas
-            updateColumnCounters();
-        }
-        
-        // Event listeners para editar coluna
-        document.querySelectorAll('[data-bs-target="#editColumnModal"]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const columnId = this.dataset.columnId;
-                const columnName = this.dataset.columnName;
-                const columnColor = this.dataset.columnColor;
-                
-                document.getElementById('editColumnId').value = columnId;
-                document.getElementById('editColumnName').value = columnName;
-                document.getElementById('editColumnColor').value = columnColor;
-                document.getElementById('colorPreview').style.backgroundColor = columnColor;
-            });
-        });
-        
-        // Pré-visualização da cor da coluna
-        document.getElementById('editColumnColor').addEventListener('input', function() {
-            document.getElementById('colorPreview').style.backgroundColor = this.value;
-        });
-        
-        // Event listener para salvar alterações na coluna
-        document.getElementById('updateColumnBtn').addEventListener('click', function() {
-            updateColumn();
-        });
-        
-        function updateColumn() {
-            const form = document.getElementById('editColumnForm');
-            const columnId = document.getElementById('editColumnId').value;
-            
-            // Coletar dados do formulário
-            const formData = {
-                nome: document.getElementById('editColumnName').value,
-                cor: document.getElementById('editColumnColor').value
-            };
-            
-            fetch(`/cambam/column/${columnId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken()
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    // Fechar modal e atualizar a coluna visualmente
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('editColumnModal'));
-                    modal.hide();
-                    showStatus('Coluna atualizada com sucesso!', 'success');
-                    
-                    // Atualizar a aparência da coluna
-                    const column = document.querySelector(`.kanban-column[data-column-id="${columnId}"]`);
-                    column.style.backgroundColor = formData.cor;
-                    column.querySelector('h3').textContent = formData.nome;
-                } else {
-                    showStatus(`Erro ao atualizar coluna: ${data.message}`, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                showStatus(`Erro ao atualizar coluna: ${error.message}`, 'error');
-            });
-        }
-        
-        // Adicione o checkboxe para mostrar/ocultar cards ocultos no topo dos controles
-        const kanbanControls = document.querySelector('.kanban-filters');
-        if (kanbanControls) {
-            const toggleVisibilityHtml = `
-                <div class="form-check form-switch ms-2">
-                    <input class="form-check-input" type="checkbox" id="showHiddenCards">
-                    <label class="form-check-label" for="showHiddenCards">
-                        Mostrar cards ocultos
-                    </label>
-                </div>
-            `;
-            kanbanControls.insertAdjacentHTML('beforeend', toggleVisibilityHtml);
-            
-            // Event listener para o toggle de visibilidade
-            document.getElementById('showHiddenCards').addEventListener('change', function() {
-                const urlParams = new URLSearchParams(window.location.search);
-                
-                if (this.checked) {
-                    urlParams.set('mostrar_ocultos', '1');
-                } else {
-                    urlParams.delete('mostrar_ocultos');
-                }
-                
-                window.location.search = urlParams.toString();
-            });
-            
-            // Se estamos mostrando cards ocultos, marcar o checkbox
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('mostrar_ocultos') === '1') {
-                document.getElementById('showHiddenCards').checked = true;
-            }
-        }
-        
-        // Inicialização do Drag and Drop
-        initDragAndDrop();
-        
-        // Event listeners para adicionar card
-        document.querySelectorAll('.kanban-add-card').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const columnId = this.dataset.columnId;
-                document.getElementById('cardColumn').value = columnId;
-            });
-        });
-        
-        // Event listener para salvar novo card
-        document.getElementById('saveCardBtn').addEventListener('click', function() {
-            saveCard();
-        });
-        
-        // Event listener para duplo clique nos cards
-        document.querySelectorAll('.kanban-card').forEach(card => {
-            card.addEventListener('dblclick', function(e) {
-                if (isDragging) return;  // Evitar ação durante arrasto
-                
-                e.preventDefault();
-                e.stopPropagation();
-                const cardId = this.dataset.cardId;
-                openCardDetails(cardId, false);
-            });
-        });
-        
-        // Event listener para visualizar card (botão)
-        document.querySelectorAll('.view-card').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const cardId = this.dataset.cardId;
-                openCardDetails(cardId, false);
-            });
-        });
-        
-        // Event listener para editar card
-        document.querySelectorAll('.edit-card').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const cardId = this.dataset.cardId;
-                openCardDetails(cardId, true);
-            });
-        });
-        
-        // Event listener para salvar alterações no card
-        document.getElementById('updateCardBtn').addEventListener('click', function() {
-            updateCard();
-        });
-        
-        // Funções
-        
-        function initDragAndDrop() {
-            const cards = document.querySelectorAll('.kanban-card');
-            const dropzones = document.querySelectorAll('.card-dropzone');
-            
-            // Configurar os cards como arrastáveis
-            cards.forEach(card => {
-                card.setAttribute('draggable', true);
-                
-                card.addEventListener('dragstart', function(e) {
-                    // Impedir arrasto se clicou em um botão ou link
-                    if (e.target.closest('.card-actions')) {
-                        e.preventDefault();
-                        return false;
-                    }
-                    
-                    isDragging = true;
-                    draggingCard = this;
-                    dragStartColumn = this.closest('.column-body');
-                    
-                    // Definir dados para transferência
-                    e.dataTransfer.setData('text/plain', this.dataset.cardId);
-                    
-                    // Criar e guardar os dados da altura para o card fantasma
-                    cardHeight = this.offsetHeight;
-                    
-                    // Configurar efeitos visuais após pequeno delay
-                    setTimeout(() => {
-                        this.classList.add('dragging');
-                        if (dragStartColumn) {
-                            dragStartColumn.classList.add('moving-card-indicator');
-                        }
-                    }, 10);
-                });
-                
-                card.addEventListener('dragend', function() {
-                    isDragging = false;
-                    this.classList.remove('dragging');
-                    
-                    // Remover o ghost card se existir
-                    if (ghostCard && ghostCard.parentNode) {
-                        ghostCard.parentNode.removeChild(ghostCard);
-                    }
-                    
-                    // Remover indicadores visuais
-                    if (dragStartColumn) {
-                        dragStartColumn.classList.remove('moving-card-indicator');
-                    }
-                    
-                    dropzones.forEach(dropzone => {
-                        dropzone.classList.remove('highlight');
-                    });
-                    
-                    // Limpar as variáveis
-                    draggingCard = null;
-                    dropTargetColumn = null;
-                    dragStartColumn = null;
-                    cardHeight = null;
-                    ghostCard = null;
-                });
-                
-                // Prevenir que os botões de ação iniciem o drag and drop
-                const actionButtons = card.querySelectorAll('.card-actions button, .card-actions a');
-                actionButtons.forEach(button => {
-                    button.addEventListener('mousedown', e => {
-                        e.stopPropagation();
-                    });
-                });
-            });
-            
-            // Configurar as zonas de soltura
-            dropzones.forEach(dropzone => {
-                dropzone.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    
-                    if (!draggingCard) return;
-                    
-                    this.classList.add('highlight');
-                    dropTargetColumn = this;
-                    
-                    // Posição do ponteiro
-                    const rect = this.getBoundingClientRect();
-                    const y = e.clientY - rect.top;
-                    
-                    // Encontrar o elemento após o qual vamos inserir o card
-                    const afterElement = getDragAfterElement(this, e.clientY);
-                    
-                    // Se existe um ghost card anterior, removê-lo
-                    if (ghostCard && ghostCard.parentNode) {
-                        ghostCard.parentNode.removeChild(ghostCard);
-                    }
-                    
-                    // Criar ghost card para indicação visual
-                    ghostCard = document.createElement('div');
-                    ghostCard.classList.add('kanban-card', 'ghost-card');
-                    ghostCard.style.height = `${cardHeight}px`;
-                    
-                    if (afterElement) {
-                        this.insertBefore(ghostCard, afterElement);
-                    } else {
-                        this.appendChild(ghostCard);
-                    }
-                });
-                
-                dropzone.addEventListener('dragleave', function(e) {
-                    const rect = this.getBoundingClientRect();
-                    // Verificar se o mouse realmente deixou esse elemento
-                    if (
-                        e.clientX < rect.left ||
-                        e.clientX >= rect.right ||
-                        e.clientY < rect.top ||
-                        e.clientY >= rect.bottom
-                    ) {
-                        this.classList.remove('highlight');
-                        
-                        // Remover o ghost card quando sair da zona
-                        if (ghostCard && ghostCard.parentNode === this) {
-                            ghostCard.parentNode.removeChild(ghostCard);
-                            ghostCard = null;
-                        }
-                    }
-                });
-                
-                dropzone.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    
-                    // Obter o card ID do dataTransfer
-                    const cardId = e.dataTransfer.getData('text/plain');
-                    
-                    if (!cardId || !draggingCard) {
-                        return;
-                    }
-                    
-                    const columnId = this.dataset.columnId;
-                    this.classList.remove('highlight');
-                    
-                    // Remover o ghost card
-                    if (ghostCard && ghostCard.parentNode) {
-                        ghostCard.parentNode.removeChild(ghostCard);
-                        ghostCard = null;
-                    }
-                    
-                    // Inserir o card na nova posição
-                    const afterElement = getDragAfterElement(this, e.clientY);
-                    
-                    if (afterElement) {
-                        this.insertBefore(draggingCard, afterElement);
-                    } else {
-                        this.appendChild(draggingCard);
-                    }
-                    
-                    // Calcular nova ordem
-                    const newOrder = Array.from(this.querySelectorAll('.kanban-card:not(.ghost-card)')).indexOf(draggingCard);
-                    
-                    // Mostrar status de movimentação
-                    showStatus('Movendo card... aguarde', 'info');
-                    
-                    // Atualizar no servidor
-                    moveCard(cardId, columnId, newOrder);
-                });
-            });
-        }
-        
-        function getDragAfterElement(container, y) {
-            const draggableElements = [...container.querySelectorAll('.kanban-card:not(.dragging):not(.ghost-card)')];
-            
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset: offset, element: child };
-                } else {
-                    return closest;
-                }
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-        }
-        
-        // Obter CSRF token de forma confiável
-        function getCsrfToken() {
-            return document.querySelector('[name=csrfmiddlewaretoken]') ? 
-                   document.querySelector('[name=csrfmiddlewaretoken]').value : 
-                   '{{ csrf_token }}';
-        }
-        
-        function openCardDetails(cardId, editable) {
-            document.getElementById('editCardId').value = cardId;
-            document.getElementById('editCardContent').innerHTML = `
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Carregando...</span>
-                    </div>
-                </div>
-            `;
-            
-            // Mostrar ou esconder o botão de salvar
-            const updateBtn = document.getElementById('updateCardBtn');
-            if (updateBtn) {
-                updateBtn.style.display = editable ? 'block' : 'none';
-            }
-            
-            // Abrir o modal
-            const modal = new bootstrap.Modal(document.getElementById('editCardModal'));
-            modal.show();
-            
-            // Carregar os detalhes do card com a URL correta e CSRF token
-            fetch(`/cambam/card/${cardId}/`, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': getCsrfToken()
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
-                }
-                return response.text();
-            })
-            .then(html => {
-                document.getElementById('editCardContent').innerHTML = html;
-                
-                // Desabilitar campos se não for editável
-                if (!editable) {
-                    const form = document.getElementById('editCardForm');
-                    if (form) {
-                        form.querySelectorAll('input, textarea, select').forEach(el => {
-                            el.setAttribute('disabled', 'disabled');
-                        });
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao carregar detalhes do card:', error);
-                document.getElementById('editCardContent').innerHTML = `
-                    <div class="alert alert-danger">
-                        <strong>Erro ao carregar detalhes:</strong> ${error.message}
-                    </div>
-                `;
-            });
-        }
-        
-        function moveCard(cardId, columnId, newOrder) {
-            showStatus('Movendo card... aguarde', 'info');
-            
-            fetch('/cambam/card/move/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken()
-                },
-                body: JSON.stringify({
-                    card_id: cardId,
-                    coluna_id: columnId,
-                    ordem: newOrder
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    updateColumnCounters();
-                    showStatus('Card movido com sucesso!', 'success');
-                } else {
-                    showStatus(`Erro ao mover card: ${data.message}`, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao mover card:', error);
-                showStatus(`Erro ao mover card: ${error.message}`, 'error');
-            });
-        }
-        
-        function updateCard() {
-            const form = document.getElementById('editCardForm');
-            const cardId = document.getElementById('editCardId').value;
-            
-            // Coletar dados do formulário
-            const formData = new FormData(form);
-            const data = {};
-            
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
-            
-            // Adicionar explicitamente o estado do checkbox de visibilidade
-            const visibleCheckbox = document.getElementById('editCardVisible');
-            if (visibleCheckbox) {
-                data.visivel = visibleCheckbox.checked;
-            }
-            
-            // Coletar membros
-            if (document.querySelectorAll('input[name="membros"]').length > 0) {
-                const membros_ids = [];
-                document.querySelectorAll('input[name="membros"]:checked').forEach(checkbox => {
-                    membros_ids.push(checkbox.value);
-                });
-                data.membros_ids = membros_ids;
-            }
-            
-            fetch(`/cambam/card/${cardId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken()
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    // Fechar modal e recarregar a página
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('editCardModal'));
-                    modal.hide();
-                    showStatus('Card atualizado com sucesso!', 'success');
-                    setTimeout(() => window.location.reload(), 1000);
-                } else {
-                    showStatus(`Erro ao atualizar card: ${data.message}`, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao atualizar card:', error);
-                showStatus(`Erro ao atualizar card: ${error.message}`, 'error');
-            });
-        }
-        
-        function saveCard() {
-            showStatus('Salvando card... aguarde', 'info');
-            
-            const form = document.getElementById('addCardForm');
-            const formData = new FormData(form);
-            
-            // Coletar membros
-            const membros = [];
-            document.querySelectorAll('input[name="membros"]:checked').forEach(checkbox => {
-                membros.push(checkbox.value);
-            });
-            
-            const data = {
-                titulo: formData.get('titulo'),
-                descricao: formData.get('descricao'),
-                coluna: formData.get('coluna'),
-                projeto: formData.get('projeto') || null,
-                prioridade: formData.get('prioridade'),
-                membros: membros
-            };
-            
-            fetch('/cambam/card/add/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken()
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    // Fechar modal e recarregar a página para mostrar o novo card
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('addCardModal'));
-                    modal.hide();
-                    form.reset();
-                    showStatus('Card adicionado com sucesso!', 'success');
-                    setTimeout(() => window.location.reload(), 1000);
-                } else {
-                    showStatus(`Erro ao criar card: ${data.message}`, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao salvar card:', error);
-                showStatus(`Erro ao salvar card: ${error.message}`, 'error');
-            });
-        }
-        
-        function updateColumnCounters() {
-            document.querySelectorAll('.kanban-column').forEach(column => {
-                const visibleCards = column.querySelectorAll('.kanban-card:not([style*="display: none"])').length;
-                column.querySelector('.column-count').textContent = visibleCards;
-                
-                // Animação para enfatizar a mudança
-                const countEl = column.querySelector('.column-count');
-                countEl.classList.add('bg-primary', 'text-white');
-                setTimeout(() => countEl.classList.remove('bg-primary', 'text-white'), 1000);
-            });
-        }
-        
-        function showStatus(message, type) {
-            const statusIndicator = document.getElementById('statusIndicator');
-            const statusMessage = document.getElementById('statusMessage');
-            
-            statusIndicator.classList.remove('d-none', 'alert-info', 'alert-success', 'alert-danger');
-            
-            switch(type) {
-                case 'success':
-                    statusIndicator.classList.add('alert-success');
-                    break;
-                case 'error':
-                    statusIndicator.classList.add('alert-danger');
-                    break;
-                case 'info':
-                default:
-                    statusIndicator.classList.add('alert-info');
-            }
-            
-            statusMessage.textContent = message;
-            
-            if (type !== 'info') {
-                setTimeout(() => {
-                    if (!statusIndicator.classList.contains('d-none')) {
-                        statusIndicator.classList.add('d-none');
-                    }
-                }, 3000);
-            }
-        }
-        
-        // Adicionar CSRF token para todas as requisições AJAX
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]') ? 
-                         document.querySelector('[name=csrfmiddlewaretoken]').value : 
-                         '{{ csrf_token }}';
+document.addEventListener('DOMContentLoaded', function () {
+  // ── Variables ──
+  let draggingCard = null;
+  let deleteTarget = null;
+  let deleteType = null;
+  let dropTargetColumn = null;
+  let dragStartColumn = null;
+  let cardHeight = null;
+  let ghostCard = null;
+  let isDragging = false;
+  let currentFilters = { project:'all', priority:'all', user:'all' };
 
-        // Event listener para excluir card
-        document.querySelectorAll('.delete-card').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const cardId = this.dataset.cardId;
-                showDeleteConfirmation('card', cardId, 'este card');
-            });
-        });
-        
-        // Adicionar event listener para excluir coluna
-        document.querySelectorAll('.delete-column').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const columnId = this.dataset.columnId;
-                showDeleteConfirmation('column', columnId, 'esta coluna');
-            });
-        });
-        
-        // Function to show delete confirmation modal
-        function showDeleteConfirmation(type, id, message) {
-            deleteType = type;
-            deleteTarget = id;
-            
-            document.getElementById('confirmDeleteMessage').textContent = 
-                `Tem certeza que deseja excluir ${message}? Esta ação não pode ser desfeita.`;
-            
-            const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-            modal.show();
-        }
-        
-        // Event listener para confirmação de exclusão
-        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-            if (deleteType === 'card') {
-                deleteCard(deleteTarget);
-            } else if (deleteType === 'column') {
-                deleteColumn(deleteTarget);
-            }
-        });
+  // ── Init ──
+  initFilters();
+  initDragAndDrop();
+  initCardEvents();
+  initColumnEvents();
+  initToggleHidden();
 
-        function deleteCard(cardId) {
-            fetch(`/cambam/card/${cardId}/delete/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCsrfToken()
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    // Fechar modal e remover card do DOM
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
-                    modal.hide();
-                    
-                    const card = document.querySelector(`.kanban-card[data-card-id="${cardId}"]`);
-                    if (card) {
-                        card.remove();
-                        updateColumnCounters();
-                        showStatus('Card removido com sucesso!', 'success');
-                    } else {
-                        window.location.reload();
-                    }
-                } else {
-                    showStatus(`Erro ao excluir card: ${data.message}`, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao excluir card:', error);
-                showStatus(`Erro ao excluir card: ${error.message}`, 'error');
-            });
-        }
-        
-        // Adicionar função para excluir coluna
-        function deleteColumn(columnId) {
-            fetch(`/cambam/column/${columnId}/delete/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCsrfToken()
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    // Fechar modal de confirmação
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
-                    modal.hide();
-                    
-                    // Remover a coluna do DOM ou recarregar a página
-                    const column = document.querySelector(`.kanban-column[data-column-id="${columnId}"]`);
-                    if (column) {
-                        column.remove();
-                        showStatus('Coluna removida com sucesso!', 'success');
-                    } else {
-                        window.location.reload();
-                    }
-                } else {
-                    showStatus(`Erro ao excluir coluna: ${data.message}`, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao excluir coluna:', error);
-                showStatus(`Erro ao excluir coluna: ${error.message}`, 'error');
-            });
-        }
+  // ═══════════════════════════════════
+  //  CSRF Helper
+  // ═══════════════════════════════════
+  function getCsrfToken() {
+    const el = document.querySelector('[name=csrfmiddlewaretoken]');
+    return el ? el.value : '{{ csrf_token }}';
+  }
+
+  // ═══════════════════════════════════
+  //  Toast Notification
+  // ═══════════════════════════════════
+  function showToast(message, type) {
+    const toast = document.getElementById('kbToast');
+    const icon = document.getElementById('kbToastIcon');
+    const msg = document.getElementById('kbToastMsg');
+    toast.className = 'kb-toast show ' + type;
+    msg.textContent = message;
+    icon.className = 'fas ' + (type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : 'fa-info-circle');
+    if (type !== 'info') {
+      setTimeout(() => { toast.classList.remove('show'); }, 3500);
+    }
+  }
+
+  // ═══════════════════════════════════
+  //  FILTERS
+  // ═══════════════════════════════════
+  function initFilters() {
+    document.querySelectorAll('[data-filter-project]').forEach(link => {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        currentFilters.project = this.dataset.filterProject;
+        document.getElementById('filterProjects').innerHTML = '<i class="fas fa-folder me-1"></i> ' + this.textContent.trim();
+        applyAllFilters();
+      });
     });
-</script>
+    document.querySelectorAll('[data-filter-priority]').forEach(link => {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        currentFilters.priority = this.dataset.filterPriority;
+        document.getElementById('filterPriority').innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> ' + this.textContent.trim();
+        applyAllFilters();
+      });
+    });
+    document.querySelectorAll('[data-filter-user]').forEach(link => {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        currentFilters.user = this.dataset.filterUser;
+        const btn = document.getElementById('filterUsers');
+        if (btn) btn.innerHTML = '<i class="fas fa-user me-1"></i> ' + this.textContent.trim();
+        applyAllFilters();
+      });
+    });
+    document.getElementById('clearFilters').addEventListener('click', function () {
+      currentFilters = { project:'all', priority:'all', user:'all' };
+      document.getElementById('filterProjects').innerHTML = '<i class="fas fa-folder me-1"></i> Projetos';
+      document.getElementById('filterPriority').innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Prioridade';
+      const ubtn = document.getElementById('filterUsers');
+      if (ubtn) ubtn.innerHTML = '<i class="fas fa-user me-1"></i> Usuário';
+      applyAllFilters();
+    });
+    applyAllFilters();
+  }
 
-<!-- Adicionar CSRF token para AJAX -->
+  function applyAllFilters() {
+    document.querySelectorAll('.kb-card:not(.ghost-card)').forEach(card => {
+      let vis = true;
+      if (currentFilters.project !== 'all') {
+        vis = currentFilters.project === 'none'
+          ? (!card.dataset.cardProject || card.dataset.cardProject === 'none')
+          : card.dataset.cardProject === currentFilters.project;
+      }
+      if (vis && currentFilters.priority !== 'all') vis = card.dataset.cardPriority === currentFilters.priority;
+      if (vis && currentFilters.user !== 'all') vis = card.dataset.cardUser === currentFilters.user;
+      card.style.display = vis ? 'block' : 'none';
+    });
+    updateColumnCounters();
+  }
+
+  function updateColumnCounters() {
+    document.querySelectorAll('.kb-column').forEach(col => {
+      const count = col.querySelectorAll('.kb-card:not(.ghost-card):not([style*="display: none"])').length;
+      const el = col.querySelector('.column-count');
+      if (el) {
+        el.textContent = count;
+        el.style.background = 'var(--accent)';
+        el.style.color = '#fff';
+        setTimeout(() => { el.style.background = 'var(--surface-alt)'; el.style.color = 'var(--text-muted)'; }, 800);
+      }
+    });
+  }
+
+  // ═══════════════════════════════════
+  //  DRAG & DROP
+  // ═══════════════════════════════════
+  function initDragAndDrop() {
+    setupCardDraggable(document.querySelectorAll('.kb-card'));
+    setupDropzones(document.querySelectorAll('.card-dropzone'));
+  }
+
+  function setupCardDraggable(cards) {
+    cards.forEach(card => {
+      card.setAttribute('draggable', 'true');
+
+      card.addEventListener('dragstart', function (e) {
+        if (e.target.closest('.kb-card-actions')) { e.preventDefault(); return false; }
+        isDragging = true;
+        draggingCard = this;
+        dragStartColumn = this.closest('.kb-col-body');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', this.dataset.cardId);
+        cardHeight = this.offsetHeight;
+        setTimeout(() => {
+          this.classList.add('dragging');
+        }, 0);
+      });
+
+      card.addEventListener('dragend', function () {
+        isDragging = false;
+        this.classList.remove('dragging');
+        cleanupGhost();
+        document.querySelectorAll('.card-dropzone').forEach(dz => dz.classList.remove('highlight'));
+        draggingCard = null; dropTargetColumn = null; dragStartColumn = null; cardHeight = null;
+      });
+
+      card.querySelectorAll('.kb-card-actions button, .kb-card-actions a').forEach(btn => {
+        btn.addEventListener('mousedown', e => e.stopPropagation());
+      });
+    });
+  }
+
+  function setupDropzones(dropzones) {
+    dropzones.forEach(dropzone => {
+      dropzone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (!draggingCard) return;
+        this.classList.add('highlight');
+        dropTargetColumn = this;
+
+        // Position ghost card
+        const afterEl = getDragAfterElement(this, e.clientY);
+        if (!ghostCard) {
+          ghostCard = document.createElement('div');
+          ghostCard.classList.add('kb-card', 'ghost-card');
+          ghostCard.style.height = (cardHeight || 60) + 'px';
+        }
+        if (afterEl) {
+          if (ghostCard.nextSibling !== afterEl) this.insertBefore(ghostCard, afterEl);
+        } else {
+          if (ghostCard.parentNode !== this || ghostCard.nextSibling) this.appendChild(ghostCard);
+        }
+      });
+
+      dropzone.addEventListener('dragleave', function (e) {
+        // Only remove highlight if leaving the actual dropzone bounds
+        const rect = this.getBoundingClientRect();
+        if (e.clientX <= rect.left || e.clientX >= rect.right || e.clientY <= rect.top || e.clientY >= rect.bottom) {
+          this.classList.remove('highlight');
+          if (ghostCard && ghostCard.parentNode === this) { this.removeChild(ghostCard); ghostCard = null; }
+        }
+      });
+
+      dropzone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const cardId = e.dataTransfer.getData('text/plain');
+        if (!cardId || !draggingCard) return;
+
+        const columnId = this.dataset.columnId;
+        const sourceColumn = dragStartColumn;
+
+        this.classList.remove('highlight');
+        cleanupGhost();
+
+        // Remove empty placeholder from target
+        const targetEmpty = this.querySelector('.kb-empty-col');
+        if (targetEmpty) targetEmpty.remove();
+
+        // Move the actual card element in the DOM
+        const afterEl = getDragAfterElement(this, e.clientY);
+        if (afterEl) {
+          this.insertBefore(draggingCard, afterEl);
+        } else {
+          this.appendChild(draggingCard);
+        }
+
+        // Show empty placeholder in source if no cards left
+        if (sourceColumn && sourceColumn !== this) {
+          const remainingCards = sourceColumn.querySelectorAll('.kb-card:not(.ghost-card)');
+          if (remainingCards.length === 0) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'kb-empty-col';
+            emptyDiv.innerHTML = '<i class="fas fa-inbox"></i> Arraste um card para cá';
+            sourceColumn.appendChild(emptyDiv);
+          }
+        }
+
+        // Calculate new order
+        const newOrder = Array.from(this.querySelectorAll('.kb-card:not(.ghost-card)')).indexOf(draggingCard);
+        updateColumnCounters();
+        showToast('Movendo card...', 'info');
+        moveCard(cardId, columnId, newOrder);
+      });
+    });
+  }
+
+  function cleanupGhost() {
+    if (ghostCard && ghostCard.parentNode) {
+      ghostCard.parentNode.removeChild(ghostCard);
+    }
+    ghostCard = null;
+  }
+
+  function getDragAfterElement(container, y) {
+    const els = [...container.querySelectorAll('.kb-card:not(.dragging):not(.ghost-card)')];
+    return els.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      return (offset < 0 && offset > closest.offset) ? { offset, element: child } : closest;
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
+
+  // ═══════════════════════════════════
+  //  CARD CRUD
+  // ═══════════════════════════════════
+  function initCardEvents() {
+    // Add card — set column
+    document.querySelectorAll('.kanban-add-card').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.getElementById('cardColumn').value = this.dataset.columnId;
+      });
+    });
+
+    // Save new card
+    document.getElementById('saveCardBtn').addEventListener('click', saveCard);
+
+    // Double-click to view
+    document.querySelectorAll('.kb-card').forEach(card => {
+      card.addEventListener('dblclick', function (e) {
+        if (isDragging) return;
+        e.preventDefault(); e.stopPropagation();
+        openCardDetails(this.dataset.cardId, false);
+      });
+    });
+
+    // View card (btn)
+    document.querySelectorAll('.view-card').forEach(btn => {
+      btn.addEventListener('click', function (e) { e.preventDefault(); openCardDetails(this.dataset.cardId, false); });
+    });
+
+    // Edit card (btn)
+    document.querySelectorAll('.edit-card').forEach(btn => {
+      btn.addEventListener('click', function (e) { e.preventDefault(); openCardDetails(this.dataset.cardId, true); });
+    });
+
+    // Update card
+    document.getElementById('updateCardBtn').addEventListener('click', updateCard);
+
+    // Delete card
+    document.querySelectorAll('.delete-card').forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        showDeleteConfirm('card', this.dataset.cardId, 'este card');
+      });
+    });
+  }
+
+  function openCardDetails(cardId, editable) {
+    document.getElementById('editCardId').value = cardId;
+    document.getElementById('editCardContent').innerHTML = '<div class="text-center py-4"><div class="spinner-border" style="color:var(--accent)" role="status"><span class="visually-hidden">Carregando...</span></div></div>';
+    document.getElementById('updateCardBtn').style.display = editable ? 'inline-block' : 'none';
+    const modal = new bootstrap.Modal(document.getElementById('editCardModal'));
+    modal.show();
+    fetch('/cambam/card/' + cardId + '/', {
+      method: 'GET',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCsrfToken() }
+    })
+    .then(r => { if (!r.ok) throw new Error('Erro ' + r.status); return r.text(); })
+    .then(html => {
+      document.getElementById('editCardContent').innerHTML = html;
+      if (!editable) {
+        document.querySelectorAll('#editCardForm input, #editCardForm textarea, #editCardForm select').forEach(el => el.setAttribute('disabled', 'disabled'));
+      }
+    })
+    .catch(err => {
+      document.getElementById('editCardContent').innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>' + err.message + '</div>';
+    });
+  }
+
+  function saveCard() {
+    showToast('Salvando card...', 'info');
+    const form = document.getElementById('addCardForm');
+    const fd = new FormData(form);
+    const membros = [];
+    form.querySelectorAll('input[name="membros"]:checked').forEach(cb => membros.push(cb.value));
+    const data = {
+      titulo: fd.get('titulo'), descricao: fd.get('descricao'),
+      coluna: fd.get('coluna'), projeto: fd.get('projeto') || null,
+      prioridade: fd.get('prioridade'), membros: membros
+    };
+    fetch('/cambam/card/add/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+      body: JSON.stringify(data)
+    })
+    .then(r => { if (!r.ok) throw new Error('Erro ' + r.status); return r.json(); })
+    .then(d => {
+      if (d.status === 'success') {
+        bootstrap.Modal.getInstance(document.getElementById('addCardModal')).hide();
+        form.reset();
+        showToast('Card criado com sucesso!', 'success');
+        setTimeout(() => location.reload(), 800);
+      } else { showToast('Erro: ' + d.message, 'error'); }
+    })
+    .catch(err => showToast('Erro: ' + err.message, 'error'));
+  }
+
+  function moveCard(cardId, columnId, order) {
+    fetch('/cambam/card/move/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+      body: JSON.stringify({ card_id: cardId, coluna_id: columnId, ordem: order })
+    })
+    .then(r => { if (!r.ok) throw new Error('Erro ' + r.status); return r.json(); })
+    .then(d => {
+      if (d.status === 'success') { updateColumnCounters(); showToast('Card movido!', 'success'); }
+      else showToast('Erro: ' + d.message, 'error');
+    })
+    .catch(err => showToast('Erro: ' + err.message, 'error'));
+  }
+
+  function updateCard() {
+    const form = document.getElementById('editCardForm');
+    const cardId = document.getElementById('editCardId').value;
+    const fd = new FormData(form);
+    const data = {};
+    fd.forEach((v, k) => { data[k] = v; });
+    const visCheck = document.getElementById('editCardVisible');
+    if (visCheck) data.visivel = visCheck.checked;
+    if (document.querySelectorAll('input[name="membros"]').length > 0) {
+      const ids = [];
+      document.querySelectorAll('input[name="membros"]:checked').forEach(cb => ids.push(cb.value));
+      data.membros_ids = ids;
+    }
+    fetch('/cambam/card/' + cardId + '/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+      body: JSON.stringify(data)
+    })
+    .then(r => { if (!r.ok) throw new Error('Erro ' + r.status); return r.json(); })
+    .then(d => {
+      if (d.status === 'success') {
+        bootstrap.Modal.getInstance(document.getElementById('editCardModal')).hide();
+        showToast('Card atualizado!', 'success');
+        setTimeout(() => location.reload(), 800);
+      } else showToast('Erro: ' + d.message, 'error');
+    })
+    .catch(err => showToast('Erro: ' + err.message, 'error'));
+  }
+
+  // ═══════════════════════════════════
+  //  COLUMN CRUD
+  // ═══════════════════════════════════
+  function initColumnEvents() {
+    // Edit column — populate modal
+    document.querySelectorAll('.edit-column').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.getElementById('editColumnId').value = this.dataset.columnId;
+        document.getElementById('editColumnName').value = this.dataset.columnName;
+        document.getElementById('editColumnColor').value = this.dataset.columnColor || '#0B2545';
+        document.getElementById('colorPreview').style.backgroundColor = this.dataset.columnColor || '#0B2545';
+      });
+    });
+
+    // Color preview
+    document.getElementById('editColumnColor').addEventListener('input', function () {
+      document.getElementById('colorPreview').style.backgroundColor = this.value;
+    });
+    const newColColor = document.querySelector('#addColumnForm [name="cor"]');
+    if (newColColor) {
+      newColColor.addEventListener('input', function () {
+        document.getElementById('newColPreview').style.backgroundColor = this.value;
+      });
+    }
+
+    // Save edit column
+    document.getElementById('updateColumnBtn').addEventListener('click', function () {
+      const columnId = document.getElementById('editColumnId').value;
+      const data = { nome: document.getElementById('editColumnName').value, cor: document.getElementById('editColumnColor').value };
+      fetch('/cambam/column/' + columnId + '/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+        body: JSON.stringify(data)
+      })
+      .then(r => { if (!r.ok) throw new Error('Erro ' + r.status); return r.json(); })
+      .then(d => {
+        if (d.status === 'success') {
+          bootstrap.Modal.getInstance(document.getElementById('editColumnModal')).hide();
+          showToast('Coluna atualizada!', 'success');
+          setTimeout(() => location.reload(), 800);
+        } else showToast('Erro: ' + d.message, 'error');
+      })
+      .catch(err => showToast('Erro: ' + err.message, 'error'));
+    });
+
+    // Add column
+    document.getElementById('addColumnBtn').addEventListener('click', function () {
+      const form = document.getElementById('addColumnForm');
+      const fd = new FormData(form);
+      const data = { nome: fd.get('nome'), cor: fd.get('cor') };
+      fetch('/cambam/column/add/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+        body: JSON.stringify(data)
+      })
+      .then(r => { if (!r.ok) throw new Error('Erro ' + r.status); return r.json(); })
+      .then(d => {
+        if (d.status === 'success') {
+          bootstrap.Modal.getInstance(document.getElementById('addColumnModal')).hide();
+          form.reset();
+          showToast('Coluna criada!', 'success');
+          setTimeout(() => location.reload(), 800);
+        } else showToast('Erro: ' + d.message, 'error');
+      })
+      .catch(err => showToast('Erro: ' + err.message, 'error'));
+    });
+
+    // Delete column
+    document.querySelectorAll('.delete-column').forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        showDeleteConfirm('column', this.dataset.columnId, 'esta coluna e todos seus cards');
+      });
+    });
+  }
+
+  // ═══════════════════════════════════
+  //  DELETE CONFIRMATION
+  // ═══════════════════════════════════
+  function showDeleteConfirm(type, id, label) {
+    deleteType = type;
+    deleteTarget = id;
+    document.getElementById('confirmDeleteMessage').textContent = 'Tem certeza que deseja excluir ' + label + '? Esta ação não pode ser desfeita.';
+    new bootstrap.Modal(document.getElementById('confirmDeleteModal')).show();
+  }
+
+  document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+    const url = deleteType === 'card'
+      ? '/cambam/card/' + deleteTarget + '/delete/'
+      : '/cambam/column/' + deleteTarget + '/delete/';
+    fetch(url, { method: 'POST', headers: { 'X-CSRFToken': getCsrfToken() } })
+    .then(r => { if (!r.ok) throw new Error('Erro ' + r.status); return r.json(); })
+    .then(d => {
+      if (d.status === 'success') {
+        bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
+        if (deleteType === 'card') {
+          const card = document.querySelector('.kb-card[data-card-id="' + deleteTarget + '"]');
+          if (card) { card.remove(); updateColumnCounters(); }
+        } else {
+          const col = document.querySelector('.kb-column[data-column-id="' + deleteTarget + '"]');
+          if (col) col.remove();
+        }
+        showToast((deleteType === 'card' ? 'Card' : 'Coluna') + ' removido(a)!', 'success');
+      } else showToast('Erro: ' + d.message, 'error');
+    })
+    .catch(err => showToast('Erro: ' + err.message, 'error'));
+  });
+
+  // ═══════════════════════════════════
+  //  TOGGLE HIDDEN CARDS
+  // ═══════════════════════════════════
+  function initToggleHidden() {
+    const controls = document.querySelector('.kb-filters');
+    if (!controls) return;
+    const html = '<div class="form-check form-switch ms-2 d-flex align-items-center" style="font-size:.85rem">' +
+      '<input class="form-check-input" type="checkbox" id="showHiddenCards" style="cursor:pointer">' +
+      '<label class="form-check-label ms-1" for="showHiddenCards" style="cursor:pointer;color:var(--text-muted)">Mostrar ocultos</label></div>';
+    controls.insertAdjacentHTML('beforeend', html);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mostrar_ocultos') === '1') {
+      document.getElementById('showHiddenCards').checked = true;
+    }
+    document.getElementById('showHiddenCards').addEventListener('change', function () {
+      const p = new URLSearchParams(window.location.search);
+      this.checked ? p.set('mostrar_ocultos', '1') : p.delete('mostrar_ocultos');
+      window.location.search = p.toString();
+    });
+  }
+});
+</script>
 {% csrf_token %}
 {% endblock %}
