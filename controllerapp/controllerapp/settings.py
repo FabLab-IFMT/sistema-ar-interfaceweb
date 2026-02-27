@@ -2,10 +2,13 @@
 
 from pathlib import Path
 import os
-from decouple import config # Usaremos decouple para segredos
+from decouple import AutoConfig # Usaremos decouple para segredos
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Força leitura do .env da pasta do projeto (evita captar .env de outros caminhos)
+config = AutoConfig(search_path=BASE_DIR)
 
 SECRET_KEY = config('SECRET_KEY')
 
