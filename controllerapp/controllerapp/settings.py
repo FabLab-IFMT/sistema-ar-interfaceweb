@@ -14,7 +14,7 @@ SECRET_KEY = config('SECRET_KEY')
 
 # Configurações por ambiente
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='ifmaker.cba.ifmt.edu.br,127.0.0.1,localhost, 200.129.251.66, 10.1.149.18').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='ifmaker.cba.ifmt.edu.br,127.0.0.1,localhost, 200.129.251.66, 200.129.251.66 , 10.1.149.18').split(',')
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS',
     default='https://ifmaker.cba.ifmt.edu.br,http://127.0.0.1,http://localhost,'
