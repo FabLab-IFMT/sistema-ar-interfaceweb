@@ -490,6 +490,8 @@
     transition: all .4s;
   }
   .fl-card-feature:hover .fl-card-icon { background: var(--accent); color: #fff; }
+  .fl-card-icon i { transition: transform .5s ease; }
+  .fl-card-feature:hover .fl-card-icon i { transform: rotateY(360deg); }
   .fl-card-feature h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: .6rem; color: var(--primary); }
   .fl-card-feature p { font-size: .875rem; color: var(--text-muted); line-height: 1.65; flex: 1; }
 
@@ -594,6 +596,7 @@
     content: '';
     position: absolute; inset: 0;
     background: radial-gradient(circle at 20% 50%, rgba(69,196,176,.15) 0%, transparent 60%);
+    pointer-events: none;
   }
   .fl-cta h2 { font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: .8rem; }
   .fl-cta p { font-size: 1.05rem; color: rgba(255,255,255,.8); max-width: 520px; margin: 0 auto; }

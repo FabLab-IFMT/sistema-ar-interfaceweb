@@ -195,8 +195,97 @@
       }
       .fl-btn-register:hover { background: rgba(255,255,255,.2); }
 
-      /* Toast */
-      .toast { opacity: 1; box-shadow: var(--shadow-lg); border: none; border-radius: var(--radius-sm); }
+      /* ===== Custom Notifications ===== */
+      .fl-notify-wrapper {
+        position: fixed; top: 1.5rem; right: 1.5rem;
+        z-index: 1200;
+        display: flex; flex-direction: column; gap: .75rem;
+        pointer-events: none;
+      }
+      .fl-notify {
+        pointer-events: auto;
+        display: flex; align-items: flex-start; gap: .85rem;
+        min-width: 340px; max-width: 440px;
+        padding: 1rem 1.25rem;
+        border-radius: var(--radius);
+        background: var(--white);
+        box-shadow: 0 8px 32px rgba(11,37,69,.15), 0 2px 8px rgba(11,37,69,.08);
+        border-left: 4px solid;
+        position: relative;
+        overflow: hidden;
+        animation: fl-notify-in .4s cubic-bezier(.22,1,.36,1) forwards;
+        opacity: 0;
+        transform: translateX(40px);
+      }
+      .fl-notify.fl-notify-out {
+        animation: fl-notify-out .3s cubic-bezier(.4,0,1,1) forwards;
+      }
+      @keyframes fl-notify-in {
+        to { opacity: 1; transform: translateX(0); }
+      }
+      @keyframes fl-notify-out {
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(40px) scale(.95); }
+      }
+
+      .fl-notify-icon {
+        width: 38px; height: 38px; min-width: 38px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+        margin-top: 2px;
+      }
+      .fl-notify-content { flex: 1; }
+      .fl-notify-title {
+        font-weight: 700; font-size: .9rem;
+        margin-bottom: .15rem; line-height: 1.3;
+      }
+      .fl-notify-msg {
+        font-size: .84rem; color: var(--text-muted);
+        line-height: 1.5; margin: 0;
+      }
+      .fl-notify-close {
+        background: none; border: none; cursor: pointer;
+        color: var(--text-muted); font-size: 1rem;
+        padding: 0; margin: -2px -4px 0 0;
+        opacity: .5; transition: opacity .2s;
+        line-height: 1;
+      }
+      .fl-notify-close:hover { opacity: 1; }
+
+      .fl-notify-progress {
+        position: absolute; bottom: 0; left: 0;
+        height: 3px; border-radius: 0 0 0 var(--radius);
+        animation: fl-notify-timer 5s linear forwards;
+      }
+      @keyframes fl-notify-timer {
+        from { width: 100%; }
+        to { width: 0%; }
+      }
+
+      /* Success */
+      .fl-notify-success { border-left-color: #10B981; }
+      .fl-notify-success .fl-notify-icon { background: rgba(16,185,129,.1); color: #059669; }
+      .fl-notify-success .fl-notify-title { color: #065F46; }
+      .fl-notify-success .fl-notify-progress { background: #10B981; }
+
+      /* Error */
+      .fl-notify-error { border-left-color: #EF4444; }
+      .fl-notify-error .fl-notify-icon { background: rgba(239,68,68,.1); color: #DC2626; }
+      .fl-notify-error .fl-notify-title { color: #991B1B; }
+      .fl-notify-error .fl-notify-progress { background: #EF4444; }
+
+      /* Warning */
+      .fl-notify-warning { border-left-color: #F59E0B; }
+      .fl-notify-warning .fl-notify-icon { background: rgba(245,158,11,.1); color: #D97706; }
+      .fl-notify-warning .fl-notify-title { color: #92400E; }
+      .fl-notify-warning .fl-notify-progress { background: #F59E0B; }
+
+      /* Info */
+      .fl-notify-info { border-left-color: #3B82F6; }
+      .fl-notify-info .fl-notify-icon { background: rgba(59,130,246,.1); color: #2563EB; }
+      .fl-notify-info .fl-notify-title { color: #1E40AF; }
+      .fl-notify-info .fl-notify-progress { background: #3B82F6; }
 
       /* ===== Footer ===== */
       .fl-footer {
@@ -392,17 +481,20 @@
       </div>
     </nav>
 
-    <!-- Toasts -->
-    <div aria-live="polite" aria-atomic="true" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+    <!-- Notificações -->
+    <div class="fl-notify-wrapper" id="fl-notify-wrapper">
       {% if messages %}
         {% for message in messages %}
-          <div class="toast fade show {% if message.tags == 'error' %}bg-danger text-white{% else %}bg-success text-white{% endif %}" role="alert" data-bs-delay="5000">
-            <div class="toast-header {% if message.tags == 'error' %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
-              <strong class="me-auto">{% if message.tags == 'error' %}⚠️ Erro{% else %}✅ Notificação{% endif %}</strong>
-              <small>Agora</small>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Fechar"></button>
+          <div class="fl-notify fl-notify-{% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% else %}success{% endif %}" role="alert">
+            <div class="fl-notify-icon">
+              <i class="fas fa-{% if message.tags == 'error' %}times-circle{% elif message.tags == 'warning' %}exclamation-triangle{% elif message.tags == 'info' %}info-circle{% else %}check-circle{% endif %}"></i>
             </div>
-            <div class="toast-body">{{ message }}</div>
+            <div class="fl-notify-content">
+              <div class="fl-notify-title">{% if message.tags == 'error' %}Erro{% elif message.tags == 'warning' %}Atenção{% elif message.tags == 'info' %}Informação{% else %}Sucesso{% endif %}</div>
+              <p class="fl-notify-msg">{{ message }}</p>
+            </div>
+            <button class="fl-notify-close" onclick="this.closest('.fl-notify').classList.add('fl-notify-out');setTimeout(()=>this.closest('.fl-notify').remove(),300)" aria-label="Fechar">&times;</button>
+            <div class="fl-notify-progress"></div>
           </div>
         {% endfor %}
       {% endif %}
@@ -464,8 +556,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll('.toast').forEach(function (el) {
-          new bootstrap.Toast(el, { autohide: true, delay: 5000 }).show();
+        // Auto-dismiss notifications after 5s
+        document.querySelectorAll('.fl-notify').forEach(function (el) {
+          setTimeout(function() {
+            el.classList.add('fl-notify-out');
+            setTimeout(function() { el.remove(); }, 300);
+          }, 5000);
         });
         var nav = document.querySelector('.fl-navbar');
         window.addEventListener('scroll', function() {
