@@ -239,6 +239,14 @@
                     <span class="text-muted">
                         <i class="far fa-bookmark me-1"></i> {{ resource.category.name }}
                     </span>
+                                                {% if resource.project.imagem and resource.project.imagem.name %}
+                                                <img src="{{ resource.project.imagem.url }}" alt="{{ resource.project.titulo }}" 
+                                                    style="width:60px;height:50px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb"
+                                                    onerror="this.src='https://via.placeholder.com/60x50?text=P'">
+                                                {% else %}
+                                                <img src="https://via.placeholder.com/60x50?text=P" alt="{{ resource.project.titulo }}" 
+                                                    style="width:60px;height:50px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb">
+                                                {% endif %}
                     {% endif %}
                     
                     {% if resource.created_by %}
@@ -389,7 +397,11 @@
                     <div class="comment">
                         <div class="comment-header">
                             <div class="comment-avatar">
-                                <i class="fas fa-user"></i>
+                                {% if comment.user.profile_image %}
+                                <img src="{{ comment.user.profile_image.url }}" alt="{{ comment.user.get_full_name }}" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+                                {% else %}
+                                <span class="avatar-initials">{{ comment.user.first_name|first }}{{ comment.user.last_name|first }}</span>
+                                {% endif %}
                             </div>
                             <div class="comment-user">{{ comment.user.first_name }} {{ comment.user.last_name }}</div>
                             <div class="comment-date">{{ comment.created_at|date:"d/m/Y H:i" }}</div>

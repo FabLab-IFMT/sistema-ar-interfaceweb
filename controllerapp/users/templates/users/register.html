@@ -14,9 +14,9 @@
       <div class="rg-brand-steps">
         <div class="rg-step"><span class="rg-step-num">1</span><span>Preencha o cadastro</span></div>
         <div class="rg-step-line"></div>
-        <div class="rg-step"><span class="rg-step-num">2</span><span>Aguarde aprovação</span></div>
+        <div class="rg-step"><span class="rg-step-num">2</span><span>Confirme o e-mail</span></div>
         <div class="rg-step-line"></div>
-        <div class="rg-step"><span class="rg-step-num">3</span><span>Acesse o sistema</span></div>
+        <div class="rg-step"><span class="rg-step-num">3</span><span>Faça login</span></div>
       </div>
     </div>
     <div class="rg-brand-decor"></div>
@@ -49,11 +49,11 @@
       {% endif %}
 
       <div class="rg-info-banner">
-        <i class="fas fa-shield-alt"></i>
-        <span>Após o registro, sua conta será analisada e aprovada por um administrador.</span>
+        <i class="fas fa-envelope-open-text"></i>
+        <span>Após se registrar, enviaremos um link para confirmar seu e-mail. Só após a confirmação o acesso será liberado.</span>
       </div>
 
-      <form action="{% url 'users:register' %}" method="post" class="rg-form">
+      <form action="{% url 'users:register' %}" method="post" class="rg-form" id="register-form">
         {% csrf_token %}
 
         <!-- Matrícula -->
@@ -149,9 +149,9 @@
           {% endif %}
         </div>
 
-        <button type="submit" class="rg-submit">
-          <span>Criar minha conta</span>
-          <i class="fas fa-arrow-right ms-2"></i>
+        <button type="submit" class="rg-submit" id="rg-submit-btn">
+          <span id="rg-submit-text">Criar minha conta</span>
+          <i class="fas fa-arrow-right ms-2" id="rg-submit-icon"></i>
         </button>
       </form>
 
@@ -189,6 +189,25 @@ function togglePwd(fid,iid){
     el.classList.toggle('pass',ok);
     el.classList.toggle('fail',!ok&&document.getElementById('id_password1').value.length>0);
   }
+})();
+
+// Evita reenvio duplo e dá feedback imediato no submit
+(function(){
+  var form=document.getElementById('register-form');
+  if(!form)return;
+  var btn=document.getElementById('rg-submit-btn');
+  var text=document.getElementById('rg-submit-text');
+  var icon=document.getElementById('rg-submit-icon');
+  form.addEventListener('submit',function(){
+    if(btn){
+      btn.disabled=true;
+      btn.style.opacity='0.8';
+      if(text) text.textContent='Enviando...';
+      if(icon) icon.className='fas fa-spinner fa-spin ms-2';
+      // Reabilita após 8s se a página não tiver navegado (fallback)
+      setTimeout(function(){ if(btn){ btn.disabled=false; btn.style.opacity='1'; if(text) text.textContent='Criar minha conta'; if(icon) icon.className='fas fa-arrow-right ms-2'; } }, 8000);
+    }
+  });
 })();
 </script>
 {% endblock %}

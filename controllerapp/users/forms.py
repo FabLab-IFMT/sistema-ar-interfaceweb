@@ -96,21 +96,28 @@ class ProfileUpdateForm(forms.ModelForm):
         widget=forms.EmailInput(attrs={'class': 'form-control'}),
         help_text="Seu endereço de email para contato."
     )
+
+    profile_image = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        help_text="Foto de perfil (opcional)"
+    )
     
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'email']
+        fields = ['first_name', 'last_name', 'email', 'profile_image']
         labels = {
             'first_name': 'Nome',
             'last_name': 'Sobrenome',
-            'email': 'E-mail'
+            'email': 'E-mail',
+            'profile_image': 'Foto de perfil'
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Adiciona classes Bootstrap aos campos
-        for field_name, field in self.fields.items():
-            field.widget.attrs.update({'class': 'form-control'})
+        for name, field in self.fields.items():
+            css = field.widget.attrs.get('class', '')
+            field.widget.attrs['class'] = (css + ' form-control').strip()
 
 
 class CustomPasswordChangeForm(PasswordChangeForm):

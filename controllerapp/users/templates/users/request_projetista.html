@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+{% block title %}Solicitar título de Projetista{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width:780px;">
+  <div class="card shadow-sm" style="border-radius:14px;border:1px solid #e2e8f0;">
+    <div class="card-body p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h1 class="h4 mb-1">Solicitar título de Projetista</h1>
+          <p class="text-muted mb-0">Explique por que você quer participar ativamente dos projetos.</p>
+        </div>
+        <span class="badge bg-info text-dark">Projetos</span>
+      </div>
+
+      <form method="post" class="mt-2">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="motivation" class="form-label">Motivação (opcional)</label>
+          <textarea id="motivation" name="motivation" rows="4" class="form-control" placeholder="Fale sobre sua experiência ou interesse em projetos."></textarea>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{% url 'users:profile' %}" class="btn btn-outline-secondary">Voltar</a>
+          <button type="submit" class="btn btn-success">Enviar solicitação</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

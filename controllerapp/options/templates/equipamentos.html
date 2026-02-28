@@ -46,7 +46,11 @@
       <div class="col-md-6 col-lg-4 equipment-item" data-status="{{ material.situacao }}">
         <div class="pg-card-equip {% if material.situacao == 'desativado' %}pg-card-disabled{% endif %}">
           <div class="pg-card-equip-img">
+            {% if material.imagem_do_material and material.imagem_do_material.name %}
             <img src="{{ material.imagem_do_material.url }}" alt="{{ material.nome_do_material }}">
+            {% else %}
+            <img src="https://via.placeholder.com/320x220?text=Equip" alt="{{ material.nome_do_material }}">
+            {% endif %}
             <div class="pg-card-equip-badges">
               {% if material.situacao == 'desativado' %}
                 <span class="pg-badge pg-badge-danger">Desativado</span>
@@ -85,14 +89,22 @@
             <div class="modal-body">
               <div class="row g-4">
                 <div class="col-md-5">
+                  {% if material.imagem_do_material and material.imagem_do_material.name %}
                   <img src="{{ material.imagem_do_material.url }}" class="img-fluid pg-modal-img" alt="{{ material.nome_do_material }}">
+                  {% else %}
+                  <img src="https://via.placeholder.com/640x360?text=Equip" class="img-fluid pg-modal-img" alt="{{ material.nome_do_material }}">
+                  {% endif %}
                   {% if material.responsaveis.exists %}
                   <div class="pg-resp-card mt-3">
                     <h6><i class="fas fa-user-cog me-2"></i> Responsáveis</h6>
                     {% for responsavel in material.responsaveis.all %}
                     <div class="pg-resp-item">
                       {% if responsavel.foto %}
+                        {% if responsavel.foto and responsavel.foto.name %}
                         <img src="{{ responsavel.foto.url }}" alt="{{ responsavel.nome }}">
+                        {% else %}
+                        <div class="pg-avatar-fallback"><i class="fas fa-user"></i></div>
+                        {% endif %}
                       {% else %}
                         <div class="pg-resp-avatar">{{ responsavel.nome|slice:":1" }}</div>
                       {% endif %}

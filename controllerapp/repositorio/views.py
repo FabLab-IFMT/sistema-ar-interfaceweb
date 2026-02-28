@@ -25,18 +25,28 @@ def index(request):
     search_query = request.GET.get('q')
     sort_by = request.GET.get('sort', '-created_at')  # Padrão: mais recentes primeiro
     
-    # Busca de recursos
+    user_is_researcher = hasattr(request.user, "has_role") and request.user.has_role("pesquisador")
+
+    # Busca de recursos considerando cargos
     if request.user.is_superuser:
-        # Superusuários veem todos os recursos
         resources = Resource.objects.all()
-    else:
-        # Usuários normais veem apenas recursos públicos e os que têm permissão
-        # Corrigindo o problema aqui - não podemos usar condições booleanas diretas
+    elif request.user.is_staff:
         resources = Resource.objects.filter(
-            # Recursos públicos OU recursos onde o usuário é membro do projeto
-            models.Q(visibility='public') | 
-            models.Q(project__responsavel=request.user) |
-            models.Q(project__participantes=request.user)
+            models.Q(visibility='public')
+            | models.Q(visibility='members')
+            | models.Q(visibility='team')
+            | models.Q(project__responsavel=request.user)
+            | models.Q(project__participantes=request.user)
+        ).distinct()
+    elif user_is_researcher:
+        resources = Resource.objects.filter(
+            models.Q(visibility='public') | models.Q(visibility='members')
+        ).distinct()
+    else:
+        resources = Resource.objects.filter(
+            models.Q(visibility='public')
+            | models.Q(project__responsavel=request.user)
+            | models.Q(project__participantes=request.user)
         ).distinct()
     
     # Aplicar filtros adicionais
@@ -83,7 +93,9 @@ def project_resources(request, project_slug):
     project = get_object_or_404(Projeto, slug=project_slug)
     
     # Verificar se o projeto é publicado ou se o usuário tem acesso
-    if not project.publicado and not request.user.is_superuser:
+    user_is_researcher = hasattr(request.user, "has_role") and request.user.has_role("pesquisador")
+
+    if not project.publicado and not (request.user.is_superuser or user_is_researcher):
         if not request.user.is_authenticated or (
             request.user != project.responsavel and
             request.user not in project.participantes.all()
@@ -97,6 +109,10 @@ def project_resources(request, project_slug):
             resources = project.resources.all()
         elif request.user in project.participantes.all():
             # Membros vêem recursos públicos e para membros
+            resources = project.resources.filter(
+                Q(visibility='public') | Q(visibility='members')
+            )
+        elif user_is_researcher:
             resources = project.resources.filter(
                 Q(visibility='public') | Q(visibility='members')
             )

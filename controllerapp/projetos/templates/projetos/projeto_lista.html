@@ -74,7 +74,11 @@
           <div class="col-md-6 col-xl-4">
             <a href="{% url 'projetos:detalhe' projeto.slug %}" class="pg-card-project">
               <div class="pg-card-project-img">
-                <img src="{{ projeto.imagem.url }}" alt="{{ projeto.titulo }}" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto'">
+                {% if projeto.imagem and projeto.imagem.name %}
+                  <img src="{{ projeto.imagem.url }}" alt="{{ projeto.titulo }}" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto'">
+                {% else %}
+                  <img src="https://via.placeholder.com/350x200?text=Projeto" alt="{{ projeto.titulo }}">
+                {% endif %}
                 <span class="pg-status-badge
                   {% if projeto.status == 'concluido' %}st-success{% endif %}
                   {% if projeto.status == 'em_andamento' %}st-primary{% endif %}

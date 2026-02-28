@@ -109,7 +109,7 @@
                 </div>
               </div>
               {% if form.imagem.errors %}<span class="pf-field-error">{{ form.imagem.errors.0 }}</span>{% endif %}
-              {% if form.instance.imagem %}
+              {% if form.instance.imagem and form.instance.imagem.name %}
               <div class="pf-current-image mt-2">
                 <img src="{{ form.instance.imagem.url }}" alt="Imagem atual" style="height:60px;border-radius:var(--radius-sm);border:1px solid var(--border)">
                 <span style="font-size:.78rem;color:var(--text-muted);margin-left:.5rem">Imagem atual</span>

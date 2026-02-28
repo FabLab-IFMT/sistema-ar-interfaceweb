@@ -32,7 +32,11 @@
         <div class="pg-card-service pg-card-featured">
           <div class="pg-card-service-img">
             {% if servico.imagem %}
+              {% if servico.imagem and servico.imagem.name %}
               <img src="{{ servico.imagem.url }}" alt="{{ servico.nome }}">
+              {% else %}
+              <img src="https://via.placeholder.com/320x200?text=Servico" alt="{{ servico.nome }}">
+              {% endif %}
             {% else %}
               <img src="{% static 'images/default-service.jpg' %}" alt="{{ servico.nome }}">
             {% endif %}
@@ -76,7 +80,11 @@
           <div class="pg-card-service">
             <div class="pg-card-service-img">
               {% if servico.imagem %}
+                {% if servico.imagem and servico.imagem.name %}
                 <img src="{{ servico.imagem.url }}" alt="{{ servico.nome }}">
+                {% else %}
+                <img src="https://via.placeholder.com/320x200?text=Servico" alt="{{ servico.nome }}">
+                {% endif %}
               {% else %}
                 <img src="{% static 'images/default-service.jpg' %}" alt="{{ servico.nome }}">
               {% endif %}

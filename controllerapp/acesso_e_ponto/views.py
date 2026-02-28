@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Sum, F, ExpressionWrapper, fields, Q
 from django.db.models.functions import ExtractWeek, ExtractYear
@@ -174,48 +175,9 @@ def check_card_status(request):
 @login_required
 @user_passes_test(is_staff)
 def my_access_history(request):
-    """Exibe o histórico de acessos do usuário logado (apenas staff)"""
-    user = request.user
-    
-    # Obter sessões dos últimos 30 dias
-    last_30_days = timezone.now() - timedelta(days=30)
-    sessions = Session.objects.filter(user=user, entry_time__gte=last_30_days).order_by('-entry_time')
-    
-    # Calcular totais por semana
-    today = timezone.now().date()
-    start_of_week = today - timedelta(days=today.weekday())
-    current_week_sessions = Session.objects.filter(
-        user=user,
-        is_active=False,
-        entry_time__gte=start_of_week
-    )
-    
-    # Horas desta semana
-    week_hours = 0
-    for session in current_week_sessions:
-        if session.duration:
-            week_hours += session.duration.total_seconds() / 3600
-    
-    # Obter requisito de horas semanais
-    try:
-        weekly_req = WeeklyRequiredHours.objects.get(user=user)
-        required_hours = weekly_req.required_hours
-    except WeeklyRequiredHours.DoesNotExist:
-        required_hours = 0
-    
-    # Verificar se há sessão ativa
-    active_session = Session.objects.filter(user=user, is_active=True).first()
-    
-    context = {
-        'sessions': sessions,
-        'week_hours': week_hours,
-        'required_hours': required_hours,
-        'active_session': active_session,
-        'time_remaining': max(0, required_hours - week_hours),
-        'progress_percent': min(100, int((week_hours / required_hours * 100) if required_hours else 100)),
-    }
-    
-    return render(request, 'acesso_e_ponto/my_access_history.html', context)
+    """Historico agora fica no perfil. Redirecionamos para lá."""
+    messages.info(request, "Seu histórico de acessos agora está no seu perfil.")
+    return redirect('users:profile')
 
 @login_required
 @user_passes_test(is_staff)

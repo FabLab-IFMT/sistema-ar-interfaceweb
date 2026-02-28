@@ -152,11 +152,11 @@
     <div class="col-md-4 col-sm-6">
       <a href="{% url 'projetos:projeto_painel' projeto.slug %}" class="gh-project">
         <div class="gh-project-img">
-          {% if projeto.imagem %}
-          <img src="{{ projeto.imagem.url }}" alt="{{ projeto.titulo }}">
-          {% else %}
-          <i class="fas fa-project-diagram gh-proj-placeholder"></i>
-          {% endif %}
+            {% if projeto.imagem and projeto.imagem.name %}
+            <img src="{{ projeto.imagem.url }}" alt="{{ projeto.titulo }}">
+            {% else %}
+            <div class="gh-card-placeholder"><i class="fas fa-image"></i></div>
+            {% endif %}
           <span class="gh-project-status gh-status-{{ projeto.status }}">
             {{ projeto.get_status_display }}
           </span>

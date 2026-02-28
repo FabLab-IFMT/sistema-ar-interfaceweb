@@ -31,7 +31,11 @@
           <div class="col-md-6 col-lg-4">
             <div class="pg-card-news">
               <div class="pg-card-news-img">
+                {% if noticia.imagem and noticia.imagem.name %}
                 <img src="{{ noticia.imagem.url }}" alt="{{ noticia.titulo }}">
+                {% else %}
+                <img src="https://via.placeholder.com/320x200?text=Noticia" alt="{{ noticia.titulo }}">
+                {% endif %}
                 <span class="pg-news-date">{{ noticia.data_publicacao|date:"d/m/Y" }}</span>
                 {% if noticia.destaque %}<span class="pg-news-featured"><i class="fas fa-star me-1"></i> Destaque</span>{% endif %}
               </div>

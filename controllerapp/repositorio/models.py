@@ -134,6 +134,11 @@ class Resource(models.Model):
         # Superusuários podem ver tudo
         if user.is_superuser:
             return True
+
+        # Pesquisadores podem ver recursos públicos e de membros para análise
+        if hasattr(user, "has_role") and user.has_role("pesquisador"):
+            if self.visibility in {'public', 'members'}:
+                return True
             
         # Responsável pelo projeto pode ver tudo do projeto
         if self.project.responsavel == user:

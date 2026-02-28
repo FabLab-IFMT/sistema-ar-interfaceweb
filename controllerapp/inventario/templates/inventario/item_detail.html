@@ -37,7 +37,11 @@
         <!-- Imagem -->
         {% if item.imagem %}
         <div class="iv-detail-img mb-4">
+          {% if item.imagem and item.imagem.name %}
           <img src="{{ item.imagem.url }}" alt="{{ item.nome }}">
+          {% else %}
+          <img src="https://via.placeholder.com/320x220?text=Item" alt="{{ item.nome }}">
+          {% endif %}
         </div>
         {% endif %}
 

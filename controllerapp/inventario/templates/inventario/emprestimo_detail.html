@@ -128,7 +128,11 @@
         <div class="iv-card">
           <div class="iv-card-head"><i class="fas fa-image me-2"></i>Foto do Item</div>
           <div class="iv-card-body" style="text-align:center;padding:1rem">
+            {% if emprestimo.item.imagem and emprestimo.item.imagem.name %}
             <img src="{{ emprestimo.item.imagem.url }}" alt="{{ emprestimo.item.nome }}" class="iv-item-img">
+            {% else %}
+            <img src="https://via.placeholder.com/160x120?text=Item" alt="{{ emprestimo.item.nome }}" class="iv-item-img">
+            {% endif %}
           </div>
         </div>
         {% endif %}

@@ -1,541 +1,397 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}Perfil do Usuário{% endblock %}
+{% block title %}Perfil{% endblock %}
 
 {% block head %}
 <style>
-    .profile-header {
-        background-color: #f8f9fa;
-        padding: 2rem 0;
-        margin-bottom: 2rem;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
-    
-    .profile-avatar {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        background-color: #007bff;
-        color: #fff;
-        font-size: 3rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 2rem;
-    }
-    
-    .card {
-        border-radius: 10px;
-        border: none;
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
-        margin-bottom: 1.5rem;
-    }
-    
-    .card-header {
-        background-color: #fff;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-        padding: 1rem 1.5rem;
-    }
-    
-    .nav-tabs {
-        border-bottom: none;
-    }
-    
-    .nav-tabs .nav-link {
-        border: none;
-        border-bottom: 2px solid transparent;
-        color: #6c757d;
-    }
-    
-    .nav-tabs .nav-link.active {
-        border-color: #007bff;
-        color: #007bff;
-        background-color: transparent;
-    }
-    
-    .project-card {
-        transition: transform 0.3s;
-        height: 100%;
-    }
-    
-    .project-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    .notification-item {
-        transition: all 0.2s;
-        border-left: 3px solid transparent;
-    }
-    
-    .notification-item:hover {
-        background-color: rgba(0,0,0,0.02);
-    }
-    
-    .notification-unread {
-        border-left-color: #007bff;
-        background-color: rgba(0, 123, 255, 0.05);
-    }
-    
-    .badge-status {
-        padding: 0.5rem 0.8rem;
-    }
-    
-    .progress {
-        height: 0.8rem;
-        border-radius: 0.8rem;
-    }
+  .profile-hero {
+    background: linear-gradient(135deg, #0b2545, #134074, #13678a);
+    color: #fff;
+    padding: 48px 0 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .profile-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 20%, rgba(69,196,176,.15), transparent 35%),
+                radial-gradient(circle at 80% 0%, rgba(255,255,255,.08), transparent 30%);
+    pointer-events: none;
+  }
+  .avatar-badge {
+    width: 92px;
+    height: 92px;
+    border-radius: 28px;
+    background: rgba(255,255,255,.08);
+    display: grid;
+    place-items: center;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    border: 1px solid rgba(255,255,255,.16);
+    box-shadow: 0 12px 32px rgba(0,0,0,.12);
+  }
+  .avatar-photo { width:92px; height:92px; border-radius:28px; object-fit:cover; border:2px solid rgba(255,255,255,.35); box-shadow:0 12px 32px rgba(0,0,0,.12); background:#fff; }
+  .avatar-wrap { position:relative; width:92px; height:92px; }
+  .avatar-edit {
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.35);
+    color:#fff;
+    border-radius:28px;
+    opacity:0;
+    transition:opacity .2s ease;
+    cursor:pointer;
+    font-size:1rem;
+  }
+  .avatar-wrap:hover .avatar-edit { opacity:1; }
+  .avatar-input { display:none; }
+  .glass-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 12px 40px rgba(11,37,69,.12);
+  }
+  .stat-chip {
+    background: #f5f7fb;
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+  }
+  .xp-bar {
+    height: 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.25);
+    overflow: hidden;
+  }
+  .xp-bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #45c4b0, #8be9c7);
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .35rem .75rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    font-weight: 600;
+    font-size: .9rem;
+  }
+  .role-chip {
+    display: inline-block;
+    background: #eef2ff;
+    color: #4338ca;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-weight: 600;
+    font-size: .85rem;
+    border: 1px solid #e0e7ff;
+  }
+  .role-chip.role-projetista { background:#ecfdf3; color:#166534; border-color:#bbf7d0; }
+  .role-chip.role-pending { background:#fffbeb; color:#92400e; border-color:#fcd34d; }
+  .role-chip.role-cta { background:#eef2ff; color:#4338ca; border-color:#c7d2fe; text-decoration:none; }
+  .mini-card {
+    border-radius: 14px;
+    border: 1px solid #edf1f7;
+    padding: 18px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(11,37,69,.06);
+  }
+  .timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #13678a;
+    margin-top: 6px;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Header Section -->
-<section class="profile-header">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-                <div class="profile-avatar">
-                    {{ user.first_name|first }}{{ user.last_name|first }}
-                </div>
-                <div>
-                    <h1>{{ user.first_name }} {{ user.last_name }}</h1>
-                    {% if is_staff %}
-                        <span class="badge bg-primary">Membro da Equipe</span>
-                    {% else %}
-                        <span class="badge bg-secondary">Usuário</span>
-                    {% endif %}
-                </div>
-            </div>
-            {% if is_owner %}
-                <div>
-                    <a href="{% url 'users:edit_profile' %}" class="btn btn-outline-primary">
-                        <i class="fas fa-user-edit me-2"></i>Editar Perfil
-                    </a>
-                    <a href="{% url 'users:change_password' %}" class="btn btn-outline-secondary ms-2">
-                        <i class="fas fa-key me-2"></i>Alterar Senha
-                    </a>
-                </div>
-            {% endif %}
+<section class="profile-hero">
+  <div class="container position-relative" style="z-index:1;">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-8 d-flex align-items-center gap-4">
+        <div class="avatar-wrap">
+          {% if profile_user.profile_image and profile_user.profile_image.name %}
+            <img src="{{ profile_user.profile_image.url }}" alt="Foto de perfil" class="avatar-photo">
+          {% else %}
+            <div class="avatar-badge text-uppercase">{{ profile_user.first_name|first }}{{ profile_user.last_name|first }}</div>
+          {% endif %}
+          {% if is_self %}
+          <form method="post" action="" enctype="multipart/form-data" class="avatar-edit" title="Alterar foto">
+            {% csrf_token %}
+            <label class="w-100 h-100 d-flex align-items-center justify-content-center mb-0" style="cursor:pointer;">
+              <i class="fas fa-pen"></i>
+              <input class="avatar-input" type="file" name="profile_image" accept="image/*" onchange="this.form.submit();">
+            </label>
+          </form>
+          {% endif %}
         </div>
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+            <h1 class="h3 mb-0">{{ profile_user.first_name }} {{ profile_user.last_name }}</h1>
+            {% if profile_user.is_superuser %}
+              <span class="pill"><i class="fas fa-crown"></i> Admin</span>
+            {% elif profile_user.is_staff %}
+              <span class="pill"><i class="fas fa-shield-alt"></i> Equipe</span>
+            {% else %}
+              <span class="pill" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#dbeafe;"><i class="fas fa-user"></i> Membro</span>
+            {% endif %}
+            {% if projectist_status == 'aprovado' %}
+              <span class="role-chip role-projetista"><i class="fas fa-hammer me-1"></i>Projetista</span>
+            {% elif projectist_status == 'pendente' and is_self %}
+              <span class="role-chip role-pending"><i class="fas fa-hourglass-half me-1"></i>Projetista pendente</span>
+            {% elif projectist_status == 'disponivel' and is_self %}
+              <a class="role-chip role-cta" href="{% url 'users:request_projectist' %}"><i class="fas fa-plus me-1"></i>Pedir título</a>
+            {% endif %}
+            {% for role in profile_user.roles.all %}
+              <span class="role-chip"><i class="fas fa-tag me-1"></i>{{ role.name }}</span>
+            {% endfor %}
+          </div>
+          <div class="text-white-75 mb-2">Matrícula {{ profile_user.id }} · {{ profile_user.email }}</div>
+          {% if not profile_user.roles.all %}
+            <div class="d-flex flex-wrap gap-2 mt-2"><span class="role-chip" style="opacity:.7;">Sem cargos atribuídos</span></div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="glass-card p-3" style="background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.2);">
+          {% with p=projetos|length kc=kanban_cards|length ev=eventos|length %}
+          <div class="d-flex justify-content-between align-items-center mb-2 text-white-75">
+            <span>Horas semanais</span>
+            <strong>{{ week_hours|floatformat:1 }}h / {{ required_hours|default:0 }}h</strong>
+          </div>
+          <div class="xp-bar mb-2"><span style="width: {{ progress_percent|default:0 }}%;"></span></div>
+          <div class="d-flex justify-content-between text-white-75 small">
+            {% if required_hours %}
+              <span>Restam {{ time_remaining|floatformat:1 }}h</span>
+              <span>{{ progress_percent|default:0 }}% da meta</span>
+            {% else %}
+              <span>Meta semanal não definida</span>
+            {% endif %}
+          </div>
+          {% endwith %}
+        </div>
+      </div>
     </div>
+  </div>
 </section>
 
-<div class="container mb-5">
-    <!-- Tabs para diferentes seções -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <ul class="nav nav-tabs" id="profileTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info-tab-pane" type="button" role="tab" aria-controls="info-tab-pane" aria-selected="true">
-                        <i class="fas fa-user me-2"></i>Informações
-                    </button>
-                </li>
-                {% if is_staff %}
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects-tab-pane" type="button" role="tab" aria-controls="projects-tab-pane" aria-selected="false">
-                        <i class="fas fa-project-diagram me-2"></i>Projetos
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="services-tab" data-bs-toggle="tab" data-bs-target="#services-tab-pane" type="button" role="tab" aria-controls="services-tab-pane" aria-selected="false">
-                        <i class="fas fa-tools me-2"></i>Serviços
-                    </button>
-                </li>
-                {% endif %}
-                {% if is_owner %}
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications-tab-pane" type="button" role="tab" aria-controls="notifications-tab-pane" aria-selected="false">
-                        <i class="fas fa-bell me-2"></i>Notificações
-                        <span class="badge bg-danger rounded-pill">3</span>
-                    </button>
-                </li>
-                {% endif %}
-                {% if is_owner or is_staff %}
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity-tab-pane" type="button" role="tab" aria-controls="activity-tab-pane" aria-selected="false">
-                        <i class="fas fa-chart-line me-2"></i>Atividade
-                    </button>
-                </li>
-                {% endif %}
-            </ul>
+<div class="container py-5">
+   <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="mini-card">
+        <div class="text-muted small">Projetos</div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="h4 mb-0">{{ projetos|length|default:0 }}</span>
+          <i class="fas fa-diagram-project text-primary"></i>
         </div>
-        <div class="card-body">
-            <div class="tab-content" id="profileTabsContent">
-                <!-- Aba de Informações -->
-                <div class="tab-pane fade show active" id="info-tab-pane" role="tabpanel" aria-labelledby="info-tab" tabindex="0">
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <h4 class="mb-4">Informações Pessoais</h4>
-                            <div class="mb-3">
-                                <label class="fw-bold">Nome:</label>
-                                <p>{{ user.first_name }} {{ user.last_name }}</p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="fw-bold">Email:</label>
-                                <p>{{ user.email }}</p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="fw-bold">Matrícula:</label>
-                                <p>{{ user.id }}</p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="fw-bold">Data de Registro:</label>
-                                <p>{{ user.date_joined|date:"d/m/Y" }}</p>
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <h4 class="mb-4">Acesso</h4>
-                            
-                            <!-- Status de Acesso (se tiver sistema de ponto) -->
-                            {% if is_staff %}
-                            <div class="card bg-light mb-3">
-                                <div class="card-body">
-                                    <h5 class="card-title">Status de Acesso</h5>
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span>Progresso Semanal</span>
-                                            <span>65%</span>
-                                        </div>
-                                        <div class="progress">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: 65%" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                        <small class="text-muted">13h de 20h concluídas esta semana</small>
-                                    </div>
-                                    <a href="{% url 'acesso_e_ponto:my_access_history' %}" class="btn btn-sm btn-primary">Ver Histórico Completo</a>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Nível de Acesso -->
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Nível de Acesso</h5>
-                                    {% if user.is_superuser %}
-                                        <span class="badge bg-danger mb-2">Administrador</span>
-                                        <p class="text-muted small">Acesso completo ao sistema e funções administrativas.</p>
-                                    {% elif user.is_staff %}
-                                        <span class="badge bg-primary mb-2">Membro da Equipe</span>
-                                        <p class="text-muted small">Acesso a recursos restritos e gerenciamento de conteúdo.</p>
-                                    {% else %}
-                                        <span class="badge bg-secondary mb-2">Usuário</span>
-                                        <p class="text-muted small">Acesso a recursos básicos do sistema.</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Aba de Projetos (Apenas para membros da equipe) -->
-                {% if is_staff %}
-                <div class="tab-pane fade" id="projects-tab-pane" role="tabpanel" aria-labelledby="projects-tab" tabindex="0">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4>Meus Projetos</h4>
-                        <a href="{% url 'projetos:lista' %}" class="btn btn-sm btn-primary">
-                            <i class="fas fa-plus me-1"></i> Ver Todos
-                        </a>
-                    </div>
-                    
-                    <div class="row g-3">
-                        {% if projetos %}
-                            {% for projeto in projetos %}
-                                <div class="col-md-6">
-                                    <div class="card project-card h-100">
-                                        {% if projeto.imagem %}
-                                            <img src="{{ projeto.imagem.url }}" class="card-img-top" alt="{{ projeto.titulo }}">
-                                        {% else %}
-                                            <div class="bg-light text-center py-4">
-                                                <i class="fas fa-project-diagram fa-3x text-muted"></i>
-                                            </div>
-                                        {% endif %}
-                                        <div class="card-body">
-                                            <h5 class="card-title">{{ projeto.titulo }}</h5>
-                                            <p class="card-text text-muted">{{ projeto.descricao|truncatewords:20 }}</p>
-                                            
-                                            <div class="mb-3">
-                                                <span class="badge bg-{{ projeto.status_color }}">{{ projeto.status_display }}</span>
-                                                <small class="text-muted ms-2">Atualizado em {{ projeto.updated_at|date:"d/m/Y" }}</small>
-                                            </div>
-                                        </div>
-                                        <div class="card-footer bg-white">
-                                            <a href="{% url 'projetos:detalhe' projeto.slug %}" class="btn btn-sm btn-outline-primary">Ver Detalhes</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="col-12">
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    Você ainda não está vinculado a nenhum projeto.
-                                </div>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Aba de Serviços (Apenas para membros da equipe) -->
-                <div class="tab-pane fade" id="services-tab-pane" role="tabpanel" aria-labelledby="services-tab" tabindex="0">
-                    <h4 class="mb-4">Meus Serviços</h4>
-                    
-                    <div class="card mb-4">
-                        <div class="card-header bg-white">
-                            <h5 class="mb-0">Serviços Atribuídos</h5>
-                        </div>
-                        <div class="card-body">
-                            {% if servicos %}
-                                <div class="table-responsive">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Serviço</th>
-                                                <th>Solicitante</th>
-                                                <th>Data</th>
-                                                <th>Status</th>
-                                                <th>Ações</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for servico in servicos %}
-                                                <tr>
-                                                    <td>{{ servico.nome }}</td>
-                                                    <td>{{ servico.solicitante }}</td>
-                                                    <td>{{ servico.data|date:"d/m/Y" }}</td>
-                                                    <td>
-                                                        <span class="badge badge-status bg-{{ servico.status_color }}">
-                                                            {{ servico.status_display }}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <a href="#" class="btn btn-sm btn-outline-primary">Ver</a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% else %}
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    Você não tem serviços atribuídos no momento.
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header bg-white">
-                            <h5 class="mb-0">Equipamentos Responsável</h5>
-                        </div>
-                        <div class="card-body">
-                            {% if equipamentos %}
-                                <div class="row row-cols-1 row-cols-md-2 g-3">
-                                    {% for equip in equipamentos %}
-                                        <div class="col">
-                                            <div class="card h-100">
-                                                {% if equip.imagem %}
-                                                    <img src="{{ equip.imagem.url }}" class="card-img-top" alt="{{ equip.nome }}">
-                                                {% endif %}
-                                                <div class="card-body">
-                                                    <h5 class="card-title">{{ equip.nome }}</h5>
-                                                    <p class="card-text text-muted small">{{ equip.descricao|truncatewords:10 }}</p>
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <span class="badge bg-{{ equip.status_color }}">{{ equip.status_display }}</span>
-                                                        <a href="#" class="btn btn-sm btn-outline-primary">Gerenciar</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    Você não é responsável por nenhum equipamento.
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-                
-                <!-- Aba de Notificações (Apenas para o próprio usuário) -->
-                {% if is_owner %}
-                <div class="tab-pane fade" id="notifications-tab-pane" role="tabpanel" aria-labelledby="notifications-tab" tabindex="0">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4>Minhas Notificações</h4>
-                        <button class="btn btn-sm btn-outline-primary" id="markAllAsRead">
-                            <i class="fas fa-check-double me-1"></i> Marcar Todas como Lidas
-                        </button>
-                    </div>
-                    
-                    <div class="list-group">
-                        <div class="list-group-item notification-item notification-unread p-3">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h6 class="mb-1">Solicitação de Agendamento Aprovada</h6>
-                                    <p class="mb-1 text-muted small">Sua solicitação de acesso à impressora 3D foi aprovada para 15/05/2025.</p>
-                                </div>
-                                <div class="text-end">
-                                    <small class="text-muted">Há 2 horas</small>
-                                    <div>
-                                        <span class="badge bg-success">Nova</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="list-group-item notification-item notification-unread p-3">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h6 class="mb-1">Devolução de Material Pendente</h6>
-                                    <p class="mb-1 text-muted small">O prazo para devolução do kit Arduino expira em 2 dias.</p>
-                                </div>
-                                <div class="text-end">
-                                    <small class="text-muted">Há 1 dia</small>
-                                    <div>
-                                        <span class="badge bg-warning text-dark">Alerta</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="list-group-item notification-item notification-unread p-3">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h6 class="mb-1">Novo Workshop Disponível</h6>
-                                    <p class="mb-1 text-muted small">Workshop de Introdução à Robótica será realizado no dia 20/05/2025.</p>
-                                </div>
-                                <div class="text-end">
-                                    <small class="text-muted">Há 3 dias</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="list-group-item notification-item p-3">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h6 class="mb-1">Material Emprestado</h6>
-                                    <p class="mb-1 text-muted small">Você retirou 2 unidades de Filamento PLA no dia 01/05/2025.</p>
-                                </div>
-                                <div class="text-end">
-                                    <small class="text-muted">Há 1 semana</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="list-group-item notification-item p-3">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h6 class="mb-1">Conta Aprovada</h6>
-                                    <p class="mb-1 text-muted small">Sua conta foi aprovada por um administrador. Bem-vindo ao FabLab!</p>
-                                </div>
-                                <div class="text-end">
-                                    <small class="text-muted">Há 1 mês</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-                
-                <!-- Aba de Atividades (Para o próprio usuário ou staff) -->
-                {% if is_owner or is_staff %}
-                <div class="tab-pane fade" id="activity-tab-pane" role="tabpanel" aria-labelledby="activity-tab" tabindex="0">
-                    <h4 class="mb-4">Histórico de Atividades</h4>
-                    
-                    <div class="card mb-4">
-                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Registros de Acesso</h5>
-                            <a href="{% url 'acesso_e_ponto:my_access_history' %}" class="btn btn-sm btn-outline-primary">Ver Todos</a>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="list-group list-group-flush">
-                                {% if acessos %}
-                                    {% for acesso in acessos %}
-                                        <div class="list-group-item">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <p class="mb-1">{{ acesso.tipo_display }}</p>
-                                                    <small class="text-muted">{{ acesso.data|date:"d/m/Y H:i" }}</small>
-                                                </div>
-                                                <span class="badge bg-{{ acesso.tipo_color }}">{{ acesso.duracao }}</span>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <div class="list-group-item text-center py-4">
-                                        <div class="text-muted">Nenhum registro de acesso encontrado.</div>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header bg-white">
-                            <h5 class="mb-0">Uso de Equipamentos</h5>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Equipamento</th>
-                                            <th>Data</th>
-                                            <th>Duração</th>
-                                            <th>Projeto</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% if equipamento_usos %}
-                                            {% for uso in equipamento_usos %}
-                                                <tr>
-                                                    <td>{{ uso.equipamento }}</td>
-                                                    <td>{{ uso.data|date:"d/m/Y" }}</td>
-                                                    <td>{{ uso.duracao }}</td>
-                                                    <td>{{ uso.projeto|default:"N/A" }}</td>
-                                                </tr>
-                                            {% endfor %}
-                                        {% else %}
-                                            <tr>
-                                                <td colspan="4" class="text-center py-3 text-muted">Nenhum registro de uso de equipamentos.</td>
-                                            </tr>
-                                        {% endif %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
+        <small class="text-muted">Ativos e participando</small>
+      </div>
     </div>
-</div>
+    <div class="col-6 col-lg-3">
+      <div class="mini-card">
+        <div class="text-muted small">Cards Kanban</div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="h4 mb-0">{{ kanban_cards|length|default:0 }}</span>
+          <i class="fas fa-columns text-info"></i>
+        </div>
+        <small class="text-muted">Tarefas atribuídas</small>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="mini-card">
+        <div class="text-muted small">Eventos</div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="h4 mb-0">{{ eventos|length|default:0 }}</span>
+          <i class="fas fa-calendar-check text-success"></i>
+        </div>
+        <small class="text-muted">Próximos compromissos</small>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="mini-card">
+        <div class="text-muted small">Empréstimos</div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="h4 mb-0">{{ emprestimos_ativos|length|default:0 }}</span>
+          <i class="fas fa-box text-warning"></i>
+        </div>
+        <small class="text-muted">Materiais em uso</small>
+      </div>
+    </div>
+  </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inicializar tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-        
-        // Marcar todas as notificações como lidas
-        const markAllButton = document.getElementById('markAllAsRead');
-        if (markAllButton) {
-            markAllButton.addEventListener('click', function() {
-                const unreadItems = document.querySelectorAll('.notification-unread');
-                unreadItems.forEach(item => {
-                    item.classList.remove('notification-unread');
-                    const badgeEl = item.querySelector('.badge.bg-success');
-                    if (badgeEl) {
-                        badgeEl.remove();
-                    }
-                });
-            });
-        }
-    });
-</script>
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="glass-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="mb-1">Missões recentes</h5>
+            <div class="text-muted small">Cards Kanban e projetos onde você está atuando</div>
+          </div>
+          <a href="{% url 'projetos:lista' %}" class="btn btn-sm btn-outline-primary">Ver projetos</a>
+        </div>
+        <div class="list-group list-group-flush">
+          {% if kanban_cards %}
+            {% for card in kanban_cards|slice:':4' %}
+            <div class="list-group-item d-flex align-items-start gap-3">
+              <div class="timeline-dot"></div>
+              <div>
+                <div class="fw-semibold">{{ card.titulo|default:"Card" }}</div>
+                <div class="text-muted small">{% if card.projeto %}Projeto {{ card.projeto }}{% else %}Kanban{% endif %}</div>
+              </div>
+              <span class="badge bg-light text-dark ms-auto">Kanban</span>
+            </div>
+            {% endfor %}
+          {% elif projetos %}
+            {% for projeto in projetos|slice:':4' %}
+            <div class="list-group-item d-flex align-items-start gap-3">
+              <div class="timeline-dot"></div>
+              <div>
+                <div class="fw-semibold">{{ projeto.titulo }}</div>
+                <div class="text-muted small">{{ projeto.descricao|default:"Projeto"|truncatewords:12 }}</div>
+              </div>
+              <span class="badge bg-primary-subtle text-primary ms-auto">Projeto</span>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-muted text-center py-3">Sem missões registradas ainda.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="glass-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="mb-1">Ponto e horas da semana</h5>
+            <div class="text-muted small">Acompanhamento do sistema de ponto</div>
+          </div>
+          {% if active_session %}
+            <span class="badge bg-success">Sessão ativa</span>
+          {% else %}
+            <span class="badge bg-secondary">Sem sessão</span>
+          {% endif %}
+        </div>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>Acumulado</span>
+            <span>{{ week_hours|floatformat:1 }}h / {{ required_hours|default:0 }}h</span>
+          </div>
+          <div class="progress" style="height: 10px;">
+            <div class="progress-bar" role="progressbar" style="width: {{ progress_percent|default:0 }}%;" aria-valuenow="{{ progress_percent|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          {% if required_hours %}
+          <div class="small text-muted mt-1">Faltam {{ time_remaining|floatformat:1 }}h para a meta semanal.</div>
+          {% else %}
+          <div class="small text-muted mt-1">Meta semanal não configurada.</div>
+          {% endif %}
+        </div>
+        <div class="list-group list-group-flush">
+          {% if sessoes_recentes %}
+            {% for s in sessoes_recentes %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-semibold">Entrada {{ s.entry_time|date:"d/m H:i" }}</div>
+                  {% if s.exit_time %}
+                    <small class="text-muted">Saída {{ s.exit_time|date:"d/m H:i" }}</small>
+                  {% else %}
+                    <small class="text-warning">Sessão em aberto</small>
+                  {% endif %}
+                </div>
+                {% if s.duration %}
+                  <span class="badge bg-light text-dark">{{ s.duration }}</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="list-group-item text-muted">Nenhum registro recente.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="glass-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="mb-1">Últimos acessos</h5>
+            <div class="text-muted small">Entradas registradas recentemente</div>
+          </div>
+          {% if is_self %}
+          <a href="{% url 'acesso_e_ponto:my_access_history' %}" class="btn btn-sm btn-outline-secondary">Histórico completo</a>
+          {% endif %}
+        </div>
+        <div class="list-group list-group-flush">
+          {% if sessoes_recentes %}
+            {% for s in sessoes_recentes %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-semibold">Entrada em {{ s.entry_time|date:"d/m/Y H:i" }}</div>
+                  {% if s.exit_time %}
+                    <small class="text-muted">Saída {{ s.exit_time|date:"d/m/Y H:i" }}</small>
+                  {% else %}
+                    <small class="text-warning">Sessão aberta</small>
+                  {% endif %}
+                </div>
+                <span class="badge bg-light text-dark">{{ s.localizacao|default:"FabLab" }}</span>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-muted text-center py-3">Nenhuma sessão registrada.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="glass-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">Próximos eventos</h5>
+          <span class="badge bg-primary-subtle text-primary">Agenda</span>
+        </div>
+        {% if eventos %}
+          <div class="list-group list-group-flush">
+            {% for ev in eventos|slice:':4' %}
+              <div class="list-group-item">
+                <div class="fw-semibold">{{ ev.title|default:"Evento" }}</div>
+                <div class="text-muted small">{{ ev.start_time|date:"d/m/Y H:i" }}</div>
+                {% if ev.location %}<small class="text-muted">{{ ev.location }}</small>{% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted">Nenhum evento agendado.</div>
+        {% endif %}
+      </div>
+
+      <div class="glass-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">Inventário em uso</h5>
+          <span class="badge bg-warning text-dark">Empréstimos</span>
+        </div>
+        {% if emprestimos_ativos %}
+          <div class="list-group list-group-flush">
+            {% for emp in emprestimos_ativos|slice:':5' %}
+              <div class="list-group-item">
+                <div class="fw-semibold">{{ emp.item }}</div>
+                <div class="text-muted small">Retirado em {{ emp.data_emprestimo|date:"d/m/Y" }}</div>
+                <small class="text-muted">Responsável: {{ emp.usuario }}</small>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted">Nenhum empréstimo ativo.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

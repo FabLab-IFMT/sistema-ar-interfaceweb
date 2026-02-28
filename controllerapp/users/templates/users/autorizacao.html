@@ -1,43 +1,101 @@
 {% extends 'layout.html' %}
 
-{% block title %}Autorização de Usuários{% endblock %}
+{% block title %}Solicitações de Projetista{% endblock %}
 
 {% block head %}
 <style>
-    .auth-container {
-        max-width: 900px;
+    .auth-shell {
+        max-width: 1100px;
         margin: 0 auto;
     }
+    .auth-hero {
+        background: linear-gradient(120deg, rgba(19,64,116,.12), rgba(19,103,138,.08));
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem 1.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.25rem;
+        box-shadow: 0 10px 30px rgba(11,37,69,.08);
+    }
+    .auth-hero h1 {
+        margin: 0;
+        font-weight: 800;
+        letter-spacing: .01em;
+    }
+    .auth-hero p { margin: .25rem 0 0; color: #475569; }
+    .chip-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .45rem .75rem;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 999px;
+        font-weight: 600;
+        color: #0b2545;
+        box-shadow: 0 4px 12px rgba(11,37,69,.06);
+    }
+    .chip i { color: #13678a; }
+
+    .request-list { margin-top: 1.25rem; display: grid; gap: 1rem; }
     .request-card {
-        margin-bottom: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(11,37,69,.08);
+        overflow: hidden;
     }
     .request-card .card-header {
-        background-color: #f8f9fa;
-        font-weight: bold;
-    }
-    .pending-badge {
-        background-color: #ffc107;
-    }
-    .no-requests {
-        padding: 50px;
-        text-align: center;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        margin: 30px 0;
-    }
-    .actions {
+        background: linear-gradient(90deg, rgba(19,103,138,.08), rgba(69,196,176,.08));
+        border-bottom: 1px solid #e2e8f0;
+        font-weight: 700;
         display: flex;
-        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        padding: .9rem 1.1rem;
     }
+    .request-card .card-body { padding: 1rem 1.1rem 1.05rem; }
+    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: .75rem 1.25rem; }
+    .meta-label { font-size: .8rem; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; margin-bottom: .1rem; }
+    .meta-value { font-weight: 700; color: #0b2545; }
+    .actions { display: flex; gap: .6rem; justify-content: flex-end; flex-wrap: wrap; }
+    .actions form { margin: 0; }
+    .actions button { min-width: 120px; }
+    .pill-pending { background: #f59e0b; color: #fff; border-radius: 999px; padding: .25rem .7rem; font-weight: 700; font-size: .85rem; }
+    .empty-state {
+        padding: 3rem 1.5rem;
+        text-align: center;
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        border-radius: 14px;
+        margin-top: 1.5rem;
+    }
+    .empty-state i { color: #10b981; }
+    .empty-state h3 { margin-top: .75rem; font-weight: 800; color: #0b2545; }
+    .empty-state p { color: #6b7280; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <h1 class="mb-4">Autorização de Novos Usuários</h1>
-    
+<div class="auth-shell">
+    <div class="auth-hero mb-3">
+        <div>
+            <h1 class="h3 mb-1">Solicitações de Título de Projetista</h1>
+            <p class="mb-0">Atribua ou negue participação ativa em projetos.</p>
+            <div class="chip-row mt-3">
+                <span class="chip"><i class="fas fa-hourglass-half"></i>{{ pending_requests|length }} pendente(s)</span>
+                <span class="chip"><i class="fas fa-shield-alt"></i>Gestores de projetos e admins</span>
+            </div>
+        </div>
+        <div class="text-end">
+            <div class="small text-muted">Atualizado em</div>
+            <div class="fw-bold text-primary">{{ now|date:"d/m/Y H:i" }}</div>
+        </div>
+    </div>
+
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
@@ -46,63 +104,59 @@
             </div>
         {% endfor %}
     {% endif %}
-    
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title"><i class="fas fa-info-circle"></i> Sobre a Autorização</h5>
-            <p class="card-text">
-                Aqui você gerencia solicitações de novos usuários. Revise as informações antes de aprovar ou rejeitar o acesso.
-            </p>
-            <p class="mb-0">
-                <span class="badge bg-warning">{{ pending_requests|length }} solicitação(ões) pendente(s)</span>
-            </p>
-        </div>
-    </div>
-    
+
     {% if pending_requests %}
-        {% for request in pending_requests %}
-            <div class="card request-card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>
-                        <i class="fas fa-user-plus me-2"></i>Solicitação #{{ request.id }}
-                    </span>
-                    <span class="badge pending-badge">Pendente</span>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Nome:</strong> {{ request.first_name }} {{ request.last_name }}</p>
-                            <p><strong>Email:</strong> {{ request.email }}</p>
+        <div class="request-list">
+            {% for request in pending_requests %}
+                <div class="request-card">
+                    <div class="card-header">
+                        <span><i class="fas fa-user-plus me-2 text-primary"></i>Solicitação #{{ request.id }}</span>
+                        <span class="pill-pending">Pendente</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="meta-grid">
+                            <div>
+                                <div class="meta-label">Nome</div>
+                                <div class="meta-value">{{ request.user.first_name }} {{ request.user.last_name }}</div>
+                            </div>
+                            <div>
+                                <div class="meta-label">Email</div>
+                                <div class="meta-value">{{ request.user.email }}</div>
+                            </div>
+                            <div>
+                                <div class="meta-label">Matrícula</div>
+                                <div class="meta-value">{{ request.user.id }}</div>
+                            </div>
+                            <div>
+                                <div class="meta-label">Solicitado em</div>
+                                <div class="meta-value">{{ request.created_at|date:"d/m/Y H:i" }}</div>
+                            </div>
+                            {% if request.motivation %}
+                            <div style="grid-column:1 / -1;">
+                                <div class="meta-label">Motivação</div>
+                                <div class="meta-value" style="font-weight:600;color:#475569;">{{ request.motivation }}</div>
+                            </div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-6">
-                            <p><strong>Matrícula:</strong> {{ request.id_number }}</p>
-                            <p><strong>Data de solicitação:</strong> {{ request.created_at|date:"d/m/Y H:i" }}</p>
+                        <div class="actions mt-3">
+                            <form method="post" action="{% url 'users:reject_registration' request.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger"><i class="fas fa-times me-1"></i> Rejeitar</button>
+                            </form>
+                            <form method="post" action="{% url 'users:approve_registration' request.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success"><i class="fas fa-check me-1"></i> Aprovar</button>
+                            </form>
                         </div>
                     </div>
-                    
-                    <div class="d-flex justify-content-end actions mt-3">
-                        <form method="post" action="{% url 'users:reject_registration' request.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-times-circle me-1"></i> Rejeitar
-                            </button>
-                        </form>
-                        
-                        <form method="post" action="{% url 'users:approve_registration' request.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-check-circle me-1"></i> Aprovar
-                            </button>
-                        </form>
-                    </div>
                 </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     {% else %}
-        <div class="no-requests">
-            <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-            <h3>Não há solicitações pendentes</h3>
-            <p class="text-muted">Todas as solicitações de registro foram processadas.</p>
+        <div class="empty-state">
+            <i class="fas fa-check-circle fa-3x"></i>
+            <h3>Sem solicitações pendentes</h3>
+            <p>Você está em dia. Novas autorizações aparecerão aqui.</p>
         </div>
     {% endif %}
 </div>

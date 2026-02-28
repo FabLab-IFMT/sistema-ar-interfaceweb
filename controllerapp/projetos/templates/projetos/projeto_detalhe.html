@@ -66,7 +66,11 @@
       <div class="col-lg-8">
         <!-- Imagem principal -->
         <div class="pd-main-img mb-4">
-          <img src="{{ projeto.imagem.url }}" alt="{{ projeto.titulo }}" onerror="this.src='https://via.placeholder.com/800x400?text=Projeto'">
+          {% if projeto.imagem and projeto.imagem.name %}
+            <img src="{{ projeto.imagem.url }}" alt="{{ projeto.titulo }}" onerror="this.src='https://via.placeholder.com/800x400?text=Projeto'">
+          {% else %}
+            <img src="https://via.placeholder.com/800x400?text=Projeto" alt="{{ projeto.titulo }}">
+          {% endif %}
         </div>
 
         <!-- Descrição -->
@@ -83,10 +87,12 @@
           <h3><i class="fas fa-images me-2"></i> Galeria</h3>
           <div class="pd-gallery">
             {% for imagem in projeto.imagens_adicionais.all %}
+            {% if imagem.imagem and imagem.imagem.name %}
             <a href="{{ imagem.imagem.url }}" class="pd-gallery-item" data-lightbox="project-gallery" data-title="{{ imagem.legenda|default:imagem.titulo }}">
               <img src="{{ imagem.imagem.url }}" alt="{{ imagem.titulo }}">
               <div class="pd-gallery-overlay"><i class="fas fa-expand"></i></div>
             </a>
+            {% endif %}
             {% endfor %}
           </div>
         </div>
@@ -123,8 +129,8 @@
             {% for comentario in comentarios %}
             <div class="pd-comment {% if comentario.destacado %}pd-comment-featured{% endif %}" id="comment-{{ comentario.id }}">
               <div class="pd-comment-avatar">
-                {% if comentario.autor.foto %}
-                  <img src="{{ comentario.autor.foto.url }}" alt="{{ comentario.autor.get_full_name }}">
+                {% if comentario.autor.profile_image %}
+                  <img src="{{ comentario.autor.profile_image.url }}" alt="{{ comentario.autor.get_full_name }}">
                 {% else %}
                   <span>{{ comentario.autor.first_name|first }}{{ comentario.autor.last_name|first }}</span>
                 {% endif %}
@@ -156,8 +162,8 @@
                     {% if resposta.aprovado %}
                     <div class="pd-reply" id="comment-{{ resposta.id }}">
                       <div class="pd-comment-avatar sm">
-                        {% if resposta.autor.foto %}
-                          <img src="{{ resposta.autor.foto.url }}" alt="{{ resposta.autor.get_full_name }}">
+                        {% if resposta.autor.profile_image %}
+                          <img src="{{ resposta.autor.profile_image.url }}" alt="{{ resposta.autor.get_full_name }}">
                         {% else %}
                           <span>{{ resposta.autor.first_name|first }}{{ resposta.autor.last_name|first }}</span>
                         {% endif %}
@@ -234,7 +240,13 @@
             <h5><i class="fas fa-project-diagram me-2"></i> Relacionados</h5>
             {% for rel in projetos_relacionados %}
             <a href="{% url 'projetos:detalhe' rel.slug %}" class="pd-related-item">
-              <div class="pd-related-img"><img src="{{ rel.imagem.url }}" alt="{{ rel.titulo }}" onerror="this.src='https://via.placeholder.com/60x45?text=P'"></div>
+              <div class="pd-related-img">
+                {% if rel.imagem and rel.imagem.name %}
+                  <img src="{{ rel.imagem.url }}" alt="{{ rel.titulo }}" onerror="this.src='https://via.placeholder.com/60x45?text=P'">
+                {% else %}
+                  <img src="https://via.placeholder.com/60x45?text=P" alt="{{ rel.titulo }}">
+                {% endif %}
+              </div>
               <div class="pd-related-info">
                 <span>{{ rel.titulo|truncatechars:45 }}</span>
                 <small>{{ rel.get_status_display }}</small>

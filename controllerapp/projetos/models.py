@@ -71,10 +71,21 @@ class Projeto(models.Model):
     
     def __str__(self):
         return self.titulo
+
+    def _generate_unique_slug(self):
+        base_slug = slugify(self.slug or self.titulo)
+        slug_candidate = base_slug
+        counter = 1
+        while Projeto.objects.filter(slug=slug_candidate).exclude(pk=self.pk).exists():
+            slug_candidate = f"{base_slug}-{counter}"
+            counter += 1
+        return slug_candidate
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.titulo)
+            self.slug = self._generate_unique_slug()
+        elif Projeto.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+            self.slug = self._generate_unique_slug()
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):

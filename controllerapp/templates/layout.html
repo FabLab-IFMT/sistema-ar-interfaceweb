@@ -434,25 +434,26 @@
             <li class="nav-item"><a class="nav-link" href="{% url 'Controle_ar:automacao_home' %}"><i class="fas fa-robot me-1"></i> Automação</a></li>
             {% endif %}
 
-            {% if user.is_authenticated and user.is_superuser %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'users:pending_registrations' %}">
-                <i class="fas fa-user-check me-1"></i> Autorizações
-                {% if registration_pending_count > 0 %}
-                  <span class="fl-badge fl-badge-warn fl-badge-blink ms-1">{{ registration_pending_count }}</span>
-                {% endif %}
-              </a>
-            </li>
-            {% endif %}
           </ul>
 
           <div class="d-flex align-items-center gap-2">
             {% if user.is_authenticated %}
               <div class="dropdown">
-                <div class="fl-user-toggle dropdown-toggle" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                  <span class="fl-user-avatar">{{ user.first_name|first }}{{ user.last_name|first }}</span>
+                <div class="fl-user-toggle dropdown-toggle position-relative" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                  {% if user.profile_image and user.profile_image.name %}
+                    <span class="fl-user-avatar" style="padding:0;border-radius:50%;overflow:hidden;border:1px solid rgba(255,255,255,.3);">
+                      <img src="{{ user.profile_image.url }}" alt="Avatar" style="width:32px;height:32px;object-fit:cover;display:block;">
+                    </span>
+                  {% else %}
+                    <span class="fl-user-avatar">{{ user.first_name|first }}{{ user.last_name|first }}</span>
+                  {% endif %}
                   <span class="d-none d-md-inline">{{ user.first_name }}</span>
                   {% if user.is_staff %}<i class="fas fa-shield-alt ms-1" style="color:var(--accent-light);font-size:.7rem" title="Admin"></i>{% endif %}
+                  {% if registration_pending_count > 0 and user.is_project_manager %}
+                    <span class="fl-badge fl-badge-warn fl-badge-blink" style="position:absolute; top:-4px; right:-6px; font-size:.65rem; padding:.25em .45em" aria-label="{{ registration_pending_count }} autorizações pendentes">
+                      {{ registration_pending_count }}
+                    </span>
+                  {% endif %}
                 </div>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu" style="border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow-lg)">
                   <li><a class="dropdown-item" href="{% url 'users:profile' %}"><i class="fas fa-user me-2 text-muted"></i> Meu Perfil</a></li>
@@ -460,8 +461,19 @@
                   {% if user.is_staff %}
                   <li><a class="dropdown-item" href="{% url 'acesso_e_ponto:my_access_history' %}"><i class="fas fa-history me-2 text-muted"></i> Histórico de Acessos</a></li>
                   {% endif %}
-                  {% if user.is_superuser or user.acesso_gestao.tem_acesso %}
+                  {% if user.is_superuser or user.acesso_gestao.tem_acesso or user.is_project_manager %}
                   <li><a class="dropdown-item" href="{% url 'gestao:dashboard' %}"><i class="fas fa-cogs me-2 text-muted"></i> Área de Gestão</a></li>
+                  {% if user.is_superuser %}
+                  <li><a class="dropdown-item" href="{% url 'users:manage_roles' %}"><i class="fas fa-user-shield me-2 text-muted"></i> Gestão de Cargos</a></li>
+                  <li>
+                    <a class="dropdown-item d-flex align-items-center justify-content-between" href="{% url 'users:pending_registrations' %}">
+                      <span><i class="fas fa-user-check me-2 text-muted"></i> Autorizações</span>
+                      {% if registration_pending_count > 0 %}
+                        <span class="fl-badge fl-badge-warn fl-badge-blink">{{ registration_pending_count }}</span>
+                      {% endif %}
+                    </a>
+                  </li>
+                  {% endif %}
                   {% endif %}
                   <li><hr class="dropdown-divider"></li>
                   <li>

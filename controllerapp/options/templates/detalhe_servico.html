@@ -138,7 +138,7 @@
 
 {% block content %}
 <!-- Service Header -->
-<section class="service-header mb-5" style="background-image: url('{% if servico.imagem %}{{ servico.imagem.url }}{% else %}{% static "images/default-service.jpg" %}{% endif %}');">
+<section class="service-header mb-5" style="background-image: url('{% if servico.imagem and servico.imagem.name %}{{ servico.imagem.url }}{% else %}{% static "images/default-service.jpg" %}{% endif %}');">
   <div class="container service-header-content">
     <div class="row">
       <div class="col-lg-8">
@@ -271,7 +271,11 @@
               {% for exemplo in servico.exemplos.all %}
                 <div class="col-md-4 mb-4">
                   <div class="card shadow-sm">
+                    {% if exemplo.imagem and exemplo.imagem.name %}
                     <img src="{{ exemplo.imagem.url }}" class="example-img card-img-top" alt="{{ exemplo.titulo }}">
+                    {% else %}
+                    <img src="https://via.placeholder.com/320x200?text=Serviço" class="example-img card-img-top" alt="{{ exemplo.titulo }}">
+                    {% endif %}
                     <div class="card-body">
                       <h5 class="card-title">{{ exemplo.titulo }}</h5>
                       <p class="card-text small">{{ exemplo.descricao|truncatechars:100 }}</p>
@@ -420,7 +424,11 @@
             <a href="{% url 'options:detalhe_servico' sr.id %}" class="list-group-item list-group-item-action">
               <div class="d-flex align-items-center">
                 {% if sr.imagem %}
+                {% if sr.imagem and sr.imagem.name %}
                 <img src="{{ sr.imagem.url }}" alt="{{ sr.nome }}" style="width: 50px; height: 50px; object-fit: cover;" class="rounded me-3">
+                {% else %}
+                <img src="https://via.placeholder.com/50?text=S" alt="{{ sr.nome }}" style="width: 50px; height: 50px; object-fit: cover;" class="rounded me-3">
+                {% endif %}
                 {% else %}
                 <img src="{% static 'images/default-service.jpg' %}" alt="{{ sr.nome }}" style="width: 50px; height: 50px; object-fit: cover;" class="rounded me-3">
                 {% endif %}

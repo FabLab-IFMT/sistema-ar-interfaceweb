@@ -24,7 +24,11 @@
         {% for image in carousel_images %}
           <div class="carousel-item {% if forloop.first %}active{% endif %}">
             {% if image.link %}<a href="{{ image.link }}">{% endif %}
+              {% if image.image and image.image.name %}
               <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ image.caption|default:'FabLab IFMT' }}">
+              {% else %}
+              <img src="https://via.placeholder.com/1200x480?text=FabLab" class="d-block w-100" alt="FabLab IFMT">
+              {% endif %}
             {% if image.link %}</a>{% endif %}
             {% if image.caption or image.description %}
               <div class="carousel-caption d-none d-md-block">
@@ -152,7 +156,11 @@
             <a href="{% url 'projetos:detalhe' projeto.slug %}" class="fl-card-project">
               <div class="fl-card-project-img">
                 {% if projeto.imagem %}
+                {% if projeto.imagem and projeto.imagem.name %}
                 <img src="{{ projeto.imagem.url }}" alt="{{ projeto.titulo }}" onerror="this.src='https://via.placeholder.com/350x200?text=Projeto'">
+                {% else %}
+                <img src="https://via.placeholder.com/350x200?text=Projeto" alt="{{ projeto.titulo }}">
+                {% endif %}
                 {% else %}
                 <div style="height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--primary),var(--primary-light))"><i class="fas fa-project-diagram" style="font-size:2rem;color:rgba(255,255,255,.4)"></i></div>
                 {% endif %}
@@ -236,7 +244,11 @@
           <div class="col-lg-4 col-md-6">
             <a href="{{ noticia.get_absolute_url }}" class="fl-card-news">
               <div class="fl-card-news-img">
+                {% if noticia.imagem and noticia.imagem.name %}
                 <img src="{{ noticia.imagem.url }}" alt="{{ noticia.titulo }}">
+                {% else %}
+                <img src="https://via.placeholder.com/320x200?text=Noticia" alt="{{ noticia.titulo }}">
+                {% endif %}
                 <span class="fl-news-date">{{ noticia.data_publicacao|date:"d/m/Y" }}</span>
                 {% if noticia.destaque %}<span class="fl-news-featured"><i class="fas fa-star me-1"></i> Destaque</span>{% endif %}
               </div>

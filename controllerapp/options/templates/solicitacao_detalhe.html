@@ -170,14 +170,16 @@
             </div>
           </div>
           
-          {% if solicitacao.arquivo_referencia %}
           <div>
             <h6>Arquivo de Referência</h6>
-            <a href="{{ solicitacao.arquivo_referencia.url }}" class="btn btn-outline-secondary" target="_blank">
-              <i class="fas fa-download me-2"></i>Baixar arquivo
-            </a>
+            {% if solicitacao.arquivo_referencia and solicitacao.arquivo_referencia.name %}
+              <a href="{{ solicitacao.arquivo_referencia.url }}" class="btn btn-outline-secondary" target="_blank">
+                <i class="fas fa-download me-2"></i>Baixar arquivo
+              </a>
+            {% else %}
+              <span class="text-muted">Nenhum arquivo anexado.</span>
+            {% endif %}
           </div>
-          {% endif %}
         </div>
       </div>
       
@@ -189,7 +191,7 @@
         <div class="card-body">
           <div class="row">
             <div class="col-md-4 mb-3 mb-md-0">
-              {% if solicitacao.servico.imagem %}
+              {% if solicitacao.servico.imagem and solicitacao.servico.imagem.name %}
                 <img src="{{ solicitacao.servico.imagem.url }}" alt="{{ solicitacao.servico.nome }}" class="img-fluid rounded">
               {% else %}
                 <img src="{% static 'images/default-service.jpg' %}" alt="{{ solicitacao.servico.nome }}" class="img-fluid rounded">

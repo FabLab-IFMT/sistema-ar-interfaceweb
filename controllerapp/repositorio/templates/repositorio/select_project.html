@@ -87,7 +87,11 @@
                 <div class="project-card">
                     <div class="project-image">
                         {% if project.imagem %}
+                        {% if project.imagem and project.imagem.name %}
                         <img src="{{ project.imagem.url }}" alt="{{ project.titulo }}">
+                        {% else %}
+                        <img src="https://via.placeholder.com/200x120?text=Projeto" alt="{{ project.titulo }}">
+                        {% endif %}
                         {% else %}
                         <div class="project-default-icon">
                             <i class="fas fa-project-diagram"></i>

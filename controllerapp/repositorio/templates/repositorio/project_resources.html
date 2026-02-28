@@ -193,7 +193,11 @@
     <div class="d-flex align-items-center">
       <div class="project-image">
         {% if project.imagem %}
+        {% if project.imagem and project.imagem.name %}
         <img src="{{ project.imagem.url }}" alt="{{ project.titulo }}">
+        {% else %}
+        <img src="https://via.placeholder.com/200x120?text=Projeto" alt="{{ project.titulo }}">
+        {% endif %}
         {% else %}
         <div class="d-flex align-items-center justify-content-center h-100 bg-light">
           <i class="fas fa-project-diagram fa-2x text-secondary"></i>

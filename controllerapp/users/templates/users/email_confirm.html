@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <body style="font-family:Arial,Helvetica,sans-serif;color:#0b2545;">
+    <h2 style="color:#13678a;">Confirmar e-mail</h2>
+    <p>Olá {{ user.first_name }},</p>
+    <p>Obrigado por se registrar no FABLAB IFMT. Clique no botão abaixo para confirmar seu e-mail e ativar sua conta.</p>
+    <p>
+      <a href="{{ confirm_link }}" style="display:inline-block;padding:12px 18px;background:#13678a;color:#fff;text-decoration:none;border-radius:8px;">Confirmar e-mail</a>
+    </p>
+    <p>Se o botão não funcionar, copie e cole este link no navegador:</p>
+    <p><a href="{{ confirm_link }}">{{ confirm_link }}</a></p>
+    <p style="color:#6b7280;font-size:12px;margin-top:18px;">Se você não solicitou este cadastro, ignore este email.</p>
+  </body>
+</html>
