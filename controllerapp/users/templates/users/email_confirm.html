@@ -1,14 +1,71 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-  <body style="font-family:Arial,Helvetica,sans-serif;color:#0b2545;">
-    <h2 style="color:#13678a;">Confirmar e-mail</h2>
-    <p>Olá {{ user.first_name }},</p>
-    <p>Obrigado por se registrar no FABLAB IFMT. Clique no botão abaixo para confirmar seu e-mail e ativar sua conta.</p>
-    <p>
-      <a href="{{ confirm_link }}" style="display:inline-block;padding:12px 18px;background:#13678a;color:#fff;text-decoration:none;border-radius:8px;">Confirmar e-mail</a>
-    </p>
-    <p>Se o botão não funcionar, copie e cole este link no navegador:</p>
-    <p><a href="{{ confirm_link }}">{{ confirm_link }}</a></p>
-    <p style="color:#6b7280;font-size:12px;margin-top:18px;">Se você não solicitou este cadastro, ignore este email.</p>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirme seu e-mail - FabLab IFMT</title>
+</head>
+<body style="margin:0;padding:0;font-family:'Inter',Arial,Helvetica,sans-serif;background:#f5f7fb;color:#0b2545;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f7fb;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table width="620" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background:linear-gradient(135deg,#0B2545 0%,#13678A 50%,#45C4B0 100%);padding:28px 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="64" valign="middle">
+                    <img src="cid:logo_branco.png" alt="FabLab IFMT" width="60" style="display:block;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.25));">
+                  </td>
+                  <td valign="middle" align="right" style="color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.01em;">
+                    Confirme seu e-mail
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:30px 38px 18px 38px;">
+              <p style="font-size:18px;font-weight:600;margin:0 0 12px 0;color:#0b2545;">Olá {{ user.first_name }},</p>
+              <p style="font-size:15px;line-height:1.6;color:#425466;margin:0 0 18px 0;">
+                Seja bem-vindo ao <strong>FabLab IFMT</strong>! Confirme seu e-mail para ativar sua conta e acessar os projetos, equipamentos e serviços.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;">
+                <tr>
+                  <td align="center" style="border-radius:10px;overflow:hidden;background:linear-gradient(135deg,#13678A 0%,#45C4B0 100%);">
+                    <a href="{{ confirm_link }}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-weight:700;text-decoration:none;font-size:15px;letter-spacing:0.2px;">
+                      Confirmar e-mail
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size:14px;line-height:1.6;color:#6b7280;margin:0 0 14px 0;">
+                Se o botão não funcionar, copie e cole este link no navegador:
+              </p>
+              <div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;color:#0b2545;font-size:13px;word-break:break-all;">
+                {{ confirm_link }}
+              </div>
+
+              <div style="margin-top:22px;padding:14px;border-left:4px solid #45C4B0;background:rgba(69,196,176,0.08);border-radius:8px;">
+                <p style="margin:0;color:#0b2545;font-size:14px;line-height:1.5;">
+                  Se você não solicitou este cadastro, ignore este e-mail. Sua conta permanecerá inativa até a confirmação.
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background:#f8fafc;padding:18px 32px;color:#6b7280;font-size:12px;text-align:center;border-top:1px solid #e2e8f0;">
+              <p style="margin:4px 0;">© {{ now|default:"2025" }} FabLab IFMT • Instituto Federal de Mato Grosso</p>
+              <p style="margin:4px 0;">Esta é uma mensagem automática. Por favor, não responda este e-mail.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
 </html>
