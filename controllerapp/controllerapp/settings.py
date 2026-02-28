@@ -146,7 +146,9 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='FabLab <ifmtmaker.fablab.cba@gmail.com>')
 
-# Configuração de Logging para vermos os erros
+# Configuração de Logging (sem travar se não houver permissão de escrita)
+LOG_DIR = BASE_DIR / 'logs'
+os.makedirs(LOG_DIR, exist_ok=True)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -156,7 +158,7 @@ LOGGING = {
         },
         'error_file': {
             'class': 'logging.FileHandler',
-            'filename': str(BASE_DIR / 'error.log'),
+            'filename': str(LOG_DIR / 'error.log'),
             'level': 'ERROR',
         },
     },
