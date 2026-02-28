@@ -124,6 +124,7 @@ USE_TZ = True
 # --- Configuração Definitiva de Arquivos Estáticos e de Mídia ---
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
+SERVE_MEDIA = config('SERVE_MEDIA', default=False, cast=bool)
 
 # Para DESENVOLVIMENTO (runserver com DEBUG=True)
 STATICFILES_DIRS = [

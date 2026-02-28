@@ -29,7 +29,6 @@ urlpatterns = [
     path('gestao/', include('gestao.urls')),
 ]
 
-# Este bloco só será executado quando DEBUG=True (no seu PC)
-# Ele serve para que as imagens de upload apareçam no ambiente de desenvolvimento
-if settings.DEBUG:
+# Serve arquivos de mídia localmente e opcionalmente em produção se SERVE_MEDIA=True
+if settings.DEBUG or getattr(settings, 'SERVE_MEDIA', False):
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
