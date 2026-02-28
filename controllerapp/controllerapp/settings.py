@@ -7,8 +7,10 @@ from decouple import AutoConfig # Usaremos decouple para segredos
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Força leitura do .env da pasta do projeto (evita captar .env de outros caminhos)
-config = AutoConfig(search_path=BASE_DIR)
+# Força leitura do .env preferindo a pasta do projeto; se não existir, tenta o diretório pai (raiz do repo)
+primary_env = BASE_DIR / '.env'
+fallback_env = BASE_DIR.parent / '.env'
+config = AutoConfig(search_path=primary_env.parent if primary_env.exists() else fallback_env.parent)
 
 SECRET_KEY = config('SECRET_KEY')
 
