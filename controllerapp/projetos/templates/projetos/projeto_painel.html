@@ -245,6 +245,11 @@
         </a>
       </li>
       <li class="nav-item">
+        <a class="nav-link {% if aba == 'roadmap' %}active{% endif %}" href="?aba=roadmap">
+          <i class="fas fa-map-signs"></i> Roadmap
+        </a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link {% if aba == 'equipe' %}active{% endif %}" href="?aba=equipe">
           <i class="fas fa-users"></i> Equipe
         </a>
@@ -393,11 +398,11 @@
         <div class="pp-col-header" style="border-top:3px solid {{ coluna.cor|default:'var(--primary)' }}">
           <div class="d-flex align-items-center gap-2">
             <h3 class="pp-col-title">{{ coluna.nome }}</h3>
-            <span class="pp-col-count column-count">{{ coluna.cards_filtrados|length }}</span>
+            <span class="pp-col-count column-count">{{ coluna.cards|length }}</span>
           </div>
         </div>
         <div class="pp-col-body card-dropzone" data-column-id="{{ coluna.id }}">
-          {% for card in coluna.cards_filtrados %}
+          {% for card in coluna.cards %}
           <div class="pp-card {% if not card.visivel %}hidden-card{% endif %}"
                data-card-id="{{ card.id }}"
                data-card-priority="{{ card.prioridade }}"
@@ -427,7 +432,7 @@
           </div>
           {% empty %}
           {% endfor %}
-          {% if not coluna.cards_filtrados %}
+          {% if not coluna.cards %}
           <div class="pp-empty-col">
             <i class="fas fa-inbox"></i>
             Arraste um card para cá
@@ -499,6 +504,71 @@
       </button>
     </div>
     {% endfor %}
+
+    <!-- ═══════════ ABA: ROADMAP ═══════════ -->
+    {% elif aba == 'roadmap' %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <h5 style="font-weight:700;color:var(--text);margin:0"><i class="fas fa-map-signs me-2" style="color:var(--accent)"></i>Roadmap — {{ projeto.titulo }}</h5>
+        <p style="font-size:.82rem;color:var(--text-muted);margin:0">Marcos do projeto. Crie um marco para visualizá-lo na timeline.</p>
+      </div>
+      <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#addMilestoneModal" style="background:var(--accent);color:#fff;border-radius:50px;font-weight:600;padding:.35rem 1rem;font-size:.82rem">
+        <i class="fas fa-plus me-1"></i> Novo marco
+      </button>
+    </div>
+
+    {% if roadmap %}
+    <div class="position-relative py-3" style="--timeline-color:var(--accent)">
+      <div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--border);transform:translateX(-50%);z-index:0"></div>
+      {% for milestone in roadmap %}
+      <div class="row g-0 mb-4 position-relative" style="z-index:1">
+        {% if forloop.counter|divisibleby:2 %}
+        <div class="col-md-5 offset-md-1 pe-md-4">
+          <div class="pp-info-card">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6 class="mb-1" style="font-weight:700;color:var(--text)">{{ milestone.titulo }}</h6>
+              <span class="badge rounded-pill" style="background:var(--accent);color:#fff;font-size:.72rem;white-space:nowrap;margin-left:.5rem">{{ milestone.progresso }}%</span>
+            </div>
+            <div class="mb-2" style="font-size:.8rem;font-weight:600;color:var(--accent)"><i class="fas fa-calendar me-1"></i>{{ milestone.data|date:"d/m/Y" }}</div>
+            {% if milestone.descricao %}<p class="mb-2" style="font-size:.85rem;color:var(--text-muted)">{{ milestone.descricao }}</p>{% endif %}
+            <div class="progress" style="height:6px;border-radius:99px"><div class="progress-bar" style="width:{{ milestone.progresso }}%;background:var(--accent)"></div></div>
+          </div>
+        </div>
+        <div class="col-md-1 d-flex align-items-center justify-content-center">
+          <div style="width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 0 0 2px var(--accent)"></div>
+        </div>
+        <div class="col-md-5"></div>
+        {% else %}
+        <div class="col-md-5"></div>
+        <div class="col-md-1 d-flex align-items-center justify-content-center">
+          <div style="width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 0 0 2px var(--accent)"></div>
+        </div>
+        <div class="col-md-5 ps-md-4">
+          <div class="pp-info-card">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6 class="mb-1" style="font-weight:700;color:var(--text)">{{ milestone.titulo }}</h6>
+              <span class="badge rounded-pill" style="background:var(--accent);color:#fff;font-size:.72rem;white-space:nowrap;margin-left:.5rem">{{ milestone.progresso }}%</span>
+            </div>
+            <div class="mb-2" style="font-size:.8rem;font-weight:600;color:var(--accent)"><i class="fas fa-calendar me-1"></i>{{ milestone.data|date:"d/m/Y" }}</div>
+            {% if milestone.descricao %}<p class="mb-2" style="font-size:.85rem;color:var(--text-muted)">{{ milestone.descricao }}</p>{% endif %}
+            <div class="progress" style="height:6px;border-radius:99px"><div class="progress-bar" style="width:{{ milestone.progresso }}%;background:var(--accent)"></div></div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5" style="background:var(--white);border:2px dashed var(--border);border-radius:var(--radius)">
+      <i class="fas fa-route d-block mb-3" style="font-size:3rem;color:var(--border)"></i>
+      <h5 style="color:var(--text);font-weight:700">Nenhum marco no roadmap</h5>
+      <p class="text-muted mb-3">Clique em "Novo marco" e defina título, data e progresso para visualizar a timeline.</p>
+      <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#addMilestoneModal" style="background:var(--accent);color:#fff;border-radius:50px;font-weight:600;padding:.4rem 1.25rem">
+        <i class="fas fa-plus me-1"></i> Criar primeiro marco
+      </button>
+    </div>
+    {% endif %}
 
     <!-- ═══════════ ABA: EQUIPE ═══════════ -->
     {% elif aba == 'equipe' %}
@@ -674,6 +744,44 @@
         <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancelar</button>
         <button type="button" class="btn btn-danger-custom" id="confirmDeleteBtn"><i class="fas fa-trash me-1"></i>Excluir</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Novo Marco -->
+<div class="modal fade pp-modal" id="addMilestoneModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-map-signs me-2"></i>Novo Marco</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="?aba=roadmap">
+        {% csrf_token %}
+        <input type="hidden" name="acao" value="criar_marco">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Título <span class="text-danger">*</span></label>
+            <input type="text" name="titulo" class="form-control" required maxlength="200">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Data <span class="text-danger">*</span></label>
+            <input type="date" name="data" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descrição</label>
+            <textarea name="descricao" class="form-control" rows="3" placeholder="Detalhes do marco"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Progresso (%)</label>
+            <input type="number" name="progresso" class="form-control" min="0" max="100" value="0">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-save"><i class="fas fa-check me-1"></i>Salvar Marco</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

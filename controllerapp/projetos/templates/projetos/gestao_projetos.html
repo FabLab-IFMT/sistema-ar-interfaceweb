@@ -1,169 +1,58 @@
 {% extends 'layout.html' %}
 {% load static %}
+    <div class="tab-pane fade" id="kanban" role="tabpanel">
+      <div class="kanban-board">
+        {% if colunas %}
+          {% for coluna in colunas %}
+          <div class="kanban-column">
+            <div class="kanban-column-header" style="background: {{ coluna.cor }}10;">
+              <div>
+                <i class="fas fa-columns me-2"></i> {{ coluna.nome }}
+              </div>
+              <span class="badge bg-primary">{{ coluna.cards|length }}</span>
+            </div>
+            <div class="kanban-column-content">
+              {% for card in coluna.cards %}
+              <div class="card mb-3 shadow-sm">
+                <div class="card-body">
+                  <h6 class="card-title">{{ card.titulo }}</h6>
+                  <p class="card-text small">{{ card.descricao|default:"Sem descrição"|truncatechars:120 }}</p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge {% if card.prioridade == 'alta' or card.prioridade == 'urgente' %}bg-danger{% elif card.prioridade == 'media' %}bg-warning{% else %}bg-success{% endif %}">
+                      {{ card.get_prioridade_display }}
+                    </span>
+                    <div class="d-flex align-items-center gap-2">
+                      {% if card.responsavel %}
+                        <span class="badge bg-light text-dark">{{ card.responsavel.first_name }}</span>
+                      {% endif %}
+                      <button class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% empty %}
+              <div class="empty-column">
+                <i class="fas fa-info-circle mb-2"></i>
+                <p>Nenhum card nesta coluna.</p>
+              </div>
+              {% endfor %}
 
-{% block title %}Gestão de Projetos{% endblock %}
-
-{% block head %}
-<style>
-  .project-stats {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-  }
-  
-  .stat-card {
-    flex: 1;
-    padding: 15px;
-    border-radius: 8px;
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    display: flex;
-    align-items: center;
-  }
-  
-  .stat-icon {
-    margin-right: 15px;
-    font-size: 24px;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    color: white;
-  }
-  
-  .stat-info h5 {
-    margin-bottom: 5px;
-    font-size: 1.75rem;
-  }
-  
-  .stat-info p {
-    margin: 0;
-    color: #6c757d;
-  }
-  
-  .bg-total {
-    background-color: #6610f2;
-  }
-  
-  .bg-progress {
-    background-color: #fd7e14;
-  }
-  
-  .bg-completed {
-    background-color: #20c997;
-  }
-  
-  .bg-overdue {
-    background-color: #dc3545;
-  }
-
-  /* Estilos da navegação por abas */
-  .nav-tabs {
-    border-bottom: 1px solid #dee2e6;
-  }
-  
-  .nav-tabs .nav-link {
-    margin-bottom: -1px;
-    border: 1px solid transparent;
-    border-top-left-radius: 0.25rem;
-    border-top-right-radius: 0.25rem;
-    padding: 8px 16px;
-    font-weight: 500;
-  }
-  
-  .nav-tabs .nav-link.active {
-    color: #007bff;
-    background-color: #fff;
-    border-color: #dee2e6 #dee2e6 #fff;
-  }
-  
-  /* Estilos para o Kanban */
-  .kanban-board {
-    display: flex;
-    overflow-x: auto;
-    padding: 20px 0;
-    gap: 20px;
-    min-height: 500px;
-  }
-  
-  .kanban-column {
-    min-width: 300px;
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-  
-  .kanban-column-header {
-    padding: 15px;
-    border-bottom: 1px solid #dee2e6;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: 10px 10px 0 0;
-  }
-  
-  .kanban-column-content {
-    padding: 15px;
-    min-height: 100px;
-  }
-
-  /* Estilos para o A Fazer */
-  .column-to-do .kanban-column-header {
-    background-color: #cce5ff;
-    color: #004085;
-  }
-  
-  /* Estilos para Em Andamento */
-  .column-in-progress .kanban-column-header {
-    background-color: #fff3cd;
-    color: #856404;
-  }
-  
-  /* Estilos para Em Revisão */
-  .column-review .kanban-column-header {
-    background-color: #d4c4f9;
-    color: #5a3b94;
-  }
-  
-  /* Estilos para Concluído */
-  .column-done .kanban-column-header {
-    background-color: #d4edda;
-    color: #155724;
-  }
-  
-  /* Estilos para "Nenhum projeto nesta coluna" */
-  .empty-column {
-    text-align: center;
-    padding: 20px;
-    color: #6c757d;
-  }
-  
-  /* Estilos para o Roadmap vazio */
-  .empty-roadmap {
-    text-align: center;
-    padding: 100px 0;
-    color: #6c757d;
-    background-image: url("{% static 'images/roadmap-icon.png' %}");
-    background-repeat: no-repeat;
-    background-position: center 30px;
-    background-size: 60px;
-  }
-  
-  /* Estilos para a mensagem "Nenhum marco definido" */
-  .empty-roadmap h4 {
-    margin-bottom: 10px;
-    font-weight: 500;
-  }
-  
-  /* Botão de adicionar card */
-  .add-card-btn {
-    width: 100%;
-    padding: 8px;
-    background-color: rgba(0,0,0,0.05);
-    border: 1px dashed #ced4da;
+              <div class="add-card-btn" data-bs-toggle="modal" data-bs-target="#addCardModal" data-column="{{ coluna.nome }}">
+                <i class="fas fa-plus me-1"></i> Adicionar Card
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="w-100 text-center py-5">
+            <i class="fas fa-columns mb-2" style="font-size:2rem;color:#cbd5e1"></i>
+            <p class="text-muted mb-0">Nenhuma coluna configurada.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
     border-radius: 5px;
     text-align: center;
     cursor: pointer;

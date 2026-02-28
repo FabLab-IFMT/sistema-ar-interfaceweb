@@ -212,3 +212,25 @@ class TodoTask(models.Model):
             return delta.days
         return None
 
+
+class ProjetoMarco(models.Model):
+    """Marco do roadmap do projeto"""
+    projeto = models.ForeignKey(Projeto, on_delete=models.CASCADE, related_name='marcos')
+    titulo = models.CharField(max_length=200)
+    descricao = models.TextField(blank=True)
+    data = models.DateField()
+    progresso = models.PositiveSmallIntegerField(default=0)
+    responsavel = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='marcos_responsavel')
+    criado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='marcos_criados')
+    ordem = models.PositiveIntegerField(default=0)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['data', 'ordem', 'id']
+        verbose_name = 'Marco do Projeto'
+        verbose_name_plural = 'Marcos do Projeto'
+
+    def __str__(self):
+        return f"{self.titulo} ({self.projeto})"
+

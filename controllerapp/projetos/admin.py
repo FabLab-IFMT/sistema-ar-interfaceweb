@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Projeto, ProjetoTag, ProjetoImagem, ComentarioProjeto, TodoTask, ProjetoGrupo
+from .models import Projeto, ProjetoTag, ProjetoImagem, ComentarioProjeto, TodoTask, ProjetoGrupo, ProjetoMarco
 
 class ProjetoImagemInline(admin.TabularInline):
     model = ProjetoImagem
@@ -92,6 +92,15 @@ class TodoTaskAdmin(admin.ModelAdmin):
     list_filter = ('concluida', 'prioridade', 'usuario', 'projeto')
     search_fields = ('titulo', 'descricao')
     date_hierarchy = 'data_criacao'
+
+
+@admin.register(ProjetoMarco)
+class ProjetoMarcoAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'projeto', 'data', 'progresso', 'responsavel')
+    list_filter = ('projeto',)
+    search_fields = ('titulo', 'descricao', 'projeto__titulo')
+    ordering = ('data', 'ordem')
+    readonly_fields = ('criado_em', 'atualizado_em')
 
 @admin.register(ProjetoGrupo)
 class ProjetoGrupoAdmin(admin.ModelAdmin):

@@ -6,8 +6,10 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django.urls import reverse
 from .models import Projeto, ProjetoTag, ComentarioProjeto, TodoTask, ProjetoGrupo
 from canva.models import KanbanCard, KanbanColumn
+from .models import ProjetoMarco
 from .forms import ProjetoForm  # Garantir que estamos importando o formulário
 from django.db import models
 from django.db.models import Q, Count
@@ -237,10 +239,39 @@ def projeto_painel(request, slug):
     hoje = timezone.now().date()
     tarefas_atrasadas = tarefas_projeto.filter(concluida=False, data_limite__lt=hoje).count()
     
+    # ── Roadmap (marcos) criação rápida ──
+    if request.method == 'POST' and request.POST.get('acao') == 'criar_marco':
+        titulo = request.POST.get('titulo', '').strip()
+        data_str = request.POST.get('data', '').strip()
+        descricao = request.POST.get('descricao', '').strip()
+        progresso = request.POST.get('progresso', '0').strip()
+        try:
+            progresso_int = max(0, min(100, int(progresso)))
+        except ValueError:
+            progresso_int = 0
+        data_marco = None
+        if data_str:
+            try:
+                data_marco = timezone.datetime.strptime(data_str, '%Y-%m-%d').date()
+            except ValueError:
+                data_marco = None
+        if titulo and data_marco:
+            ProjetoMarco.objects.create(
+                projeto=projeto,
+                titulo=titulo,
+                descricao=descricao,
+                data=data_marco,
+                progresso=progresso_int,
+                responsavel=request.user if request.user.is_authenticated else None,
+                criado_por=request.user if request.user.is_authenticated else None,
+            )
+            return redirect(f"{reverse('projetos:painel', args=[projeto.slug])}?aba=roadmap")
+
     # ── Kanban: colunas com cards filtrados para este projeto ──
-    colunas = KanbanColumn.objects.all()
+    colunas = []
     mostrar_ocultos = request.GET.get('mostrar_ocultos') == '1'
-    for coluna in colunas:
+    colunas_qs = KanbanColumn.objects.prefetch_related('cards').all()
+    for coluna in colunas_qs:
         cards_query = coluna.cards.filter(projeto=projeto)
         if not mostrar_ocultos:
             cards_query = cards_query.filter(visivel=True)
@@ -248,8 +279,29 @@ def projeto_painel(request, slug):
             cards_query = cards_query.filter(
                 models.Q(responsavel=request.user) | models.Q(membros=request.user)
             ).distinct()
-        coluna.cards_filtrados = cards_query
-    total_cards = sum(len(c.cards_filtrados) for c in colunas)
+        colunas.append({
+            'id': coluna.id,
+            'nome': coluna.nome,
+            'cor': coluna.cor,
+            'ordem': coluna.ordem,
+            'cards': list(cards_query.order_by('ordem', '-prioridade', 'prazo')),
+        })
+    total_cards = sum(len(c['cards']) for c in colunas)
+
+    # ── Roadmap: prefere marcos dedicados, senão cai em tarefas com data limite ──
+    roadmap = list(ProjetoMarco.objects.filter(projeto=projeto).order_by('data', 'ordem', 'id'))
+    if not roadmap:
+        from types import SimpleNamespace
+        tarefas_roadmap = tarefas_projeto.exclude(data_limite__isnull=True).order_by('data_limite')[:12]
+        for tarefa in tarefas_roadmap:
+            progresso = 100 if tarefa.concluida else 60
+            roadmap.append(SimpleNamespace(
+                titulo=tarefa.titulo,
+                data=tarefa.data_limite,
+                descricao=tarefa.descricao or '',
+                projeto=tarefa.projeto or projeto,
+                progresso=progresso,
+            ))
     
     # ── Tarefas — com filtros ──
     filtro_tarefa_status = request.GET.get('t_status', 'all')
@@ -289,6 +341,8 @@ def projeto_painel(request, slug):
         'colunas': colunas,
         'projetos_form': projetos_form,
         'usuarios': usuarios,
+        # Roadmap
+        'roadmap': roadmap,
         # Tarefas
         'tarefas': tarefas,
         'filtro_tarefa_status': filtro_tarefa_status,
