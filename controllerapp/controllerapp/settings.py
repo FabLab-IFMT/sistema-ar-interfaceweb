@@ -146,24 +146,35 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='FabLab <ifmtmaker.fablab.cba@gmail.com>')
 
-# Configuração de Logging (sem travar se não houver permissão de escrita)
+# Configuração de Logging (tolera falta de permissão de escrita)
 LOG_DIR = BASE_DIR / 'logs'
-os.makedirs(LOG_DIR, exist_ok=True)
+LOG_HANDLERS = {
+    'console': {
+        'class': 'logging.StreamHandler',
+    },
+}
+
+try:
+    os.makedirs(LOG_DIR, exist_ok=True)
+    log_file = LOG_DIR / 'error.log'
+    # Tenta abrir o arquivo para confirmar permissão antes de registrar o handler
+    with open(log_file, 'a', encoding='utf-8') as _tmp:
+        _tmp.write('')
+    LOG_HANDLERS['error_file'] = {
+        'class': 'logging.FileHandler',
+        'filename': str(log_file),
+        'level': 'ERROR',
+    }
+except Exception:
+    # Se não conseguir gravar, seguimos só com console
+    pass
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-        'error_file': {
-            'class': 'logging.FileHandler',
-            'filename': str(LOG_DIR / 'error.log'),
-            'level': 'ERROR',
-        },
-    },
+    'handlers': LOG_HANDLERS,
     'root': {
-        'handlers': ['console', 'error_file'],
+        'handlers': list(LOG_HANDLERS.keys()),
         'level': 'INFO', # Mostra mensagens informativas, de aviso e de erro
     },
 }
