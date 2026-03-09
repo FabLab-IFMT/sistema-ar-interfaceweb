@@ -27,6 +27,7 @@ urlpatterns = [
     path('cambam/', include('canva.urls')),
     path('repositorio/', include('repositorio.urls')),
     path('gestao/', include('gestao.urls')),
+    path('api/', include('api.urls')),
 ]
 
 # Serve arquivos de mídia localmente e opcionalmente em produção se SERVE_MEDIA=True
