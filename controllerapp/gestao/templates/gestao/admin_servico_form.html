@@ -1,0 +1,324 @@
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+{% block nav_servicos %}active{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_conteudo' %}">Conteúdo</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_servicos' %}">Serviços</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">{{ titulo }}</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'gestao:admin_servicos' %}" class="adm-btn adm-btn-secondary adm-btn-sm">
+    <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+  </a>
+{% endblock %}
+
+{% block admin_head %}
+<style>
+.cf-section-title {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+  margin-bottom: .75rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid var(--border);
+}
+.cf-field { margin-bottom: 1.1rem; }
+.cf-label {
+  display: block;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: .35rem;
+}
+.cf-label .req { color: #DC2626; margin-left: .2rem; }
+.cf-input {
+  width: 100%;
+  padding: .5rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: .9rem;
+  color: var(--text);
+  background: var(--white);
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+}
+.cf-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(19,103,138,.12);
+}
+.cf-textarea { resize: vertical; min-height: 140px; font-family: inherit; }
+.cf-textarea-sm { min-height: 100px; }
+.cf-select { appearance: none; cursor: pointer; }
+.cf-hint {
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-top: .25rem;
+}
+
+/* Toggle checkbox estilizado */
+.cf-toggle-group { display: flex; flex-wrap: wrap; gap: .75rem; }
+.cf-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  cursor: pointer;
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--text);
+  padding: .4rem .85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: all .15s;
+  user-select: none;
+}
+.cf-toggle-item input[type=checkbox] { display: none; }
+.cf-toggle-item:has(input:checked) {
+  background: rgba(19,103,138,.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.cf-toggle-item i { width: 16px; text-align: center; }
+
+/* Select com ícone de categoria */
+.cat-select-wrapper {
+  position: relative;
+}
+.cat-select-wrapper::after {
+  content: '\f078';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  right: .75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-muted);
+  font-size: .75rem;
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+
+{% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{% if msg.tags == 'error' %}danger{% else %}{{ msg.tags }}{% endif %} alert-dismissible fade show mb-4" role="alert">
+    {{ msg }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+
+  <div class="row g-4">
+
+    <!-- ══ Coluna principal ══ -->
+    <div class="col-lg-8">
+
+      <!-- Informações básicas -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-cogs" aria-hidden="true"></i> Informações do Serviço
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-field">
+            <label for="nome" class="cf-label">
+              Nome do Serviço <span class="req" aria-hidden="true">*</span>
+            </label>
+            <input type="text" id="nome" name="nome" class="cf-input"
+                   value="{{ servico.nome|default:'' }}" required
+                   placeholder="Ex: Impressão 3D FDM, Corte a Laser, Fresadora CNC">
+          </div>
+
+          <div class="cf-field">
+            <label for="descricao_curta" class="cf-label">
+              Descrição Curta <span class="req" aria-hidden="true">*</span>
+            </label>
+            <input type="text" id="descricao_curta" name="descricao_curta" class="cf-input"
+                   value="{{ servico.descricao_curta|default:'' }}" maxlength="200" required
+                   placeholder="Resumo exibido nos cards (máx. 200 caracteres)">
+            <div class="cf-hint">Exibida nos cards de listagem.</div>
+          </div>
+
+          <div class="cf-field">
+            <label for="descricao" class="cf-label">Descrição Completa</label>
+            <textarea id="descricao" name="descricao" class="cf-input cf-textarea"
+                      placeholder="Descreva detalhadamente o serviço: capacidades, materiais, limitações, etc.">{{ servico.descricao|default:'' }}</textarea>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Como utilizar -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-list-ol" aria-hidden="true"></i> Como Utilizar
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-field">
+            <label for="como_utilizar" class="cf-label">Passo a passo</label>
+            <textarea id="como_utilizar" name="como_utilizar" class="cf-input cf-textarea"
+                      placeholder="1. Crie uma conta no sistema&#10;2. Acesse o painel de solicitações&#10;3. Selecione o serviço desejado&#10;4. Aguarde a aprovação da equipe">{{ servico.como_utilizar|default:'' }}</textarea>
+            <div class="cf-hint">Um passo por linha. Será exibido como lista numerada.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Aplicações e Especificações -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-sliders-h" aria-hidden="true"></i> Aplicações e Especificações
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-field">
+            <label for="aplicacoes" class="cf-label">Aplicações</label>
+            <textarea id="aplicacoes" name="aplicacoes" class="cf-input cf-textarea cf-textarea-sm"
+                      placeholder="Protótipos funcionais&#10;Peças de reposição&#10;Modelos arquitetônicos&#10;Arte e decoração">{{ servico.aplicacoes|default:'' }}</textarea>
+            <div class="cf-hint">Uma aplicação por linha.</div>
+          </div>
+
+          <div class="cf-field">
+            <label for="especificacoes" class="cf-label">Especificações Técnicas</label>
+            <textarea id="especificacoes" name="especificacoes" class="cf-input cf-textarea cf-textarea-sm"
+                      placeholder="Volume máximo de impressão: 220x220x250mm&#10;Resolução: 0.1mm - 0.3mm&#10;Materiais: PLA, PETG, ABS&#10;Temperatura máxima do bico: 260°C">{{ servico.especificacoes|default:'' }}</textarea>
+            <div class="cf-hint">Especificações técnicas do equipamento ou serviço.</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /col-lg-8 -->
+
+    <!-- ══ Sidebar ══ -->
+    <div class="col-lg-4">
+
+      <!-- Categoria -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-tag" aria-hidden="true"></i> Categoria
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-field">
+            <label for="categoria" class="cf-label">
+              Categoria <span class="req" aria-hidden="true">*</span>
+            </label>
+            <div class="cat-select-wrapper">
+              <select id="categoria" name="categoria" class="cf-input cf-select" required>
+                <option value="">— Selecione uma categoria —</option>
+                {% for cat in categorias %}
+                <option value="{{ cat.id }}"
+                        {% if servico and servico.categoria_id == cat.id %}selected{% endif %}>
+                  {% if cat.icone %}{{ cat.icone }} {% endif %}{{ cat.nome }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Imagem -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-image" aria-hidden="true"></i> Imagem
+          </h2>
+        </div>
+        <div class="adm-card-body">
+          {% if servico and servico.imagem %}
+          <div class="mb-2">
+            <img src="{{ servico.imagem.url }}" alt="Imagem atual do serviço"
+                 style="width:100%;border-radius:var(--radius-sm);max-height:160px;object-fit:cover">
+          </div>
+          <p style="font-size:.75rem;color:var(--text-muted);margin-bottom:.5rem">
+            Envie uma nova imagem para substituir a atual.
+          </p>
+          {% endif %}
+          <input type="file" id="imagem" name="imagem" accept="image/*"
+                 class="form-control form-control-sm">
+          <div class="cf-hint">PNG, JPG ou WebP. Recomendado 800×400px.</div>
+        </div>
+      </div>
+
+      <!-- Detalhes -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-info" aria-hidden="true"></i> Detalhes
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-field">
+            <label for="tempo_estimado" class="cf-label">Tempo Estimado</label>
+            <input type="text" id="tempo_estimado" name="tempo_estimado" class="cf-input"
+                   value="{{ servico.tempo_estimado|default:'' }}"
+                   placeholder="Ex: 2-3 dias, 1 semana">
+            <div class="cf-hint">Ex: 2-3 dias, 1 semana.</div>
+          </div>
+
+          <div class="cf-field">
+            <label for="ordem" class="cf-label">Ordem de exibição</label>
+            <input type="number" id="ordem" name="ordem" class="cf-input"
+                   value="{{ servico.ordem|default:'0' }}" min="0" placeholder="0">
+            <div class="cf-hint">Menor número = aparece primeiro.</div>
+          </div>
+
+          <div class="cf-section-title mt-3">Disponibilidade</div>
+          <div class="cf-toggle-group" role="group" aria-label="Opções de disponibilidade">
+            <label class="cf-toggle-item">
+              <input type="checkbox" name="disponivel"
+                     {% if servico.disponivel or not servico %}checked{% endif %}>
+              <i class="fas fa-check-circle" aria-hidden="true"></i> Disponível
+            </label>
+            <label class="cf-toggle-item">
+              <input type="checkbox" name="destaque"
+                     {% if servico and servico.destaque %}checked{% endif %}>
+              <i class="fas fa-star" aria-hidden="true"></i> Destaque
+            </label>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Botões -->
+      <div class="d-flex gap-2">
+        <button type="submit" class="adm-btn adm-btn-primary flex-fill">
+          <i class="fas fa-save" aria-hidden="true"></i> Salvar Serviço
+        </button>
+        <a href="{% url 'gestao:admin_servicos' %}" class="adm-btn adm-btn-secondary">
+          Cancelar
+        </a>
+      </div>
+
+    </div><!-- /col-lg-4 -->
+
+  </div><!-- /row -->
+</form>
+
+{% endblock %}

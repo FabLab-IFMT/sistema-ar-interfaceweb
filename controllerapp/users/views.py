@@ -260,16 +260,38 @@ def manage_roles(request):
     users = CustomUser.objects.all().prefetch_related('roles').order_by('first_name', 'last_name')
 
     if request.method == "POST":
-        for user in users:
-            selected_codes = request.POST.getlist(f"roles_{user.pk}")
-            selected_roles = roles.filter(code__in=selected_codes)
-            user.roles.set(selected_roles)
+        single_user_pk = request.POST.get('single_user')
 
-            has_staff_role = selected_roles.filter(is_staff_equivalent=True).exists()
-            user.is_staff = user.is_superuser or has_staff_role
-            user.save(update_fields=["is_staff"])
+        if single_user_pk:
+            # Save individual de um único usuário (novo comportamento por card)
+            try:
+                target_user = users.get(pk=single_user_pk)
+                if not target_user.is_superuser:
+                    selected_codes = request.POST.getlist(f"roles_{target_user.pk}")
+                    selected_roles = roles.filter(code__in=selected_codes)
+                    target_user.roles.set(selected_roles)
+                    has_staff_role = selected_roles.filter(is_staff_equivalent=True).exists()
+                    target_user.is_staff = target_user.is_superuser or has_staff_role
+                    target_user.save(update_fields=["is_staff"])
+                    messages.success(
+                        request,
+                        f"Cargos de {target_user.first_name} {target_user.last_name} atualizados."
+                    )
+            except CustomUser.DoesNotExist:
+                messages.error(request, "Usuário não encontrado.")
+        else:
+            # Fallback: salva todos (compatibilidade retroativa)
+            for user in users:
+                if user.is_superuser:
+                    continue
+                selected_codes = request.POST.getlist(f"roles_{user.pk}")
+                selected_roles = roles.filter(code__in=selected_codes)
+                user.roles.set(selected_roles)
+                has_staff_role = selected_roles.filter(is_staff_equivalent=True).exists()
+                user.is_staff = has_staff_role
+                user.save(update_fields=["is_staff"])
+            messages.success(request, "Cargos atualizados com sucesso.")
 
-        messages.success(request, "Cargos atualizados com sucesso.")
         return redirect('users:manage_roles')
 
     return render(request, 'users/manage_roles.html', {"roles": roles, "users": users})

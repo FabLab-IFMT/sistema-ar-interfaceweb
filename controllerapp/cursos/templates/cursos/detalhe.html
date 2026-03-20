@@ -1,0 +1,447 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}{{ curso.titulo }} — FabLab IFMT{% endblock %}
+
+{% block head %}
+<style>
+.cur-det-hero {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  padding: 3.5rem 0 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.cur-det-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='20' cy='20' r='15'/%3E%3C/g%3E%3C/svg%3E") repeat;
+  pointer-events: none;
+}
+.cur-det-back {
+  color: rgba(255,255,255,.7);
+  text-decoration: none;
+  font-size: .82rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  margin-bottom: 1.25rem;
+  transition: color .2s;
+}
+.cur-det-back:hover { color: #fff; }
+.cur-det-cat {
+  display: inline-block;
+  background: rgba(255,255,255,.15);
+  color: rgba(255,255,255,.9);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: .25em .85em;
+  border-radius: 999px;
+  margin-bottom: .85rem;
+}
+.cur-det-title {
+  color: #fff;
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-weight: 800;
+  margin-bottom: .75rem;
+  line-height: 1.2;
+}
+.cur-det-desc-curta {
+  color: rgba(255,255,255,.82);
+  font-size: 1rem;
+  max-width: 600px;
+  margin-bottom: 1.25rem;
+}
+.cur-det-meta-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+.cur-det-meta-item {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  color: rgba(255,255,255,.75);
+  font-size: .82rem;
+}
+.cur-det-meta-item i { color: var(--accent-light, #45C4B0); }
+
+/* Imagem de capa */
+.cur-det-cover {
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.25);
+}
+.cur-det-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cur-det-cover-placeholder {
+  background: linear-gradient(135deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.03) 100%);
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,.2);
+  font-size: 4rem;
+}
+
+/* Conteúdo */
+.cur-det-section { padding: 2.5rem 0; }
+.cur-det-content-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1.75rem 2rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+}
+.cur-det-content-card h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1rem;
+  padding-bottom: .6rem;
+  border-bottom: 2px solid var(--accent);
+  display: inline-block;
+}
+.cur-det-body { font-size: .93rem; color: var(--text); line-height: 1.75; }
+.cur-det-body h3, .cur-det-body h4 { margin-top: 1.5rem; font-weight: 700; }
+.cur-det-body ul, .cur-det-body ol { padding-left: 1.5rem; }
+
+/* Sidebar info */
+.cur-det-info-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 90px;
+}
+.cur-det-info-card h4 {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 1rem;
+}
+.cur-det-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .6rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .875rem;
+}
+.cur-det-info-row:last-child { border-bottom: none; }
+.cur-det-info-icon {
+  width: 30px;
+  height: 30px;
+  background: rgba(19,103,138,.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--accent);
+  font-size: .8rem;
+}
+.cur-det-info-label {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: .1rem;
+}
+.cur-det-info-value { font-weight: 600; color: var(--text); }
+
+/* Badge status */
+.cur-badge { display: inline-block; padding: .25em .8em; border-radius: 999px; font-size: .75rem; font-weight: 700; }
+.cur-badge-planejado    { background: #EFF6FF; color: #2563EB; }
+.cur-badge-em_andamento { background: #ECFDF5; color: #059669; }
+.cur-badge-concluido    { background: #F0FDF4; color: #16A34A; }
+.cur-badge-cancelado    { background: #FEF2F2; color: #DC2626; }
+
+/* Projetos relacionados */
+.cur-proj-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s, transform .2s;
+}
+.cur-proj-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); color: inherit; }
+.cur-proj-icon {
+  width: 42px; height: 42px;
+  background: rgba(19,103,138,.1);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.cur-proj-title { font-size: .88rem; font-weight: 600; color: var(--text); }
+.cur-proj-sub { font-size: .75rem; color: var(--text-muted); }
+
+/* Outros cursos */
+.cur-outros-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .85rem 1rem;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  margin-bottom: .5rem;
+  transition: background .15s;
+}
+.cur-outros-card:hover { background: var(--surface-alt); color: inherit; }
+.cur-outros-title { font-size: .87rem; font-weight: 600; color: var(--text); }
+.cur-outros-meta { font-size: .75rem; color: var(--text-muted); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="cur-det-hero">
+  <div class="container position-relative">
+    <a href="{% url 'cursos:lista' %}" class="cur-det-back">
+      <i class="fas fa-arrow-left" aria-hidden="true"></i> Todos os cursos
+    </a>
+
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <div class="cur-det-cat">
+          {% if curso.categoria %}
+            <i class="fas {{ curso.categoria.icone }}" aria-hidden="true"></i>
+            {{ curso.categoria.nome }}
+          {% else %}Curso{% endif %}
+        </div>
+        <h1 class="cur-det-title">{{ curso.titulo }}</h1>
+        <p class="cur-det-desc-curta">{{ curso.descricao_curta }}</p>
+
+        <div class="cur-det-meta-bar">
+          <span class="cur-badge cur-badge-{{ curso.status }}">{{ curso.get_status_display }}</span>
+          {% if curso.instrutor %}
+          <span class="cur-det-meta-item">
+            <i class="fas fa-user-tie" aria-hidden="true"></i>
+            {{ curso.instrutor.get_full_name|default:curso.instrutor.id }}
+          </span>
+          {% endif %}
+          {% if curso.carga_horaria %}
+          <span class="cur-det-meta-item">
+            <i class="fas fa-clock" aria-hidden="true"></i> {{ curso.carga_horaria }}h
+          </span>
+          {% endif %}
+          {% if curso.vagas %}
+          <span class="cur-det-meta-item">
+            <i class="fas fa-users" aria-hidden="true"></i> {{ curso.vagas }} vagas
+          </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="cur-det-cover">
+          {% if curso.imagem %}
+            <img src="{{ curso.imagem.url }}" alt="{{ curso.titulo }}">
+          {% else %}
+            <div class="cur-det-cover-placeholder">
+              <i class="fas fa-chalkboard-teacher" aria-hidden="true"></i>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Conteúdo -->
+<section class="cur-det-section">
+  <div class="container">
+    <div class="row g-4">
+
+      <!-- Coluna principal -->
+      <div class="col-lg-8">
+
+        <!-- Descrição completa -->
+        <div class="cur-det-content-card">
+          <h2><i class="fas fa-info-circle me-2" style="color:var(--accent)" aria-hidden="true"></i> Sobre o Curso</h2>
+          <div class="cur-det-body">
+            {% if curso.descricao %}
+              {{ curso.descricao|linebreaks }}
+            {% else %}
+              <p class="text-muted">Descrição detalhada não disponível.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Projetos relacionados -->
+        {% if projetos_relacionados %}
+        <div class="cur-det-content-card">
+          <h2><i class="fas fa-project-diagram me-2" style="color:var(--accent)" aria-hidden="true"></i> Projetos Relacionados</h2>
+          <div class="row g-2">
+            {% for projeto in projetos_relacionados %}
+            <div class="col-md-6">
+              <a href="{{ projeto.get_absolute_url }}" class="cur-proj-card">
+                <div class="cur-proj-icon">
+                  <i class="fas fa-cube" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <div class="cur-proj-title">{{ projeto.titulo }}</div>
+                  <div class="cur-proj-sub">
+                    {{ projeto.get_status_display|default:"Projeto" }}
+                    {% if projeto.grupo %} &middot; {{ projeto.grupo.nome }}{% endif %}
+                  </div>
+                </div>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        <div class="cur-det-info-card">
+          <h4><i class="fas fa-info-circle me-2" aria-hidden="true"></i> Informações</h4>
+
+          <div class="cur-det-info-row">
+            <div class="cur-det-info-icon"><i class="fas fa-signal" aria-hidden="true"></i></div>
+            <div>
+              <span class="cur-det-info-label">Status</span>
+              <span class="cur-det-info-value">
+                <span class="cur-badge cur-badge-{{ curso.status }}">{{ curso.get_status_display }}</span>
+              </span>
+            </div>
+          </div>
+
+          {% if curso.instrutor %}
+          <div class="cur-det-info-row">
+            <div class="cur-det-info-icon"><i class="fas fa-user-tie" aria-hidden="true"></i></div>
+            <div>
+              <span class="cur-det-info-label">Instrutor</span>
+              <span class="cur-det-info-value">
+                {{ curso.instrutor.get_full_name|default:curso.instrutor.id }}
+              </span>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if curso.carga_horaria %}
+          <div class="cur-det-info-row">
+            <div class="cur-det-info-icon"><i class="fas fa-clock" aria-hidden="true"></i></div>
+            <div>
+              <span class="cur-det-info-label">Carga Horária</span>
+              <span class="cur-det-info-value">{{ curso.carga_horaria }} horas</span>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if curso.vagas %}
+          <div class="cur-det-info-row">
+            <div class="cur-det-info-icon"><i class="fas fa-users" aria-hidden="true"></i></div>
+            <div>
+              <span class="cur-det-info-label">Vagas</span>
+              <span class="cur-det-info-value">{{ curso.vagas }}</span>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if curso.data_inicio %}
+          <div class="cur-det-info-row">
+            <div class="cur-det-info-icon"><i class="fas fa-calendar-alt" aria-hidden="true"></i></div>
+            <div>
+              <span class="cur-det-info-label">Início</span>
+              <span class="cur-det-info-value">{{ curso.data_inicio|date:"d/m/Y" }}</span>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if curso.data_fim %}
+          <div class="cur-det-info-row">
+            <div class="cur-det-info-icon"><i class="fas fa-calendar-check" aria-hidden="true"></i></div>
+            <div>
+              <span class="cur-det-info-label">Término</span>
+              <span class="cur-det-info-value">{{ curso.data_fim|date:"d/m/Y" }}</span>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if curso.categoria %}
+          <div class="cur-det-info-row">
+            <div class="cur-det-info-icon"><i class="fas {{ curso.categoria.icone }}" aria-hidden="true"></i></div>
+            <div>
+              <span class="cur-det-info-label">Categoria</span>
+              <span class="cur-det-info-value">{{ curso.categoria.nome }}</span>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="cur-det-info-row">
+            <div class="cur-det-info-icon"><i class="fas fa-calendar-plus" aria-hidden="true"></i></div>
+            <div>
+              <span class="cur-det-info-label">Cadastrado em</span>
+              <span class="cur-det-info-value">{{ curso.criado_em|date:"d/m/Y" }}</span>
+            </div>
+          </div>
+
+          <!-- Ação admin -->
+          {% if user.is_staff %}
+          <div class="mt-3 pt-2" style="border-top:1px solid var(--border)">
+            <a href="{% url 'cursos:admin_curso_editar' curso.id %}"
+               class="btn btn-sm w-100"
+               style="background:var(--accent);color:#fff;border:none">
+              <i class="fas fa-edit me-1" aria-hidden="true"></i> Editar curso
+            </a>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Outros cursos da categoria -->
+        {% if outros_cursos %}
+        <div class="cur-det-content-card mt-4">
+          <h2><i class="fas fa-layer-group me-2" style="color:var(--accent)" aria-hidden="true"></i> Outros Cursos</h2>
+          {% for outro in outros_cursos %}
+          <a href="{{ outro.get_absolute_url }}" class="cur-outros-card">
+            <div class="cur-outros-title">{{ outro.titulo }}</div>
+            <div class="cur-outros-meta">
+              <span class="cur-badge cur-badge-{{ outro.status }}" style="font-size:.65rem">{{ outro.get_status_display }}</span>
+              {% if outro.carga_horaria %}
+              &middot; {{ outro.carga_horaria }}h
+              {% endif %}
+            </div>
+          </a>
+          {% endfor %}
+          <a href="{% url 'cursos:lista' %}" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+            Ver todos os cursos
+          </a>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

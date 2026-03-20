@@ -1,0 +1,307 @@
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+{% block nav_membros %}active{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_conteudo' %}">Conteúdo</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_membros' %}">Membros</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">{{ titulo }}</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'gestao:admin_membros' %}" class="adm-btn adm-btn-secondary adm-btn-sm">
+    <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+  </a>
+{% endblock %}
+
+{% block admin_head %}
+<style>
+.cf-section-title {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+  margin-bottom: .75rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid var(--border);
+}
+.cf-field { margin-bottom: 1.1rem; }
+.cf-label {
+  display: block;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: .35rem;
+}
+.cf-label .req { color: #DC2626; margin-left: .2rem; }
+.cf-input {
+  width: 100%;
+  padding: .5rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: .9rem;
+  color: var(--text);
+  background: var(--white);
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+}
+.cf-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(19,103,138,.12);
+}
+.cf-textarea { resize: vertical; min-height: 140px; font-family: inherit; }
+.cf-select { appearance: none; cursor: pointer; }
+.cf-hint {
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-top: .25rem;
+}
+
+/* Toggle checkbox estilizado */
+.cf-toggle-group { display: flex; flex-wrap: wrap; gap: .75rem; }
+.cf-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  cursor: pointer;
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--text);
+  padding: .4rem .85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: all .15s;
+  user-select: none;
+}
+.cf-toggle-item input[type=checkbox] { display: none; }
+.cf-toggle-item:has(input:checked) {
+  background: rgba(19,103,138,.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.cf-toggle-item i { width: 16px; text-align: center; }
+
+/* Rede social input group */
+.social-input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  transition: border-color .2s, box-shadow .2s;
+}
+.social-input-group:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(19,103,138,.12);
+}
+.social-input-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  flex-shrink: 0;
+  background: var(--surface-alt);
+  border-right: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: .9rem;
+  height: 100%;
+  padding: .5rem 0;
+}
+.social-input-group .cf-input {
+  border: none;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+
+{% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{% if msg.tags == 'error' %}danger{% else %}{{ msg.tags }}{% endif %} alert-dismissible fade show mb-4" role="alert">
+    {{ msg }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+
+  <div class="row g-4">
+
+    <!-- ══ Coluna principal ══ -->
+    <div class="col-lg-8">
+
+      <!-- Informações básicas -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-id-badge" aria-hidden="true"></i> Informações do Membro
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-field">
+            <label for="nome" class="cf-label">
+              Nome completo <span class="req" aria-hidden="true">*</span>
+            </label>
+            <input type="text" id="nome" name="nome" class="cf-input"
+                   value="{{ membro.nome|default:'' }}" required
+                   placeholder="Ex: Prof. Dr. João da Silva">
+          </div>
+
+          <div class="cf-field">
+            <label for="cargo" class="cf-label">
+              Cargo / Função <span class="req" aria-hidden="true">*</span>
+            </label>
+            <input type="text" id="cargo" name="cargo" class="cf-input"
+                   value="{{ membro.cargo|default:'' }}" required
+                   placeholder="Ex: Coordenador, Técnico, Pesquisador">
+            <div class="cf-hint">Ex: Coordenador, Técnico, Pesquisador.</div>
+          </div>
+
+          <div class="cf-field">
+            <label for="email" class="cf-label">E-mail</label>
+            <input type="email" id="email" name="email" class="cf-input"
+                   value="{{ membro.email|default:'' }}"
+                   placeholder="contato@ifmt.edu.br">
+          </div>
+
+          <div class="cf-field">
+            <label for="bio" class="cf-label">Biografia</label>
+            <textarea id="bio" name="bio" class="cf-input cf-textarea"
+                      placeholder="Breve descrição sobre o membro: formação, áreas de atuação, projetos relevantes…">{{ membro.bio|default:'' }}</textarea>
+            <div class="cf-hint">Breve descrição sobre o membro.</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /col-lg-8 -->
+
+    <!-- ══ Sidebar ══ -->
+    <div class="col-lg-4">
+
+      <!-- Foto -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-user-circle" aria-hidden="true"></i> Foto
+          </h2>
+        </div>
+        <div class="adm-card-body">
+          {% if membro and membro.foto %}
+          <div class="mb-2 text-center">
+            <img src="{{ membro.foto.url }}" alt="Foto atual do membro"
+                 style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--border)">
+          </div>
+          <p style="font-size:.75rem;color:var(--text-muted);margin-bottom:.5rem;text-align:center">
+            Envie uma nova foto para substituir.
+          </p>
+          {% endif %}
+          <input type="file" id="foto" name="foto" accept="image/*"
+                 class="form-control form-control-sm">
+          <div class="cf-hint">PNG ou JPG. Recomendado 400×400px (quadrada).</div>
+        </div>
+      </div>
+
+      <!-- Configurações -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-cog" aria-hidden="true"></i> Configurações
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-section-title">Visibilidade</div>
+          <div class="cf-toggle-group mb-3" role="group" aria-label="Opções de visibilidade">
+            <label class="cf-toggle-item">
+              <input type="checkbox" name="ativo"
+                     {% if membro.ativo or not membro %}checked{% endif %}>
+              <i class="fas fa-eye" aria-hidden="true"></i> Ativo
+            </label>
+          </div>
+
+          <div class="cf-field">
+            <label for="ordem" class="cf-label">Ordem de exibição</label>
+            <input type="number" id="ordem" name="ordem" class="cf-input"
+                   value="{{ membro.ordem|default:'0' }}" min="0" placeholder="0">
+            <div class="cf-hint">Menor número = aparece primeiro.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Redes sociais -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-share-alt" aria-hidden="true"></i> Redes Sociais
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-field">
+            <label for="linkedin" class="cf-label">LinkedIn</label>
+            <div class="social-input-group">
+              <span class="social-input-icon">
+                <i class="fab fa-linkedin-in" aria-hidden="true"></i>
+              </span>
+              <input type="url" id="linkedin" name="linkedin" class="cf-input"
+                     value="{{ membro.linkedin|default:'' }}"
+                     placeholder="https://linkedin.com/in/usuario">
+            </div>
+          </div>
+
+          <div class="cf-field">
+            <label for="github" class="cf-label">GitHub</label>
+            <div class="social-input-group">
+              <span class="social-input-icon">
+                <i class="fab fa-github" aria-hidden="true"></i>
+              </span>
+              <input type="url" id="github" name="github" class="cf-input"
+                     value="{{ membro.github|default:'' }}"
+                     placeholder="https://github.com/usuario">
+            </div>
+          </div>
+
+          <div class="cf-field">
+            <label for="lattes" class="cf-label">Currículo Lattes</label>
+            <div class="social-input-group">
+              <span class="social-input-icon">
+                <i class="fas fa-graduation-cap" aria-hidden="true"></i>
+              </span>
+              <input type="url" id="lattes" name="lattes" class="cf-input"
+                     value="{{ membro.lattes|default:'' }}"
+                     placeholder="http://lattes.cnpq.br/...">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Botões -->
+      <div class="d-flex gap-2">
+        <button type="submit" class="adm-btn adm-btn-primary flex-fill">
+          <i class="fas fa-save" aria-hidden="true"></i> Salvar Membro
+        </button>
+        <a href="{% url 'gestao:admin_membros' %}" class="adm-btn adm-btn-secondary">
+          Cancelar
+        </a>
+      </div>
+
+    </div><!-- /col-lg-4 -->
+
+  </div><!-- /row -->
+</form>
+
+{% endblock %}

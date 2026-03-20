@@ -1,0 +1,349 @@
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+{% block nav_cursos %}active{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'cursos:admin_cursos' %}">Cursos</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">{{ titulo }}</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'cursos:admin_cursos' %}" class="adm-btn adm-btn-secondary adm-btn-sm">
+    <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+  </a>
+{% endblock %}
+
+{% block admin_head %}
+<style>
+.cf-section-title {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+  margin-bottom: .75rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid var(--border);
+}
+.cf-field { margin-bottom: 1.1rem; }
+.cf-label {
+  display: block;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: .35rem;
+}
+.cf-label .req { color: #DC2626; margin-left: .2rem; }
+.cf-input {
+  width: 100%;
+  padding: .5rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: .9rem;
+  color: var(--text);
+  background: var(--white);
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+}
+.cf-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(19,103,138,.12);
+}
+.cf-textarea { resize: vertical; min-height: 140px; font-family: inherit; }
+.cf-select { appearance: none; cursor: pointer; }
+.cf-hint {
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-top: .25rem;
+}
+
+/* Toggle checkbox estilizado */
+.cf-toggle-group { display: flex; flex-wrap: wrap; gap: .75rem; }
+.cf-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  cursor: pointer;
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--text);
+  padding: .4rem .85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: all .15s;
+  user-select: none;
+}
+.cf-toggle-item input[type=checkbox] { display: none; }
+.cf-toggle-item:has(input:checked) {
+  background: rgba(19,103,138,.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.cf-toggle-item i { width: 16px; text-align: center; }
+
+/* Projetos selector */
+.proj-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: .5rem;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: .5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.proj-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .45rem .65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: .8rem;
+  cursor: pointer;
+  transition: all .15s;
+  user-select: none;
+  background: var(--white);
+}
+.proj-item input[type=checkbox] { display: none; }
+.proj-item:has(input:checked) {
+  background: rgba(19,103,138,.08);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.proj-item i { color: var(--accent); }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+
+{% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{% if msg.tags == 'error' %}danger{% else %}{{ msg.tags }}{% endif %} alert-dismissible fade show mb-4" role="alert">
+    {{ msg }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+
+  <div class="row g-4">
+
+    <!-- Coluna principal -->
+    <div class="col-lg-8">
+
+      <!-- Informações básicas -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-info-circle" aria-hidden="true"></i> Informações Básicas
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-field">
+            <label for="titulo" class="cf-label">Título <span class="req">*</span></label>
+            <input type="text" id="titulo" name="titulo" class="cf-input"
+                   value="{{ curso.titulo|default:'' }}" required
+                   placeholder="Ex: Introdução à Fabricação Digital">
+          </div>
+
+          <div class="cf-field">
+            <label for="descricao_curta" class="cf-label">Descrição Curta <span class="req">*</span></label>
+            <input type="text" id="descricao_curta" name="descricao_curta" class="cf-input"
+                   value="{{ curso.descricao_curta|default:'' }}" maxlength="300"
+                   placeholder="Resumo exibido nos cards (máx. 300 caracteres)">
+            <div class="cf-hint">Exibida nos cards de listagem.</div>
+          </div>
+
+          <div class="cf-field">
+            <label for="descricao" class="cf-label">Descrição Completa</label>
+            <textarea id="descricao" name="descricao" class="cf-input cf-textarea"
+                      placeholder="Conteúdo detalhado do curso, programa, objetivos, etc.">{{ curso.descricao|default:'' }}</textarea>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Projetos relacionados -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-project-diagram" aria-hidden="true"></i> Projetos Relacionados
+          </h2>
+        </div>
+        <div class="adm-card-body">
+          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.75rem">
+            Vincule projetos do FabLab desenvolvidos neste curso ou relacionados a ele.
+          </p>
+          {% if projetos %}
+          <div class="proj-grid">
+            {% for projeto in projetos %}
+            <label class="proj-item">
+              <input type="checkbox" name="projetos_relacionados" value="{{ projeto.id }}"
+                     {% if projeto.id in proj_selecionados %}checked{% endif %}>
+              <i class="fas fa-cube" aria-hidden="true"></i>
+              <span>{{ projeto.titulo|truncatechars:30 }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p style="font-size:.82rem;color:var(--text-muted)">
+            Nenhum projeto publicado disponível para vinculação.
+          </p>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sidebar de configurações -->
+    <div class="col-lg-4">
+
+      <!-- Publicação -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-cog" aria-hidden="true"></i> Configurações
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-field">
+            <label for="status" class="cf-label">Status</label>
+            <select id="status" name="status" class="cf-input cf-select">
+              {% for val, label in status_choices %}
+              <option value="{{ val }}" {% if curso.status == val %}selected{% elif not curso and val == 'planejado' %}selected{% endif %}>
+                {{ label }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="cf-field">
+            <label for="categoria" class="cf-label">Categoria</label>
+            <select id="categoria" name="categoria" class="cf-input cf-select">
+              <option value="">— Sem categoria —</option>
+              {% for cat in categorias %}
+              <option value="{{ cat.id }}" {% if curso.categoria_id == cat.id %}selected{% endif %}>
+                {{ cat.nome }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="cf-field">
+            <label for="instrutor" class="cf-label">Instrutor</label>
+            <select id="instrutor" name="instrutor" class="cf-input cf-select">
+              <option value="">— Sem instrutor —</option>
+              {% for inst in instrutores %}
+              <option value="{{ inst.pk }}" {% if curso.instrutor_id == inst.pk %}selected{% endif %}>
+                {{ inst.get_full_name|default:inst.id }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="cf-section-title mt-3">Visibilidade</div>
+          <div class="cf-toggle-group">
+            <label class="cf-toggle-item">
+              <input type="checkbox" name="publicado" {% if curso.publicado or not curso %}checked{% endif %}>
+              <i class="fas fa-globe" aria-hidden="true"></i> Publicado
+            </label>
+            <label class="cf-toggle-item">
+              <input type="checkbox" name="destaque" {% if curso.destaque %}checked{% endif %}>
+              <i class="fas fa-star" aria-hidden="true"></i> Destaque
+            </label>
+            <label class="cf-toggle-item">
+              <input type="checkbox" name="mostrar_na_home" {% if curso.mostrar_na_home %}checked{% endif %}>
+              <i class="fas fa-home" aria-hidden="true"></i> Na Home
+            </label>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Detalhes -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-info" aria-hidden="true"></i> Detalhes
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-field">
+            <label for="carga_horaria" class="cf-label">Carga Horária (horas)</label>
+            <input type="number" id="carga_horaria" name="carga_horaria" class="cf-input"
+                   value="{{ curso.carga_horaria|default:'' }}" min="1" placeholder="Ex: 8">
+          </div>
+
+          <div class="cf-field">
+            <label for="vagas" class="cf-label">Vagas</label>
+            <input type="number" id="vagas" name="vagas" class="cf-input"
+                   value="{{ curso.vagas|default:'' }}" min="1" placeholder="Deixe em branco para ilimitado">
+          </div>
+
+          <div class="row g-2">
+            <div class="col-6">
+              <div class="cf-field">
+                <label for="data_inicio" class="cf-label">Data de Início</label>
+                <input type="date" id="data_inicio" name="data_inicio" class="cf-input"
+                       value="{{ curso.data_inicio|date:'Y-m-d'|default:'' }}">
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="cf-field">
+                <label for="data_fim" class="cf-label">Data de Término</label>
+                <input type="date" id="data_fim" name="data_fim" class="cf-input"
+                       value="{{ curso.data_fim|date:'Y-m-d'|default:'' }}">
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Imagem -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-image" aria-hidden="true"></i> Imagem de Capa
+          </h2>
+        </div>
+        <div class="adm-card-body">
+          {% if curso and curso.imagem %}
+          <div class="mb-2">
+            <img src="{{ curso.imagem.url }}" alt="Capa atual"
+                 style="width:100%;border-radius:var(--radius-sm);max-height:160px;object-fit:cover">
+          </div>
+          {% endif %}
+          <input type="file" id="imagem" name="imagem" accept="image/*"
+                 class="form-control form-control-sm">
+          <div class="cf-hint">PNG, JPG ou WebP. Recomendado 800×400px.</div>
+        </div>
+      </div>
+
+      <!-- Botões -->
+      <div class="d-flex gap-2">
+        <button type="submit" class="adm-btn adm-btn-primary flex-fill">
+          <i class="fas fa-save" aria-hidden="true"></i>
+          {{ titulo }}
+        </button>
+        <a href="{% url 'cursos:admin_cursos' %}" class="adm-btn adm-btn-secondary">
+          Cancelar
+        </a>
+      </div>
+
+    </div>
+  </div>
+</form>
+
+{% endblock %}

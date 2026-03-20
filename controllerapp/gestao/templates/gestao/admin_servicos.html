@@ -1,0 +1,109 @@
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
+
+{% block title %}Gerenciar Serviços{% endblock %}
+{% block nav_servicos %}active{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_conteudo' %}">Conteúdo</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">Serviços</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'options:servicos' %}" class="adm-btn adm-btn-secondary adm-btn-sm" target="_blank" rel="noopener">
+    <i class="fas fa-external-link-alt" aria-hidden="true"></i> Ver no site
+  </a>
+  <a href="{% url 'gestao:admin_servico_novo' %}" class="adm-btn adm-btn-primary adm-btn-sm">
+    <i class="fas fa-plus" aria-hidden="true"></i> Novo Serviço
+  </a>
+{% endblock %}
+
+{% block admin_content %}
+
+<div class="adm-card">
+  <div class="adm-card-header">
+    <h2 class="adm-card-title">
+      <i class="fas fa-cogs" aria-hidden="true"></i> Serviços
+      <span style="font-size:.8rem;font-weight:500;color:var(--text-muted)">({{ total }})</span>
+    </h2>
+    <span class="adm-tag adm-tag-green">{{ disponiveis }} disponíveis</span>
+  </div>
+  {% if servicos %}
+  <div style="overflow-x:auto">
+    <table class="adm-table" aria-label="Lista de serviços">
+      <thead>
+        <tr>
+          <th scope="col">Serviço</th>
+          <th scope="col">Categoria</th>
+          <th scope="col">Tempo Est.</th>
+          <th scope="col">Disponível</th>
+          <th scope="col">Destaque</th>
+          <th scope="col">Ordem</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for servico in servicos %}
+        <tr>
+          <td style="max-width:220px">
+            <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ servico.nome }}</div>
+            <div style="font-size:.78rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ servico.descricao_curta }}</div>
+          </td>
+          <td>
+            <span class="adm-tag adm-tag-blue">{{ servico.categoria.nome }}</span>
+          </td>
+          <td style="font-size:.85rem;color:var(--text-muted)">{{ servico.tempo_estimado|default:"—" }}</td>
+          <!-- Toggle Disponível -->
+          <td>
+            <form method="post" action="{% url 'gestao:admin_servico_toggle_disponivel' servico.id %}">
+              {% csrf_token %}
+              <button type="submit" class="adm-toggle"
+                      aria-label="{{ servico.nome }}: {% if servico.disponivel %}tornar indisponível{% else %}tornar disponível{% endif %}">
+                <input type="checkbox" {% if servico.disponivel %}checked{% endif %} tabindex="-1" aria-hidden="true">
+                <span class="adm-toggle-slider"></span>
+              </button>
+            </form>
+          </td>
+          <!-- Destaque -->
+          <td>
+            {% if servico.destaque %}
+              <span class="adm-tag adm-tag-yellow"><i class="fas fa-star" aria-hidden="true"></i> Sim</span>
+            {% else %}
+              <span style="font-size:.8rem;color:var(--text-muted)">—</span>
+            {% endif %}
+          </td>
+          <td style="text-align:center;font-size:.85rem">{{ servico.ordem }}</td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'gestao:admin_servico_editar' servico.id %}"
+                 class="adm-btn adm-btn-primary adm-btn-sm adm-btn-icon"
+                 title="Editar {{ servico.nome }}" aria-label="Editar {{ servico.nome }}">
+                <i class="fas fa-edit" aria-hidden="true"></i>
+              </a>
+              <a href="{% url 'gestao:admin_servico_deletar' servico.id %}"
+                 class="adm-btn adm-btn-sm adm-btn-icon"
+                 style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA"
+                 title="Excluir {{ servico.nome }}" aria-label="Excluir {{ servico.nome }}">
+                <i class="fas fa-trash" aria-hidden="true"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="adm-empty">
+    <i class="fas fa-cogs" aria-hidden="true"></i>
+    <p>Nenhum serviço cadastrado ainda.</p>
+    <a href="{% url 'gestao:admin_servico_novo' %}" class="adm-btn adm-btn-primary adm-btn-sm mt-2">
+      <i class="fas fa-plus" aria-hidden="true"></i> Cadastrar primeiro serviço
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

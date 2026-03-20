@@ -1,0 +1,758 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block head %}
+<style>
+/* ═══════════════════════════════════════════════
+   FABLAB Admin Panel — Layout com Sidebar
+   Herda o design system do layout.html
+═══════════════════════════════════════════════ */
+
+/* ── Wrapper principal ── */
+.adm-wrapper {
+  display: flex;
+  min-height: calc(100vh - 70px);
+  background: var(--surface-alt);
+}
+
+/* ── Sidebar ── */
+.adm-sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: var(--primary);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 70px;
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+  z-index: 100;
+  transition: width .25s cubic-bezier(.4,0,.2,1), transform .25s cubic-bezier(.4,0,.2,1);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.15) transparent;
+}
+.adm-sidebar::-webkit-scrollbar { width: 4px; }
+.adm-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 4px; }
+
+/* Cabeçalho da sidebar */
+.adm-sidebar-header {
+  padding: 1.5rem 1.25rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.adm-sidebar-header h6 {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  margin: 0;
+}
+.adm-sidebar-header .adm-brand {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  color: #fff;
+  font-weight: 700;
+  font-size: .95rem;
+  margin-bottom: .35rem;
+  text-decoration: none;
+}
+.adm-sidebar-header .adm-brand i {
+  background: var(--accent);
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem;
+  flex-shrink: 0;
+}
+
+/* Grupos de navegação */
+.adm-nav-group {
+  padding: 1rem 0 .5rem;
+}
+.adm-nav-label {
+  padding: 0 1.25rem .4rem;
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.3);
+}
+.adm-nav-item {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem 1.25rem;
+  color: rgba(255,255,255,.72);
+  text-decoration: none;
+  font-size: .875rem;
+  font-weight: 500;
+  border-radius: 0;
+  transition: background .2s, color .2s, padding-left .2s;
+  position: relative;
+}
+.adm-nav-item i {
+  width: 18px;
+  text-align: center;
+  font-size: .9rem;
+  flex-shrink: 0;
+}
+.adm-nav-item:hover {
+  background: rgba(255,255,255,.08);
+  color: #fff;
+}
+.adm-nav-item.active {
+  background: rgba(69,196,176,.15);
+  color: var(--accent-light);
+  border-right: 3px solid var(--accent-light);
+}
+.adm-nav-item.active i { color: var(--accent-light); }
+.adm-nav-badge {
+  margin-left: auto;
+  background: #EF4444;
+  color: #fff;
+  font-size: .65rem;
+  font-weight: 700;
+  padding: .15em .5em;
+  border-radius: 999px;
+  line-height: 1.4;
+}
+.adm-nav-divider {
+  margin: .5rem 1.25rem;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+/* Rodapé da sidebar */
+.adm-sidebar-footer {
+  margin-top: auto;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.adm-sidebar-footer a {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  color: rgba(255,255,255,.5);
+  font-size: .8rem;
+  text-decoration: none;
+  transition: color .2s;
+}
+.adm-sidebar-footer a:hover { color: rgba(255,255,255,.85); }
+
+/* ── Área de conteúdo principal ── */
+.adm-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Topbar interna */
+.adm-topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: .85rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  position: sticky;
+  top: 70px;
+  z-index: 90;
+}
+.adm-topbar-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .875rem;
+}
+.adm-topbar-breadcrumb a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color .2s;
+}
+.adm-topbar-breadcrumb a:hover { color: var(--accent); }
+.adm-topbar-breadcrumb .sep {
+  color: var(--border);
+  font-size: .7rem;
+}
+.adm-topbar-breadcrumb .current {
+  color: var(--text);
+  font-weight: 600;
+}
+.adm-topbar-actions { display: flex; align-items: center; gap: .6rem; }
+
+/* ── Conteúdo ── */
+.adm-content {
+  padding: 1.75rem;
+  flex: 1;
+}
+
+/* ── Stat cards ── */
+.adm-stat {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s, transform .2s;
+  height: 100%;
+}
+.adm-stat:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.adm-stat-icon {
+  width: 52px; height: 52px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.adm-stat-body { flex: 1; min-width: 0; }
+.adm-stat-label {
+  font-size: .78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  margin-bottom: .2rem;
+}
+.adm-stat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: .15rem;
+}
+.adm-stat-sub { font-size: .8rem; color: var(--text-muted); }
+.adm-stat-sub .ok { color: #10B981; font-weight: 600; }
+.adm-stat-sub .warn { color: #F59E0B; font-weight: 600; }
+.adm-stat-sub .err { color: #EF4444; font-weight: 600; }
+
+/* ── Cards de seção ── */
+.adm-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.adm-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+}
+.adm-card-title {
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin: 0;
+}
+.adm-card-title i { color: var(--accent); }
+.adm-card-body { padding: 1.25rem; }
+
+/* ── Tabela admin ── */
+.adm-table {
+  width: 100%;
+  font-size: .875rem;
+  border-collapse: collapse;
+}
+.adm-table th {
+  padding: .7rem 1rem;
+  font-weight: 700;
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.adm-table td {
+  padding: .85rem 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  color: var(--text);
+}
+.adm-table tbody tr:last-child td { border-bottom: none; }
+.adm-table tbody tr:hover { background: var(--surface-alt); }
+
+/* ── Badges ── */
+.adm-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .2em .65em;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.adm-tag-green  { background: rgba(16,185,129,.1); color: #065F46; }
+.adm-tag-red    { background: rgba(239,68,68,.1);  color: #991B1B; }
+.adm-tag-blue   { background: rgba(59,130,246,.1); color: #1E40AF; }
+.adm-tag-yellow { background: rgba(245,158,11,.1); color: #92400E; }
+.adm-tag-gray   { background: rgba(107,114,128,.1);color: #374151; }
+.adm-tag-purple { background: rgba(139,92,246,.1); color: #5B21B6; }
+
+/* ── Botões de ação ── */
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .8rem;
+  font-weight: 600;
+  padding: .4rem .85rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .2s, transform .15s, opacity .2s;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.adm-btn:hover { transform: translateY(-1px); opacity: .9; text-decoration: none; }
+.adm-btn-primary   { background: var(--accent); color: #fff; }
+.adm-btn-success   { background: #10B981; color: #fff; }
+.adm-btn-danger    { background: #EF4444; color: #fff; }
+.adm-btn-warning   { background: #F59E0B; color: #fff; }
+.adm-btn-secondary { background: var(--surface-alt); color: var(--text); border: 1px solid var(--border); }
+.adm-btn-sm { font-size: .75rem; padding: .3rem .65rem; }
+.adm-btn-icon { padding: .4rem; min-width: 32px; justify-content: center; }
+
+/* ── Search bar ── */
+.adm-search {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .45rem .85rem;
+  transition: border-color .2s, box-shadow .2s;
+}
+.adm-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(19,103,138,.1);
+}
+.adm-search i { color: var(--text-muted); font-size: .85rem; }
+.adm-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: .875rem;
+  color: var(--text);
+  min-width: 180px;
+}
+
+/* ── Avatar ── */
+.adm-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; font-weight: 700; color: #fff;
+  flex-shrink: 0; overflow: hidden;
+}
+.adm-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ── Toggle switch ── */
+.adm-toggle {
+  position: relative;
+  display: inline-block;
+  width: 40px; height: 22px;
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  vertical-align: middle;
+  outline: none;
+}
+.adm-toggle input { opacity: 0; width: 0; height: 0; }
+.adm-toggle-slider {
+  position: absolute; inset: 0;
+  background: #D1D5DB;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.adm-toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  left: 3px; bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform .2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.adm-toggle input:checked + .adm-toggle-slider { background: #10B981; }
+.adm-toggle input:checked + .adm-toggle-slider::before { transform: translateX(18px); }
+.adm-toggle input:focus-visible + .adm-toggle-slider {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Empty state ── */
+.adm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+.adm-empty i { font-size: 2.5rem; margin-bottom: 1rem; opacity: .4; }
+.adm-empty p { font-size: .9rem; margin: 0; }
+
+/* ── Alert info ── */
+.adm-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .9rem 1.1rem;
+  border-radius: var(--radius-sm);
+  font-size: .875rem;
+  margin-bottom: 1.25rem;
+}
+.adm-alert i { margin-top: 2px; flex-shrink: 0; }
+.adm-alert-warn { background: rgba(245,158,11,.1); color: #92400E; border-left: 3px solid #F59E0B; }
+.adm-alert-danger { background: rgba(239,68,68,.1); color: #991B1B; border-left: 3px solid #EF4444; }
+.adm-alert-info { background: rgba(59,130,246,.1); color: #1E40AF; border-left: 3px solid #3B82F6; }
+
+/* ── Mobile ── */
+.adm-mobile-toggle {
+  display: none;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: .5rem .75rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: .9rem;
+  align-items: center;
+  gap: .4rem;
+}
+
+@media (max-width: 991.98px) {
+  .adm-sidebar {
+    position: fixed;
+    left: -270px;
+    height: 100vh;
+    top: 0;
+    z-index: 1050;
+    box-shadow: 4px 0 24px rgba(0,0,0,.18);
+  }
+  .adm-sidebar.open { left: 0; }
+  .adm-content { padding: 1.25rem 1rem; }
+  .adm-mobile-toggle { display: flex; }
+  .adm-topbar { padding: .75rem 1rem; }
+  .adm-sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 1040;
+  }
+  .adm-sidebar-overlay.open { display: block; }
+}
+
+/* ── Admin dark mode overrides ── */
+[data-theme="dark"] .adm-sidebar {
+  background: #0a1826;
+  border-right: 1px solid rgba(255,255,255,.05);
+}
+[data-theme="dark"] .adm-sidebar-header { border-bottom-color: rgba(255,255,255,.06); }
+[data-theme="dark"] .adm-sidebar-footer { border-top-color: rgba(255,255,255,.06); }
+[data-theme="dark"] .adm-nav-divider { border-color: rgba(255,255,255,.05); }
+
+[data-theme="dark"] .adm-topbar {
+  background: var(--white);
+  border-bottom-color: var(--border);
+}
+[data-theme="dark"] .adm-table th { background: var(--surface-alt); color: var(--text-muted); border-bottom-color: var(--border); }
+[data-theme="dark"] .adm-table td { border-bottom-color: var(--border); color: var(--text); }
+[data-theme="dark"] .adm-table tbody tr:hover { background: var(--surface-alt); }
+
+[data-theme="dark"] .adm-tag-green  { background: rgba(16,185,129,.15); color: #34D399; }
+[data-theme="dark"] .adm-tag-red    { background: rgba(239,68,68,.15);  color: #F87171; }
+[data-theme="dark"] .adm-tag-blue   { background: rgba(59,130,246,.15); color: #60A5FA; }
+[data-theme="dark"] .adm-tag-yellow { background: rgba(245,158,11,.15); color: #FBBF24; }
+[data-theme="dark"] .adm-tag-gray   { background: rgba(148,163,184,.15);color: #94A3B8; }
+[data-theme="dark"] .adm-tag-purple { background: rgba(167,139,250,.15);color: #A78BFA; }
+
+[data-theme="dark"] .adm-btn-secondary { background: var(--surface-alt); color: var(--text); border-color: var(--border); }
+[data-theme="dark"] .adm-search { background: var(--surface-alt); border-color: var(--border); }
+[data-theme="dark"] .adm-search input { color: var(--text); }
+[data-theme="dark"] .adm-search input::placeholder { color: var(--text-muted); }
+
+[data-theme="dark"] .adm-alert-warn   { background: rgba(245,158,11,.12); color: #FBBF24; border-left-color: #F59E0B; }
+[data-theme="dark"] .adm-alert-danger { background: rgba(239,68,68,.12);  color: #F87171; border-left-color: #EF4444; }
+[data-theme="dark"] .adm-alert-info   { background: rgba(59,130,246,.12); color: #60A5FA; border-left-color: #3B82F6; }
+
+[data-theme="dark"] .adm-toggle-slider { background: #334155; }
+[data-theme="dark"] .adm-toggle-slider::before { background: #94A3B8; }
+[data-theme="dark"] .adm-toggle input:checked + .adm-toggle-slider { background: #059669; }
+[data-theme="dark"] .adm-toggle input:checked + .adm-toggle-slider::before { background: #fff; }
+
+/* Log severity pills dark */
+[data-theme="dark"] .sev-critical { background: rgba(239,68,68,.15);  color: #F87171; }
+[data-theme="dark"] .sev-error    { background: rgba(249,115,22,.15); color: #FB923C; }
+[data-theme="dark"] .sev-security { background: rgba(99,102,241,.15); color: #A5B4FC; }
+[data-theme="dark"] .sev-warning  { background: rgba(245,158,11,.15); color: #FBBF24; }
+[data-theme="dark"] .sev-normal   { background: rgba(16,185,129,.15); color: #34D399; }
+
+/* (form-select dark mode centralizado em layout.html) */
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-sidebar,
+  .adm-stat,
+  .adm-btn,
+  .adm-nav-item,
+  .adm-toggle-slider,
+  .adm-toggle-slider::before { transition: none !important; }
+}
+</style>
+{% block admin_head %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<!-- Mobile overlay -->
+<div class="adm-sidebar-overlay" id="admOverlay" onclick="closeSidebar()" aria-hidden="true"></div>
+
+<div class="adm-wrapper">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="adm-sidebar" id="admSidebar" role="navigation" aria-label="Menu administrativo">
+
+    <div class="adm-sidebar-header">
+      <a href="{% url 'gestao:dashboard' %}" class="adm-brand">
+        <span><i class="fas fa-shield-alt" aria-hidden="true"></i></span>
+        Painel Admin
+      </a>
+      <h6>FABLAB IFMT</h6>
+    </div>
+
+    <nav>
+      <!-- Visão Geral — visível para todos com acesso admin -->
+      <div class="adm-nav-group">
+        <div class="adm-nav-label">Visão Geral</div>
+        <a href="{% url 'gestao:dashboard' %}"
+           class="adm-nav-item {% block nav_dashboard %}{% endblock %}">
+          <i class="fas fa-tachometer-alt" aria-hidden="true"></i> Dashboard
+        </a>
+        {% if 'monitoramento' in admin_sections %}
+        <a href="{% url 'gestao:monitoramento' %}"
+           class="adm-nav-item {% block nav_monitoramento %}{% endblock %}">
+          <i class="fas fa-chart-line" aria-hidden="true"></i> Monitoramento
+        </a>
+        {% endif %}
+        {% if 'usuarios' in admin_sections %}
+        <a href="{% url 'logs:index' %}" class="adm-nav-item">
+          <i class="fas fa-history" aria-hidden="true"></i> Logs do Sistema
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Usuários -->
+      {% if 'usuarios' in admin_sections %}
+      <div class="adm-nav-divider" role="separator"></div>
+      <div class="adm-nav-group">
+        <div class="adm-nav-label">Usuários</div>
+        <a href="{% url 'gestao:admin_usuarios' %}"
+           class="adm-nav-item {% block nav_usuarios %}{% endblock %}">
+          <i class="fas fa-users" aria-hidden="true"></i> Gerenciar Usuários
+          {% if projectist_pendentes %}<span class="adm-nav-badge" aria-label="{{ projectist_pendentes }} pendentes">{{ projectist_pendentes }}</span>{% endif %}
+        </a>
+        {% if user.is_superuser %}
+        <a href="{% url 'gestao:gerenciar_acessos' %}"
+           class="adm-nav-item {% block nav_acessos %}{% endblock %}">
+          <i class="fas fa-users-cog" aria-hidden="true"></i> Acessos à Gestão
+        </a>
+        <a href="{% url 'users:manage_roles' %}" class="adm-nav-item">
+          <i class="fas fa-user-shield" aria-hidden="true"></i> Cargos & Roles
+        </a>
+        {% endif %}
+        <a href="{% url 'users:pending_registrations' %}" class="adm-nav-item">
+          <i class="fas fa-user-check" aria-hidden="true"></i> Solicitações Projetista
+        </a>
+      </div>
+      {% endif %}
+
+      <!-- Conteúdo do Site -->
+      {% if 'noticias' in admin_sections or 'membros' in admin_sections or 'servicos' in admin_sections or 'solicitacoes' in admin_sections %}
+      <div class="adm-nav-divider" role="separator"></div>
+      <div class="adm-nav-group">
+        <div class="adm-nav-label">Conteúdo do Site</div>
+        {% if 'conteudo' in admin_sections %}
+        <a href="{% url 'gestao:admin_conteudo' %}"
+           class="adm-nav-item {% block nav_conteudo %}{% endblock %}">
+          <i class="fas fa-layer-group" aria-hidden="true"></i> Visão Geral
+          {% if solicitacoes_pendentes %}<span class="adm-nav-badge">{{ solicitacoes_pendentes }}</span>{% endif %}
+        </a>
+        {% endif %}
+        {% if 'noticias' in admin_sections %}
+        <a href="{% url 'gestao:admin_noticias' %}"
+           class="adm-nav-item {% block nav_noticias %}{% endblock %}">
+          <i class="fas fa-newspaper" aria-hidden="true"></i> Notícias
+        </a>
+        {% endif %}
+        {% if 'membros' in admin_sections %}
+        <a href="{% url 'gestao:admin_membros' %}"
+           class="adm-nav-item {% block nav_membros %}{% endblock %}">
+          <i class="fas fa-id-badge" aria-hidden="true"></i> Membros
+        </a>
+        {% endif %}
+        {% if 'servicos' in admin_sections %}
+        <a href="{% url 'gestao:admin_servicos' %}"
+           class="adm-nav-item {% block nav_servicos %}{% endblock %}">
+          <i class="fas fa-cogs" aria-hidden="true"></i> Serviços
+        </a>
+        {% endif %}
+        {% if 'solicitacoes' in admin_sections %}
+        <a href="{% url 'gestao:admin_solicitacoes' %}"
+           class="adm-nav-item {% block nav_solicitacoes %}{% endblock %}">
+          <i class="fas fa-inbox" aria-hidden="true"></i> Solicitações
+          {% if solicitacoes_pendentes %}<span class="adm-nav-badge">{{ solicitacoes_pendentes }}</span>{% endif %}
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Laboratório -->
+      {% if 'inventario' in admin_sections or 'projetos' in admin_sections or 'cursos' in admin_sections or 'automacao' in admin_sections %}
+      <div class="adm-nav-divider" role="separator"></div>
+      <div class="adm-nav-group">
+        <div class="adm-nav-label">Laboratório</div>
+        {% if 'inventario' in admin_sections %}
+        <a href="{% url 'gestao:admin_inventario' %}"
+           class="adm-nav-item {% block nav_inventario %}{% endblock %}">
+          <i class="fas fa-boxes" aria-hidden="true"></i> Inventário
+        </a>
+        <a href="{% url 'inventario:dashboard' %}" class="adm-nav-item">
+          <i class="fas fa-warehouse" aria-hidden="true"></i> Inventário Completo
+        </a>
+        {% endif %}
+        {% if 'projetos' in admin_sections %}
+        <a href="{% url 'projetos:gestao' %}" class="adm-nav-item">
+          <i class="fas fa-project-diagram" aria-hidden="true"></i> Projetos
+        </a>
+        {% endif %}
+        {% if 'cursos' in admin_sections %}
+        <a href="{% url 'cursos:admin_cursos' %}"
+           class="adm-nav-item {% block nav_cursos %}{% endblock %}">
+          <i class="fas fa-chalkboard-teacher" aria-hidden="true"></i> Cursos
+        </a>
+        {% endif %}
+        {% if 'usuarios' in admin_sections %}
+        <a href="{% url 'acesso_e_ponto:my_access_history' %}" class="adm-nav-item">
+          <i class="fas fa-fingerprint" aria-hidden="true"></i> Acesso & Ponto
+        </a>
+        {% endif %}
+        {% if 'automacao' in admin_sections %}
+        <a href="{% url 'Controle_ar:automacao_home' %}" class="adm-nav-item">
+          <i class="fas fa-robot" aria-hidden="true"></i> Automação
+        </a>
+        {% endif %}
+        <a href="{% url 'logs:agenda_home' %}" class="adm-nav-item">
+          <i class="fas fa-calendar-alt" aria-hidden="true"></i> Agenda & Eventos
+        </a>
+      </div>
+      {% endif %}
+
+      <!-- Sistema (apenas superuser) -->
+      {% if 'configuracoes' in admin_sections %}
+      <div class="adm-nav-divider" role="separator"></div>
+      <div class="adm-nav-group">
+        <div class="adm-nav-label">Sistema</div>
+        <a href="{% url 'gestao:configuracoes' %}"
+           class="adm-nav-item {% block nav_config %}{% endblock %}">
+          <i class="fas fa-sliders-h" aria-hidden="true"></i> Configurações
+        </a>
+        <a href="{% url 'admin:index' %}"
+           class="adm-nav-item"
+           target="_blank" rel="noopener noreferrer">
+          <i class="fas fa-external-link-alt" aria-hidden="true"></i> Django Admin
+        </a>
+      </div>
+      {% endif %}
+
+    </nav>
+
+    <div class="adm-sidebar-footer">
+      <a href="/">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+        Voltar ao Site
+      </a>
+    </div>
+
+  </aside>
+
+  <!-- ══ CONTEÚDO PRINCIPAL ══ -->
+  <div class="adm-main">
+
+    <!-- Topbar -->
+    <div class="adm-topbar">
+      <div class="d-flex align-items-center gap-2">
+        <button class="adm-mobile-toggle" onclick="openSidebar()"
+                aria-label="Abrir menu" aria-expanded="false" aria-controls="admSidebar">
+          <i class="fas fa-bars" aria-hidden="true"></i> Menu
+        </button>
+        <div class="adm-topbar-breadcrumb">
+          <a href="{% url 'gestao:dashboard' %}">Gestão</a>
+          {% block breadcrumb %}{% endblock %}
+        </div>
+      </div>
+      <div class="adm-topbar-actions">
+        {% block topbar_actions %}{% endblock %}
+        <span style="font-size:.8rem;color:var(--text-muted)">
+          <i class="fas fa-user-circle me-1" aria-hidden="true"></i>
+          {{ user.first_name }}
+          {% if user.is_superuser %}
+            <span class="adm-tag adm-tag-purple ms-1">Super</span>
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <!-- Área de conteúdo -->
+    <div class="adm-content">
+      {% block admin_content %}{% endblock %}
+    </div>
+
+  </div><!-- /.adm-main -->
+</div><!-- /.adm-wrapper -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openSidebar() {
+  document.getElementById('admSidebar').classList.add('open');
+  document.getElementById('admOverlay').classList.add('open');
+  document.querySelector('.adm-mobile-toggle').setAttribute('aria-expanded', 'true');
+}
+function closeSidebar() {
+  document.getElementById('admSidebar').classList.remove('open');
+  document.getElementById('admOverlay').classList.remove('open');
+  document.querySelector('.adm-mobile-toggle').setAttribute('aria-expanded', 'false');
+}
+// Fecha sidebar com Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeSidebar();
+});
+</script>
+{% block admin_scripts %}{% endblock %}
+{% endblock %}

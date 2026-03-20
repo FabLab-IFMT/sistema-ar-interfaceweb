@@ -184,3 +184,23 @@ class Noticia(models.Model):
     
     def get_absolute_url(self):
         return reverse('options:noticia_detalhe', args=[self.slug])
+
+
+class NoticiaFoto(models.Model):
+    """Fotos adicionais de galeria vinculadas a uma notícia."""
+    noticia = models.ForeignKey(
+        Noticia, on_delete=models.CASCADE,
+        related_name='fotos', verbose_name='Notícia'
+    )
+    imagem  = models.ImageField(upload_to='noticias/galeria/')
+    legenda = models.CharField(max_length=200, blank=True,
+                               help_text="Legenda opcional da foto")
+    ordem   = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['ordem', 'id']
+        verbose_name = 'Foto da Notícia'
+        verbose_name_plural = 'Fotos das Notícias'
+
+    def __str__(self):
+        return f"Foto #{self.id} — {self.noticia.titulo}"

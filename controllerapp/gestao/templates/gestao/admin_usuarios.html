@@ -1,0 +1,293 @@
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
+
+{% block title %}Gerenciar Usuários{% endblock %}
+{% block nav_usuarios %}active{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">Usuários</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'users:manage_roles' %}" class="adm-btn adm-btn-secondary adm-btn-sm">
+    <i class="fas fa-user-shield" aria-hidden="true"></i> Cargos
+  </a>
+  <a href="{% url 'users:pending_registrations' %}" class="adm-btn adm-btn-primary adm-btn-sm">
+    <i class="fas fa-user-check" aria-hidden="true"></i>
+    Projetistas Pendentes
+    {% if projectist_pendentes %}<span class="adm-nav-badge ms-1">{{ projectist_pendentes }}</span>{% endif %}
+  </a>
+{% endblock %}
+
+{% block admin_head %}
+<style>
+.usr-name { font-weight: 600; }
+.usr-mat  { font-size: .78rem; color: var(--text-muted); }
+.role-pill {
+  display: inline-block;
+  font-size: .68rem;
+  font-weight: 600;
+  padding: .18em .55em;
+  border-radius: 999px;
+  background: rgba(19,103,138,.1);
+  color: var(--accent);
+  margin: .1rem .1rem 0 0;
+  white-space: nowrap;
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+
+<!-- Filtros -->
+<div class="adm-card mb-4">
+  <div class="adm-card-body">
+    <form method="get" role="search" aria-label="Filtrar usuários">
+      <div class="d-flex flex-wrap gap-2 align-items-end">
+        <div>
+          <label for="searchInput" class="form-label mb-1" style="font-size:.8rem;font-weight:600">Buscar</label>
+          <div class="adm-search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input type="search" id="searchInput" name="q" value="{{ termo }}"
+                   placeholder="Nome, matrícula ou email…"
+                   autocomplete="off">
+          </div>
+        </div>
+        <div>
+          <label for="statusFilter" class="form-label mb-1" style="font-size:.8rem;font-weight:600">Status</label>
+          <select id="statusFilter" name="status" class="form-select form-select-sm"
+                  style="min-width:130px;border-radius:var(--radius-sm)">
+            <option value="">Todos</option>
+            <option value="ativo"     {% if filtro_status == 'ativo' %}selected{% endif %}>Ativos</option>
+            <option value="inativo"   {% if filtro_status == 'inativo' %}selected{% endif %}>Inativos</option>
+            <option value="staff"     {% if filtro_status == 'staff' %}selected{% endif %}>Staff</option>
+            <option value="superuser" {% if filtro_status == 'superuser' %}selected{% endif %}>Superuser</option>
+          </select>
+        </div>
+        <div>
+          <label for="roleFilter" class="form-label mb-1" style="font-size:.8rem;font-weight:600">Cargo</label>
+          <select id="roleFilter" name="role" class="form-select form-select-sm"
+                  style="min-width:130px;border-radius:var(--radius-sm)">
+            <option value="">Todos os cargos</option>
+            {% for role in roles %}
+            <option value="{{ role.code }}" {% if filtro_role == role.code %}selected{% endif %}>
+              {{ role.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm" style="align-self:flex-end">
+          <i class="fas fa-filter" aria-hidden="true"></i> Filtrar
+        </button>
+        {% if termo or filtro_status or filtro_role %}
+        <a href="{% url 'gestao:admin_usuarios' %}" class="adm-btn adm-btn-secondary adm-btn-sm" style="align-self:flex-end">
+          <i class="fas fa-times" aria-hidden="true"></i> Limpar
+        </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Solicitações de projetista pendentes -->
+{% if projectist_pendentes %}
+<div class="adm-card mb-4">
+  <div class="adm-card-header">
+    <h2 class="adm-card-title">
+      <i class="fas fa-user-check" aria-hidden="true"></i>
+      Solicitações de Projetista Pendentes
+      <span class="adm-tag adm-tag-yellow ms-1">{{ projectist_pendentes|length }}</span>
+    </h2>
+    <a href="{% url 'users:pending_registrations' %}" class="adm-btn adm-btn-warning adm-btn-sm">
+      Gerenciar
+    </a>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="adm-table" aria-label="Solicitações de projetista pendentes">
+      <thead>
+        <tr>
+          <th scope="col">Usuário</th>
+          <th scope="col">Matrícula</th>
+          <th scope="col">Solicitado em</th>
+          <th scope="col">Motivação</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in projectist_pendentes %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="adm-avatar">
+                {% if req.user.profile_image and req.user.profile_image.name %}
+                  <img src="{{ req.user.profile_image.url }}" alt="">
+                {% else %}
+                  {{ req.user.first_name|first }}{{ req.user.last_name|first }}
+                {% endif %}
+              </div>
+              <div>
+                <div class="usr-name">{{ req.user.first_name }} {{ req.user.last_name }}</div>
+                <div class="usr-mat">{{ req.user.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td><code style="font-size:.8rem">{{ req.user.id }}</code></td>
+          <td style="font-size:.85rem;color:var(--text-muted)">{{ req.created_at|date:"d/m/Y" }}</td>
+          <td style="max-width:220px">
+            <span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem">
+              {{ req.motivation|default:"(sem motivação)" }}
+            </span>
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <form method="post" action="{% url 'users:approve_registration' req.id %}">
+                {% csrf_token %}
+                <button type="submit" class="adm-btn adm-btn-success adm-btn-sm"
+                        onclick="return confirm('Aprovar solicitação de {{ req.user.first_name }}?')">
+                  <i class="fas fa-check" aria-hidden="true"></i> Aprovar
+                </button>
+              </form>
+              <form method="post" action="{% url 'users:reject_registration' req.id %}">
+                {% csrf_token %}
+                <button type="submit" class="adm-btn adm-btn-danger adm-btn-sm"
+                        onclick="return confirm('Rejeitar solicitação de {{ req.user.first_name }}?')">
+                  <i class="fas fa-times" aria-hidden="true"></i> Rejeitar
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Tabela de usuários -->
+<div class="adm-card">
+  <div class="adm-card-header">
+    <h2 class="adm-card-title">
+      <i class="fas fa-users" aria-hidden="true"></i>
+      Todos os Usuários
+      <span style="font-size:.8rem;font-weight:500;color:var(--text-muted)">
+        ({{ total }} encontrado{{ total|pluralize:"s" }})
+      </span>
+    </h2>
+  </div>
+  {% if users %}
+  <div style="overflow-x:auto">
+    <table class="adm-table" aria-label="Lista de usuários">
+      <thead>
+        <tr>
+          <th scope="col">Usuário</th>
+          <th scope="col">Matrícula</th>
+          <th scope="col">Cargos</th>
+          <th scope="col">Status</th>
+          {% if user.is_superuser %}<th scope="col">Ativo</th>{% endif %}
+          {% if user.is_superuser %}<th scope="col">Staff</th>{% endif %}
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <!-- Nome + Avatar -->
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="adm-avatar">
+                {% if u.profile_image and u.profile_image.name %}
+                  <img src="{{ u.profile_image.url }}" alt="">
+                {% else %}
+                  {{ u.first_name|first }}{{ u.last_name|first }}
+                {% endif %}
+              </div>
+              <div>
+                <div class="usr-name">{{ u.first_name }} {{ u.last_name }}</div>
+                <div class="usr-mat">{{ u.email }}</div>
+              </div>
+            </div>
+          </td>
+          <!-- Matrícula -->
+          <td><code style="font-size:.8rem;background:var(--surface-alt);padding:.2em .4em;border-radius:4px">{{ u.id }}</code></td>
+          <!-- Roles -->
+          <td>
+            {% for role in u.roles.all %}
+              <span class="role-pill">{{ role.name }}</span>
+            {% empty %}
+              <span style="font-size:.8rem;color:var(--text-muted)">—</span>
+            {% endfor %}
+            {% if u.is_superuser %}
+              <span class="adm-tag adm-tag-purple" style="font-size:.65rem">Super</span>
+            {% endif %}
+          </td>
+          <!-- Flags de status -->
+          <td>
+            {% if u.is_superuser %}
+              <span class="adm-tag adm-tag-purple">Superuser</span>
+            {% elif u.is_staff %}
+              <span class="adm-tag adm-tag-blue">Staff</span>
+            {% else %}
+              <span class="adm-tag adm-tag-gray">Membro</span>
+            {% endif %}
+          </td>
+          <!-- Toggle Ativo (só superuser) -->
+          {% if user.is_superuser %}
+          <td>
+            <form method="post" action="{% url 'gestao:admin_usuario_toggle_ativo' u.id %}"
+                  onsubmit="return confirm('{% if u.is_active %}Desativar{% else %}Ativar{% endif %} {{ u.first_name }}?')">
+              {% csrf_token %}
+              <button type="submit" class="adm-toggle" aria-label="{% if u.is_active %}Desativar{% else %}Ativar{% endif %} {{ u.first_name }} {{ u.last_name }}">
+                <input type="checkbox" {% if u.is_active %}checked{% endif %} tabindex="-1" aria-hidden="true">
+                <span class="adm-toggle-slider"></span>
+              </button>
+            </form>
+          </td>
+          <!-- Toggle Staff -->
+          <td>
+            {% if not u.is_superuser %}
+            <form method="post" action="{% url 'gestao:admin_usuario_toggle_staff' u.id %}"
+                  onsubmit="return confirm('{% if u.is_staff %}Remover staff de{% else %}Promover a staff{% endif %} {{ u.first_name }}?')">
+              {% csrf_token %}
+              <button type="submit" class="adm-toggle" aria-label="{% if u.is_staff %}Remover staff de{% else %}Promover a staff{% endif %} {{ u.first_name }} {{ u.last_name }}">
+                <input type="checkbox" {% if u.is_staff %}checked{% endif %} tabindex="-1" aria-hidden="true">
+                <span class="adm-toggle-slider"></span>
+              </button>
+            </form>
+            {% else %}
+              <span style="font-size:.8rem;color:var(--text-muted)">—</span>
+            {% endif %}
+          </td>
+          {% endif %}
+          <!-- Ações -->
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'gestao:admin_usuario_editar' u.id %}"
+                 class="adm-btn adm-btn-primary adm-btn-sm adm-btn-icon"
+                 title="Editar {{ u.first_name }}"
+                 aria-label="Editar {{ u.first_name }} {{ u.last_name }}">
+                <i class="fas fa-edit" aria-hidden="true"></i>
+              </a>
+              <a href="{% url 'users:user_profile' u.id %}"
+                 class="adm-btn adm-btn-secondary adm-btn-sm adm-btn-icon"
+                 title="Ver perfil de {{ u.first_name }}"
+                 aria-label="Ver perfil de {{ u.first_name }} {{ u.last_name }}">
+                <i class="fas fa-eye" aria-hidden="true"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="adm-empty">
+    <i class="fas fa-users" aria-hidden="true"></i>
+    <p>Nenhum usuário encontrado com os filtros aplicados.</p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

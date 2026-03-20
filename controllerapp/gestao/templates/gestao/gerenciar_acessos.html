@@ -1,129 +1,127 @@
-{% extends 'layout.html' %}
+{% extends 'gestao/admin_base.html' %}
 {% load static %}
 
 {% block title %}Gerenciar Acessos à Gestão{% endblock %}
+{% block nav_acessos %}active{% endblock %}
 
-{% block head %}
-<style>
-  .access-user-card {
-    transition: all 0.3s ease;
-  }
-  
-  .access-user-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-  }
-  
-  .user-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background-color: #6c757d;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  .search-box {
-    border-radius: 50px;
-    padding-left: 20px;
-    border: 1px solid #ced4da;
-  }
-  
-  .search-btn {
-    border-radius: 0 50px 50px 0;
-  }
-</style>
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_usuarios' %}">Usuários</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">Acessos à Gestão</span>
 {% endblock %}
 
-{% block content %}
-<div class="container">
-  <nav aria-label="breadcrumb" class="my-3">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'gestao:dashboard' %}">Gestão</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Gerenciar Acessos</li>
-    </ol>
-  </nav>
+{% block admin_content %}
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0"><i class="fas fa-users-cog me-2"></i> Gerenciar Acessos à Gestão</h1>
-    <a href="{% url 'gestao:dashboard' %}" class="btn btn-secondary">
-      <i class="fas fa-arrow-left me-1"></i> Voltar
-    </a>
+<div class="adm-alert adm-alert-warn mb-4" role="note">
+  <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+  <div>
+    <strong>Atenção:</strong> Esta área controla quais usuários staff têm acesso ao painel de gestão.
+    Apenas usuários com <code>is_staff=True</code> aparecem aqui.
+    Para gerenciar todos os usuários e seus cargos, use
+    <a href="{% url 'gestao:admin_usuarios' %}" style="font-weight:600">Gerenciar Usuários</a>.
   </div>
-  
-  <div class="alert alert-warning">
-    <i class="fas fa-exclamation-triangle me-2"></i> Esta área permite que você gerencie quais usuários têm acesso ao módulo de Gestão. Apenas usuários com permissão específica poderão acessar as funcionalidades avançadas.
-  </div>
-  
-  <!-- Barra de pesquisa -->
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <form method="get" class="d-flex">
-        <div class="input-group">
-          <input type="text" name="search" class="form-control search-box" placeholder="Buscar por nome, email ou usuário..." value="{{ termo_busca }}">
-          <button type="submit" class="btn btn-primary search-btn">
-            <i class="fas fa-search"></i>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-  
-  <!-- Lista de usuários -->
-  <div class="row">
-    {% for user in users %}
-    <div class="col-md-6 col-lg-4 mb-3">
-      <div class="card access-user-card">
-        <div class="card-body">
-          <div class="d-flex align-items-center mb-3">
-            <div class="user-avatar bg-primary me-3">
-              {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
-            </div>
-            <div>
-              <h5 class="card-title mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
-              <p class="text-muted mb-0">@{{ user.username }}</p>
-            </div>
+</div>
+
+<!-- Busca — FIX: busca por id/nome/email, não por username -->
+<div class="adm-card mb-4">
+  <div class="adm-card-body">
+    <form method="get" role="search" aria-label="Buscar usuários staff">
+      <div class="d-flex gap-2 align-items-end">
+        <div style="flex:1">
+          <label for="searchInput" class="form-label mb-1" style="font-size:.8rem;font-weight:600">
+            Buscar por nome, matrícula ou email
+          </label>
+          <div class="adm-search" style="width:100%">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input type="search" id="searchInput" name="search"
+                   value="{{ termo_busca }}"
+                   placeholder="Nome, matrícula ou email…"
+                   autocomplete="off"
+                   style="flex:1;min-width:0">
           </div>
-          
-          <p class="card-text">
-            <i class="fas fa-envelope me-2 text-muted"></i>{{ user.email }}
-          </p>
-          
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <small class="text-muted">Status de acesso:</small>
-              {% if user.acesso_gestao.tem_acesso %}
-                <span class="badge bg-success ms-2">Acesso Permitido</span>
-              {% else %}
-                <span class="badge bg-secondary ms-2">Sem Acesso</span>
-              {% endif %}
-            </div>
-            
-            <form method="post" action="{% url 'gestao:toggle_acesso' user.id %}">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm {% if user.acesso_gestao.tem_acesso %}btn-danger{% else %}btn-success{% endif %}">
-                {% if user.acesso_gestao.tem_acesso %}
-                  <i class="fas fa-lock me-1"></i> Revogar
+        </div>
+        <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm" style="align-self:flex-end">
+          <i class="fas fa-search" aria-hidden="true"></i> Buscar
+        </button>
+        {% if termo_busca %}
+        <a href="{% url 'gestao:gerenciar_acessos' %}" class="adm-btn adm-btn-secondary adm-btn-sm" style="align-self:flex-end">
+          <i class="fas fa-times" aria-hidden="true"></i> Limpar
+        </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Lista de usuários staff -->
+<div class="adm-card">
+  <div class="adm-card-header">
+    <h2 class="adm-card-title">
+      <i class="fas fa-users-cog" aria-hidden="true"></i> Usuários Staff
+    </h2>
+  </div>
+  {% if users %}
+  <div style="overflow-x:auto">
+    <table class="adm-table" aria-label="Controle de acesso ao painel de gestão">
+      <thead>
+        <tr>
+          <th scope="col">Usuário</th>
+          <th scope="col">Matrícula</th>
+          <th scope="col">Email</th>
+          <th scope="col">Acesso à Gestão</th>
+          <th scope="col">Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="adm-avatar">
+                {% if u.profile_image and u.profile_image.name %}
+                  <img src="{{ u.profile_image.url }}" alt="">
                 {% else %}
-                  <i class="fas fa-unlock me-1"></i> Conceder
+                  {{ u.first_name|first }}{{ u.last_name|first }}
+                {% endif %}
+              </div>
+              <span style="font-weight:600">{{ u.first_name }} {{ u.last_name }}</span>
+            </div>
+          </td>
+          <td><code style="font-size:.8rem">{{ u.id }}</code></td>
+          <td style="font-size:.85rem">{{ u.email }}</td>
+          <td>
+            {% if u.acesso_gestao.tem_acesso %}
+              <span class="adm-tag adm-tag-green"><i class="fas fa-check" aria-hidden="true"></i> Permitido</span>
+            {% else %}
+              <span class="adm-tag adm-tag-gray">Sem acesso</span>
+            {% endif %}
+          </td>
+          <td>
+            <form method="post" action="{% url 'gestao:toggle_acesso' u.id %}"
+                  onsubmit="return confirm('{% if u.acesso_gestao.tem_acesso %}Revogar acesso à gestão de {{ u.first_name }}?{% else %}Conceder acesso à gestão para {{ u.first_name }}?{% endif %}')">
+              {% csrf_token %}
+              <button type="submit"
+                      class="adm-btn adm-btn-sm {% if u.acesso_gestao.tem_acesso %}adm-btn-danger{% else %}adm-btn-success{% endif %}">
+                {% if u.acesso_gestao.tem_acesso %}
+                  <i class="fas fa-lock" aria-hidden="true"></i> Revogar
+                {% else %}
+                  <i class="fas fa-unlock" aria-hidden="true"></i> Conceder
                 {% endif %}
               </button>
             </form>
-          </div>
-        </div>
-      </div>
-    </div>
-    {% empty %}
-    <div class="col-12">
-      <div class="alert alert-info">
-        <i class="fas fa-info-circle me-2"></i> Nenhum usuário encontrado com os critérios de busca.
-      </div>
-    </div>
-    {% endfor %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+  {% else %}
+  <div class="adm-empty">
+    <i class="fas fa-users-cog" aria-hidden="true"></i>
+    <p>Nenhum usuário staff encontrado{% if termo_busca %} para "{{ termo_busca }}"{% endif %}.</p>
+  </div>
+  {% endif %}
 </div>
+
 {% endblock %}

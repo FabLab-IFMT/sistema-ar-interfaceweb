@@ -1,0 +1,218 @@
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
+
+{% block title %}Inventário — Visão Geral{% endblock %}
+{% block nav_inventario %}active{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">Inventário</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'inventario:dashboard' %}" class="adm-btn adm-btn-primary adm-btn-sm">
+    <i class="fas fa-warehouse" aria-hidden="true"></i> Inventário Completo
+  </a>
+{% endblock %}
+
+{% block admin_content %}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="adm-stat">
+      <div class="adm-stat-icon" style="background:rgba(11,37,69,.1);color:var(--primary)">
+        <i class="fas fa-boxes" aria-hidden="true"></i>
+      </div>
+      <div class="adm-stat-body">
+        <div class="adm-stat-label">Total de Itens</div>
+        <div class="adm-stat-value">{{ total_itens }}</div>
+        <div class="adm-stat-sub">em {{ categorias|length }} categoria{{ categorias|length|pluralize:"s" }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="adm-stat">
+      <div class="adm-stat-icon" style="background:rgba(245,158,11,.1);color:#D97706">
+        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+      </div>
+      <div class="adm-stat-body">
+        <div class="adm-stat-label">Estoque Baixo</div>
+        <div class="adm-stat-value">{{ total_baixo_estoque }}</div>
+        <div class="adm-stat-sub">
+          {% if total_baixo_estoque > 0 %}<span class="warn">Reposição necessária</span>{% else %}<span class="ok">Tudo em ordem</span>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="adm-stat">
+      <div class="adm-stat-icon" style="background:rgba(59,130,246,.1);color:#2563EB">
+        <i class="fas fa-hand-holding" aria-hidden="true"></i>
+      </div>
+      <div class="adm-stat-body">
+        <div class="adm-stat-label">Empréstimos Ativos</div>
+        <div class="adm-stat-value">{{ total_emprestimos_ativos }}</div>
+        <div class="adm-stat-sub">itens em uso</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="adm-stat">
+      <div class="adm-stat-icon" style="background:rgba(239,68,68,.1);color:#DC2626">
+        <i class="fas fa-clock" aria-hidden="true"></i>
+      </div>
+      <div class="adm-stat-body">
+        <div class="adm-stat-label">Empréstimos Atrasados</div>
+        <div class="adm-stat-value">{{ total_atrasados }}</div>
+        <div class="adm-stat-sub">
+          {% if total_atrasados > 0 %}<span class="err">Devolução pendente!</span>{% else %}<span class="ok">Nenhum em atraso</span>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  <!-- Itens com estoque baixo -->
+  <div class="col-lg-6">
+    <div class="adm-card h-100">
+      <div class="adm-card-header">
+        <h2 class="adm-card-title">
+          <i class="fas fa-exclamation-triangle" style="color:#F59E0B" aria-hidden="true"></i>
+          Estoque Baixo
+        </h2>
+        <a href="{% url 'inventario:dashboard' %}" class="adm-btn adm-btn-secondary adm-btn-sm">
+          Ver todos
+        </a>
+      </div>
+      {% if itens_baixo_estoque %}
+      <div style="overflow-x:auto">
+        <table class="adm-table" aria-label="Itens com estoque baixo">
+          <thead>
+            <tr>
+              <th scope="col">Item</th>
+              <th scope="col">Categoria</th>
+              <th scope="col">Qtd</th>
+              <th scope="col">Mín</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in itens_baixo_estoque %}
+            <tr>
+              <td>
+                <div style="font-weight:600;font-size:.88rem">{{ item.nome }}</div>
+                <div style="font-size:.75rem;color:var(--text-muted)">{{ item.codigo }}</div>
+              </td>
+              <td><span class="adm-tag adm-tag-gray">{{ item.categoria.nome|default:"—" }}</span></td>
+              <td>
+                <span class="adm-tag adm-tag-red">{{ item.quantidade }} {{ item.get_unidade_display }}</span>
+              </td>
+              <td style="font-size:.85rem;color:var(--text-muted)">{{ item.quantidade_minima }} {{ item.get_unidade_display }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="adm-empty">
+        <i class="fas fa-check-circle" style="color:#10B981" aria-hidden="true"></i>
+        <p>Todos os itens estão dentro do estoque mínimo.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Empréstimos ativos / atrasados -->
+  <div class="col-lg-6">
+    <div class="adm-card h-100">
+      <div class="adm-card-header">
+        <h2 class="adm-card-title">
+          <i class="fas fa-hand-holding" aria-hidden="true"></i>
+          Empréstimos em Aberto
+        </h2>
+        <a href="{% url 'inventario:dashboard' %}" class="adm-btn adm-btn-secondary adm-btn-sm">
+          Ver todos
+        </a>
+      </div>
+      {% if emprestimos_ativos %}
+      <div style="overflow-x:auto">
+        <table class="adm-table" aria-label="Empréstimos em aberto">
+          <thead>
+            <tr>
+              <th scope="col">Item</th>
+              <th scope="col">Usuário</th>
+              <th scope="col">Prev. Devolução</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for emp in emprestimos_ativos|slice:"10" %}
+            <tr>
+              <td style="font-size:.88rem;font-weight:600">{{ emp.item.nome }}</td>
+              <td style="font-size:.82rem">{{ emp.usuario.first_name }} {{ emp.usuario.last_name }}</td>
+              <td style="font-size:.82rem;white-space:nowrap;color:var(--text-muted)">
+                {{ emp.data_prevista_devolucao|date:"d/m/Y" }}
+              </td>
+              <td>
+                {% if emp.status == 'atrasado' %}
+                  <span class="adm-tag adm-tag-red">Atrasado</span>
+                {% else %}
+                  <span class="adm-tag adm-tag-blue">Em aberto</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="adm-empty">
+        <i class="fas fa-check-circle" style="color:#10B981" aria-hidden="true"></i>
+        <p>Nenhum empréstimo ativo no momento.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Por categorias -->
+  <div class="col-12">
+    <div class="adm-card">
+      <div class="adm-card-header">
+        <h2 class="adm-card-title"><i class="fas fa-layer-group" aria-hidden="true"></i> Itens por Categoria</h2>
+      </div>
+      {% if categorias %}
+      <div style="overflow-x:auto">
+        <table class="adm-table" aria-label="Itens por categoria">
+          <thead>
+            <tr>
+              <th scope="col">Categoria</th>
+              <th scope="col">Qtd de Itens</th>
+              <th scope="col">Descrição</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cat in categorias %}
+            <tr>
+              <td style="font-weight:600">{{ cat.nome }}</td>
+              <td>
+                <span class="adm-tag adm-tag-blue">{{ cat.total_itens }} iten{{ cat.total_itens|pluralize:"s" }}</span>
+              </td>
+              <td style="font-size:.85rem;color:var(--text-muted)">{{ cat.descricao|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="adm-empty">
+        <i class="fas fa-layer-group" aria-hidden="true"></i>
+        <p>Nenhuma categoria cadastrada.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

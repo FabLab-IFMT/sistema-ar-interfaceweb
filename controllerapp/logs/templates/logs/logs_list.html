@@ -1,117 +1,232 @@
-{% extends 'layout.html' %}
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
 
-{% block title %}
-    Logs do Sistema
+{% block title %}Logs do Sistema{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">Logs do Sistema</span>
 {% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-gradient-primary text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0"><i class="fas fa-history me-2"></i> Registro de Atividades do Sistema</h4>
-                    </div>
-                </div>
-                <div class="card-body px-0 pb-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-items-center mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Data</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Atividades</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for date_stat in dates_with_stats %}
-                                    <tr>
-                                        <td class="ps-3">
-                                            <h6 class="mb-0">{{ date_stat.date|date:"d/m/Y" }}</h6>
-                                            <p class="text-xs text-secondary mb-0">{{ date_stat.date|date:"l"|title }}</p>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <span class="me-2"><i class="fas fa-file-alt text-primary"></i></span>
-                                                <span class="badge bg-primary rounded-pill">{{ date_stat.count }}</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {% if date_stat.max_severity == 'critical' %}
-                                                <span class="badge bg-danger text-white"><i class="fas fa-exclamation-triangle me-1"></i> Erro Crítico</span>
-                                            {% elif date_stat.max_severity == 'error' %}
-                                                <span class="badge bg-danger text-white"><i class="fas fa-times-circle me-1"></i> Erro</span>
-                                            {% elif date_stat.max_severity == 'security' %}
-                                                <span class="badge bg-dark text-white"><i class="fas fa-shield-alt me-1"></i> Segurança</span>
-                                            {% elif date_stat.max_severity == 'warning' %}
-                                                <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-circle me-1"></i> Atenção</span>
-                                            {% else %}
-                                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Normal</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <a href="{% url 'logs:datepage' day=date_stat.date.day month=date_stat.date.month year=date_stat.date.year %}" 
-                                               class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye me-1"></i> Ver Detalhes
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4">
-                                            <div class="alert alert-info mb-0">
-                                                <i class="fas fa-info-circle me-2"></i>
-                                                Nenhum registro de atividade encontrado no sistema.
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+{% block admin_head %}
+<style>
+/* Linha com cor de severidade na borda esquerda */
+.log-row-critical td:first-child { border-left: 3px solid #EF4444; }
+.log-row-error    td:first-child { border-left: 3px solid #F97316; }
+.log-row-security td:first-child { border-left: 3px solid #6366F1; }
+.log-row-warning  td:first-child { border-left: 3px solid #F59E0B; }
+.log-row-normal   td:first-child { border-left: 3px solid #10B981; }
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> Informações</h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted">
-                        Este painel mostra todas as atividades registradas no sistema, organizadas por data. 
-                        As atividades incluem ações de usuários, erros, tentativas de acesso não autorizado
-                        e outras operações importantes.
-                    </p>
-                    <p class="mb-0">
-                        <span class="badge bg-danger me-1">Erros</span>
-                        <span class="badge bg-warning text-dark me-1">Alertas</span>
-                        <span class="badge bg-dark me-1">Segurança</span>
-                        <span class="badge bg-success me-1">Normal</span>
-                        são indicadores da severidade mais alta registrada no dia.
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i> Dicas</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="mb-0">
-                        <li>Clique em <strong>Ver Detalhes</strong> para visualizar todas as atividades de um dia específico.</li>
-                        <li>Nas páginas de detalhes, você pode filtrar os registros por tipo de severidade.</li>
-                        <li>Dias com <span class="text-danger">erros</span> ou <span class="text-dark">problemas de segurança</span> devem ser verificados com atenção.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+.sev-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .25em .75em;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.sev-critical { background: #FEF2F2; color: #991B1B; }
+.sev-error    { background: #FFF7ED; color: #9A3412; }
+.sev-security { background: #EEF2FF; color: #3730A3; }
+.sev-warning  { background: rgba(245,158,11,.1); color: #92400E; }
+.sev-normal   { background: #ECFDF5; color: #065F46; }
+
+.log-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  background: rgba(19,103,138,.1);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: .82rem;
+  padding: .2em .6em;
+  border-radius: 999px;
+}
+
+/* Legenda de severidade */
+.sev-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: center;
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+
+<!-- Stats rápidas -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="adm-stat">
+      <div class="adm-stat-icon" style="background:rgba(19,103,138,.1);color:var(--accent)">
+        <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+      </div>
+      <div class="adm-stat-body">
+        <div class="adm-stat-label">Dias com Registros</div>
+        <div class="adm-stat-value">{{ dates_with_stats|length }}</div>
+      </div>
     </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="adm-stat">
+      <div class="adm-stat-icon" style="background:rgba(239,68,68,.1);color:#DC2626">
+        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+      </div>
+      <div class="adm-stat-body">
+        <div class="adm-stat-label">Dias com Erros</div>
+        <div class="adm-stat-value">
+          {{ dates_with_stats|length }}
+        </div>
+        <div class="adm-stat-sub"><span class="err">Verificar detalhes</span></div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Tabela principal -->
+<div class="adm-card mb-4">
+  <div class="adm-card-header">
+    <h2 class="adm-card-title">
+      <i class="fas fa-history" aria-hidden="true"></i> Registro de Atividades
+    </h2>
+    <div class="sev-legend">
+      <span class="sev-pill sev-critical"><i class="fas fa-times-circle"></i> Crítico</span>
+      <span class="sev-pill sev-error"><i class="fas fa-exclamation-circle"></i> Erro</span>
+      <span class="sev-pill sev-security"><i class="fas fa-shield-alt"></i> Segurança</span>
+      <span class="sev-pill sev-warning"><i class="fas fa-exclamation-triangle"></i> Atenção</span>
+      <span class="sev-pill sev-normal"><i class="fas fa-check-circle"></i> Normal</span>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto">
+    <table class="adm-table" aria-label="Registro de atividades por data">
+      <thead>
+        <tr>
+          <th scope="col" style="width:180px">Data</th>
+          <th scope="col">Registros</th>
+          <th scope="col">Severidade Máxima</th>
+          <th scope="col" style="width:140px">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for date_stat in dates_with_stats %}
+        <tr class="log-row-{% if date_stat.max_severity == 'critical' %}critical{% elif date_stat.max_severity == 'error' %}error{% elif date_stat.max_severity == 'security' %}security{% elif date_stat.max_severity == 'warning' %}warning{% else %}normal{% endif %}">
+
+          <!-- Data -->
+          <td>
+            <div style="font-weight:700;font-size:.9rem;color:var(--text)">
+              {{ date_stat.date|date:"d/m/Y" }}
+            </div>
+            <div style="font-size:.75rem;color:var(--text-muted)">
+              {{ date_stat.date|date:"l"|capfirst }}
+            </div>
+          </td>
+
+          <!-- Contagem -->
+          <td>
+            <span class="log-count-badge">
+              <i class="fas fa-file-alt" aria-hidden="true"></i>
+              {{ date_stat.count }} evento{{ date_stat.count|pluralize }}
+            </span>
+          </td>
+
+          <!-- Severidade -->
+          <td>
+            {% if date_stat.max_severity == 'critical' %}
+              <span class="sev-pill sev-critical">
+                <i class="fas fa-times-circle" aria-hidden="true"></i> Erro Crítico
+              </span>
+            {% elif date_stat.max_severity == 'error' %}
+              <span class="sev-pill sev-error">
+                <i class="fas fa-exclamation-circle" aria-hidden="true"></i> Erro
+              </span>
+            {% elif date_stat.max_severity == 'security' %}
+              <span class="sev-pill sev-security">
+                <i class="fas fa-shield-alt" aria-hidden="true"></i> Segurança
+              </span>
+            {% elif date_stat.max_severity == 'warning' %}
+              <span class="sev-pill sev-warning">
+                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i> Atenção
+              </span>
+            {% else %}
+              <span class="sev-pill sev-normal">
+                <i class="fas fa-check-circle" aria-hidden="true"></i> Normal
+              </span>
+            {% endif %}
+          </td>
+
+          <!-- Ação -->
+          <td>
+            <a href="{% url 'logs:datepage' day=date_stat.date.day month=date_stat.date.month year=date_stat.date.year %}"
+               class="adm-btn adm-btn-secondary adm-btn-sm">
+              <i class="fas fa-eye" aria-hidden="true"></i> Detalhes
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4">
+            <div class="adm-empty">
+              <i class="fas fa-history" aria-hidden="true"></i>
+              <p>Nenhum registro de atividade encontrado no sistema.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Legenda e dicas -->
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="adm-card">
+      <div class="adm-card-header">
+        <h2 class="adm-card-title">
+          <i class="fas fa-info-circle" aria-hidden="true"></i> Como interpretar
+        </h2>
+      </div>
+      <div class="adm-card-body">
+        <p style="font-size:.875rem;color:var(--text-muted);line-height:1.7;margin-bottom:1rem">
+          Este painel exibe todas as atividades registradas no sistema organizadas por data —
+          incluindo ações de usuários, erros, tentativas de acesso não autorizado e operações críticas.
+        </p>
+        <div class="sev-legend">
+          <span class="sev-pill sev-critical"><i class="fas fa-times-circle"></i> Crítico</span>
+          <span class="sev-pill sev-error"><i class="fas fa-exclamation-circle"></i> Erro</span>
+          <span class="sev-pill sev-security"><i class="fas fa-shield-alt"></i> Segurança</span>
+          <span class="sev-pill sev-warning"><i class="fas fa-exclamation-triangle"></i> Atenção</span>
+          <span class="sev-pill sev-normal"><i class="fas fa-check-circle"></i> Normal</span>
+        </div>
+        <p style="font-size:.78rem;color:var(--text-muted);margin-top:.6rem;margin-bottom:0">
+          Indicam a severidade mais alta registrada em cada dia.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="adm-card">
+      <div class="adm-card-header">
+        <h2 class="adm-card-title">
+          <i class="fas fa-lightbulb" aria-hidden="true"></i> Dicas de uso
+        </h2>
+      </div>
+      <div class="adm-card-body">
+        <ul style="font-size:.875rem;color:var(--text-muted);line-height:1.9;padding-left:1.25rem;margin:0">
+          <li>Clique em <strong>Detalhes</strong> para ver todos os eventos do dia.</li>
+          <li>Na página de detalhes filtre por tipo de severidade.</li>
+          <li>Dias com <span style="color:#DC2626;font-weight:600">erros críticos</span> ou
+              <span style="color:#3730A3;font-weight:600">problemas de segurança</span>
+              devem ser investigados imediatamente.</li>
+          <li>Acompanhe padrões de erro repetidos ao longo da semana.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

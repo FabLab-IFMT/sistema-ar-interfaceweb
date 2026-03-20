@@ -1,0 +1,173 @@
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
+
+{% block title %}Editar Usuário{% endblock %}
+{% block nav_usuarios %}active{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_usuarios' %}">Usuários</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">{{ usuario.first_name }} {{ usuario.last_name }}</span>
+{% endblock %}
+
+{% block admin_content %}
+<div class="row g-4">
+  <!-- Formulário principal -->
+  <div class="col-lg-8">
+    <form method="post" action="{% url 'gestao:admin_usuario_editar' usuario.id %}">
+      {% csrf_token %}
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-user-edit" aria-hidden="true"></i>
+            Editar — {{ usuario.first_name }} {{ usuario.last_name }}
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <!-- Flags de sistema (apenas superuser) -->
+          {% if user.is_superuser %}
+          <fieldset class="mb-4">
+            <legend style="font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:.75rem">
+              Permissões de Sistema
+            </legend>
+            <div class="d-flex flex-wrap gap-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox"
+                       name="is_active" id="id_is_active"
+                       {% if usuario.is_active %}checked{% endif %}>
+                <label class="form-check-label" for="id_is_active">
+                  <strong>Conta ativa</strong>
+                  <small class="d-block text-muted">Usuário pode fazer login</small>
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox"
+                       name="is_staff" id="id_is_staff"
+                       {% if usuario.is_staff %}checked{% endif %}
+                       {% if usuario.is_superuser %}disabled{% endif %}>
+                <label class="form-check-label" for="id_is_staff">
+                  <strong>Staff</strong>
+                  <small class="d-block text-muted">Acesso a ferramentas administrativas</small>
+                </label>
+              </div>
+            </div>
+            {% if usuario.is_superuser %}
+            <div class="adm-alert adm-alert-info mt-2" role="note">
+              <i class="fas fa-info-circle" aria-hidden="true"></i>
+              <span>Superusuários sempre têm acesso de staff e não podem ter isso alterado aqui.</span>
+            </div>
+            {% endif %}
+          </fieldset>
+          {% endif %}
+
+          <!-- Cargos (Roles) -->
+          <fieldset>
+            <legend style="font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:.75rem">
+              Cargos (Roles)
+            </legend>
+            <div class="row g-2">
+              {% for role in roles %}
+              <div class="col-sm-6">
+                <div class="form-check p-3 rounded" style="border:1px solid var(--border);background:var(--surface-alt)">
+                  <input class="form-check-input" type="checkbox"
+                         name="roles" value="{{ role.code }}"
+                         id="role_{{ role.code }}"
+                         {% if role.code in usuario_roles %}checked{% endif %}>
+                  <label class="form-check-label w-100" for="role_{{ role.code }}">
+                    <strong style="font-size:.88rem">{{ role.name }}</strong>
+                    {% if role.is_staff_equivalent %}
+                      <span class="adm-tag adm-tag-blue" style="font-size:.65rem">Staff equiv.</span>
+                    {% endif %}
+                    {% if role.description %}
+                    <small class="d-block text-muted mt-1" style="font-size:.78rem">{{ role.description }}</small>
+                    {% endif %}
+                  </label>
+                </div>
+              </div>
+              {% empty %}
+              <div class="col-12">
+                <div class="adm-empty" style="padding:1.5rem">
+                  <i class="fas fa-user-tag" aria-hidden="true"></i>
+                  <p>Nenhum cargo cadastrado. <a href="{% url 'users:manage_roles' %}">Criar cargos</a></p>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </fieldset>
+
+        </div>
+        <div class="adm-card-header" style="border-top:1px solid var(--border);border-bottom:none">
+          <div class="d-flex gap-2">
+            <button type="submit" class="adm-btn adm-btn-primary">
+              <i class="fas fa-save" aria-hidden="true"></i> Salvar Alterações
+            </button>
+            <a href="{% url 'gestao:admin_usuarios' %}" class="adm-btn adm-btn-secondary">
+              Cancelar
+            </a>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Sidebar info do usuário -->
+  <div class="col-lg-4">
+    <div class="adm-card">
+      <div class="adm-card-header">
+        <h2 class="adm-card-title"><i class="fas fa-info-circle" aria-hidden="true"></i> Dados do Usuário</h2>
+      </div>
+      <div class="adm-card-body">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="adm-avatar" style="width:56px;height:56px;font-size:1.1rem">
+            {% if usuario.profile_image and usuario.profile_image.name %}
+              <img src="{{ usuario.profile_image.url }}" alt="">
+            {% else %}
+              {{ usuario.first_name|first }}{{ usuario.last_name|first }}
+            {% endif %}
+          </div>
+          <div>
+            <div style="font-weight:700">{{ usuario.first_name }} {{ usuario.last_name }}</div>
+            <div style="font-size:.8rem;color:var(--text-muted)">{{ usuario.email }}</div>
+          </div>
+        </div>
+        <dl style="font-size:.85rem">
+          <dt style="font-weight:600;color:var(--text-muted);margin-bottom:.1rem">Matrícula</dt>
+          <dd style="margin-bottom:.85rem"><code>{{ usuario.id }}</code></dd>
+          <dt style="font-weight:600;color:var(--text-muted);margin-bottom:.1rem">Status</dt>
+          <dd style="margin-bottom:.85rem">
+            {% if usuario.is_active %}
+              <span class="adm-tag adm-tag-green"><i class="fas fa-circle" style="font-size:.45rem" aria-hidden="true"></i> Ativo</span>
+            {% else %}
+              <span class="adm-tag adm-tag-red"><i class="fas fa-circle" style="font-size:.45rem" aria-hidden="true"></i> Inativo</span>
+            {% endif %}
+          </dd>
+          <dt style="font-weight:600;color:var(--text-muted);margin-bottom:.1rem">Nível</dt>
+          <dd style="margin-bottom:.85rem">
+            {% if usuario.is_superuser %}
+              <span class="adm-tag adm-tag-purple">Superuser</span>
+            {% elif usuario.is_staff %}
+              <span class="adm-tag adm-tag-blue">Staff</span>
+            {% else %}
+              <span class="adm-tag adm-tag-gray">Membro</span>
+            {% endif %}
+          </dd>
+          <dt style="font-weight:600;color:var(--text-muted);margin-bottom:.1rem">Email verificado</dt>
+          <dd>
+            {% if usuario.email_verified %}
+              <span class="adm-tag adm-tag-green">Sim</span>
+            {% else %}
+              <span class="adm-tag adm-tag-red">Não</span>
+            {% endif %}
+          </dd>
+        </dl>
+        <hr style="border-color:var(--border)">
+        <a href="{% url 'users:profile' usuario.id %}" class="adm-btn adm-btn-secondary w-100" style="justify-content:center">
+          <i class="fas fa-eye" aria-hidden="true"></i> Ver Perfil Completo
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

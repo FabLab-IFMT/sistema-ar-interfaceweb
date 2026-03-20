@@ -1,0 +1,193 @@
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
+
+{% block title %}Gestão de Conteúdo{% endblock %}
+{% block nav_conteudo %}active{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">Conteúdo</span>
+{% endblock %}
+
+{% block admin_content %}
+<div class="mb-4">
+  <h1 style="font-size:1.4rem;font-weight:800;color:var(--text);margin:0">Gestão de Conteúdo</h1>
+  <p style="color:var(--text-muted);margin:.25rem 0 0;font-size:.9rem">
+    Gerencie todo o conteúdo público do site FABLAB.
+  </p>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="adm-stat">
+      <div class="adm-stat-icon" style="background:rgba(59,130,246,.1);color:#2563EB">
+        <i class="fas fa-newspaper" aria-hidden="true"></i>
+      </div>
+      <div class="adm-stat-body">
+        <div class="adm-stat-label">Notícias</div>
+        <div class="adm-stat-value">{{ total_noticias }}</div>
+        <div class="adm-stat-sub"><span class="ok">{{ noticias_publicadas }} publicadas</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="adm-stat">
+      <div class="adm-stat-icon" style="background:rgba(5,150,105,.1);color:#059669">
+        <i class="fas fa-id-badge" aria-hidden="true"></i>
+      </div>
+      <div class="adm-stat-body">
+        <div class="adm-stat-label">Membros</div>
+        <div class="adm-stat-value">{{ total_membros }}</div>
+        <div class="adm-stat-sub"><span class="ok">{{ membros_ativos }} ativos</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="adm-stat">
+      <div class="adm-stat-icon" style="background:rgba(139,92,246,.1);color:#7C3AED">
+        <i class="fas fa-cogs" aria-hidden="true"></i>
+      </div>
+      <div class="adm-stat-body">
+        <div class="adm-stat-label">Serviços</div>
+        <div class="adm-stat-value">{{ total_servicos }}</div>
+        <div class="adm-stat-sub"><span class="ok">{{ servicos_disponiveis }} disponíveis</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="adm-stat">
+      <div class="adm-stat-icon" style="background:rgba(245,158,11,.1);color:#D97706">
+        <i class="fas fa-inbox" aria-hidden="true"></i>
+      </div>
+      <div class="adm-stat-body">
+        <div class="adm-stat-label">Solicitações Pendentes</div>
+        <div class="adm-stat-value">{{ solicitacoes_pendentes }}</div>
+        <div class="adm-stat-sub">{% if solicitacoes_pendentes > 0 %}<span class="warn">Aguardando análise</span>{% else %}Tudo em dia{% endif %}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cards de seções -->
+<div class="row g-3">
+
+  <!-- Notícias -->
+  <div class="col-md-6 col-xl-3">
+    <div class="adm-card h-100">
+      <div class="adm-card-header">
+        <h2 class="adm-card-title"><i class="fas fa-newspaper" aria-hidden="true"></i> Notícias</h2>
+      </div>
+      <div class="adm-card-body d-flex flex-column gap-2">
+        <div style="font-size:.85rem;color:var(--text-muted)">
+          <div class="d-flex justify-content-between mb-1">
+            <span>Total</span><strong>{{ total_noticias }}</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span>Publicadas</span><strong style="color:#10B981">{{ noticias_publicadas }}</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Rascunhos</span><strong>{{ total_noticias|add:"-"|add:noticias_publicadas }}</strong>
+          </div>
+        </div>
+        <div class="mt-auto pt-2 d-flex flex-column gap-1">
+          <a href="{% url 'gestao:admin_noticias' %}" class="adm-btn adm-btn-primary" style="justify-content:center">
+            <i class="fas fa-list" aria-hidden="true"></i> Gerenciar Notícias
+          </a>
+          <a href="{% url 'options:noticias' %}" class="adm-btn adm-btn-secondary" style="justify-content:center" target="_blank" rel="noopener">
+            <i class="fas fa-external-link-alt" aria-hidden="true"></i> Ver no site
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Membros -->
+  <div class="col-md-6 col-xl-3">
+    <div class="adm-card h-100">
+      <div class="adm-card-header">
+        <h2 class="adm-card-title"><i class="fas fa-id-badge" aria-hidden="true"></i> Membros</h2>
+      </div>
+      <div class="adm-card-body d-flex flex-column gap-2">
+        <div style="font-size:.85rem;color:var(--text-muted)">
+          <div class="d-flex justify-content-between mb-1">
+            <span>Total</span><strong>{{ total_membros }}</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Ativos</span><strong style="color:#10B981">{{ membros_ativos }}</strong>
+          </div>
+        </div>
+        <div class="mt-auto pt-2 d-flex flex-column gap-1">
+          <a href="{% url 'gestao:admin_membros' %}" class="adm-btn adm-btn-primary" style="justify-content:center">
+            <i class="fas fa-list" aria-hidden="true"></i> Gerenciar Membros
+          </a>
+          <a href="{% url 'options:membros' %}" class="adm-btn adm-btn-secondary" style="justify-content:center" target="_blank" rel="noopener">
+            <i class="fas fa-external-link-alt" aria-hidden="true"></i> Ver no site
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Serviços -->
+  <div class="col-md-6 col-xl-3">
+    <div class="adm-card h-100">
+      <div class="adm-card-header">
+        <h2 class="adm-card-title"><i class="fas fa-cogs" aria-hidden="true"></i> Serviços</h2>
+      </div>
+      <div class="adm-card-body d-flex flex-column gap-2">
+        <div style="font-size:.85rem;color:var(--text-muted)">
+          <div class="d-flex justify-content-between mb-1">
+            <span>Total</span><strong>{{ total_servicos }}</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span>Disponíveis</span><strong style="color:#10B981">{{ servicos_disponiveis }}</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Equipamentos</span><strong>{{ total_equipamentos }}</strong>
+          </div>
+        </div>
+        <div class="mt-auto pt-2 d-flex flex-column gap-1">
+          <a href="{% url 'gestao:admin_servicos' %}" class="adm-btn adm-btn-primary" style="justify-content:center">
+            <i class="fas fa-list" aria-hidden="true"></i> Gerenciar Serviços
+          </a>
+          <a href="{% url 'options:servicos' %}" class="adm-btn adm-btn-secondary" style="justify-content:center" target="_blank" rel="noopener">
+            <i class="fas fa-external-link-alt" aria-hidden="true"></i> Ver no site
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Solicitações -->
+  <div class="col-md-6 col-xl-3">
+    <div class="adm-card h-100">
+      <div class="adm-card-header">
+        <h2 class="adm-card-title"><i class="fas fa-inbox" aria-hidden="true"></i> Solicitações</h2>
+        {% if solicitacoes_pendentes > 0 %}
+          <span class="adm-tag adm-tag-yellow" aria-label="{{ solicitacoes_pendentes }} pendentes">
+            {{ solicitacoes_pendentes }} pendente{{ solicitacoes_pendentes|pluralize:"s" }}
+          </span>
+        {% endif %}
+      </div>
+      <div class="adm-card-body d-flex flex-column gap-2">
+        <div style="font-size:.85rem;color:var(--text-muted)">
+          <p>Interesses de usuários em serviços do laboratório.</p>
+          {% if solicitacoes_pendentes > 0 %}
+          <div class="adm-alert adm-alert-warn" role="alert">
+            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+            <span>{{ solicitacoes_pendentes }} aguardando resposta.</span>
+          </div>
+          {% endif %}
+        </div>
+        <div class="mt-auto pt-2">
+          <a href="{% url 'gestao:admin_solicitacoes' %}" class="adm-btn adm-btn-primary" style="justify-content:center;width:100%">
+            <i class="fas fa-list" aria-hidden="true"></i> Ver Solicitações
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

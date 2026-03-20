@@ -1,0 +1,82 @@
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
+
+{% block title %}Excluir Notícia — {{ noticia.titulo }}{% endblock %}
+{% block nav_noticias %}active{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_conteudo' %}">Conteúdo</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_noticias' %}">Notícias</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">Excluir</span>
+{% endblock %}
+
+{% block admin_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="adm-card" style="border-top:3px solid #DC2626">
+      <div class="adm-card-body" style="padding:2rem">
+
+        <div style="text-align:center;margin-bottom:1.5rem">
+          <div style="width:64px;height:64px;background:#FEF2F2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:1.5rem;color:#DC2626">
+            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+          </div>
+          <h2 style="font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:.4rem">
+            Confirmar Exclusão
+          </h2>
+          <p style="color:var(--text-muted);font-size:.9rem">
+            Tem certeza que deseja excluir permanentemente a notícia abaixo?
+          </p>
+        </div>
+
+        <div style="background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1.1rem;margin-bottom:1.5rem">
+          <div style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:.35rem">
+            {{ noticia.titulo }}
+          </div>
+          {% if noticia.resumo %}
+          <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.5rem">
+            {{ noticia.resumo|truncatechars:160 }}
+          </div>
+          {% endif %}
+          <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center">
+            <span class="adm-tag {% if noticia.publicado %}adm-tag-green{% else %}adm-tag-gray{% endif %}">
+              {% if noticia.publicado %}Publicada{% else %}Rascunho{% endif %}
+            </span>
+            {% if noticia.destaque %}
+            <span class="adm-tag adm-tag-yellow">
+              <i class="fas fa-star" aria-hidden="true"></i> Destaque
+            </span>
+            {% endif %}
+            {% if noticia.criado_em %}
+            <span style="font-size:.78rem;color:var(--text-muted)">
+              Criada em {{ noticia.criado_em|date:"d/m/Y" }}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:var(--radius-sm);padding:.85rem 1rem;margin-bottom:1.5rem;font-size:.82rem;color:#92400E">
+          <i class="fas fa-info-circle me-2" aria-hidden="true"></i>
+          <strong>Atenção:</strong> Esta ação é irreversível. A imagem associada e todas as hashtags vinculadas serão desvinculadas.
+        </div>
+
+        <div class="d-flex gap-2">
+          <form method="post" style="flex:1">
+            {% csrf_token %}
+            <button type="submit" class="adm-btn w-100"
+                    style="background:#DC2626;color:#fff;border:none;justify-content:center">
+              <i class="fas fa-trash me-2" aria-hidden="true"></i> Sim, excluir notícia
+            </button>
+          </form>
+          <a href="{% url 'gestao:admin_noticias' %}" class="adm-btn adm-btn-secondary" style="white-space:nowrap">
+            <i class="fas fa-times me-1" aria-hidden="true"></i> Cancelar
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

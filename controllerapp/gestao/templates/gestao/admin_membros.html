@@ -1,0 +1,156 @@
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
+
+{% block title %}Gerenciar Membros{% endblock %}
+{% block nav_membros %}active{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_conteudo' %}">Conteúdo</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">Membros</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'options:membros' %}" class="adm-btn adm-btn-secondary adm-btn-sm" target="_blank" rel="noopener">
+    <i class="fas fa-external-link-alt" aria-hidden="true"></i> Ver no site
+  </a>
+  <a href="{% url 'gestao:admin_membro_novo' %}" class="adm-btn adm-btn-primary adm-btn-sm">
+    <i class="fas fa-plus" aria-hidden="true"></i> Novo Membro
+  </a>
+{% endblock %}
+
+{% block admin_content %}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-md-3">
+    <div class="adm-stat">
+      <div class="adm-stat-icon" style="background:rgba(5,150,105,.1);color:#059669">
+        <i class="fas fa-id-badge" aria-hidden="true"></i>
+      </div>
+      <div class="adm-stat-body">
+        <div class="adm-stat-label">Total de Membros</div>
+        <div class="adm-stat-value">{{ total }}</div>
+        <div class="adm-stat-sub"><span class="ok">{{ ativos }} ativos</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabela -->
+<div class="adm-card">
+  <div class="adm-card-header">
+    <h2 class="adm-card-title">
+      <i class="fas fa-id-badge" aria-hidden="true"></i> Membros da Equipe
+    </h2>
+  </div>
+  {% if membros %}
+  <div style="overflow-x:auto">
+    <table class="adm-table" aria-label="Lista de membros da equipe">
+      <thead>
+        <tr>
+          <th scope="col">Membro</th>
+          <th scope="col">Cargo</th>
+          <th scope="col">Email</th>
+          <th scope="col">Ordem</th>
+          <th scope="col">Ativo</th>
+          <th scope="col">Links</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for membro in membros %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="adm-avatar">
+                {% if membro.foto %}
+                  <img src="{{ membro.foto.url }}" alt="">
+                {% else %}
+                  {{ membro.nome|first }}
+                {% endif %}
+              </div>
+              <div style="font-weight:600;font-size:.9rem">{{ membro.nome }}</div>
+            </div>
+          </td>
+          <td style="font-size:.85rem;color:var(--text-muted)">{{ membro.cargo }}</td>
+          <td style="font-size:.82rem">
+            {% if membro.email %}
+              <a href="mailto:{{ membro.email }}" style="color:var(--accent)">{{ membro.email }}</a>
+            {% else %}—{% endif %}
+          </td>
+          <td style="font-size:.85rem;color:var(--text-muted);text-align:center">{{ membro.ordem }}</td>
+          <!-- Toggle Ativo -->
+          <td>
+            <form method="post" action="{% url 'gestao:admin_membro_toggle_ativo' membro.id %}">
+              {% csrf_token %}
+              <button type="submit" class="adm-toggle"
+                      aria-label="{{ membro.nome }}: {% if membro.ativo %}desativar{% else %}ativar{% endif %}">
+                <input type="checkbox" {% if membro.ativo %}checked{% endif %} tabindex="-1" aria-hidden="true">
+                <span class="adm-toggle-slider"></span>
+              </button>
+            </form>
+          </td>
+          <!-- Links sociais -->
+          <td>
+            <div class="d-flex gap-1">
+              {% if membro.linkedin %}
+              <a href="{{ membro.linkedin }}" target="_blank" rel="noopener noreferrer"
+                 class="adm-btn adm-btn-secondary adm-btn-sm adm-btn-icon"
+                 aria-label="LinkedIn de {{ membro.nome }}" title="LinkedIn">
+                <i class="fab fa-linkedin" aria-hidden="true"></i>
+              </a>
+              {% endif %}
+              {% if membro.github %}
+              <a href="{{ membro.github }}" target="_blank" rel="noopener noreferrer"
+                 class="adm-btn adm-btn-secondary adm-btn-sm adm-btn-icon"
+                 aria-label="GitHub de {{ membro.nome }}" title="GitHub">
+                <i class="fab fa-github" aria-hidden="true"></i>
+              </a>
+              {% endif %}
+              {% if membro.lattes %}
+              <a href="{{ membro.lattes }}" target="_blank" rel="noopener noreferrer"
+                 class="adm-btn adm-btn-secondary adm-btn-sm adm-btn-icon"
+                 aria-label="Lattes de {{ membro.nome }}" title="Lattes">
+                <i class="fas fa-graduation-cap" aria-hidden="true"></i>
+              </a>
+              {% endif %}
+              {% if not membro.linkedin and not membro.github and not membro.lattes %}
+                <span style="font-size:.8rem;color:var(--text-muted)">—</span>
+              {% endif %}
+            </div>
+          </td>
+          <!-- Ações -->
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'gestao:admin_membro_editar' membro.id %}"
+                 class="adm-btn adm-btn-primary adm-btn-sm adm-btn-icon"
+                 title="Editar {{ membro.nome }}" aria-label="Editar {{ membro.nome }}">
+                <i class="fas fa-edit" aria-hidden="true"></i>
+              </a>
+              <a href="{% url 'gestao:admin_membro_deletar' membro.id %}"
+                 class="adm-btn adm-btn-sm adm-btn-icon"
+                 style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA"
+                 title="Excluir {{ membro.nome }}" aria-label="Excluir {{ membro.nome }}">
+                <i class="fas fa-trash" aria-hidden="true"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="adm-empty">
+    <i class="fas fa-id-badge" aria-hidden="true"></i>
+    <p>Nenhum membro cadastrado ainda.</p>
+    <a href="{% url 'gestao:admin_membro_novo' %}" class="adm-btn adm-btn-primary adm-btn-sm mt-2">
+      <i class="fas fa-plus" aria-hidden="true"></i> Cadastrar primeiro membro
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

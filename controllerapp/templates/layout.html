@@ -7,6 +7,15 @@
     <meta name="description" content="Sistema de gestão do laboratório FABLAB IFMT">
     <title>{% block title %}{% endblock %} | FABLAB IFMT</title>
 
+    <!-- Anti-FOUC: aplica o tema ANTES de renderizar a página -->
+    <script>
+      (function(){
+        var saved = localStorage.getItem('fablab-theme');
+        var preferred = (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : saved;
+        document.documentElement.setAttribute('data-theme', preferred || 'light');
+      })();
+    </script>
+
     <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -87,6 +96,37 @@
       .fl-navbar .nav-link:focus {
         color: #fff !important;
         background: rgba(255,255,255,.08);
+      }
+
+      /* Hamburger mobile — ícone branco visível no fundo escuro */
+      .fl-navbar .navbar-toggler {
+        border: 1px solid rgba(255,255,255,.25) !important;
+        padding: .4rem .6rem;
+        border-radius: var(--radius-sm);
+        transition: background var(--transition);
+      }
+      .fl-navbar .navbar-toggler:hover { background: rgba(255,255,255,.1); }
+      .fl-navbar .navbar-toggler:focus { box-shadow: 0 0 0 3px rgba(69,196,176,.35); }
+      .fl-navbar .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255,255,255,0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        width: 1.3em;
+        height: 1.3em;
+      }
+
+      /* Separador de grupo no dropdown */
+      .fl-dropdown-label {
+        padding: .45rem 1.1rem .2rem;
+        font-size: .63rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        display: block;
+      }
+      .fl-dropdown-divider {
+        margin: .3rem .75rem;
+        border: none;
+        border-top: 1px solid var(--border);
       }
 
       /* Dropdown */
@@ -351,7 +391,307 @@
         color: rgba(255,255,255,.5);
       }
 
-      /* Responsive */
+      /* ===== Dark Mode ===== */
+      [data-theme="dark"] {
+        --surface:      #0C1825;
+        --surface-alt:  #182C3E;
+        --white:        #122031;
+        --text:         #CDD9E5;
+        --text-muted:   #7D94A8;
+        --border:       #1E3247;
+        --shadow-sm:    0 1px 3px rgba(0,0,0,.35);
+        --shadow-md:    0 4px 16px rgba(0,0,0,.45);
+        --shadow-lg:    0 12px 40px rgba(0,0,0,.55);
+        --accent:       #1A80A8;
+        --accent-light: #4DD0BE;
+      }
+
+      /* Body & page bg */
+      [data-theme="dark"] body { background: var(--surface); color: var(--text); }
+
+      /* ─────────────────────────────────────────────
+         CORREÇÃO GLOBAL: elementos que usam --primary
+         como COR DE TEXTO ficam ilegíveis no dark mode.
+         Aqui sobrescrevemos os padrões mais comuns
+         de forma sistemática.
+      ───────────────────────────────────────────── */
+
+      /* 1. Todos os headings padrão → text color legível */
+      [data-theme="dark"] h1,
+      [data-theme="dark"] h2,
+      [data-theme="dark"] h3,
+      [data-theme="dark"] h4,
+      [data-theme="dark"] h5,
+      [data-theme="dark"] h6 { color: var(--text); }
+
+      /* 2. Exceções: headings dentro de seções JÁ escuras mantêm branco */
+      [data-theme="dark"] .fl-cta h2,
+      [data-theme="dark"] .fl-hero .carousel-caption h2,
+      [data-theme="dark"] .fl-navbar h1,
+      [data-theme="dark"] .fl-navbar h2,
+      [data-theme="dark"] .fl-footer h5,
+      [data-theme="dark"] .adm-sidebar h1,
+      [data-theme="dark"] .adm-sidebar h2,
+      [data-theme="dark"] .adm-sidebar h3,
+      [data-theme="dark"] .adm-sidebar h4,
+      [data-theme="dark"] .adm-sidebar h5,
+      [data-theme="dark"] .adm-sidebar h6 { color: inherit; }
+
+      /* 3. Classes de texto com --primary explícito — home page */
+      [data-theme="dark"] .fl-heading         { color: var(--text); }
+      [data-theme="dark"] .fl-heading span    { color: var(--accent-light); }
+      [data-theme="dark"] .fl-stat-number     { color: var(--text); }
+      [data-theme="dark"] .fl-card-feature h3 { color: var(--text); }
+      [data-theme="dark"] .fl-card-project-body h4 { color: var(--text); }
+      [data-theme="dark"] .fl-card-news-body h5   { color: var(--text); }
+      [data-theme="dark"] .fl-timeline-content h4  { color: var(--text); }
+      [data-theme="dark"] .fl-link:hover       { color: var(--accent-light); }
+      [data-theme="dark"] .fl-btn:hover        { background: var(--accent); border-color: var(--accent); }
+      [data-theme="dark"] .fl-btn-white        { background: var(--white); color: var(--text); border-color: var(--border); }
+      [data-theme="dark"] .fl-btn-white:hover  { background: var(--surface-alt); color: var(--accent-light); border-color: var(--accent); }
+
+      /* 4. Inventário */
+      [data-theme="dark"] .iv-page-title      { color: var(--text); }
+      [data-theme="dark"] .iv-stat-num        { color: var(--text); }
+      [data-theme="dark"] .iv-card-head h3    { color: var(--text); }
+      [data-theme="dark"] .iv-table code      { color: var(--accent-light); background: var(--surface-alt); }
+      [data-theme="dark"] .iv-link:hover      { color: var(--accent-light); }
+      [data-theme="dark"] .iv-table-link:hover { color: var(--accent-light); }
+      [data-theme="dark"] .iv-badge-green     { background: rgba(16,185,129,.2); color: #34D399; }
+      [data-theme="dark"] .iv-badge-red       { background: rgba(220,38,38,.2);  color: #F87171; }
+      [data-theme="dark"] .iv-badge-blue      { background: rgba(59,130,246,.2); color: #60A5FA; }
+      [data-theme="dark"] .iv-cat-count       { background: var(--surface); color: var(--text-muted); }
+      [data-theme="dark"] .iv-header          { background: var(--white); border-bottom-color: var(--border); }
+      [data-theme="dark"] .iv-table thead th  { background: var(--surface-alt); }
+      [data-theme="dark"] .iv-table tbody tr:hover { background: rgba(26,128,168,.06); }
+      [data-theme="dark"] .iv-quick-nav a     { background: var(--white); border-color: var(--border); color: var(--text); }
+      [data-theme="dark"] .iv-quick-nav a:hover { border-color: var(--accent); color: var(--accent-light); }
+
+      /* 5. Classes usadas em outras páginas do site (servicos, equipamentos, membros, noticias) */
+      [data-theme="dark"] .pg-article-title   { color: var(--text) !important; }
+      [data-theme="dark"] .pg-sidebar-card h5 { color: var(--text); }
+      [data-theme="dark"] .pg-related-title   { color: var(--text); }
+      [data-theme="dark"] .nd-title           { color: var(--text); }
+
+      /* 6. Bootstrap utilitários de texto */
+      [data-theme="dark"] .text-dark  { color: var(--text) !important; }
+      [data-theme="dark"] .text-body  { color: var(--text) !important; }
+
+      /* 7. Bootstrap dropdown menus */
+      [data-theme="dark"] .dropdown-menu {
+        background: var(--white);
+        border-color: var(--border);
+        box-shadow: var(--shadow-lg);
+      }
+      [data-theme="dark"] .dropdown-item { color: var(--text); }
+      [data-theme="dark"] .dropdown-item:hover,
+      [data-theme="dark"] .dropdown-item:focus { background: var(--surface-alt); color: var(--accent-light); }
+      [data-theme="dark"] .dropdown-divider { border-color: var(--border); }
+
+      /* 8. fl-dropdown menus (custom) */
+      [data-theme="dark"] .fl-dropdown-menu {
+        background: var(--white);
+        border-color: var(--border);
+      }
+      [data-theme="dark"] .fl-dropdown-menu a { color: var(--text); }
+      [data-theme="dark"] .fl-dropdown-menu a:hover { background: var(--surface-alt); color: var(--accent-light); }
+      [data-theme="dark"] .fl-dropdown-menu a i { color: var(--accent-light); }
+      [data-theme="dark"] .fl-dropdown-label { color: var(--text-muted); }
+      [data-theme="dark"] .fl-dropdown-divider { border-color: var(--border); }
+
+      /* 9. Notificações toast */
+      [data-theme="dark"] .fl-notify {
+        background: var(--white);
+        box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      }
+      [data-theme="dark"] .fl-notify-success .fl-notify-title { color: #34D399; }
+      [data-theme="dark"] .fl-notify-error   .fl-notify-title { color: #F87171; }
+      [data-theme="dark"] .fl-notify-warning .fl-notify-title { color: #FBBF24; }
+      [data-theme="dark"] .fl-notify-info    .fl-notify-title { color: #60A5FA; }
+      [data-theme="dark"] .fl-notify-msg     { color: var(--text-muted); }
+
+      /* 10. Bootstrap forms */
+      [data-theme="dark"] .form-control,
+      [data-theme="dark"] .form-select,
+      [data-theme="dark"] select {
+        background-color: var(--surface-alt);
+        border-color: var(--border);
+        color: var(--text);
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      [data-theme="dark"] .form-control:focus,
+      [data-theme="dark"] .form-select:focus {
+        background-color: var(--surface-alt);
+        border-color: var(--accent);
+        color: var(--text);
+        box-shadow: 0 0 0 3px rgba(26,128,168,.2);
+      }
+      [data-theme="dark"] .form-control::placeholder,
+      [data-theme="dark"] input::placeholder { color: var(--text-muted); opacity: 1; }
+      [data-theme="dark"] .form-label { color: var(--text); }
+      [data-theme="dark"] .form-check-label { color: var(--text); }
+
+      /* select: apenas uma seta (corrige duplo chevron) */
+      [data-theme="dark"] .form-select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%237D94A8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right .75rem center;
+        background-size: 16px 12px;
+      }
+
+      /* 11. Bootstrap alerts */
+      [data-theme="dark"] .alert {
+        background: var(--white);
+        border-color: var(--border);
+        color: var(--text);
+      }
+      [data-theme="dark"] .alert-danger  { background: rgba(239,68,68,.12);  border-color: rgba(239,68,68,.3);  color: #F87171; }
+      [data-theme="dark"] .alert-success { background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.3); color: #34D399; }
+      [data-theme="dark"] .alert-warning { background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.3); color: #FBBF24; }
+      [data-theme="dark"] .alert-info    { background: rgba(59,130,246,.12); border-color: rgba(59,130,246,.3); color: #60A5FA; }
+      [data-theme="dark"] .btn-close { filter: invert(1); }
+
+      /* 12. Seções alternadas (fl-section-alt) */
+      [data-theme="dark"] .fl-section-alt { background: var(--surface-alt); }
+
+      /* 13. Bootstrap cards genéricos */
+      [data-theme="dark"] .card {
+        background: var(--white);
+        border-color: var(--border);
+        color: var(--text);
+      }
+      [data-theme="dark"] .card-header,
+      [data-theme="dark"] .card-footer { background: var(--surface-alt); border-color: var(--border); color: var(--text); }
+
+      /* 14. Tabelas Bootstrap genéricas */
+      [data-theme="dark"] .table         { color: var(--text); }
+      [data-theme="dark"] .table th      { color: var(--text-muted); background: var(--surface-alt); border-color: var(--border); }
+      [data-theme="dark"] .table td      { border-color: var(--border); color: var(--text); }
+      [data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) { background: rgba(255,255,255,.03); }
+      [data-theme="dark"] .table-hover > tbody > tr:hover { background: rgba(26,128,168,.06); }
+      [data-theme="dark"] .table-bordered { border-color: var(--border); }
+
+      /* 15. Listas, parágrafos soltos */
+      [data-theme="dark"] p { color: var(--text); }
+
+      /* 16. Perfil do usuário (profile.html — cores hardcoded) */
+      [data-theme="dark"] .glass-card {
+        background: var(--white) !important;
+        border-color: var(--border) !important;
+        box-shadow: 0 12px 40px rgba(0,0,0,.35) !important;
+      }
+      [data-theme="dark"] .stat-chip {
+        background: var(--surface-alt) !important;
+        border-color: var(--border) !important;
+      }
+      [data-theme="dark"] .stat-chip .text-muted,
+      [data-theme="dark"] .stat-chip small { color: var(--text-muted) !important; }
+      [data-theme="dark"] .mini-card {
+        background: var(--white) !important;
+        border-color: var(--border) !important;
+      }
+      [data-theme="dark"] .role-chip {
+        background: rgba(99,102,241,.15) !important;
+        color: #a5b4fc !important;
+        border-color: rgba(99,102,241,.3) !important;
+      }
+      [data-theme="dark"] .role-chip.role-projetista {
+        background: rgba(16,185,129,.12) !important;
+        color: #6ee7b7 !important;
+        border-color: rgba(16,185,129,.25) !important;
+      }
+      [data-theme="dark"] .role-chip.role-pending {
+        background: rgba(245,158,11,.12) !important;
+        color: #fcd34d !important;
+        border-color: rgba(245,158,11,.3) !important;
+      }
+      [data-theme="dark"] .role-chip.role-cta {
+        background: rgba(99,102,241,.15) !important;
+        color: #a5b4fc !important;
+        border-color: rgba(99,102,241,.3) !important;
+      }
+
+      /* 17. Autorizações / pending-registrations (autorizacao.html — cores hardcoded) */
+      [data-theme="dark"] .auth-hero {
+        background: linear-gradient(120deg,rgba(19,64,116,.22),rgba(19,103,138,.16)) !important;
+        border-color: var(--border) !important;
+      }
+      [data-theme="dark"] .auth-hero p { color: var(--text-muted) !important; }
+      [data-theme="dark"] .chip {
+        background: var(--surface-alt) !important;
+        border-color: var(--border) !important;
+        color: var(--text) !important;
+      }
+      [data-theme="dark"] .chip i { color: var(--accent-light) !important; }
+      [data-theme="dark"] .request-card {
+        background: var(--white) !important;
+        border-color: var(--border) !important;
+      }
+      [data-theme="dark"] .request-card .card-header {
+        background: linear-gradient(90deg,rgba(19,103,138,.15),rgba(69,196,176,.1)) !important;
+        border-color: var(--border) !important;
+      }
+      [data-theme="dark"] .meta-label { color: var(--text-muted) !important; }
+      [data-theme="dark"] .meta-value { color: var(--text) !important; }
+      [data-theme="dark"] .empty-state {
+        background: var(--surface-alt) !important;
+        border-color: var(--border) !important;
+      }
+      [data-theme="dark"] .empty-state h3 { color: var(--text) !important; }
+      [data-theme="dark"] .empty-state p   { color: var(--text-muted) !important; }
+
+      /* 18. FAQ accordion (equipamentos.html / servicos.html) */
+      [data-theme="dark"] .pg-acc-text { color: var(--text) !important; }
+      [data-theme="dark"] .pg-accordion-item { border-color: var(--border) !important; }
+      [data-theme="dark"] .pg-accordion-body { color: var(--text-muted) !important; }
+      [data-theme="dark"] .pg-acc-schedule-row { background: var(--surface-alt) !important; color: var(--text) !important; }
+
+      /* ── Dark mode toggle — pill slider ── */
+      .dm-toggle {
+        width: 54px; height: 28px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.1);
+        border: 1.5px solid rgba(255,255,255,.22);
+        position: relative;
+        cursor: pointer;
+        flex-shrink: 0;
+        padding: 0;
+        transition: background .35s ease, border-color .35s ease;
+      }
+      .dm-toggle:hover {
+        background: rgba(255,255,255,.19);
+        border-color: rgba(255,255,255,.38);
+      }
+      .dm-thumb {
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        background: #fbbf24;
+        position: absolute;
+        top: 2px; left: 3px;
+        display: flex; align-items: center; justify-content: center;
+        transition: left .38s cubic-bezier(.4,0,.2,1), background .35s ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,.28);
+        font-size: .62rem;
+        pointer-events: none;
+      }
+      /* Light mode: thumb sits LEFT → shows sun icon (você está no modo claro) */
+      .dm-icon-sun  { display: block; color: #92400e; }
+      .dm-icon-moon { display: none; }
+      /* Dark mode: thumb glides RIGHT → shows moon icon (você está no modo escuro) */
+      [data-theme="dark"] .dm-toggle {
+        background: rgba(69,196,176,.18);
+        border-color: rgba(69,196,176,.45);
+      }
+      [data-theme="dark"] .dm-toggle:hover {
+        background: rgba(69,196,176,.28);
+        border-color: rgba(69,196,176,.65);
+      }
+      [data-theme="dark"] .dm-thumb { left: 29px; background: #e2e8f0; }
+      [data-theme="dark"] .dm-icon-sun  { display: none; }
+      [data-theme="dark"] .dm-icon-moon { display: block; color: #1e3a8a; }
+
+      /* ===== Responsive ===== */
       @media (max-width: 991.98px) {
         .fl-dropdown-menu {
           position: static;
@@ -362,11 +702,14 @@
           margin: .25rem 0;
           list-style: none;
           padding-left: 0;
+          display: block; /* sempre visível no mobile collapse */
         }
         .fl-dropdown-menu::before { display: none; }
         .fl-dropdown-menu a { color: rgba(255,255,255,.8); }
         .fl-dropdown-menu a:hover { background: rgba(255,255,255,.08); color: #fff; }
         .fl-dropdown-menu a i { color: var(--accent-light); }
+        .fl-dropdown-label { color: rgba(255,255,255,.35); }
+        .fl-dropdown-divider { border-color: rgba(255,255,255,.1); margin: .3rem .5rem; }
       }
     </style>
   </head>
@@ -418,25 +761,116 @@
             </li>
             {% endif %}
 
-            <!-- Projetos dropdown -->
+            <!-- Projetos e Cursos dropdown -->
             <li class="nav-item fl-dropdown">
-              <a class="nav-link" href="{% url 'projetos:lista' %}"><i class="fas fa-project-diagram me-1"></i> Projetos</a>
-              <ul class="fl-dropdown-menu">
-                <li><a href="{% url 'projetos:lista' %}"><i class="fas fa-list"></i> Lista de Projetos</a></li>
-                {% if user.is_authenticated and user.is_staff %}
-                <li><a href="{% url 'projetos:gestao' %}"><i class="fas fa-tasks"></i> Gestão de Projetos</a></li>
+              <a class="nav-link" href="{% url 'projetos:lista' %}">
+                <i class="fas fa-project-diagram me-1" aria-hidden="true"></i> Projetos e Cursos
+                <i class="fas fa-chevron-down ms-1" style="font-size:.6rem" aria-hidden="true"></i>
+              </a>
+              <ul class="fl-dropdown-menu" style="min-width:240px">
+                <li><span class="fl-dropdown-label">Projetos</span></li>
+                <li><a href="{% url 'projetos:lista' %}"><i class="fas fa-list" aria-hidden="true"></i> Projetos Executados</a></li>
+                {% if 'projetos' in admin_sections %}
+                <li><a href="{% url 'projetos:gestao' %}"><i class="fas fa-tasks" aria-hidden="true"></i> Gestão de Projetos</a></li>
+                {% endif %}
+                <li><hr class="fl-dropdown-divider"></li>
+                <li><span class="fl-dropdown-label">Cursos</span></li>
+                <li><a href="{% url 'cursos:lista' %}"><i class="fas fa-chalkboard-teacher" aria-hidden="true"></i> Cursos do Laboratório</a></li>
+                {% if 'cursos' in admin_sections %}
+                <li><a href="{% url 'cursos:admin_cursos' %}"><i class="fas fa-cog" aria-hidden="true"></i> Gerenciar Cursos</a></li>
                 {% endif %}
               </ul>
             </li>
 
+            <!-- Inventário — visível a todos da equipe autenticada -->
             {% if user.is_authenticated and user.is_staff %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'inventario:dashboard' %}"><i class="fas fa-boxes me-1"></i> Inventário</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'Controle_ar:automacao_home' %}"><i class="fas fa-robot me-1"></i> Automação</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'inventario:dashboard' %}"><i class="fas fa-boxes me-1" aria-hidden="true"></i> Inventário</a></li>
+            {% endif %}
+
+            <!-- Automação — apenas quem tem permissão -->
+            {% if 'automacao' in admin_sections %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'Controle_ar:automacao_home' %}"><i class="fas fa-robot me-1" aria-hidden="true"></i> Automação</a></li>
+            {% endif %}
+
+            {% if user.is_authenticated and admin_sections %}
+            <!-- Dropdown Admin — seções filtradas pelo cargo do usuário -->
+            <li class="nav-item fl-dropdown">
+              <a class="nav-link" href="{% url 'gestao:dashboard' %}"
+                 style="color:rgba(69,196,176,.9) !important;font-weight:600">
+                <i class="fas fa-shield-alt me-1" aria-hidden="true"></i> Admin
+                <i class="fas fa-chevron-down ms-1" style="font-size:.6rem" aria-hidden="true"></i>
+              </a>
+              <ul class="fl-dropdown-menu">
+
+                {% if 'dashboard' in admin_sections %}
+                <li><a href="{% url 'gestao:dashboard' %}"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Dashboard</a></li>
+                {% endif %}
+
+                {% if 'usuarios' in admin_sections %}
+                <li><a href="{% url 'gestao:admin_usuarios' %}"><i class="fas fa-users" aria-hidden="true"></i> Usuários</a></li>
+                {% endif %}
+
+                {% if 'conteudo' in admin_sections %}
+                <li><a href="{% url 'gestao:admin_conteudo' %}"><i class="fas fa-layer-group" aria-hidden="true"></i> Conteúdo</a></li>
+                {% endif %}
+
+                {% if 'noticias' in admin_sections %}
+                <li><a href="{% url 'gestao:admin_noticias' %}"><i class="fas fa-newspaper" aria-hidden="true"></i> Notícias</a></li>
+                {% endif %}
+
+                {% if 'membros' in admin_sections %}
+                <li><a href="{% url 'gestao:admin_membros' %}"><i class="fas fa-id-badge" aria-hidden="true"></i> Membros</a></li>
+                {% endif %}
+
+                {% if 'servicos' in admin_sections %}
+                <li><a href="{% url 'gestao:admin_servicos' %}"><i class="fas fa-cogs" aria-hidden="true"></i> Serviços</a></li>
+                {% endif %}
+
+                {% if 'solicitacoes' in admin_sections %}
+                <li>
+                  <a href="{% url 'gestao:admin_solicitacoes' %}">
+                    <i class="fas fa-inbox" aria-hidden="true"></i> Solicitações
+                    {% if solicitacoes_pendentes > 0 %}<span class="fl-badge fl-badge-danger ms-auto">{{ solicitacoes_pendentes }}</span>{% endif %}
+                  </a>
+                </li>
+                {% endif %}
+
+                {% if 'inventario' in admin_sections %}
+                <li><a href="{% url 'gestao:admin_inventario' %}"><i class="fas fa-boxes" aria-hidden="true"></i> Inventário</a></li>
+                {% endif %}
+
+                {% if 'projetos' in admin_sections %}
+                <li><a href="{% url 'projetos:gestao' %}"><i class="fas fa-project-diagram" aria-hidden="true"></i> Projetos</a></li>
+                {% endif %}
+
+                {% if 'cursos' in admin_sections %}
+                <li><a href="{% url 'cursos:admin_cursos' %}"><i class="fas fa-chalkboard-teacher" aria-hidden="true"></i> Cursos</a></li>
+                {% endif %}
+
+                {% if 'monitoramento' in admin_sections %}
+                <li><a href="{% url 'gestao:monitoramento' %}"><i class="fas fa-chart-line" aria-hidden="true"></i> Monitoramento</a></li>
+                {% endif %}
+
+                {% if 'configuracoes' in admin_sections %}
+                <li><a href="{% url 'gestao:configuracoes' %}"><i class="fas fa-sliders-h" aria-hidden="true"></i> Configurações</a></li>
+                {% endif %}
+
+              </ul>
+            </li>
             {% endif %}
 
           </ul>
 
           <div class="d-flex align-items-center gap-2">
+            <!-- Toggle modo escuro — pill slider -->
+            <button class="dm-toggle" id="dmToggle" onclick="toggleTheme()"
+                    role="switch" aria-label="Alternar modo escuro/claro" title="Alternar modo escuro/claro">
+              <span class="dm-thumb">
+                <i class="fas fa-sun  dm-icon-sun"  aria-hidden="true"></i>
+                <i class="fas fa-moon dm-icon-moon" aria-hidden="true"></i>
+              </span>
+            </button>
+
             {% if user.is_authenticated %}
               <div class="dropdown">
                 <div class="fl-user-toggle dropdown-toggle position-relative" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
@@ -567,6 +1001,14 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
+      /* ── Dark mode toggle ── */
+      function toggleTheme() {
+        var html = document.documentElement;
+        var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('fablab-theme', next);
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
         // Auto-dismiss notifications after 5s
         document.querySelectorAll('.fl-notify').forEach(function (el) {

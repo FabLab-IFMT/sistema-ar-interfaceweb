@@ -1,327 +1,255 @@
-{% extends 'layout.html' %}
+{% extends 'gestao/admin_base.html' %}
 {% load static %}
 
 {% block title %}Monitoramento do Sistema{% endblock %}
+{% block nav_monitoramento %}active{% endblock %}
 
-{% block head %}
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">Monitoramento</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'logs:index' %}" class="adm-btn adm-btn-secondary adm-btn-sm">
+    <i class="fas fa-history" aria-hidden="true"></i> Ver Todos os Logs
+  </a>
+{% endblock %}
+
+{% block admin_head %}
 <style>
+  /* FIX: transition:all é anti-pattern — propriedades específicas */
   .stat-card {
-    transition: all 0.3s ease;
+    transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);
     border-radius: 10px;
   }
-  
-  .stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  @media (prefers-reduced-motion: reduce) {
+    .stat-card, .log-table tr { transition: none !important; }
   }
-  
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(11,37,69,.12);
+  }
   .stat-icon {
     font-size: 2rem;
-    width: 60px;
-    height: 60px;
+    width: 60px; height: 60px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     margin-bottom: 10px;
   }
-  
-  .log-table tr {
-    transition: background-color 0.3s ease;
-  }
-  
-  .log-table tbody tr:hover {
-    background-color: rgba(0,0,0,0.05);
-  }
-  
-  .chart-container {
-    position: relative;
-    height: 350px;
-    margin-bottom: 20px;
-  }
-  
-  .status-badge {
-    padding: 5px 10px;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    font-weight: 500;
-  }
+  .log-table tr { transition: background-color .15s; }
+  .log-table tbody tr:hover { background-color: var(--surface-alt); }
+  .chart-container { position: relative; height: 320px; margin-bottom: 20px; }
 </style>
-<!-- Incluir Chart.js para gráficos -->
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
-{% block content %}
-<div class="container">
-  <nav aria-label="breadcrumb" class="my-3">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'gestao:dashboard' %}">Gestão</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Monitoramento do Sistema</li>
-    </ol>
-  </nav>
+{% block admin_content %}
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i> Monitoramento do Sistema</h1>
-    <div>
-      <a href="{% url 'gestao:dashboard' %}" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left me-1"></i> Voltar
-      </a>
-    </div>
-  </div>
-  
-  <div class="alert alert-info mb-4">
-    <div class="d-flex">
-      <div class="me-3">
-        <i class="fas fa-info-circle fa-2x"></i>
-      </div>
-      <div>
-        <h5 class="alert-heading">Visão Geral do Sistema</h5>
-        <p class="mb-0">Esta página apresenta métricas e estatísticas dos últimos {{ periodo }}. Use estas informações para acompanhar o desempenho do FABLAB e tomar decisões baseadas em dados.</p>
+<!-- Stats gerais -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon bg-primary text-white mx-auto">
+          <i class="fas fa-users" aria-hidden="true"></i>
+        </div>
+        <h5 class="card-title">Total de Usuários</h5>
+        <p class="display-5 fw-bold mb-1">{{ total_usuarios }}</p>
+        <p class="card-text text-muted small">
+          <span class="text-success"><i class="fas fa-user-check me-1" aria-hidden="true"></i>{{ usuarios_ativos }}</span> ativos
+        </p>
       </div>
     </div>
   </div>
-  
-  <!-- Cards de estatísticas gerais -->
-  <div class="row mb-4">
-    <!-- Total de usuários -->
-    <div class="col-md-3 mb-3">
-      <div class="card stat-card h-100">
-        <div class="card-body text-center">
-          <div class="stat-icon bg-primary text-white mx-auto">
-            <i class="fas fa-users"></i>
-          </div>
-          <h5 class="card-title">Total de Usuários</h5>
-          <h2 class="display-5 fw-bold">{{ total_usuarios }}</h2>
-          <p class="card-text text-muted">
-            <span class="text-success"><i class="fas fa-user-check me-1"></i>{{ usuarios_ativos }}</span> ativos
-          </p>
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon bg-success text-white mx-auto">
+          <i class="fas fa-user-shield" aria-hidden="true"></i>
         </div>
-      </div>
-    </div>
-    
-    <!-- Usuários com acesso administrativo -->
-    <div class="col-md-3 mb-3">
-      <div class="card stat-card h-100">
-        <div class="card-body text-center">
-          <div class="stat-icon bg-success text-white mx-auto">
-            <i class="fas fa-user-shield"></i>
-          </div>
-          <h5 class="card-title">Acesso Admin</h5>
-          <h2 class="display-5 fw-bold">{{ usuarios_staff }}</h2>
-          <p class="card-text text-muted">
-            <span class="text-primary"><i class="fas fa-user-tie me-1"></i>{{ usuarios_superuser }}</span> superusuários
-          </p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Projetos -->
-    <div class="col-md-3 mb-3">
-      <div class="card stat-card h-100">
-        <div class="card-body text-center">
-          <div class="stat-icon bg-info text-white mx-auto">
-            <i class="fas fa-project-diagram"></i>
-          </div>
-          <h5 class="card-title">Total de Projetos</h5>
-          <h2 class="display-5 fw-bold">{{ total_projetos }}</h2>
-          <p class="card-text text-muted">
-            <span class="text-success">{{ projetos_ativos }} ativos</span> | 
-            <span class="text-info">{{ projetos_concluidos }} concluídos</span>
-          </p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Total de atividades no sistema -->
-    <div class="col-md-3 mb-3">
-      <div class="card stat-card h-100">
-        <div class="card-body text-center">
-          <div class="stat-icon bg-warning text-white mx-auto">
-            <i class="fas fa-chart-line"></i>
-          </div>
-          <h5 class="card-title">Atividade</h5>
-          <h2 class="display-5 fw-bold" id="totalLogs">...</h2>
-          <p class="card-text text-muted">logs nos últimos {{ periodo }}</p>
-        </div>
+        <h5 class="card-title">Acesso Admin</h5>
+        <p class="display-5 fw-bold mb-1">{{ usuarios_staff }}</p>
+        <p class="card-text text-muted small">
+          <span class="text-primary">{{ usuarios_superuser }}</span> superusuários
+        </p>
       </div>
     </div>
   </div>
-  
-  <div class="row mb-4">
-    <!-- Gráfico de atividade -->
-    <div class="col-lg-8 mb-4">
-      <div class="card h-100">
-        <div class="card-header bg-white">
-          <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i> Atividade nos Últimos {{ periodo }}</h5>
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon bg-info text-white mx-auto">
+          <i class="fas fa-project-diagram" aria-hidden="true"></i>
         </div>
-        <div class="card-body">
-          <div class="chart-container">
-            <canvas id="activityChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Usuários mais ativos -->
-    <div class="col-lg-4 mb-4">
-      <div class="card h-100">
-        <div class="card-header bg-white">
-          <h5 class="mb-0"><i class="fas fa-trophy me-2"></i> Atividades por Tipo</h5>
-        </div>
-        <div class="card-body">
-          <div class="alert alert-light text-center">
-            <i class="fas fa-chart-pie fa-3x mb-3 text-primary"></i>
-            <p>Estatísticas detalhadas por tipo de ação estarão disponíveis em breve.</p>
-          </div>
-          <!-- Esta seção foi modificada pois não temos mais a relação de usuários mais ativos -->
-        </div>
+        <h5 class="card-title">Total de Projetos</h5>
+        <p class="display-5 fw-bold mb-1">{{ total_projetos }}</p>
+        <p class="card-text text-muted small">
+          <span class="text-success">{{ projetos_ativos }} ativos</span> ·
+          <span class="text-info">{{ projetos_concluidos }} concluídos</span>
+        </p>
       </div>
     </div>
   </div>
-  
-  <div class="row mb-4">
-    <!-- Logs recentes -->
-    <div class="col-lg-8 mb-4">
-      <div class="card h-100">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="fas fa-history me-2"></i> Logs Recentes</h5>
-          <a href="{% url 'logs:index' %}" class="btn btn-sm btn-outline-primary">Ver Todos</a>
+  <div class="col-md-3 mb-3">
+    <div class="card stat-card h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon bg-warning text-white mx-auto">
+          <i class="fas fa-chart-line" aria-hidden="true"></i>
         </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover log-table mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Data</th>
-                  <th>Hora</th>
-                  <th>Tipo</th>
-                  <th>Descrição</th>
-                  <th>Severidade</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for log in logs_recentes %}
-                  <tr>
-                    <td>{{ log.date|date:"d/m/Y" }}</td>
-                    <td>{{ log.time|time:"H:i" }}</td>
-                    <td>{{ log.type }}</td>
-                    <td>{{ log.description|truncatechars:50 }}</td>
-                    <td>
-                      <span class="badge bg-{% if log.severity == 'info' %}info{% elif log.severity == 'warning' %}warning{% elif log.severity == 'error' %}danger{% elif log.severity == 'critical' %}dark{% elif log.severity == 'security' %}primary{% else %}secondary{% endif %}">
-                        {{ log.get_severity_display }}
-                      </span>
-                    </td>
-                  </tr>
-                {% empty %}
-                  <tr>
-                    <td colspan="5" class="text-center text-muted py-3">
-                      <i class="fas fa-exclamation-circle me-1"></i> Nenhum log registrado no período
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Notícias recentes -->
-    <div class="col-lg-4 mb-4">
-      <div class="card h-100">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="fas fa-newspaper me-2"></i> Notícias Recentes</h5>
-        </div>
-        <div class="card-body">
-          {% for noticia in noticias_recentes %}
-            <div class="mb-3 {% if not forloop.last %}border-bottom pb-3{% endif %}">
-              <h6 class="mb-1">{{ noticia.titulo }}</h6>
-              <div class="d-flex justify-content-between">
-                <small class="text-muted">
-                  <i class="far fa-calendar-alt me-1"></i> {{ noticia.data_publicacao|date:"d/m/Y" }}
-                </small>
-                <small>
-                  <span class="status-badge bg-{% if noticia.aprovada %}success{% else %}warning{% endif %}-subtle text-{% if noticia.aprovada %}success{% else %}warning{% endif %}">
-                    {% if noticia.aprovada %}Publicada{% else %}Pendente{% endif %}
-                  </span>
-                </small>
-              </div>
-              <p class="small text-truncate mt-1">{{ noticia.conteudo|striptags|truncatechars:100 }}</p>
-            </div>
-          {% empty %}
-            <div class="text-center text-muted py-4">
-              <i class="fas fa-newspaper fa-3x mb-3"></i>
-              <p>Nenhuma notícia publicada recentemente</p>
-            </div>
-          {% endfor %}
-        </div>
+        <h5 class="card-title">Atividade</h5>
+        <p class="display-5 fw-bold mb-1" id="totalLogs">...</p>
+        <p class="card-text text-muted small">logs nos últimos {{ periodo }}</p>
       </div>
     </div>
   </div>
 </div>
+
+<div class="row mb-4">
+  <!-- Gráfico -->
+  <div class="col-lg-8 mb-4">
+    <div class="card h-100">
+      <div class="card-header bg-white">
+        <h2 class="h5 mb-0"><i class="fas fa-chart-area me-2" aria-hidden="true"></i> Atividade nos Últimos {{ periodo }}</h2>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="activityChart" aria-label="Gráfico de atividade nos últimos {{ periodo }}" role="img"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Notícias recentes — FIX: usa 'publicado' em vez de 'aprovada' -->
+  <div class="col-lg-4 mb-4">
+    <div class="card h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h2 class="h5 mb-0"><i class="fas fa-newspaper me-2" aria-hidden="true"></i> Notícias Recentes</h2>
+        <a href="{% url 'gestao:admin_noticias' %}" class="btn btn-sm btn-outline-primary">Ver</a>
+      </div>
+      <div class="card-body">
+        {% for noticia in noticias_recentes %}
+          <div class="mb-3 {% if not forloop.last %}border-bottom pb-3{% endif %}">
+            <h3 class="h6 mb-1">{{ noticia.titulo }}</h3>
+            <div class="d-flex justify-content-between align-items-center">
+              <small class="text-muted">
+                <i class="far fa-calendar-alt me-1" aria-hidden="true"></i>{{ noticia.data_publicacao|date:"d/m/Y" }}
+              </small>
+              <small>
+                <!-- FIX: campo correto é 'publicado', não 'aprovada' -->
+                {% if noticia.publicado %}
+                  <span class="badge text-bg-success">Publicada</span>
+                {% else %}
+                  <span class="badge text-bg-warning">Rascunho</span>
+                {% endif %}
+              </small>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-center text-muted py-4">
+            <i class="fas fa-newspaper fa-3x mb-3" aria-hidden="true"></i>
+            <p>Nenhuma notícia publicada recentemente</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Logs recentes -->
+<div class="adm-card">
+  <div class="adm-card-header">
+    <h2 class="adm-card-title"><i class="fas fa-history" aria-hidden="true"></i> Logs Recentes (7 dias)</h2>
+    <a href="{% url 'logs:index' %}" class="adm-btn adm-btn-secondary adm-btn-sm">Ver Todos</a>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="adm-table log-table" aria-label="Logs recentes do sistema">
+      <thead>
+        <tr>
+          <th scope="col">Data</th>
+          <th scope="col">Hora</th>
+          <th scope="col">Tipo</th>
+          <th scope="col">Descrição</th>
+          <th scope="col">Severidade</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs_recentes %}
+          <tr>
+            <td style="white-space:nowrap;font-size:.82rem">{{ log.date|date:"d/m/Y" }}</td>
+            <td style="white-space:nowrap;font-size:.82rem">{{ log.time|time:"H:i" }}</td>
+            <td style="font-size:.82rem">{{ log.type }}</td>
+            <td style="max-width:320px">
+              <span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem">
+                {{ log.description }}
+              </span>
+            </td>
+            <td>
+              <span class="adm-tag
+                {% if log.severity == 'info' %}adm-tag-blue
+                {% elif log.severity == 'warning' %}adm-tag-yellow
+                {% elif log.severity == 'error' or log.severity == 'critical' %}adm-tag-red
+                {% elif log.severity == 'security' %}adm-tag-purple
+                {% else %}adm-tag-gray{% endif %}">
+                {{ log.get_severity_display }}
+              </span>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5">
+              <div class="adm-empty">
+                <i class="fas fa-history" aria-hidden="true"></i>
+                <p>Nenhum log registrado nos últimos {{ periodo }}.</p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 {% endblock %}
 
-{% block scripts %}
+{% block admin_scripts %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Dados para o gráfico de atividade
-    const logsData = {
-      labels: [{% for log in logs_por_dia %}'{{ log.date|date:"d/m" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
-      datasets: [{
-        label: 'Atividades',
-        data: [{% for log in logs_por_dia %}{{ log.contagem }}{% if not forloop.last %},{% endif %}{% endfor %}],
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 2,
-        tension: 0.4,
-        fill: true,
-        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-        pointRadius: 4,
-      }]
-    };
-    
-    // Configuração do gráfico
-    const chartConfig = {
+    const labels  = [{% for log in logs_por_dia %}'{{ log.date|date:"d/m" }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+    const values  = [{% for log in logs_por_dia %}{{ log.contagem }}{% if not forloop.last %},{% endif %}{% endfor %}];
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    new Chart(document.getElementById('activityChart'), {
       type: 'line',
-      data: logsData,
+      data: {
+        labels,
+        datasets: [{
+          label: 'Atividades',
+          data: values,
+          backgroundColor: 'rgba(19,103,138,.12)',
+          borderColor: 'rgba(19,103,138,1)',
+          borderWidth: 2,
+          tension: reduced ? 0 : 0.4,
+          fill: true,
+          pointBackgroundColor: 'rgba(19,103,138,1)',
+          pointRadius: 4,
+        }]
+      },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              precision: 0
-            }
-          }
-        },
+        animation: reduced ? false : undefined,
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
         plugins: {
-          legend: {
-            display: true
-          },
-          tooltip: {
-            mode: 'index',
-            intersect: false,
-          }
+          legend: { display: true },
+          tooltip: { mode: 'index', intersect: false }
         },
-        interaction: {
-          intersect: false,
-        }
+        interaction: { intersect: false }
       }
-    };
-    
-    // Inicializar o gráfico
-    new Chart(
-      document.getElementById('activityChart'),
-      chartConfig
-    );
-    
-    // Calcular total de logs
-    let totalLogs = 0;
-    {% for log in logs_por_dia %}
-      totalLogs += {{ log.contagem }};
-    {% endfor %}
-    document.getElementById('totalLogs').textContent = totalLogs;
+    });
+
+    let total = 0;
+    values.forEach(v => total += v);
+    document.getElementById('totalLogs').textContent = total;
   });
 </script>
 {% endblock %}

@@ -1,69 +1,361 @@
 {% extends 'layout.html' %}
+{% load static %}
 
 {% block title %}Gestão de Cargos{% endblock %}
 
-{% block content %}
-<section class="container py-5">
-  <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
-    <div>
-      <p class="text-uppercase small text-muted mb-1">Painel de Acesso</p>
-      <h1 class="h3 mb-2">Gestão de Cargos</h1>
-      <p class="text-muted mb-0">Marque os cargos de cada pessoa para liberar funcionalidades específicas. Apenas administradores veem esta página.</p>
-    </div>
-    <div class="alert alert-info mb-0" style="max-width: 480px;">
-      <div class="fw-semibold mb-1">Regras rápidas</div>
-      <ul class="mb-0 ps-3" style="list-style: disc;">
-        <li>Admin e Gestor liberam acesso interno (is_staff).</li>
-        <li>Pesquisador ganha leitura ampliada de projetos e repositório.</li>
-        <li>Alterações são aplicadas imediatamente após salvar.</li>
-      </ul>
-    </div>
-  </div>
+{% block head %}
+<style>
+/* ══ Hero ══ */
+.roles-hero {
+  background: linear-gradient(135deg, var(--primary) 0%, #134074 100%);
+  color: #fff;
+  padding: 2.5rem 0 4rem;
+  position: relative;
+  overflow: hidden;
+}
+.roles-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 48px;
+  background: var(--surface-alt);
+  clip-path: ellipse(55% 100% at 50% 100%);
+}
+.roles-hero h1 { font-size: 1.75rem; font-weight: 800; margin: 0 0 .35rem; }
+.roles-rules-box {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  font-size: .85rem;
+}
 
-  <div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-      <form method="post">
-        {% csrf_token %}
-        <div class="table-responsive">
-          <table class="table align-middle mb-0">
-            <thead class="table-light">
-              <tr>
-                <th style="min-width: 240px;">Usuário</th>
-                {% for role in roles %}
-                  <th class="text-center" style="min-width: 150px;">
-                    <div class="fw-semibold">{{ role.name }}</div>
-                    <div class="small text-muted">{{ role.description }}</div>
-                  </th>
-                {% endfor %}
-              </tr>
-            </thead>
-            <tbody>
-              {% for user in users %}
-                <tr>
-                  <td>
-                    <div class="fw-semibold">{{ user.first_name }} {{ user.last_name }}</div>
-                    <div class="small text-muted">{{ user.email }} · Matrícula {{ user.id }}</div>
-                    <div class="small mt-1">
-                      {% if user.is_superuser %}<span class="badge bg-danger me-1">Superuser</span>{% endif %}
-                      {% if user.is_staff %}<span class="badge bg-primary">Staff</span>{% endif %}
-                    </div>
-                  </td>
-                  {% for role in roles %}
-                    <td class="text-center">
-                      <input class="form-check-input" type="checkbox" name="roles_{{ user.pk }}" value="{{ role.code }}" {% if role in user.roles.all %}checked{% endif %}>
-                    </td>
-                  {% endfor %}
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+/* ══ Body ══ */
+.roles-body { background: var(--surface-alt); padding: 1.5rem 0 3rem; }
+
+/* ══ Cards de definição de cargos ══ */
+.role-def {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  height: 100%;
+  box-shadow: var(--shadow-sm);
+}
+.role-def-icon {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem;
+  margin-bottom: .5rem;
+}
+.role-def-name { font-size: .82rem; font-weight: 700; color: var(--text); }
+.role-def-desc { font-size: .72rem; color: var(--text-muted); line-height: 1.45; margin-top: .15rem; }
+
+/* ══ Barra de busca ══ */
+.roles-searchbar {
+  display: flex; align-items: center; gap: .6rem;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .55rem 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: border-color .2s, box-shadow .2s;
+}
+.roles-searchbar:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(19,103,138,.1);
+}
+.roles-searchbar input {
+  border: none; outline: none; background: transparent;
+  font-size: .9rem; flex: 1; color: var(--text);
+}
+
+/* ══ User card ══ */
+.uc {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow .2s;
+  margin-bottom: 1rem;
+}
+.uc:hover { box-shadow: var(--shadow-md); }
+.uc-head {
+  display: flex; align-items: center; gap: .85rem;
+  padding: .9rem 1.25rem;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+}
+.uc-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; font-weight: 700; flex-shrink: 0; overflow: hidden;
+}
+.uc-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.uc-name { font-weight: 700; font-size: .9rem; margin: 0; color: var(--text); }
+.uc-meta { font-size: .75rem; color: var(--text-muted); margin: 0; }
+.uc-badges { display: flex; gap: .4rem; flex-shrink: 0; }
+.badge-super { font-size: .65rem; font-weight: 700; background: #FEE2E2; color: #991B1B; padding: .2em .6em; border-radius: 999px; }
+.badge-staff { font-size: .65rem; font-weight: 700; background: #DBEAFE; color: #1E40AF; padding: .2em .6em; border-radius: 999px; }
+
+.uc-body { padding: 1rem 1.25rem; }
+
+/* ══ Role pill toggles ══ */
+.role-pills { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .85rem; }
+.rpt { position: relative; }
+.rpt input { position: absolute; opacity: 0; width: 0; height: 0; }
+.rpt label {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .38rem .9rem;
+  border-radius: 999px;
+  font-size: .78rem; font-weight: 600;
+  cursor: pointer;
+  border: 2px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  transition: border-color .15s, background .15s, color .15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.rpt label i { font-size: .68rem; }
+.rpt label:hover { border-color: var(--accent); color: var(--accent); background: rgba(19,103,138,.06); }
+.rpt input:checked + label { border-color: transparent; color: #fff; }
+.rpt input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Cores individuais por código de role */
+.rpt[data-role="administrador"] input:checked + label { background: #7C3AED; }
+.rpt[data-role="gestor"]        input:checked + label { background: #0B2545; }
+.rpt[data-role="jornalista"]    input:checked + label { background: #13678A; }
+.rpt[data-role="pesquisador"]   input:checked + label { background: #059669; }
+.rpt[data-role="projetista"]    input:checked + label { background: #D97706; }
+.rpt[data-role="secretario"]    input:checked + label { background: #DB2777; }
+.rpt[data-role]                 input:checked + label { background: var(--accent); } /* fallback */
+
+/* ══ Botão salvar ══ */
+.btn-role-save {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-size: .82rem; font-weight: 600;
+  padding: .42rem 1.1rem;
+  cursor: pointer;
+  transition: background .15s, transform .15s;
+}
+.btn-role-save:hover { background: #0f5470; transform: translateY(-1px); }
+.btn-role-save:disabled { opacity: .6; cursor: not-allowed; }
+
+@media (prefers-reduced-motion: reduce) {
+  .uc, .rpt label, .btn-role-save { transition: none !important; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="roles-hero">
+  <div class="container">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-5">
+        <p style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.45;margin-bottom:.3rem">
+          Administração
+        </p>
+        <h1><i class="fas fa-user-shield me-2" aria-hidden="true"></i>Gestão de Cargos</h1>
+        <p style="opacity:.75;font-size:.9rem;margin:0">
+          Atribua cargos a cada usuário para liberar as funcionalidades corretas no sistema.
+          O menu <strong>Admin</strong> aparecerá automaticamente para quem tiver um cargo com acesso interno.
+        </p>
+      </div>
+      <div class="col-lg-7">
+        <div class="roles-rules-box">
+          <div style="font-weight:700;margin-bottom:.6rem;font-size:.85rem">
+            <i class="fas fa-bolt me-1" aria-hidden="true"></i> Como funciona
+          </div>
+          <div class="row g-1" style="font-size:.82rem">
+            <div class="col-md-6">
+              <div style="opacity:.88"><i class="fas fa-check me-1" style="color:#45C4B0" aria-hidden="true"></i> <strong>Administrador</strong> e <strong>Gestor</strong> → acesso Staff completo</div>
+              <div style="opacity:.88"><i class="fas fa-check me-1" style="color:#45C4B0" aria-hidden="true"></i> <strong>Jornalista</strong> → gestão de notícias, membros e serviços</div>
+              <div style="opacity:.88"><i class="fas fa-check me-1" style="color:#45C4B0" aria-hidden="true"></i> <strong>Secretário</strong> → solicitações e agenda</div>
+            </div>
+            <div class="col-md-6">
+              <div style="opacity:.88"><i class="fas fa-check me-1" style="color:#45C4B0" aria-hidden="true"></i> <strong>Pesquisador</strong> → leitura ampliada (sem admin)</div>
+              <div style="opacity:.88"><i class="fas fa-check me-1" style="color:#45C4B0" aria-hidden="true"></i> <strong>Projetista</strong> → gestão de projetos e cursos</div>
+              <div style="opacity:.88"><i class="fas fa-save me-1" style="color:#45C4B0" aria-hidden="true"></i> Salve <strong>individualmente</strong> por usuário</div>
+            </div>
+          </div>
         </div>
-        <div class="p-3 border-top d-flex justify-content-between align-items-center">
-          <div class="text-muted small">Ao salvar, cargos de staff ajustam automaticamente o acesso interno.</div>
-          <button type="submit" class="btn btn-primary px-4">Salvar cargos</button>
-        </div>
-      </form>
+      </div>
     </div>
   </div>
-</section>
+</div>
+
+<!-- Body -->
+<div class="roles-body">
+  <div class="container">
+
+    <!-- Legenda de cargos -->
+    <div class="row g-2 mb-4">
+      {% for role in roles %}
+      <div class="col-6 col-sm-4 col-md-3 col-xl-2">
+        <div class="role-def">
+          <div class="role-def-icon" style="
+            {% if role.code == 'administrador' %}background:rgba(124,58,237,.1);color:#7C3AED
+            {% elif role.code == 'gestor' %}background:rgba(11,37,69,.1);color:#0B2545
+            {% elif role.code == 'jornalista' %}background:rgba(19,103,138,.1);color:#13678A
+            {% elif role.code == 'pesquisador' %}background:rgba(5,150,105,.1);color:#059669
+            {% elif role.code == 'projetista' %}background:rgba(217,119,6,.1);color:#D97706
+            {% elif role.code == 'secretario' %}background:rgba(219,39,119,.1);color:#DB2777
+            {% else %}background:rgba(107,114,128,.1);color:#6B7280{% endif %}">
+            <i class="fas fa-
+              {% if role.code == 'administrador' %}crown
+              {% elif role.code == 'gestor' %}tasks
+              {% elif role.code == 'jornalista' %}pen-nib
+              {% elif role.code == 'pesquisador' %}microscope
+              {% elif role.code == 'projetista' %}drafting-compass
+              {% elif role.code == 'secretario' %}clipboard-list
+              {% else %}user-tag{% endif %}" aria-hidden="true"></i>
+          </div>
+          <div class="role-def-name">{{ role.name }}</div>
+          <div class="role-def-desc">{{ role.description|default:"Sem descrição" }}</div>
+          {% if role.is_staff_equivalent %}
+          <div style="margin-top:.35rem">
+            <span style="font-size:.62rem;font-weight:700;background:rgba(19,103,138,.1);color:var(--accent);padding:.12em .5em;border-radius:999px">
+              <i class="fas fa-shield-alt" aria-hidden="true"></i> is_staff
+            </span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Barra de busca + contador -->
+    <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+      <div class="roles-searchbar" style="flex:1;min-width:220px">
+        <i class="fas fa-search" style="color:var(--text-muted)" aria-hidden="true"></i>
+        <input type="search" id="userSearch"
+               placeholder="Buscar por nome, email ou matrícula…"
+               autocomplete="off"
+               aria-label="Buscar usuário">
+      </div>
+      <div style="font-size:.8rem;color:var(--text-muted);background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.45rem .9rem;white-space:nowrap"
+           id="userCounter" aria-live="polite">
+        {{ users|length }} usuário{{ users|length|pluralize:"s" }}
+      </div>
+    </div>
+
+    <!-- Cards de usuários -->
+    <div id="usersList">
+      {% for u in users %}
+      <div class="uc user-card-item"
+           data-search="{{ u.first_name|lower }} {{ u.last_name|lower }} {{ u.email|lower }} {{ u.id }}">
+
+        <form method="post" action="{% url 'users:manage_roles' %}">
+          {% csrf_token %}
+          <!-- Enviamos apenas este usuário no POST -->
+          <input type="hidden" name="single_user" value="{{ u.pk }}">
+
+          <!-- Cabeçalho do card -->
+          <div class="uc-head">
+            <div class="uc-avatar" aria-hidden="true">
+              {% if u.profile_image and u.profile_image.name %}
+                <img src="{{ u.profile_image.url }}" alt="">
+              {% else %}
+                {{ u.first_name|first }}{{ u.last_name|first }}
+              {% endif %}
+            </div>
+            <div style="flex:1;min-width:0">
+              <p class="uc-name">{{ u.first_name }} {{ u.last_name }}</p>
+              <p class="uc-meta">{{ u.email }} · Matrícula {{ u.id }}</p>
+            </div>
+            <div class="uc-badges">
+              {% if u.is_superuser %}<span class="badge-super">Superuser</span>{% endif %}
+              {% if u.is_staff %}<span class="badge-staff">Staff</span>{% endif %}
+            </div>
+          </div>
+
+          <!-- Corpo: toggles + botão -->
+          <div class="uc-body">
+            <div class="role-pills" role="group" aria-label="Cargos de {{ u.first_name }} {{ u.last_name }}">
+              {% for role in roles %}
+              <div class="rpt" data-role="{{ role.code }}">
+                <input type="checkbox"
+                       id="r_{{ u.pk }}_{{ role.code }}"
+                       name="roles_{{ u.pk }}"
+                       value="{{ role.code }}"
+                       {% if role in u.roles.all %}checked{% endif %}
+                       {% if u.is_superuser %}disabled{% endif %}>
+                <label for="r_{{ u.pk }}_{{ role.code }}" title="{{ role.description|default:role.name }}">
+                  <i class="fas fa-
+                    {% if role.code == 'administrador' %}crown
+                    {% elif role.code == 'gestor' %}tasks
+                    {% elif role.code == 'jornalista' %}pen-nib
+                    {% elif role.code == 'pesquisador' %}microscope
+                    {% elif role.code == 'projetista' %}drafting-compass
+                    {% elif role.code == 'secretario' %}clipboard-list
+                    {% else %}user-tag{% endif %}" aria-hidden="true"></i>
+                  {{ role.name }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+
+            {% if not u.is_superuser %}
+            <button type="submit" class="btn-role-save"
+                    aria-label="Salvar cargos de {{ u.first_name }} {{ u.last_name }}">
+              <i class="fas fa-save" aria-hidden="true"></i> Salvar cargos
+            </button>
+            {% else %}
+            <p style="font-size:.8rem;color:var(--text-muted);margin:0">
+              <i class="fas fa-lock me-1" aria-hidden="true"></i>
+              Superusuário — já tem acesso total ao sistema.
+            </p>
+            {% endif %}
+          </div>
+
+        </form>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:4rem;color:var(--text-muted)">
+        <i class="fas fa-users" style="font-size:2.5rem;opacity:.25;display:block;margin-bottom:1rem" aria-hidden="true"></i>
+        <p style="font-size:.9rem">Nenhum usuário encontrado.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Busca em tempo real ──
+const searchInput = document.getElementById('userSearch');
+const cards = document.querySelectorAll('.user-card-item');
+const counter = document.getElementById('userCounter');
+searchInput.addEventListener('input', function () {
+  const q = this.value.toLowerCase().trim();
+  let n = 0;
+  cards.forEach(c => {
+    const show = q === '' || c.dataset.search.includes(q);
+    c.style.display = show ? '' : 'none';
+    if (show) n++;
+  });
+  counter.textContent = n + ' usuário' + (n !== 1 ? 's' : '');
+});
+
+// ── Feedback visual no submit ──
+document.querySelectorAll('.uc form').forEach(form => {
+  form.addEventListener('submit', function () {
+    const btn = this.querySelector('.btn-role-save');
+    if (btn) {
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Salvando…';
+      btn.disabled = true;
+    }
+  });
+});
+</script>
 {% endblock %}

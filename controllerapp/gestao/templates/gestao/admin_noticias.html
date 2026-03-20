@@ -1,0 +1,183 @@
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
+
+{% block title %}Gerenciar Notícias{% endblock %}
+{% block nav_noticias %}active{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_conteudo' %}">Conteúdo</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">Notícias</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'options:noticias' %}" class="adm-btn adm-btn-secondary adm-btn-sm" target="_blank" rel="noopener">
+    <i class="fas fa-external-link-alt" aria-hidden="true"></i> Ver no site
+  </a>
+  <a href="{% url 'gestao:admin_noticia_nova' %}" class="adm-btn adm-btn-primary adm-btn-sm">
+    <i class="fas fa-plus" aria-hidden="true"></i> Nova Notícia
+  </a>
+{% endblock %}
+
+{% block admin_content %}
+
+<!-- Filtros -->
+<div class="adm-card mb-4">
+  <div class="adm-card-body">
+    <form method="get" role="search" aria-label="Filtrar notícias">
+      <div class="d-flex flex-wrap gap-2 align-items-end">
+        <div>
+          <label for="searchInput" class="form-label mb-1" style="font-size:.8rem;font-weight:600">Buscar</label>
+          <div class="adm-search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input type="search" id="searchInput" name="q" value="{{ termo }}"
+                   placeholder="Título ou resumo…" autocomplete="off">
+          </div>
+        </div>
+        <div>
+          <label for="filtroSelect" class="form-label mb-1" style="font-size:.8rem;font-weight:600">Status</label>
+          <select id="filtroSelect" name="status" class="form-select form-select-sm" style="min-width:140px;border-radius:var(--radius-sm)">
+            <option value="">Todas</option>
+            <option value="publicado" {% if filtro == 'publicado' %}selected{% endif %}>Publicadas</option>
+            <option value="rascunho"  {% if filtro == 'rascunho'  %}selected{% endif %}>Rascunhos</option>
+            <option value="destaque"  {% if filtro == 'destaque'  %}selected{% endif %}>Em Destaque</option>
+            <option value="home"      {% if filtro == 'home'      %}selected{% endif %}>Na Home</option>
+          </select>
+        </div>
+        <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm" style="align-self:flex-end">
+          <i class="fas fa-filter" aria-hidden="true"></i> Filtrar
+        </button>
+        {% if termo or filtro %}
+        <a href="{% url 'gestao:admin_noticias' %}" class="adm-btn adm-btn-secondary adm-btn-sm" style="align-self:flex-end">
+          <i class="fas fa-times" aria-hidden="true"></i> Limpar
+        </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Tabela -->
+<div class="adm-card">
+  <div class="adm-card-header">
+    <h2 class="adm-card-title">
+      <i class="fas fa-newspaper" aria-hidden="true"></i> Notícias
+      <span style="font-size:.8rem;font-weight:500;color:var(--text-muted)">({{ total }})</span>
+    </h2>
+  </div>
+  {% if noticias %}
+  <div style="overflow-x:auto">
+    <table class="adm-table" aria-label="Lista de notícias">
+      <thead>
+        <tr>
+          <th scope="col">Título</th>
+          <th scope="col">Autor</th>
+          <th scope="col">Publicação</th>
+          <th scope="col">Publicada</th>
+          <th scope="col">Destaque</th>
+          <th scope="col">Home</th>
+          <th scope="col">Tags</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for noticia in noticias %}
+        <tr>
+          <td style="max-width:260px">
+            <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+              {{ noticia.titulo }}
+            </div>
+            <div style="font-size:.78rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+              {{ noticia.resumo }}
+            </div>
+          </td>
+          <td style="font-size:.85rem;white-space:nowrap">
+            {{ noticia.autor.first_name|default:"—" }} {{ noticia.autor.last_name|default:"" }}
+          </td>
+          <td style="font-size:.82rem;white-space:nowrap;color:var(--text-muted)">
+            {{ noticia.data_publicacao|date:"d/m/Y" }}
+          </td>
+          <!-- Toggle Publicado -->
+          <td>
+            <form method="post" action="{% url 'gestao:admin_noticia_toggle_publicado' noticia.id %}">
+              {% csrf_token %}
+              <button type="submit" class="adm-toggle"
+                      aria-label="{{ noticia.titulo }}: {% if noticia.publicado %}despublicar{% else %}publicar{% endif %}"
+                      title="{% if noticia.publicado %}Clique para despublicar{% else %}Clique para publicar{% endif %}">
+                <input type="checkbox" {% if noticia.publicado %}checked{% endif %} tabindex="-1" aria-hidden="true">
+                <span class="adm-toggle-slider"></span>
+              </button>
+            </form>
+          </td>
+          <!-- Toggle Destaque -->
+          <td>
+            <form method="post" action="{% url 'gestao:admin_noticia_toggle_destaque' noticia.id %}">
+              {% csrf_token %}
+              <button type="submit" class="adm-toggle"
+                      aria-label="{{ noticia.titulo }}: {% if noticia.destaque %}remover destaque{% else %}colocar em destaque{% endif %}"
+                      title="{% if noticia.destaque %}Remover destaque{% else %}Colocar em destaque{% endif %}">
+                <input type="checkbox" {% if noticia.destaque %}checked{% endif %} tabindex="-1" aria-hidden="true">
+                <span class="adm-toggle-slider"></span>
+              </button>
+            </form>
+          </td>
+          <!-- Home -->
+          <td>
+            {% if noticia.mostrar_na_home %}
+              <span class="adm-tag adm-tag-green">Sim</span>
+            {% else %}
+              <span style="font-size:.8rem;color:var(--text-muted)">—</span>
+            {% endif %}
+          </td>
+          <!-- Tags -->
+          <td style="max-width:140px">
+            <div style="display:flex;flex-wrap:wrap;gap:.2rem">
+              {% for tag in noticia.hashtags.all|slice:"3" %}
+                <span class="adm-tag adm-tag-blue" style="font-size:.65rem">#{{ tag.nome }}</span>
+              {% empty %}
+                <span style="font-size:.8rem;color:var(--text-muted)">—</span>
+              {% endfor %}
+            </div>
+          </td>
+          <!-- Ações -->
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'options:noticia_detalhe' noticia.slug %}"
+                 class="adm-btn adm-btn-secondary adm-btn-sm adm-btn-icon"
+                 target="_blank" rel="noopener"
+                 title="Ver no site" aria-label="Ver {{ noticia.titulo }} no site">
+                <i class="fas fa-eye" aria-hidden="true"></i>
+              </a>
+              <a href="{% url 'gestao:admin_noticia_editar' noticia.id %}"
+                 class="adm-btn adm-btn-primary adm-btn-sm adm-btn-icon"
+                 title="Editar" aria-label="Editar {{ noticia.titulo }}">
+                <i class="fas fa-edit" aria-hidden="true"></i>
+              </a>
+              <a href="{% url 'gestao:admin_noticia_deletar' noticia.id %}"
+                 class="adm-btn adm-btn-sm adm-btn-icon"
+                 style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA"
+                 title="Excluir" aria-label="Excluir {{ noticia.titulo }}">
+                <i class="fas fa-trash" aria-hidden="true"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="adm-empty">
+    <i class="fas fa-newspaper" aria-hidden="true"></i>
+    <p>Nenhuma notícia encontrada{% if termo or filtro %} com os filtros aplicados{% endif %}.</p>
+    {% if not termo and not filtro %}
+    <a href="{% url 'gestao:admin_noticia_nova' %}" class="adm-btn adm-btn-primary adm-btn-sm mt-2">
+      <i class="fas fa-plus" aria-hidden="true"></i> Criar primeira notícia
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

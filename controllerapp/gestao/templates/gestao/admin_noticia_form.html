@@ -1,0 +1,497 @@
+{% extends 'gestao/admin_base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+{% block nav_noticias %}active{% endblock %}
+
+{% block breadcrumb %}
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_conteudo' %}">Conteúdo</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <a href="{% url 'gestao:admin_noticias' %}">Notícias</a>
+  <span class="sep" aria-hidden="true"><i class="fas fa-chevron-right" style="font-size:.6rem"></i></span>
+  <span class="current">{{ titulo }}</span>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'gestao:admin_noticias' %}" class="adm-btn adm-btn-secondary adm-btn-sm">
+    <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+  </a>
+{% endblock %}
+
+{% block admin_head %}
+<style>
+.cf-section-title {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+  margin-bottom: .75rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid var(--border);
+}
+.cf-field { margin-bottom: 1.1rem; }
+.cf-label {
+  display: block;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: .35rem;
+}
+.cf-label .req { color: #DC2626; margin-left: .2rem; }
+.cf-input {
+  width: 100%;
+  padding: .5rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: .9rem;
+  color: var(--text);
+  background: var(--white);
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+}
+.cf-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(19,103,138,.12);
+}
+.cf-textarea { resize: vertical; min-height: 140px; font-family: inherit; }
+.cf-textarea-lg { min-height: 260px; }
+.cf-select { appearance: none; cursor: pointer; }
+.cf-hint {
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-top: .25rem;
+}
+
+/* Toggle checkbox estilizado */
+.cf-toggle-group { display: flex; flex-wrap: wrap; gap: .75rem; }
+.cf-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  cursor: pointer;
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--text);
+  padding: .4rem .85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: all .15s;
+  user-select: none;
+}
+.cf-toggle-item input[type=checkbox] { display: none; }
+.cf-toggle-item:has(input:checked) {
+  background: rgba(19,103,138,.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.cf-toggle-item i { width: 16px; text-align: center; }
+
+/* Galeria de fotos */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: .75rem;
+}
+.gallery-item {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg);
+}
+.gallery-item img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  display: block;
+}
+.gallery-item-body {
+  padding: .4rem .5rem;
+}
+.gallery-item-body input[type=text] {
+  width: 100%;
+  font-size: .72rem;
+  padding: .2rem .4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  background: var(--white);
+  outline: none;
+  margin-bottom: .25rem;
+}
+.gallery-item-body input[type=text]:focus {
+  border-color: var(--accent);
+}
+.gallery-delete-btn {
+  position: absolute;
+  top: .35rem;
+  right: .35rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(220,38,38,.85);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .65rem;
+  line-height: 1;
+  padding: 0;
+  transition: background .15s;
+}
+.gallery-delete-btn:hover { background: #DC2626; }
+
+.upload-drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  color: var(--text-muted);
+  font-size: .85rem;
+}
+.upload-drop-zone:hover, .upload-drop-zone.drag-over {
+  border-color: var(--accent);
+  background: rgba(19,103,138,.04);
+  color: var(--accent);
+}
+.upload-drop-zone i { font-size: 1.5rem; margin-bottom: .4rem; }
+
+/* Hashtag grid */
+.tag-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  padding: .6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  max-height: 180px;
+  overflow-y: auto;
+}
+.tag-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .25rem .65rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  user-select: none;
+  background: var(--white);
+  color: var(--text);
+}
+.tag-item input[type=checkbox] { display: none; }
+.tag-item:has(input:checked) {
+  background: rgba(19,103,138,.1);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+
+{% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{% if msg.tags == 'error' %}danger{% else %}{{ msg.tags }}{% endif %} alert-dismissible fade show mb-4" role="alert">
+    {{ msg }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+
+  <div class="row g-4">
+
+    <!-- ══ Coluna principal ══ -->
+    <div class="col-lg-8">
+
+      <!-- Informações básicas -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-newspaper" aria-hidden="true"></i> Informações da Notícia
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-field">
+            <label for="titulo" class="cf-label">
+              Título <span class="req" aria-hidden="true">*</span>
+            </label>
+            <input type="text" id="titulo" name="titulo" class="cf-input"
+                   value="{{ noticia.titulo|default:'' }}" required
+                   placeholder="Ex: FabLab IFMT inaugura novo equipamento de impressão 3D">
+          </div>
+
+          <div class="cf-field">
+            <label for="resumo" class="cf-label">
+              Resumo <span class="req" aria-hidden="true">*</span>
+            </label>
+            <textarea id="resumo" name="resumo" class="cf-input cf-textarea" required
+                      placeholder="Escreva um resumo atrativo para aparecer na listagem de notícias…">{{ noticia.resumo|default:'' }}</textarea>
+            <div class="cf-hint">Exibido na listagem de notícias.</div>
+          </div>
+
+          <div class="cf-field">
+            <label for="conteudo" class="cf-label">Conteúdo Completo</label>
+            <textarea id="conteudo" name="conteudo" class="cf-input cf-textarea cf-textarea-lg"
+                      placeholder="Conteúdo completo da notícia, pode incluir formatação, links, etc.">{{ noticia.conteudo|default:'' }}</textarea>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Hashtags -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-hashtag" aria-hidden="true"></i> Hashtags
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          {% if hashtags_disponiveis %}
+          <div class="cf-field">
+            <label class="cf-label">Tags existentes</label>
+            <div class="tag-grid" role="group" aria-label="Selecionar hashtags">
+              {% for hashtag in hashtags_disponiveis %}
+              <label class="tag-item">
+                <input type="checkbox" name="hashtags" value="{{ hashtag.id }}"
+                       {% if hashtag.id in hashtags_selecionadas %}checked{% endif %}>
+                <i class="fas fa-hashtag" aria-hidden="true"></i>
+                {{ hashtag.nome }}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          {% else %}
+          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.75rem">
+            Nenhuma hashtag cadastrada ainda. Crie abaixo.
+          </p>
+          {% endif %}
+
+          <div class="cf-field">
+            <label for="novas_hashtags" class="cf-label">Novas hashtags</label>
+            <input type="text" id="novas_hashtags" name="novas_hashtags" class="cf-input"
+                   placeholder="Ex: fabricação digital, impressão 3D, inovação">
+            <div class="cf-hint">Digite novas tags separadas por vírgula. Serão criadas automaticamente.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Galeria de fotos -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-images" aria-hidden="true"></i> Galeria de Fotos
+          </h2>
+          {% if fotos_galeria %}
+          <span class="adm-tag adm-tag-blue">{{ fotos_galeria|length }} foto{{ fotos_galeria|length|pluralize }}</span>
+          {% endif %}
+        </div>
+        <div class="adm-card-body">
+
+          {% if fotos_galeria %}
+          <p class="cf-hint mb-2">Clique no <span style="color:#DC2626;font-weight:600">✕</span> para marcar uma foto para exclusão. As marcadas serão removidas ao salvar.</p>
+          <div class="gallery-grid mb-4" id="existingGallery">
+            {% for foto in fotos_galeria %}
+            <div class="gallery-item" id="foto-card-{{ foto.id }}">
+              <img src="{{ foto.imagem.url }}" alt="Foto {{ forloop.counter }} da galeria">
+              <!-- Checkbox oculto para marcar exclusão -->
+              <input type="checkbox" name="fotos_deletar" value="{{ foto.id }}"
+                     id="del-{{ foto.id }}" style="display:none">
+              <button type="button" class="gallery-delete-btn"
+                      onclick="toggleFotoDelete({{ foto.id }})"
+                      title="Remover esta foto" aria-label="Remover foto {{ forloop.counter }}">
+                <i class="fas fa-times"></i>
+              </button>
+              <div class="gallery-item-body">
+                <input type="text" placeholder="Legenda…" value="{{ foto.legenda }}"
+                       disabled title="A legenda só pode ser editada por enquanto via admin do Django">
+                <div style="font-size:.65rem;color:var(--text-muted);text-align:center">Ordem: {{ foto.ordem }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <!-- Upload de novas fotos -->
+          <div class="cf-field">
+            <label class="cf-label">Adicionar novas fotos</label>
+            <label class="upload-drop-zone" for="fotos_novas" id="dropZone">
+              <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
+              <div>Clique ou arraste imagens aqui</div>
+              <div style="font-size:.72rem;margin-top:.2rem">PNG, JPG, WebP — serão convertidas para WebP automaticamente</div>
+            </label>
+            <input type="file" id="fotos_novas" name="fotos_novas"
+                   accept="image/*" multiple style="display:none"
+                   onchange="previewNovasFotos(this)">
+          </div>
+
+          <!-- Preview das novas fotos antes de enviar -->
+          <div class="gallery-grid" id="previewGrid" style="margin-top:.5rem"></div>
+
+        </div>
+      </div>
+
+    </div><!-- /col-lg-8 -->
+
+    <!-- ══ Sidebar ══ -->
+    <div class="col-lg-4">
+
+      <!-- Imagem -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-image" aria-hidden="true"></i> Imagem de Capa
+          </h2>
+        </div>
+        <div class="adm-card-body">
+          {% if noticia and noticia.imagem %}
+          <div class="mb-2">
+            <img src="{{ noticia.imagem.url }}" alt="Imagem atual da notícia"
+                 style="width:100%;border-radius:var(--radius-sm);max-height:180px;object-fit:cover">
+          </div>
+          <p style="font-size:.75rem;color:var(--text-muted);margin-bottom:.5rem">
+            Envie uma nova imagem para substituir a atual.
+          </p>
+          {% endif %}
+          <input type="file" id="imagem" name="imagem" accept="image/*"
+                 class="form-control form-control-sm">
+          <div class="cf-hint">PNG, JPG ou WebP. Recomendado 1200×630px. <br>
+            <i class="fas fa-magic" style="color:var(--accent)"></i> Convertida para <strong>WebP</strong> automaticamente ao salvar.
+          </div>
+        </div>
+      </div>
+
+      <!-- Publicação -->
+      <div class="adm-card mb-4">
+        <div class="adm-card-header">
+          <h2 class="adm-card-title">
+            <i class="fas fa-cog" aria-hidden="true"></i> Publicação
+          </h2>
+        </div>
+        <div class="adm-card-body">
+
+          <div class="cf-section-title">Visibilidade</div>
+          <div class="cf-toggle-group" role="group" aria-label="Opções de visibilidade">
+            <label class="cf-toggle-item">
+              <input type="checkbox" name="publicado"
+                     {% if noticia.publicado or not noticia %}checked{% endif %}>
+              <i class="fas fa-globe" aria-hidden="true"></i> Publicado
+            </label>
+            <label class="cf-toggle-item">
+              <input type="checkbox" name="destaque"
+                     {% if noticia and noticia.destaque %}checked{% endif %}>
+              <i class="fas fa-star" aria-hidden="true"></i> Destaque
+            </label>
+            <label class="cf-toggle-item">
+              <input type="checkbox" name="mostrar_na_home"
+                     {% if noticia and noticia.mostrar_na_home %}checked{% endif %}>
+              <i class="fas fa-home" aria-hidden="true"></i> Na Home
+            </label>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Botões -->
+      <div class="d-flex gap-2">
+        <button type="submit" class="adm-btn adm-btn-primary flex-fill">
+          <i class="fas fa-save" aria-hidden="true"></i> Salvar Notícia
+        </button>
+        <a href="{% url 'gestao:admin_noticias' %}" class="adm-btn adm-btn-secondary">
+          Cancelar
+        </a>
+      </div>
+
+    </div><!-- /col-lg-4 -->
+
+  </div><!-- /row -->
+</form>
+
+{% endblock %}
+
+{% block admin_scripts %}
+<script>
+// ── Marcar foto existente para exclusão ──
+function toggleFotoDelete(fotoId) {
+  const checkbox = document.getElementById('del-' + fotoId);
+  const card     = document.getElementById('foto-card-' + fotoId);
+  const btn      = card.querySelector('.gallery-delete-btn');
+  checkbox.checked = !checkbox.checked;
+  if (checkbox.checked) {
+    card.style.opacity  = '.4';
+    card.style.outline  = '2px solid #DC2626';
+    btn.style.background = '#15803D';
+    btn.innerHTML = '<i class="fas fa-undo"></i>';
+    btn.title = 'Desfazer remoção';
+  } else {
+    card.style.opacity  = '1';
+    card.style.outline  = '';
+    btn.style.background = '';
+    btn.innerHTML = '<i class="fas fa-times"></i>';
+    btn.title = 'Remover esta foto';
+  }
+}
+
+// ── Preview das novas fotos escolhidas ──
+function previewNovasFotos(input) {
+  const grid = document.getElementById('previewGrid');
+  grid.innerHTML = '';
+  Array.from(input.files).forEach((file, idx) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const card = document.createElement('div');
+      card.className = 'gallery-item';
+      card.innerHTML =
+        '<img src="' + e.target.result + '" alt="Nova foto ' + (idx + 1) + '">' +
+        '<div class="gallery-item-body">' +
+          '<input type="text" name="foto_legenda" placeholder="Legenda (opcional)…">' +
+          '<input type="number" name="foto_ordem" placeholder="Ordem" value="' + idx + '" ' +
+            'style="width:100%;font-size:.72rem;padding:.2rem .4rem;border:1px solid var(--border);' +
+            'border-radius:var(--radius-sm);outline:none;color:var(--text);background:var(--white)">' +
+        '</div>';
+      grid.appendChild(card);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Drag-and-drop na zona de upload ──
+(function() {
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fotos_novas');
+  if (!dropZone || !fileInput) return;
+  ['dragenter','dragover'].forEach(function(evt) {
+    dropZone.addEventListener(evt, function(e) {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+  });
+  ['dragleave','drop'].forEach(function(evt) {
+    dropZone.addEventListener(evt, function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+    });
+  });
+  dropZone.addEventListener('drop', function(e) {
+    fileInput.files = e.dataTransfer.files;
+    previewNovasFotos(fileInput);
+  });
+})();
+</script>
+{% endblock %}

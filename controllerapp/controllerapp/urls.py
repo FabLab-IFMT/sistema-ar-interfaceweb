@@ -27,6 +27,7 @@ urlpatterns = [
     path('cambam/', include('canva.urls')),
     path('repositorio/', include('repositorio.urls')),
     path('gestao/', include('gestao.urls')),
+    path('cursos/', include('cursos.urls')),
     path('api/', include('api.urls')),
 ]
 

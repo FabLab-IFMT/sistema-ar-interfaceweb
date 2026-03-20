@@ -3,157 +3,860 @@
 
 {% block title %}{{ noticia.titulo }} - FabLab IFMT{% endblock %}
 
+{% block head %}
+<style>
+  /* ─── Breadcrumb ─── */
+  .nd-breadcrumb {
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--border);
+    padding: .75rem 0;
+  }
+  .nd-breadcrumb nav {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .82rem;
+    color: var(--text-muted);
+  }
+  .nd-breadcrumb a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    transition: color var(--transition);
+  }
+  .nd-breadcrumb a:hover { color: var(--primary); }
+  .nd-breadcrumb .nd-bc-sep { color: var(--border); font-size: .7rem; }
+  .nd-breadcrumb .nd-bc-current {
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 340px;
+  }
+
+  /* ─── Layout ─── */
+  .nd-section { padding: 4rem 0 5rem; }
+
+  /* ─── Hero image ─── */
+  .nd-hero {
+    position: relative;
+    width: 100%;
+    max-height: 480px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--primary);
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
+  }
+  .nd-hero img {
+    width: 100%;
+    height: 480px;
+    object-fit: cover;
+    display: block;
+    transition: transform .6s cubic-bezier(.4,0,.2,1);
+  }
+  .nd-hero:hover img { transform: scale(1.015); }
+  .nd-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(11,37,69,.45) 0%, transparent 55%);
+    pointer-events: none;
+  }
+  .nd-destaque-badge {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.1rem;
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+    color: #fff;
+    padding: .4rem 1rem;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(245,158,11,.4);
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+  }
+  .nd-hero-no-image {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    border-radius: var(--radius);
+    margin-bottom: 2rem;
+  }
+  .nd-hero-no-image i { font-size: 3.5rem; color: rgba(255,255,255,.25); }
+
+  /* ─── Meta row ─── */
+  .nd-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+    font-size: .83rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+  .nd-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-weight: 500;
+  }
+  .nd-meta-item i {
+    color: var(--accent-light);
+    font-size: .85rem;
+  }
+
+  /* ─── Title ─── */
+  .nd-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1.25;
+    letter-spacing: -.02em;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 768px) {
+    .nd-title { font-size: 1.7rem; }
+  }
+
+  /* ─── Hashtag pills ─── */
+  .nd-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin-bottom: 1.75rem;
+  }
+  .nd-tag {
+    background: rgba(19,103,138,.1);
+    color: var(--accent);
+    padding: .3rem .75rem;
+    border-radius: 999px;
+    font-size: .76rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: .02em;
+    border: 1px solid rgba(19,103,138,.18);
+    transition: all var(--transition);
+  }
+  .nd-tag:hover {
+    background: var(--accent);
+    color: var(--white);
+    border-color: var(--accent);
+  }
+
+  /* ─── Lead paragraph (resumo) ─── */
+  .nd-resumo {
+    font-size: 1.15rem;
+    line-height: 1.75;
+    font-style: italic;
+    color: var(--text-muted);
+    border-left: 3px solid var(--accent);
+    padding-left: 1.1rem;
+    margin-bottom: 2.25rem;
+  }
+
+  /* ─── Article divider ─── */
+  .nd-divider {
+    height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+    margin: 2.25rem 0;
+    border: none;
+  }
+
+  /* ─── Article body prose ─── */
+  .nd-body {
+    font-size: 1.07rem;
+    line-height: 1.9;
+    color: var(--text);
+  }
+  .nd-body p {
+    margin-top: 0;
+    margin-bottom: 1.6rem;
+  }
+  .nd-body h2 {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: .5rem;
+    border-bottom: 2px solid var(--surface-alt);
+    letter-spacing: -.01em;
+  }
+  .nd-body h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-top: 2rem;
+    margin-bottom: .85rem;
+  }
+  .nd-body h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-top: 1.75rem;
+    margin-bottom: .75rem;
+  }
+  .nd-body ul,
+  .nd-body ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1.6rem;
+  }
+  .nd-body li {
+    margin-bottom: .4rem;
+  }
+  .nd-body a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: rgba(19,103,138,.35);
+    text-underline-offset: 3px;
+    transition: all var(--transition);
+  }
+  .nd-body a:hover {
+    color: var(--primary);
+    text-decoration-color: var(--primary);
+  }
+  .nd-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+    margin: 1.75rem 0;
+    box-shadow: var(--shadow-sm);
+    display: block;
+  }
+  .nd-body blockquote {
+    border-left: 4px solid var(--accent-light);
+    background: var(--surface-alt);
+    margin: 2rem 0;
+    padding: 1.1rem 1.5rem;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-style: italic;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+  }
+  .nd-body blockquote p:last-child { margin-bottom: 0; }
+  .nd-body code {
+    background: rgba(19,103,138,.08);
+    color: var(--accent);
+    padding: .15em .45em;
+    border-radius: 4px;
+    font-size: .9em;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  .nd-body pre {
+    background: var(--primary);
+    color: #e2e8f0;
+    padding: 1.5rem;
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    margin: 2rem 0;
+    font-size: .9rem;
+    line-height: 1.7;
+    box-shadow: var(--shadow-md);
+  }
+  .nd-body pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    font-size: inherit;
+  }
+  .nd-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    font-size: .95rem;
+  }
+  .nd-body th {
+    background: var(--primary);
+    color: var(--white);
+    padding: .75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: .85rem;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .nd-body td {
+    padding: .7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  .nd-body tr:last-child td { border-bottom: none; }
+  .nd-body tr:hover td { background: var(--surface-alt); }
+  .nd-body strong { color: var(--primary); font-weight: 700; }
+  .nd-body hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(to right, var(--accent-light), transparent);
+    margin: 2.5rem 0;
+  }
+
+  /* ─── Gallery ─── */
+  .nd-gallery { margin-top: 3rem; }
+  .nd-gallery-header {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 1.25rem;
+    padding-bottom: .75rem;
+    border-bottom: 2px solid var(--surface-alt);
+  }
+  .nd-gallery-header i {
+    color: var(--accent-light);
+    font-size: 1.1rem;
+  }
+  .nd-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  @media (min-width: 768px) {
+    .nd-gallery-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  .nd-gallery-card {
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--white);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition), box-shadow var(--transition);
+    cursor: pointer;
+  }
+  .nd-gallery-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  .nd-gallery-img-wrap {
+    width: 100%;
+    padding-top: 66.67%;
+    position: relative;
+    overflow: hidden;
+    background: var(--surface-alt);
+  }
+  .nd-gallery-img-wrap img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .5s cubic-bezier(.4,0,.2,1);
+  }
+  .nd-gallery-card:hover .nd-gallery-img-wrap img { transform: scale(1.07); }
+  .nd-gallery-caption {
+    padding: .55rem .75rem;
+    font-size: .78rem;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.4;
+    border-top: 1px solid var(--border);
+    background: var(--white);
+  }
+
+  /* ─── Lightbox overlay ─── */
+  .nd-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,.88);
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    backdrop-filter: blur(6px);
+  }
+  .nd-lightbox.active { display: flex; }
+  .nd-lightbox-inner {
+    position: relative;
+    max-width: 900px;
+    width: 100%;
+    text-align: center;
+  }
+  .nd-lightbox img {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 24px 60px rgba(0,0,0,.5);
+    display: block;
+    margin: 0 auto;
+  }
+  .nd-lightbox-caption {
+    color: rgba(255,255,255,.7);
+    font-size: .88rem;
+    font-style: italic;
+    margin-top: .75rem;
+  }
+  .nd-lightbox-close {
+    position: absolute;
+    top: -2.5rem;
+    right: 0;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,.8);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: .25rem .5rem;
+    transition: color var(--transition);
+    line-height: 1;
+  }
+  .nd-lightbox-close:hover { color: #fff; }
+
+  /* ─── Share bar ─── */
+  .nd-share {
+    margin-top: 2.5rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--border);
+  }
+  .nd-share-label {
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: .85rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+  }
+  .nd-share-btns { display: flex; flex-wrap: wrap; gap: .6rem; }
+  .nd-share-btn {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: .95rem;
+    transition: all var(--transition);
+    background: var(--white);
+  }
+  .nd-share-btn:hover {
+    color: var(--white);
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.18);
+  }
+  .nd-share-btn.fb:hover  { background: #1877F2; }
+  .nd-share-btn.tw:hover  { background: #000000; }
+  .nd-share-btn.wa:hover  { background: #25D366; }
+  .nd-share-btn.li:hover  { background: #0A66C2; }
+
+  /* ─── Sidebar ─── */
+  .nd-sidebar-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+  }
+  .nd-sidebar-card:last-child { margin-bottom: 0; }
+  .nd-sidebar-header {
+    background: var(--primary);
+    padding: .85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    font-size: .88rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: .01em;
+  }
+  .nd-sidebar-header i { color: var(--accent-light); font-size: .9rem; }
+  .nd-sidebar-body { padding: 1.1rem 1.25rem; }
+
+  /* Related items */
+  .nd-related-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .85rem;
+    padding: .8rem 0;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    transition: all var(--transition);
+  }
+  .nd-related-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .nd-related-item:first-child { padding-top: 0; }
+  .nd-related-thumb {
+    width: 64px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--surface-alt);
+  }
+  .nd-related-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition);
+  }
+  .nd-related-item:hover .nd-related-thumb img { transform: scale(1.08); }
+  .nd-related-info { flex: 1; min-width: 0; }
+  .nd-related-title {
+    font-size: .81rem;
+    font-weight: 600;
+    color: var(--primary);
+    line-height: 1.35;
+    display: block;
+    margin-bottom: .3rem;
+    transition: color var(--transition);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .nd-related-item:hover .nd-related-title { color: var(--accent); }
+  .nd-related-date {
+    font-size: .73rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+  }
+  .nd-related-empty {
+    font-size: .83rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 1rem 0;
+  }
+
+  /* Sidebar tags */
+  .nd-sidebar-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+  }
+  .nd-sidebar-tag {
+    background: rgba(19,103,138,.08);
+    color: var(--accent);
+    padding: .28rem .7rem;
+    border-radius: 999px;
+    font-size: .74rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid rgba(19,103,138,.15);
+    transition: all var(--transition);
+  }
+  .nd-sidebar-tag:hover {
+    background: var(--accent);
+    color: var(--white);
+    border-color: var(--accent);
+  }
+
+  /* Quick links */
+  .nd-quicklinks { display: flex; flex-direction: column; gap: .5rem; }
+  .nd-quicklink {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .65rem .9rem;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    color: var(--primary);
+    font-size: .84rem;
+    font-weight: 600;
+    text-decoration: none;
+    background: var(--white);
+    transition: all var(--transition);
+  }
+  .nd-quicklink i {
+    color: var(--accent);
+    font-size: .85rem;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .nd-quicklink:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--white);
+    transform: translateX(3px);
+  }
+  .nd-quicklink:hover i { color: var(--white); }
+
+  /* ─── Responsive tweaks ─── */
+  @media (max-width: 576px) {
+    .nd-section { padding: 2.5rem 0 3.5rem; }
+    .nd-hero img { height: 260px; }
+    .nd-meta { gap: .6rem 1rem; font-size: .78rem; }
+    .nd-resumo { font-size: 1rem; }
+    .nd-body { font-size: 1rem; }
+    .nd-gallery-grid { grid-template-columns: repeat(2, 1fr); gap: .6rem; }
+    .nd-share-btn { width: 40px; height: 40px; font-size: .88rem; }
+  }
+  @media (max-width: 992px) {
+    .nd-sidebar-card { margin-top: 0; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<!-- Breadcrumb -->
-<section style="background:var(--surface-alt);padding:1rem 0;border-bottom:1px solid var(--border)">
+
+{# ── Breadcrumb ── #}
+<div class="nd-breadcrumb">
   <div class="container">
-    <nav style="font-size:.85rem">
-      <a href="{% url 'options:noticias' %}" class="fl-link"><i class="fas fa-arrow-left me-1"></i> Todas as notícias</a>
+    <nav aria-label="breadcrumb">
+      <a href="{% url 'home' %}"><i class="fas fa-home"></i> Início</a>
+      <span class="nd-bc-sep"><i class="fas fa-chevron-right"></i></span>
+      <a href="{% url 'options:noticias' %}">Notícias</a>
+      <span class="nd-bc-sep"><i class="fas fa-chevron-right"></i></span>
+      <span class="nd-bc-current">{{ noticia.titulo }}</span>
     </nav>
   </div>
-</section>
+</div>
 
-<!-- Article -->
-<section class="fl-section">
+{# ── Main content ── #}
+<section class="nd-section">
   <div class="container">
     <div class="row g-5">
-      <!-- Main -->
+
+      {# ──── Article column ──── #}
       <div class="col-lg-8">
-        <article class="pg-article">
-          <!-- Image -->
-          <div class="pg-article-img mb-4">
-            <img src="{{ noticia.imagem.url }}" alt="{{ noticia.titulo }}">
-            {% if noticia.destaque %}<span class="pg-featured-badge"><i class="fas fa-star me-1"></i> Destaque</span>{% endif %}
+        <article>
+
+          {# Hero image #}
+          {% if noticia.imagem %}
+          <div class="nd-hero">
+            <img src="{{ noticia.imagem.url }}" alt="{{ noticia.titulo }}" loading="eager">
+            <div class="nd-hero-overlay"></div>
+            {% if noticia.destaque %}
+            <span class="nd-destaque-badge"><i class="fas fa-star"></i> Destaque</span>
+            {% endif %}
+          </div>
+          {% else %}
+          <div class="nd-hero-no-image">
+            <i class="fas fa-newspaper"></i>
+            {% if noticia.destaque %}
+            <span class="nd-destaque-badge" style="position:absolute;top:1.1rem;right:1.1rem;"><i class="fas fa-star"></i> Destaque</span>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          {# Meta row #}
+          <div class="nd-meta">
+            <span class="nd-meta-item">
+              <i class="far fa-calendar-alt"></i>
+              {{ noticia.data_publicacao|date:"d \d\e F \d\e Y" }}
+            </span>
+            {% if noticia.autor %}
+            <span class="nd-meta-item">
+              <i class="far fa-user-circle"></i>
+              {{ noticia.autor.get_full_name|default:noticia.autor.username }}
+            </span>
+            {% endif %}
+            {% if noticia.fotos.all %}
+            <span class="nd-meta-item">
+              <i class="far fa-images"></i>
+              {{ noticia.fotos.count }} foto{{ noticia.fotos.count|pluralize:"s" }}
+            </span>
+            {% endif %}
           </div>
 
-          <!-- Meta -->
-          <div class="pg-article-meta mb-3">
-            <span><i class="far fa-calendar-alt me-1"></i> {{ noticia.data_publicacao|date:"d/m/Y \à\s H:i" }}</span>
-            {% if noticia.autor %}<span><i class="far fa-user me-1"></i> {{ noticia.autor.get_full_name|default:noticia.autor.username }}</span>{% endif %}
-          </div>
+          {# Title #}
+          <h1 class="nd-title">{{ noticia.titulo }}</h1>
 
-          <h1 class="pg-article-title">{{ noticia.titulo }}</h1>
-
-          <!-- Tags -->
+          {# Hashtag pills #}
           {% if noticia.hashtags.all %}
-          <div class="pg-tags-row mb-4">
+          <div class="nd-tags">
             {% for tag in noticia.hashtags.all %}
-              <a href="{% url 'options:noticias_por_tag' tag.slug %}">#{{ tag.nome }}</a>
+            <a href="{% url 'options:noticias_por_tag' tag.slug %}" class="nd-tag">#{{ tag.nome }}</a>
             {% endfor %}
           </div>
           {% endif %}
 
-          <!-- Content -->
-          <div class="pg-article-body">
+          {# Resumo as lead #}
+          {% if noticia.resumo %}
+          <p class="nd-resumo">{{ noticia.resumo }}</p>
+          {% endif %}
+
+          <hr class="nd-divider">
+
+          {# Article body #}
+          <div class="nd-body">
             {{ noticia.conteudo|safe }}
           </div>
 
-          <!-- Share -->
-          <div class="pg-share mt-5 pt-4">
-            <h6><i class="fas fa-share-alt me-2"></i>Compartilhar</h6>
-            <div class="pg-share-btns">
-              <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="pg-share-btn" style="--sc:#1877F2"><i class="fab fa-facebook-f"></i></a>
-              <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ noticia.titulo }}" target="_blank" rel="noopener" class="pg-share-btn" style="--sc:#1DA1F2"><i class="fab fa-twitter"></i></a>
-              <a href="https://api.whatsapp.com/send?text={{ noticia.titulo }}%20-%20{{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="pg-share-btn" style="--sc:#25D366"><i class="fab fa-whatsapp"></i></a>
-              <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="pg-share-btn" style="--sc:#0A66C2"><i class="fab fa-linkedin-in"></i></a>
+          {# ── Gallery ── #}
+          {% with fotos=noticia.fotos.all %}
+          {% if fotos %}
+          <div class="nd-gallery">
+            <div class="nd-gallery-header">
+              <i class="fas fa-images"></i>
+              Galeria de Fotos
+            </div>
+            <div class="nd-gallery-grid">
+              {% for foto in fotos %}
+              <div class="nd-gallery-card" onclick="ndOpenLightbox('{{ foto.imagem.url }}', '{{ foto.legenda|default:''|escapejs }}')" title="{{ foto.legenda|default:'Ver foto' }}">
+                <div class="nd-gallery-img-wrap">
+                  <img src="{{ foto.imagem.url }}" alt="{{ foto.legenda|default:noticia.titulo }}" loading="lazy">
+                </div>
+                {% if foto.legenda %}
+                <div class="nd-gallery-caption">{{ foto.legenda }}</div>
+                {% endif %}
+              </div>
+              {% endfor %}
             </div>
           </div>
+
+          {# Lightbox #}
+          <div class="nd-lightbox" id="ndLightbox" onclick="ndCloseLightbox(event)">
+            <div class="nd-lightbox-inner">
+              <button class="nd-lightbox-close" onclick="ndCloseLightbox()" aria-label="Fechar"><i class="fas fa-times"></i></button>
+              <img src="" alt="" id="ndLightboxImg">
+              <p class="nd-lightbox-caption" id="ndLightboxCaption"></p>
+            </div>
+          </div>
+          {% endif %}
+          {% endwith %}
+
+          {# ── Share ── #}
+          <div class="nd-share">
+            <div class="nd-share-label">
+              <i class="fas fa-share-nodes"></i> Compartilhar esta notícia
+            </div>
+            <div class="nd-share-btns">
+              <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
+                 target="_blank" rel="noopener noreferrer"
+                 class="nd-share-btn fb" title="Compartilhar no Facebook" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+              </a>
+              <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ noticia.titulo|urlencode }}"
+                 target="_blank" rel="noopener noreferrer"
+                 class="nd-share-btn tw" title="Compartilhar no X (Twitter)" aria-label="X / Twitter">
+                <i class="fab fa-x-twitter"></i>
+              </a>
+              <a href="https://api.whatsapp.com/send?text={{ noticia.titulo|urlencode }}%20%E2%80%94%20{{ request.build_absolute_uri }}"
+                 target="_blank" rel="noopener noreferrer"
+                 class="nd-share-btn wa" title="Compartilhar no WhatsApp" aria-label="WhatsApp">
+                <i class="fab fa-whatsapp"></i>
+              </a>
+              <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri }}"
+                 target="_blank" rel="noopener noreferrer"
+                 class="nd-share-btn li" title="Compartilhar no LinkedIn" aria-label="LinkedIn">
+                <i class="fab fa-linkedin-in"></i>
+              </a>
+            </div>
+          </div>
+
         </article>
       </div>
 
-      <!-- Sidebar -->
+      {# ──── Sidebar ──── #}
       <div class="col-lg-4">
-        <div class="sticky-lg-top" style="top:100px">
-          <!-- Related -->
-          <div class="pg-sidebar-card mb-4">
-            <h5><i class="fas fa-newspaper me-2"></i> Relacionadas</h5>
-            {% for rel in noticias_relacionadas %}
-            <a href="{{ rel.get_absolute_url }}" class="pg-related-item">
-              <div class="pg-related-img"><img src="{{ rel.imagem.url }}" alt="{{ rel.titulo }}"></div>
-              <div class="pg-related-info">
-                <span class="pg-related-title">{{ rel.titulo|truncatechars:55 }}</span>
-                <small>{{ rel.data_publicacao|date:"d/m/Y" }}</small>
-              </div>
-            </a>
-            {% empty %}
-            <p class="text-muted" style="font-size:.85rem">Sem notícias relacionadas no momento.</p>
-            {% endfor %}
+        <div class="sticky-lg-top" style="top: 90px;">
+
+          {# Related news #}
+          <div class="nd-sidebar-card">
+            <div class="nd-sidebar-header">
+              <i class="fas fa-newspaper"></i> Notícias Relacionadas
+            </div>
+            <div class="nd-sidebar-body">
+              {% for rel in noticias_relacionadas %}
+              <a href="{{ rel.get_absolute_url }}" class="nd-related-item">
+                <div class="nd-related-thumb">
+                  {% if rel.imagem %}
+                  <img src="{{ rel.imagem.url }}" alt="{{ rel.titulo }}" loading="lazy">
+                  {% else %}
+                  <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-newspaper" style="color:rgba(255,255,255,.4);font-size:.9rem;"></i>
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="nd-related-info">
+                  <span class="nd-related-title">{{ rel.titulo|truncatechars:65 }}</span>
+                  <span class="nd-related-date"><i class="far fa-calendar-alt"></i> {{ rel.data_publicacao|date:"d/m/Y" }}</span>
+                </div>
+              </a>
+              {% empty %}
+              <p class="nd-related-empty">
+                <i class="fas fa-inbox" style="display:block;font-size:1.5rem;margin-bottom:.5rem;color:var(--border);"></i>
+                Sem notícias relacionadas no momento.
+              </p>
+              {% endfor %}
+            </div>
           </div>
 
-          <!-- Topics -->
+          {# Topics / hashtags #}
           {% if hashtags %}
-          <div class="pg-sidebar-card mb-4">
-            <h5><i class="fas fa-hashtag me-2"></i> Tópicos</h5>
-            <div class="pg-tags-row">
-              {% for tag in hashtags %}
-                <a href="{% url 'options:noticias_por_tag' tag.slug %}">#{{ tag.nome }}</a>
-              {% endfor %}
+          <div class="nd-sidebar-card">
+            <div class="nd-sidebar-header">
+              <i class="fas fa-hashtag"></i> Tópicos
+            </div>
+            <div class="nd-sidebar-body">
+              <div class="nd-sidebar-tags">
+                {% for tag in hashtags %}
+                <a href="{% url 'options:noticias_por_tag' tag.slug %}" class="nd-sidebar-tag">#{{ tag.nome }}</a>
+                {% endfor %}
+              </div>
             </div>
           </div>
           {% endif %}
 
-          <!-- Quick Links -->
-          <div class="pg-sidebar-card">
-            <h5><i class="fas fa-link me-2"></i> Links Rápidos</h5>
-            <div class="d-grid gap-2">
-              <a href="{% url 'options:noticias' %}" class="pg-btn-details"><i class="fas fa-newspaper me-1"></i> Todas as Notícias</a>
-              <a href="{% url 'home' %}" class="pg-btn-details"><i class="fas fa-home me-1"></i> Página Inicial</a>
-              <a href="{% url 'about' %}" class="pg-btn-details"><i class="fas fa-info-circle me-1"></i> Sobre o FabLab</a>
+          {# Quick links #}
+          <div class="nd-sidebar-card">
+            <div class="nd-sidebar-header">
+              <i class="fas fa-link"></i> Links Rápidos
+            </div>
+            <div class="nd-sidebar-body">
+              <div class="nd-quicklinks">
+                <a href="{% url 'options:noticias' %}" class="nd-quicklink">
+                  <i class="fas fa-newspaper"></i> Todas as Notícias
+                </a>
+                <a href="{% url 'home' %}" class="nd-quicklink">
+                  <i class="fas fa-house"></i> Página Inicial
+                </a>
+                <a href="{% url 'about' %}" class="nd-quicklink">
+                  <i class="fas fa-circle-info"></i> Sobre o FabLab
+                </a>
+              </div>
             </div>
           </div>
+
         </div>
       </div>
+
     </div>
   </div>
 </section>
-{% endblock %}
 
-{% block head %}
-<style>
-  .fl-section { padding:5rem 0; }
-  .fl-link { color:var(--accent); text-decoration:none; font-weight:600; font-size:.875rem; transition:color var(--transition); }
-  .fl-link:hover { color:var(--primary); }
+{# ── Lightbox script ── #}
+<script>
+  function ndOpenLightbox(src, caption) {
+    var lb = document.getElementById('ndLightbox');
+    document.getElementById('ndLightboxImg').src = src;
+    var cap = document.getElementById('ndLightboxCaption');
+    cap.textContent = caption || '';
+    cap.style.display = caption ? 'block' : 'none';
+    lb.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function ndCloseLightbox(event) {
+    if (event && event.target !== event.currentTarget) return;
+    var lb = document.getElementById('ndLightbox');
+    if (!lb) return;
+    lb.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') ndCloseLightbox();
+  });
+</script>
 
-  .pg-article-img { position:relative; border-radius:var(--radius); overflow:hidden; max-height:500px; }
-  .pg-article-img img { width:100%; height:100%; object-fit:cover; }
-  .pg-featured-badge { position:absolute; top:1rem; right:1rem; background:#F59E0B; color:#fff; padding:.4rem .9rem; border-radius:999px; font-size:.8rem; font-weight:600; }
-
-  .pg-article-meta { display:flex; flex-wrap:wrap; gap:1.25rem; font-size:.85rem; color:var(--text-muted); }
-  .pg-article-title { font-size:2.2rem; font-weight:800; color:var(--primary); line-height:1.3; margin-bottom:.75rem; }
-
-  .pg-tags-row { display:flex; flex-wrap:wrap; gap:.35rem; }
-  .pg-tags-row a { background:rgba(19,103,138,.08); color:var(--accent); padding:.25rem .65rem; border-radius:999px; font-size:.75rem; font-weight:600; text-decoration:none; transition:all var(--transition); }
-  .pg-tags-row a:hover { background:var(--accent); color:#fff; }
-
-  .pg-article-body { font-size:1.08rem; line-height:1.85; color:var(--text); }
-  .pg-article-body p { margin-bottom:1.5rem; }
-  .pg-article-body img { max-width:100%; height:auto; margin:1.5rem 0; border-radius:var(--radius-sm); }
-  .pg-article-body h2,.pg-article-body h3,.pg-article-body h4 { margin-top:2rem; margin-bottom:1rem; color:var(--primary); font-weight:700; }
-  .pg-article-body a { color:var(--accent); text-decoration:none; }
-  .pg-article-body a:hover { text-decoration:underline; }
-  .pg-article-body blockquote { border-left:4px solid var(--accent); padding:1rem 1.5rem; margin:1.5rem 0; background:var(--surface-alt); border-radius:0 var(--radius-sm) var(--radius-sm) 0; }
-
-  .pg-share { border-top:1px solid var(--border); }
-  .pg-share h6 { font-weight:700; color:var(--primary); margin-bottom:.75rem; }
-  .pg-share-btns { display:flex; gap:.5rem; }
-  .pg-share-btn { width:42px; height:42px; display:flex; align-items:center; justify-content:center; border-radius:50%; border:2px solid var(--border); color:var(--text-muted); text-decoration:none; font-size:1rem; transition:all var(--transition); }
-  .pg-share-btn:hover { border-color:var(--sc); color:var(--sc); background:rgba(0,0,0,.02); }
-
-  .pg-sidebar-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; }
-  .pg-sidebar-card h5 { font-size:.95rem; font-weight:700; color:var(--primary); margin-bottom:1rem; }
-
-  .pg-related-item { display:flex; gap:.75rem; padding:.65rem 0; border-bottom:1px solid var(--border); text-decoration:none; transition:all var(--transition); }
-  .pg-related-item:last-child { border-bottom:none; padding-bottom:0; }
-  .pg-related-item:hover .pg-related-title { color:var(--accent); }
-  .pg-related-img { width:60px; height:45px; border-radius:var(--radius-sm); overflow:hidden; flex-shrink:0; }
-  .pg-related-img img { width:100%; height:100%; object-fit:cover; }
-  .pg-related-info { display:flex; flex-direction:column; }
-  .pg-related-title { font-size:.82rem; font-weight:600; color:var(--primary); line-height:1.3; transition:color var(--transition); }
-  .pg-related-info small { color:var(--text-muted); font-size:.75rem; }
-
-  .pg-btn-details { padding:.6rem 1rem; border:2px solid var(--accent); background:transparent; color:var(--accent); border-radius:var(--radius-sm); font-weight:600; font-size:.85rem; cursor:pointer; text-decoration:none; text-align:center; transition:all var(--transition); display:block; }
-  .pg-btn-details:hover { background:var(--accent); color:#fff; }
-
-  @media(max-width:768px){ .pg-article-title{font-size:1.6rem;} }
-</style>
 {% endblock %}

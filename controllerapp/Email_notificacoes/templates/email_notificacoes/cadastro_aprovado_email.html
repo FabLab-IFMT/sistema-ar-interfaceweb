@@ -1,92 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro Aprovado - FabLab IFMT</title>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5;">
-    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+<body style="font-family: 'Inter', Arial, Helvetica, sans-serif; line-height: 1.6; color: #0b2545; margin: 0; padding: 0; background-color: #f5f7fb;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f7fb; padding: 24px 0;">
         <tr>
-            <td align="center" style="padding: 20px 0;">
-                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0 auto;">
+            <td align="center">
+                <table width="620" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.08); margin: 0 auto;">
                     <!-- Cabeçalho -->
                     <tr>
-                        <td align="center" style="background: linear-gradient(135deg, #28a745 0%, #218838 100%); padding: 30px; border-radius: 8px 8px 0 0;">
+                        <td align="center" style="background: linear-gradient(135deg, #0B2545 0%, #13678A 50%, #45C4B0 100%); padding: 28px 32px; border-radius: 12px 12px 0 0;">
                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                 <tr>
-                                    <td width="80" align="left">
-                                        <img src="cid:logo_branco.png" alt="FabLab Logo" width="60" style="display: block;">
+                                    <td width="64" valign="middle">
+                                        <img src="cid:logo_branco.png" alt="FabLab IFMT" width="60" style="display: block; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25));">
                                     </td>
-                                    <td align="center">
-                                        <h1 style="color: white; font-size: 28px; font-weight: 700; margin: 0;">Cadastro Aprovado</h1>
+                                    <td valign="middle" align="right" style="color: #fff; font-size: 22px; font-weight: 800; letter-spacing: -0.01em;">
+                                        Cadastro Aprovado
                                     </td>
                                 </tr>
                             </table>
                         </td>
                     </tr>
-                    
+
                     <!-- Conteúdo -->
                     <tr>
-                        <td style="padding: 30px 40px;">
-                            <p style="font-size: 20px; font-weight: 500; margin-bottom: 20px;">Olá {{ user.first_name }},</p>
-                            
-                            <p style="font-size: 16px; margin-bottom: 25px; color: #555;">Temos o prazer de informar que seu cadastro no <strong>FabLab IFMT</strong> foi aprovado! Agora você tem acesso completo ao nosso Sistema de Gestão Laboratorial.</p>
-                            
-                            <div style="background-color: #f1f9f1; border-radius: 8px; padding: 20px; margin-bottom: 25px; border-left: 4px solid #28a745;">
-                                <h3 style="color: #218838; margin-top: 0;">Seus dados de acesso</h3>
-                                <table width="100%" cellpadding="8" cellspacing="0" style="margin-bottom: 10px;">
+                        <td style="padding: 30px 40px 18px 40px;">
+                            <p style="font-size: 18px; font-weight: 600; margin: 0 0 12px 0; color: #0b2545;">Olá {{ user.first_name }},</p>
+
+                            <p style="font-size: 15px; margin-bottom: 22px; color: #425466; line-height: 1.6;">Temos o prazer de informar que seu cadastro no <strong>FabLab IFMT</strong> foi aprovado! Agora você tem acesso completo ao nosso Sistema de Gestão Laboratorial.</p>
+
+                            <!-- Caixa de dados de acesso -->
+                            <div style="background-color: #f1f5f9; border-radius: 8px; padding: 20px; margin-bottom: 22px; border-left: 4px solid #13678A;">
+                                <h3 style="color: #0b2545; margin-top: 0; margin-bottom: 12px; font-size: 15px; font-weight: 700;">Seus dados de acesso</h3>
+                                <table width="100%" cellpadding="8" cellspacing="0" border="0" style="margin-bottom: 0;">
                                     <tr>
-                                        <td width="35%" style="color: #555; font-weight: bold;">Nome:</td>
-                                        <td style="color: #333;">{{ user.first_name }} {{ user.last_name }}</td>
+                                        <td width="35%" style="color: #425466; font-weight: 700; font-size: 14px;">Nome:</td>
+                                        <td style="color: #0b2545; font-size: 14px;">{{ user.first_name }} {{ user.last_name }}</td>
                                     </tr>
                                     <tr>
-                                        <td style="color: #555; font-weight: bold;">Matrícula:</td>
-                                        <td style="color: #333;">{{ user.id }}</td>
+                                        <td style="color: #425466; font-weight: 700; font-size: 14px;">Matrícula:</td>
+                                        <td style="color: #0b2545; font-size: 14px;">{{ user.id }}</td>
                                     </tr>
                                     <tr>
-                                        <td style="color: #555; font-weight: bold;">Email:</td>
-                                        <td style="color: #333;">{{ user.email }}</td>
+                                        <td style="color: #425466; font-weight: 700; font-size: 14px;">Email:</td>
+                                        <td style="color: #0b2545; font-size: 14px;">{{ user.email }}</td>
                                     </tr>
                                 </table>
                             </div>
-                            
-                            <p style="font-size: 16px; color: #555; margin-bottom: 25px;">Com acesso ao sistema você poderá:</p>
-                            
-                            <ul style="color: #555; margin-bottom: 25px;">
+
+                            <p style="font-size: 15px; color: #425466; margin-bottom: 12px;">Com acesso ao sistema você poderá:</p>
+
+                            <ul style="color: #425466; margin-bottom: 22px; padding-left: 20px; font-size: 15px;">
                                 <li style="margin-bottom: 8px;">Solicitar serviços laboratoriais</li>
                                 <li style="margin-bottom: 8px;">Agendar utilização de equipamentos</li>
                                 <li style="margin-bottom: 8px;">Participar de projetos</li>
                                 <li style="margin-bottom: 8px;">Acompanhar suas horas de atividades</li>
                                 <li style="margin-bottom: 8px;">E muito mais!</li>
                             </ul>
-                            
+
+                            <!-- Botão CTA -->
                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                 <tr>
                                     <td align="center" style="padding: 15px 0;">
                                         <table border="0" cellspacing="0" cellpadding="0">
                                             <tr>
-                                                <td align="center" style="border-radius: 50px; background: linear-gradient(135deg, #28a745 0%, #218838 100%); padding: 12px 28px;">
-                                                    <a href="{{ login_url }}" style="font-size: 16px; font-weight: 500; color: white; text-decoration: none; display: inline-block;">Acessar o Sistema</a>
+                                                <td align="center" style="border-radius: 10px; overflow: hidden; background: linear-gradient(135deg, #13678A 0%, #45C4B0 100%); padding: 14px 28px;">
+                                                    <a href="{{ login_url }}" style="font-size: 15px; font-weight: 700; color: white; text-decoration: none; display: inline-block; letter-spacing: 0.2px;">Acessar o Sistema</a>
                                                 </td>
                                             </tr>
                                         </table>
                                     </td>
                                 </tr>
                             </table>
-                            
-                            <p style="font-size: 16px; margin-top: 25px; color: #555;">Se você tiver qualquer dúvida, não hesite em entrar em contato conosco respondendo a este email ou através dos canais de comunicação do FabLab.</p>
-                            
-                            <p style="font-size: 16px; margin-bottom: 5px; color: #555;">Atenciosamente,<br>Equipe FabLab IFMT</p>
+
+                            <!-- Caixa informativa -->
+                            <div style="margin-top: 22px; padding: 14px; background: rgba(69,196,176,0.08); border-left: 4px solid #45C4B0; border-radius: 8px;">
+                                <p style="margin: 0; color: #0b2545; font-size: 14px; line-height: 1.5;">Se você tiver qualquer dúvida, não hesite em entrar em contato conosco respondendo a este email ou através dos canais de comunicação do FabLab.</p>
+                            </div>
+
+                            <p style="font-size: 15px; margin-top: 22px; margin-bottom: 5px; color: #425466;">Atenciosamente,<br>Equipe FabLab IFMT</p>
                         </td>
                     </tr>
-                    
+
                     <!-- Rodapé -->
                     <tr>
-                        <td style="background-color: #f8f9fa; padding: 20px; text-align: center; color: #6c757d; font-size: 12px; border-top: 1px solid #eaeaea; border-radius: 0 0 8px 8px;">
-                            <p style="margin: 5px 0;">© 2025 FabLab IFMT - Instituto Federal de Mato Grosso</p>
-                            <p style="margin: 5px 0;">Rua Zulmira Canavarros, 95, Centro, Cuiabá - MT, 78005-200</p>
-                            <p style="margin: 5px 0;">Este é um email automático enviado pelo Sistema de Gestão Laboratorial.</p>
+                        <td style="background-color: #f8fafc; padding: 18px 32px; text-align: center; color: #6b7280; font-size: 12px; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                            <p style="margin: 4px 0;">© {{ now|default:"2026" }} FabLab IFMT - Instituto Federal de Mato Grosso</p>
+                            <p style="margin: 4px 0;">Rua Zulmira Canavarros, 95, Centro, Cuiabá - MT, 78005-200</p>
+                            <p style="margin: 4px 0;">Este é um email automático enviado pelo Sistema de Gestão Laboratorial.</p>
                         </td>
                     </tr>
                 </table>
