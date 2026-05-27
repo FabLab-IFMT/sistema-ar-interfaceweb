@@ -149,6 +149,22 @@
           {% endif %}
         </div>
 
+        <!-- Termos de uso e privacidade -->
+        <div class="rg-field">
+          <div class="rg-terms-wrap">
+            <input type="checkbox" name="aceitar_termos" id="id_aceitar_termos" required
+                   {% if form.aceitar_termos.value %}checked{% endif %}
+                   class="rg-terms-check{% if form.aceitar_termos.errors %} rg-check-error{% endif %}">
+            <label for="id_aceitar_termos" class="rg-terms-label">
+              Li e aceito a <a href="{% url 'users:politica_privacidade' %}" target="_blank" rel="noopener">Política de Privacidade</a>.
+              Sei que o FabLab coleta dados de uso do sistema para melhorá-lo continuamente.
+            </label>
+          </div>
+          {% if form.aceitar_termos.errors %}
+            <div class="rg-field-error">{% for e in form.aceitar_termos.errors %}{{ e }}{% endfor %}</div>
+          {% endif %}
+        </div>
+
         <button type="submit" class="rg-submit" id="rg-submit-btn">
           <span id="rg-submit-text">Criar minha conta</span>
           <i class="fas fa-arrow-right ms-2" id="rg-submit-icon"></i>
@@ -290,6 +306,13 @@ function togglePwd(fid,iid){
   .rg-footer p { font-size:.88rem; color:#6B7280; }
   .rg-footer a { color:#13678A; font-weight:700; text-decoration:none; transition:color .2s; }
   .rg-footer a:hover { color:#0B2545; }
+
+  .rg-terms-wrap { display:flex; align-items:flex-start; gap:.65rem; }
+  .rg-terms-check { width:17px; height:17px; flex-shrink:0; margin-top:.18rem; accent-color:#13678A; cursor:pointer; border-radius:4px; }
+  .rg-check-error { outline:2px solid #DC2626; }
+  .rg-terms-label { font-size:.8rem; color:#6B7280; line-height:1.55; cursor:pointer; }
+  .rg-terms-label a { color:#13678A; font-weight:600; text-decoration:underline; text-underline-offset:2px; }
+  .rg-terms-label a:hover { color:#0B2545; }
 
   @media(max-width:991px){
     .rg-wrapper { flex-direction:column; }

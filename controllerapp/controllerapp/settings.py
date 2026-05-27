@@ -17,11 +17,25 @@ SECRET_KEY = config('SECRET_KEY')
 
 # Configurações por ambiente
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='ifmaker.cba.ifmt.edu.br,127.0.0.1,localhost, 200.129.251.66, 200.129.251.66 , 10.1.149.18, 10.0.2.2, 192.168.1.10').split(',')
-CSRF_TRUSTED_ORIGINS = [o for o in config(
+
+# ---------------------------------------------------------------------------
+# Analytics — Umami (auto-hospedado, sem cookies, sem dados saindo do servidor)
+# Configure no .env de produção:
+#   UMAMI_SCRIPT_URL=https://umami.seudominio.edu.br/script.js
+#   UMAMI_WEBSITE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+# Deixe em branco (padrão) para desativar o snippet em desenvolvimento.
+# ---------------------------------------------------------------------------
+UMAMI_SCRIPT_URL = config('UMAMI_SCRIPT_URL', default='')
+UMAMI_WEBSITE_ID = config('UMAMI_WEBSITE_ID', default='')
+ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='ifmaker.cba.ifmt.edu.br,127.0.0.1,localhost,200.129.251.66,10.1.149.18,10.0.2.2,192.168.1.10').split(',') if h.strip()]
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in config(
     'CSRF_TRUSTED_ORIGINS',
     default='https://ifmaker.cba.ifmt.edu.br,http://127.0.0.1,http://localhost'
-).split(',') if o]
+).split(',') if o.strip()]
+
+# URL pública do sistema — usada em emails para links absolutos.
+# Defina SITE_URL no .env de produção (ex: https://ifmaker.cba.ifmt.edu.br)
+SITE_URL = config('SITE_URL', default='http://localhost:8000')
 
 # Application definition
 INSTALLED_APPS = [
@@ -30,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',  # deve vir antes de staticfiles
     'django.contrib.staticfiles',
     # Apps de terceiros
     'rest_framework',
@@ -55,6 +70,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # logo após SecurityMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -83,6 +99,7 @@ TEMPLATES = [
                 'logs.context_processors.pending_events_count',
                 'users.context_processors.registration_requests_count',
                 'gestao.context_processors.gestao_counts',
+                'controllerapp.context_processors.umami',
             ],
         },
     },
@@ -90,9 +107,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'controllerapp.wsgi.application'
 
-# CORRIGIDO: Configuração para o banco de dados PostgreSQL
+# Banco de dados: SQLite em desenvolvimento, PostgreSQL em produção
 if DEBUG:
-    # Fallback simples para desenvolvimento local sem Postgres
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -100,25 +116,16 @@ if DEBUG:
         }
     }
 else:
-    if DEBUG:
-        # Fallback para ambiente local: usar SQLite se não houver Postgres configurado
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME', default='fablab_db'),
+            'USER': config('DB_USER', default='fablab_user'),
+            'PASSWORD': config('DB_PASSWORD', default='fablab_pass'),
+            'HOST': config('DB_HOST', default='db'),
+            'PORT': config('DB_PORT', default='5432'),
         }
-    else:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': config('DB_NAME', default='fablab_db'),
-                'USER': config('DB_USER', default='fablab_user'),
-                'PASSWORD': config('DB_PASSWORD', default='fablab_pass'),
-                'HOST': config('DB_HOST', default='db'),
-                'PORT': config('DB_PORT', default='5432'),
-            }
-        }
+    }
 
 # Password validation (sem alterações)
 AUTH_PASSWORD_VALIDATORS = [
@@ -143,9 +150,19 @@ SERVE_MEDIA = config('SERVE_MEDIA', default=False, cast=bool)
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
-# Para PRODUÇÃO (collectstatic e Nginx)
+# Para PRODUÇÃO (collectstatic e Nginx/Whitenoise)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_ROOT = config('MEDIA_ROOT', default=os.path.join(BASE_DIR.parent, 'media'))
+
+# Whitenoise: comprime e faz cache-busting dos estáticos automaticamente
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 # Limite de upload de arquivos (10MB)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024   # 10MB — dados de formulário
@@ -213,6 +230,15 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
+    # Rate limiting: protege /api/token/ de força-bruta e limita uso geral
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '60/minute',    # IPs não autenticados
+        'user': '300/minute',   # Usuários autenticados
+    },
 }
 
 # --- Simple JWT ---
@@ -233,11 +259,16 @@ CORS_ALLOWED_ORIGINS = config(
 
 # Regras de segurança para produção
 if not DEBUG:
-    # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    # USE_X_FORWARDED_HOST = True
-    # SECURE_SSL_REDIRECT = True  # COMENTADO TEMPORARIAMENTE PARA TESTE
+    # Necessário para Django reconhecer que está atrás do Nginx com SSL
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    # SSL redirect controlado via env var — ative após confirmar que o Nginx
+    # está passando X-Forwarded-Proto corretamente (evita redirect loop)
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # SECURE_HSTS_SECONDS = 31536000 # COMENTADO TEMPORARIAMENTE PARA TESTE
-    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True # COMENTADO TEMPORARIAMENTE PARA TESTE
-    # SECURE_HSTS_PRELOAD = True # COMENTADO TEMPORARIAMENTE PARA TESTE
+    SECURE_HSTS_SECONDS = 31536000           # 1 ano
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'

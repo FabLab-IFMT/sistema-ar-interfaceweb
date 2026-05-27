@@ -9,8 +9,10 @@ from django.urls import reverse
 from .models import Card, CustomUser, ProjectistRequest, Role
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, ProfileUpdateForm, CustomPasswordChangeForm
 from logs.utils import log_user_action
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.db import models
+from django.core import signing
+from django.core.serializers.json import DjangoJSONEncoder
 from projetos.models import Projeto
 from canva.models import KanbanCard
 from logs.models import Event
@@ -469,5 +471,209 @@ def change_password(request):
             messages.error(request, 'Por favor, corrija os erros abaixo.')
     else:
         form = PasswordChangeForm(request.user)
-    
+
     return render(request, 'users/change_password.html', {'form': form})
+
+
+def politica_privacidade(request):
+    """Página pública com a política de privacidade e termos de uso."""
+    return render(request, 'users/politica_privacidade.html')
+
+
+# ---------------------------------------------------------------------------
+# LGPD — Portal de privacidade, exportação de dados e exclusão de conta
+# ---------------------------------------------------------------------------
+
+@login_required
+def portal_lgpd(request):
+    """Painel de direitos LGPD: apresenta as opções e o histórico de solicitações."""
+    from users.models import SolicitacaoLGPD
+    solicitacoes = SolicitacaoLGPD.objects.filter(usuario=request.user)
+    exclusao_pendente = solicitacoes.filter(tipo='exclusao', status='pendente').exists()
+    return render(request, 'users/lgpd_portal.html', {
+        'solicitacoes': solicitacoes,
+        'exclusao_pendente': exclusao_pendente,
+    })
+
+
+@login_required
+def exportar_dados(request):
+    """
+    Gera e devolve um arquivo JSON com todos os dados pessoais do usuário
+    conforme o direito de portabilidade (Art. 20 LGPD).
+    """
+    user = request.user
+    dados: dict = {
+        'perfil': {
+            'matricula': user.id,
+            'nome_completo': f'{user.first_name} {user.last_name}',
+            'email': user.email,
+            'data_cadastro': user.date_joined,
+            'ultimo_acesso': user.last_login,
+            'email_verificado': user.email_verified,
+            'cargos': list(user.roles.values_list('name', flat=True)),
+        },
+    }
+
+    try:
+        from acesso_e_ponto.models import Session, TimeLog
+        dados['sessoes_acesso'] = list(
+            Session.objects.filter(user=user).values(
+                'entry_time', 'exit_time', 'is_active', 'duration',
+            )
+        )
+        dados['registros_ponto'] = list(
+            TimeLog.objects.filter(user=user).values('timestamp', 'action')
+        )
+    except Exception:
+        pass
+
+    try:
+        from projetos.models import Projeto
+        dados['projetos'] = list(
+            Projeto.objects.filter(
+                models.Q(responsavel=user) | models.Q(participantes=user)
+            ).distinct().values('titulo', 'status', 'criado_em')
+        )
+    except Exception:
+        pass
+
+    try:
+        from inventario.models import Emprestimo
+        dados['emprestimos'] = list(
+            Emprestimo.objects.filter(usuario=user).values(
+                'item__nome', 'quantidade', 'data_emprestimo',
+                'data_prevista_devolucao', 'data_devolucao',
+            )
+        )
+    except Exception:
+        pass
+
+    try:
+        from logs.models import Event
+        dados['eventos'] = list(
+            Event.objects.filter(
+                models.Q(created_by=user) | models.Q(participants=user)
+            ).distinct().values('title', 'start_time', 'end_time', 'event_type', 'status')
+        )
+    except Exception:
+        pass
+
+    try:
+        from options.models import SolicitacaoInteresse
+        dados['solicitacoes_interesse'] = list(
+            SolicitacaoInteresse.objects.filter(usuario=user).values(
+                'servico__nome', 'descricao_projeto', 'criado_em',
+            )
+        )
+    except Exception:
+        pass
+
+    try:
+        from users.models import SolicitacaoLGPD
+        dados['historico_lgpd'] = list(
+            SolicitacaoLGPD.objects.filter(usuario=user).values(
+                'tipo', 'status', 'solicitado_em', 'concluido_em',
+            )
+        )
+    except Exception:
+        pass
+
+    resposta = JsonResponse(
+        dados,
+        encoder=DjangoJSONEncoder,
+        json_dumps_params={'ensure_ascii': False, 'indent': 2},
+    )
+    resposta['Content-Disposition'] = (
+        f'attachment; filename="meus-dados-fablab-{user.id}.json"'
+    )
+    return resposta
+
+
+@login_required
+def solicitar_exclusao_conta(request):
+    """
+    Inicia o fluxo de exclusão: cria registro de auditoria e envia
+    email de confirmação com link assinado (Art. 17 LGPD).
+    """
+    from users.models import SolicitacaoLGPD
+    from Email_notificacoes.models import enviar_email_confirmacao_exclusao
+
+    if request.method != 'POST':
+        return redirect('users:portal_lgpd')
+
+    user = request.user
+
+    if SolicitacaoLGPD.objects.filter(usuario=user, tipo='exclusao', status='pendente').exists():
+        messages.warning(
+            request,
+            'Você já possui uma solicitação de exclusão em andamento. '
+            'Verifique seu email para confirmar, ou aguarde 24 horas para solicitar novamente.',
+        )
+        return redirect('users:portal_lgpd')
+
+    SolicitacaoLGPD.objects.create(
+        usuario=user,
+        email_snapshot=user.email,
+        tipo='exclusao',
+    )
+
+    token = signing.dumps(user.pk, salt='lgpd-account-delete')
+    confirm_link = request.build_absolute_uri(
+        reverse('users:confirmar_exclusao_conta', args=[token])
+    )
+    enviar_email_confirmacao_exclusao(user, confirm_link)
+
+    messages.info(
+        request,
+        'Enviamos um email de confirmação para você. '
+        'Clique no link do email para concluir a exclusão da sua conta. '
+        'O link expira em 24 horas.',
+    )
+    return redirect('users:portal_lgpd')
+
+
+def confirmar_exclusao_conta(request, token):
+    """
+    Valida o token assinado, exibe página de aviso (GET) e, após confirmação
+    explícita (POST), anonimiza os dados e encerra a sessão (Art. 17 LGPD).
+    """
+    from users.models import SolicitacaoLGPD
+
+    try:
+        user_pk = signing.loads(token, salt='lgpd-account-delete', max_age=86400)
+    except signing.SignatureExpired:
+        messages.error(
+            request,
+            'O link de exclusão expirou (válido por 24 horas). '
+            'Acesse o Portal de Privacidade para solicitar um novo.',
+        )
+        return redirect('users:portal_lgpd')
+    except signing.BadSignature:
+        messages.error(request, 'Link inválido ou adulterado.')
+        return redirect('/')
+
+    try:
+        user = CustomUser.objects.get(pk=user_pk)
+    except CustomUser.DoesNotExist:
+        messages.error(request, 'Conta não encontrada.')
+        return redirect('users:login')
+
+    if request.method == 'GET':
+        return render(request, 'users/exclusao_conta_confirmar.html', {'usuario': user})
+
+    # POST — confirmação explícita do usuário: executa anonimização
+    SolicitacaoLGPD.objects.filter(
+        usuario=user, tipo='exclusao', status='pendente',
+    ).update(status='concluida', concluido_em=timezone.now())
+
+    user.anonimizar()
+    logout(request)
+
+    messages.success(
+        request,
+        'Sua conta foi excluída com sucesso. '
+        'Todos os seus dados pessoais foram anonimizados conforme a LGPD. '
+        'Obrigado por usar o FabLab IFMT.',
+    )
+    return redirect('/')

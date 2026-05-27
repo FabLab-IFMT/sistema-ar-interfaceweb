@@ -13,6 +13,10 @@ class CustomUserCreationForm(UserCreationForm):
     id = forms.CharField(max_length=13, widget=forms.TextInput(attrs={'class': 'form-control'}))
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    aceitar_termos = forms.BooleanField(
+        required=True,
+        error_messages={'required': 'Você precisa aceitar a Política de Privacidade para criar uma conta.'},
+    )
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

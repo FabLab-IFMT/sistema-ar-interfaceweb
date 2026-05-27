@@ -76,6 +76,70 @@ class CustomUser(AbstractUser):
     def is_projectist(self):
         return self.has_role("projetista")
 
+    def anonimizar(self):
+        """
+        Substitui todos os dados pessoais por valores anônimos para cumprir
+        a solicitação de exclusão (Art. 17 LGPD). O registro é preservado para
+        manter a integridade histórica; apenas as informações que identificam
+        o titular são apagadas.
+        """
+        import uuid
+        sufixo = uuid.uuid4().hex[:12]
+        self.first_name = "Usuário"
+        self.last_name = "Excluído"
+        self.email = f"excluido_{sufixo}@anonimizado.invalid"
+        self.is_active = False
+        self.email_verified = False
+        if self.profile_image:
+            try:
+                self.profile_image.delete(save=False)
+            except Exception:
+                pass
+            self.profile_image = None
+        self.set_unusable_password()
+        self.roles.clear()
+        self.save()
+
+
+class SolicitacaoLGPD(models.Model):
+    """
+    Registra cada exercício de direito LGPD feito pelo titular dos dados.
+    O campo email_snapshot garante a rastreabilidade mesmo após a anonimização.
+    """
+
+    TIPO_CHOICES = [
+        ('exclusao',      'Exclusão de dados'),
+        ('portabilidade', 'Portabilidade de dados'),
+        ('acesso',        'Acesso aos dados'),
+        ('correcao',      'Correção de dados'),
+        ('oposicao',      'Oposição ao tratamento'),
+    ]
+    STATUS_CHOICES = [
+        ('pendente',  'Pendente'),
+        ('concluida', 'Concluída'),
+    ]
+
+    usuario = models.ForeignKey(
+        CustomUser, on_delete=models.SET_NULL, null=True,
+        related_name='solicitacoes_lgpd',
+        help_text="Referência preservada mesmo após anonimização do usuário.",
+    )
+    email_snapshot = models.EmailField(
+        help_text="Email do titular no momento da solicitação — mantido para auditoria.",
+    )
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='exclusao')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+    solicitado_em = models.DateTimeField(auto_now_add=True)
+    concluido_em = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Solicitação LGPD"
+        verbose_name_plural = "Solicitações LGPD"
+        ordering = ['-solicitado_em']
+
+    def __str__(self):
+        return f"{self.email_snapshot} – {self.get_tipo_display()} ({self.get_status_display()})"
+
 
 class Card(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='card')

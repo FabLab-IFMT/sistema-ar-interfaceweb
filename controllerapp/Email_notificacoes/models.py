@@ -1,8 +1,12 @@
 from django.db import models
 from django.conf import settings
 from django.template.loader import render_to_string
-# Importar nova função de envio assíncrono
 from .utils import enviar_email_async
+
+
+def _site_url():
+    """Retorna a URL pública do sistema definida em settings.SITE_URL."""
+    return getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
 
 def enviar_email_boas_vindas(usuario):
     """
@@ -14,28 +18,22 @@ def enviar_email_boas_vindas(usuario):
     assunto = f'Bem-vindo(a) ao Sistema de Gestão do Laboratório, {usuario.first_name}!'
     
     # Criar conteúdo do email em HTML
-    contexto = {'usuario': usuario}
+    site_url = _site_url()
+    contexto = {'usuario': usuario, 'site_url': site_url}
     html_mensagem = render_to_string('emails/boas_vindas.html', contexto)
-    
+
     # Texto simples para clientes de email que não suportam HTML
-    mensagem = f"""
-    Olá {usuario.first_name} {usuario.last_name},
-    
-    Seja bem-vindo(a) ao nosso Sistema de Gestão do Laboratório!
-    
-    Seu cadastro foi realizado com sucesso. Agora você pode acessar todas as funcionalidades disponíveis para o seu perfil.
-    
-    Seus dados de acesso são:
-    - Matrícula: {usuario.id}
-    - Email: {usuario.email}
-    
-    Acesse o sistema através do link: http://localhost:8000/
-    
-    Em caso de dúvidas, entre em contato conosco.
-    
-    Atenciosamente,
-    Equipe do Sistema de Gestão do Laboratório
-    """
+    mensagem = (
+        f"Olá {usuario.first_name} {usuario.last_name},\n\n"
+        f"Seja bem-vindo(a) ao Sistema de Gestão do FabLab IFMT!\n\n"
+        f"Seu cadastro foi realizado com sucesso. Agora você pode acessar todas as funcionalidades disponíveis para o seu perfil.\n\n"
+        f"Seus dados de acesso:\n"
+        f"  Matrícula: {usuario.id}\n"
+        f"  Email: {usuario.email}\n\n"
+        f"Acesse o sistema: {site_url}/\n\n"
+        f"Em caso de dúvidas, entre em contato conosco.\n\n"
+        f"Atenciosamente,\nEquipe FabLab IFMT"
+    )
     
     email_de = settings.DEFAULT_FROM_EMAIL
     email_para = [usuario.email]
@@ -59,7 +57,8 @@ def enviar_email_solicitacao_enviada(evento):
     assunto = f'Sua solicitação foi recebida - {evento.title}'
     
     # Criar conteúdo do email em HTML
-    contexto = {'evento': evento}
+    site_url = _site_url()
+    contexto = {'evento': evento, 'site_url': site_url}
     html_mensagem = render_to_string('emails/evento_solicitacao_recebida.html', contexto)
     
     # Texto simples para clientes de email que não suportam HTML
@@ -101,7 +100,8 @@ def enviar_email_solicitacao_aprovada(evento):
     assunto = f'Solicitação aprovada - {evento.title}'
     
     # Criar conteúdo do email em HTML
-    contexto = {'evento': evento}
+    site_url = _site_url()
+    contexto = {'evento': evento, 'site_url': site_url}
     html_mensagem = render_to_string('emails/evento_solicitacao_aprovada.html', contexto)
     
     # Texto simples para clientes de email que não suportam HTML
@@ -144,7 +144,8 @@ def enviar_email_solicitacao_recusada(evento, motivo):
     assunto = f'Solicitação recusada - {evento.title}'
     
     # Criar conteúdo do email em HTML
-    contexto = {'evento': evento, 'motivo': motivo}
+    site_url = _site_url()
+    contexto = {'evento': evento, 'motivo': motivo, 'site_url': site_url}
     html_mensagem = render_to_string('emails/evento_solicitacao_recusada.html', contexto)
     
     # Texto simples para clientes de email que não suportam HTML
@@ -245,6 +246,37 @@ def enviar_email_confirmacao(usuario, confirm_link):
         f"{confirm_link}\n\n"
         f"Este link é válido por 3 dias.\n\n"
         f"Se você não criou esta conta, ignore este email.\n\n"
+        f"Atenciosamente,\nEquipe FabLab IFMT"
+    )
+
+    email_de = settings.DEFAULT_FROM_EMAIL
+    email_para = [usuario.email]
+
+    return enviar_email_async(assunto, mensagem, email_de, email_para, html_message=html_mensagem)
+
+
+def enviar_email_confirmacao_exclusao(usuario, confirm_link):
+    """
+    Envia email de confirmação antes de concluir a exclusão/anonimização da conta (Art. 17 LGPD).
+
+    Args:
+        usuario: O objeto usuário que solicitou a exclusão
+        confirm_link: URL assinada para confirmar a exclusão (válida por 24 h)
+    """
+    assunto = 'Confirme a exclusão da sua conta - FabLab IFMT'
+
+    contexto = {'usuario': usuario, 'confirm_link': confirm_link}
+    html_mensagem = render_to_string('emails/lgpd_exclusao_confirmacao.html', contexto)
+
+    mensagem = (
+        f"Olá {usuario.first_name} {usuario.last_name},\n\n"
+        f"Recebemos uma solicitação para EXCLUIR permanentemente sua conta no FabLab IFMT.\n\n"
+        f"Se você realmente deseja excluir sua conta, clique no link abaixo:\n"
+        f"{confirm_link}\n\n"
+        f"ATENÇÃO: esta ação é irreversível. Todos os seus dados pessoais serão anonimizados.\n"
+        f"O link é válido por 24 horas.\n\n"
+        f"Se você NÃO solicitou esta exclusão, ignore este email. "
+        f"Sua conta permanece ativa e segura.\n\n"
         f"Atenciosamente,\nEquipe FabLab IFMT"
     )
 

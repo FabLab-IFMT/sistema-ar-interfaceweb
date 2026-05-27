@@ -21,6 +21,15 @@ urlpatterns = [
     path('profile/<str:user_id>/', views.profile, name='user_profile'),  # Perfil de outro usuário
     path('change-password/', views.change_password, name='change_password'),  # Alteração de senha
     
+    # Política de privacidade — pública
+    path('politica-de-privacidade/', views.politica_privacidade, name='politica_privacidade'),
+
+    # LGPD — portal de privacidade e gestão de dados pessoais
+    path('lgpd/', views.portal_lgpd, name='portal_lgpd'),
+    path('minha-conta/exportar-dados/', views.exportar_dados, name='exportar_dados'),
+    path('minha-conta/excluir/', views.solicitar_exclusao_conta, name='solicitar_exclusao_conta'),
+    path('minha-conta/excluir/confirmar/<str:token>/', views.confirmar_exclusao_conta, name='confirmar_exclusao_conta'),
+
     # Recuperação de senha
     path('password-reset/', views.password_reset_request, name='password_reset'),
     path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(

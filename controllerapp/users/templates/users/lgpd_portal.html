@@ -1,0 +1,242 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Seus dados e privacidade{% endblock %}
+
+{% block head %}
+<style>
+  .priv-hero {
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    color: #fff;
+    padding: 48px 0 36px;
+  }
+  .action-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 20px rgba(0,0,0,.06);
+    padding: 26px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .action-card .ac-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  .action-card h5 { font-weight: 700; margin-bottom: 6px; font-size: 1rem; }
+  .action-card p { font-size: .85rem; color: #6b7280; flex: 1; line-height: 1.55; margin-bottom: 16px; }
+  .info-section {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 40px;
+  }
+  .info-section h6 {
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 16px;
+  }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .info-block p { font-size: .875rem; color: #4b5563; line-height: 1.65; }
+  .info-block strong { color: #111827; }
+  .badge-pendente  { background: #fff3cd; color: #856404; }
+  .badge-concluida { background: #d1e7dd; color: #0f5132; }
+  .warn-box {
+    background: #fff7ed;
+    border-left: 3px solid #f59e0b;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    font-size: .83rem;
+    color: #78350f;
+    margin-bottom: 16px;
+  }
+  @media(max-width:576px){ .info-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="priv-hero">
+  <div class="container">
+    <div class="d-flex align-items-center gap-3">
+      <span style="font-size:36px;">🔒</span>
+      <div>
+        <h1 class="h3 fw-bold mb-1">Seus dados e privacidade</h1>
+        <p class="mb-0 small" style="opacity:.7; max-width:500px;">
+          Aqui você vê o que guardamos sobre você e decide o que quer fazer com isso.
+          Sem surpresas, sem enrolação.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container py-5">
+
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+
+  <!-- O que você pode fazer -->
+  <p style="font-size:.75rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#9ca3af; margin-bottom:16px;">O que você pode fazer</p>
+  <div class="row g-4 mb-5">
+
+    <!-- Baixar dados -->
+    <div class="col-md-4">
+      <div class="action-card">
+        <div class="ac-icon">📦</div>
+        <h5>Baixar meus dados</h5>
+        <p>Gera um arquivo com tudo que guardamos sobre você — nome, histórico de acesso, empréstimos, eventos. É seu, você pode levar.</p>
+        <a href="{% url 'users:exportar_dados' %}" class="btn btn-outline-primary btn-sm mt-auto">
+          <i class="bi bi-download me-1"></i> Exportar em JSON
+        </a>
+      </div>
+    </div>
+
+    <!-- Corrigir -->
+    <div class="col-md-4">
+      <div class="action-card">
+        <div class="ac-icon">✏️</div>
+        <h5>Corrigir minhas informações</h5>
+        <p>Nome, e-mail ou foto errados? Corrija agora no seu perfil. Leva menos de um minuto.</p>
+        <a href="{% url 'users:profile' %}" class="btn btn-outline-success btn-sm mt-auto">
+          <i class="bi bi-person-fill-gear me-1"></i> Ir ao meu perfil
+        </a>
+      </div>
+    </div>
+
+    <!-- Excluir -->
+    <div class="col-md-4">
+      <div class="action-card" style="border-color:#fecaca;">
+        <div class="ac-icon">🗑️</div>
+        <h5>Sair de vez</h5>
+        <p>Quer que seus dados pessoais sumam? A gente apaga nome, e-mail, foto e senha. Você recebe um e-mail para confirmar antes de qualquer coisa acontecer.</p>
+        {% if exclusao_pendente %}
+          <div class="warn-box mt-auto">
+            <i class="bi bi-clock me-1"></i>
+            Solicitação pendente — verifique seu e-mail e clique no link de confirmação.
+          </div>
+        {% else %}
+          <button class="btn btn-outline-danger btn-sm mt-auto" data-bs-toggle="modal" data-bs-target="#modalExclusao">
+            <i class="bi bi-trash me-1"></i> Solicitar exclusão
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Como usamos seus dados -->
+  <div class="info-section">
+    <h6>Como usamos seus dados</h6>
+    <div class="info-grid">
+      <div class="info-block">
+        <p>
+          <strong>📌 O que guardamos</strong><br>
+          Nome, matrícula, e-mail, foto de perfil (se você adicionar), horários de entrada e saída no lab,
+          empréstimos de equipamentos, participações em eventos e projetos.
+        </p>
+        <p>
+          <strong>🎯 Por quê</strong><br>
+          Para fazer o lab funcionar: controle de quem está usando o quê, comunicação sobre suas solicitações
+          e melhoria contínua do sistema.
+        </p>
+      </div>
+      <div class="info-block">
+        <p>
+          <strong>📡 Analytics — dados ficam no nosso servidor</strong><br>
+          Usamos o Umami, uma ferramenta de código aberto que roda na nossa própria infraestrutura.
+          Contamos visitas e cliques para entender como melhorar o sistema.
+          <strong>Nada sai daqui</strong> — nenhum dado vai para Google, Meta ou qualquer empresa externa.
+          Sem cookies de rastreamento.
+        </p>
+        <p>
+          <strong>⏱️ Quanto tempo ficam</strong><br>
+          Enquanto sua conta estiver ativa. Se você excluir a conta, seus dados pessoais somem imediatamente.
+          Registros operacionais ficam de forma anônima para relatórios internos.
+        </p>
+      </div>
+    </div>
+    <p style="font-size:.8rem; color:#9ca3af; margin-top:12px; margin-bottom:0;">
+      Quer ler isso tudo com mais detalhe?
+      <a href="{% url 'users:politica_privacidade' %}" style="color:#13678a; font-weight:600;">Abrir a Política de Privacidade completa →</a>
+    </p>
+  </div>
+
+  <!-- Histórico de solicitações -->
+  {% if solicitacoes %}
+  <p style="font-size:.75rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#9ca3af; margin-bottom:16px;">
+    Histórico das suas solicitações
+  </p>
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Tipo</th>
+          <th>Pedido em</th>
+          <th>Situação</th>
+          <th>Concluído em</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in solicitacoes %}
+        <tr>
+          <td>{{ s.get_tipo_display }}</td>
+          <td>{{ s.solicitado_em|date:"d/m/Y H:i" }}</td>
+          <td>
+            <span class="badge {% if s.status == 'concluida' %}badge-concluida{% else %}badge-pendente{% endif %} rounded-pill px-2 py-1">
+              {{ s.get_status_display }}
+            </span>
+          </td>
+          <td>{{ s.concluido_em|date:"d/m/Y H:i"|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <p class="text-muted small text-center">
+    Dúvidas? Manda um e-mail pra <a href="mailto:fablab@ifmt.edu.br" style="color:#13678a;">fablab@ifmt.edu.br</a>
+  </p>
+
+</div>
+
+<!-- Modal de exclusão -->
+<div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-danger" id="modalExclusaoLabel">Excluir minha conta</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-3">
+          A gente vai apagar: <strong>nome, e-mail, foto de perfil, senha e cargos</strong>.<br>
+          O que fica (de forma anônima): histórico de acesso, empréstimos e participações em projetos — isso é necessário para relatórios internos da instituição.
+        </p>
+        <div class="warn-box">
+          Antes de qualquer coisa acontecer, <strong>você recebe um e-mail de confirmação</strong>
+          com um link. Só clicando nele a conta é de fato excluída.
+        </div>
+        <p class="text-muted small mb-0">Não recebeu o e-mail? Verifique a pasta de spam ou entre em contato conosco.</p>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <form method="post" action="{% url 'users:solicitar_exclusao_conta' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm">
+            <i class="bi bi-envelope me-1"></i> Enviar e-mail de confirmação
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

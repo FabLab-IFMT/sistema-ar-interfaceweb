@@ -1,0 +1,227 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Política de Privacidade – FabLab IFMT{% endblock %}
+
+{% block head %}
+<style>
+  .pp-hero {
+    background: linear-gradient(135deg, #0b2545, #134074);
+    color: #fff;
+    padding: 56px 0 44px;
+  }
+  .pp-body {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .pp-section {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 36px 0;
+  }
+  .pp-section:last-child { border-bottom: none; }
+  .pp-section h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0b2545;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pp-section h2 .pp-icon {
+    width: 34px; height: 34px;
+    background: #eff6ff;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .pp-section p, .pp-section li {
+    font-size: .95rem;
+    color: #4b5563;
+    line-height: 1.75;
+  }
+  .pp-section ul { padding-left: 1.4rem; margin: 8px 0; }
+  .pp-section li { margin-bottom: 4px; }
+  .highlight-box {
+    background: #fff7ed;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: .9rem;
+    color: #78350f;
+  }
+  .highlight-box strong { color: #92400e; }
+  .rights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .right-chip {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: .85rem;
+    color: #374151;
+  }
+  .right-chip .chip-emoji { font-size: 1.4rem; display: block; margin-bottom: 6px; }
+  .right-chip strong { display: block; color: #111827; margin-bottom: 2px; }
+  .updated-tag {
+    display: inline-block;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: .75rem;
+    border-radius: 20px;
+    padding: 3px 12px;
+    margin-top: 8px;
+  }
+  a.pp-link { color: #13678a; font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pp-hero">
+  <div class="pp-body">
+    <p style="font-size:.8rem; opacity:.6; margin-bottom:6px; letter-spacing:.04em; text-transform:uppercase;">FabLab IFMT</p>
+    <h1 class="h2 fw-bold mb-2">Política de Privacidade</h1>
+    <p style="opacity:.75; max-width:540px; font-size:.95rem; line-height:1.6;">
+      Aqui está tudo o que você precisa saber sobre quais dados coletamos, por que fazemos isso e o que você pode fazer com eles.
+      Sem juridiquês — texto humano de verdade.
+    </p>
+    <span class="updated-tag">Atualizado em {% now "F Y" %}</span>
+  </div>
+</div>
+
+<div style="background:#fff; padding: 20px 0 80px;">
+  <div class="pp-body">
+
+    <!-- 1. Quem somos -->
+    <div class="pp-section">
+      <h2><span class="pp-icon">🏭</span> Quem somos</h2>
+      <p>
+        Somos o <strong>FabLab do Instituto Federal de Mato Grosso (IFMT)</strong>, um laboratório de fabricação digital
+        aberto à comunidade acadêmica. Este sistema existe para organizar o uso do espaço: agendamentos,
+        empréstimos de equipamentos, controle de acesso, projetos e comunicação.
+      </p>
+      <p>Dúvidas? Fale com a gente: <a href="mailto:fablab@ifmt.edu.br" class="pp-link">fablab@ifmt.edu.br</a></p>
+    </div>
+
+    <!-- 2. O que coletamos -->
+    <div class="pp-section">
+      <h2><span class="pp-icon">📋</span> O que coletamos sobre você</h2>
+      <p>Quando você cria uma conta e usa o sistema, guardamos:</p>
+      <ul>
+        <li><strong>Dados de cadastro:</strong> nome, sobrenome, e-mail e número de matrícula (SUAP/SIAPE). São o mínimo para identificar quem você é e entrar em contato.</li>
+        <li><strong>Foto de perfil</strong> — se você quiser adicionar. É opcional.</li>
+        <li><strong>Registros de acesso:</strong> horários de entrada e saída no laboratório. Isso serve para controle de segurança e geração de relatório de horas.</li>
+        <li><strong>Empréstimos:</strong> quais equipamentos você retirou, quando e quando devolveu.</li>
+        <li><strong>Participações:</strong> eventos que você agendou, projetos em que está envolvido e tarefas do Kanban.</li>
+        <li><strong>Histórico de uso do sistema:</strong> páginas acessadas e ações realizadas — usados para entender como melhorar a experiência.</li>
+      </ul>
+      <p>Não vendemos sua lista de contatos, não acessamos seu dispositivo e não coletamos nada além do que aparece aqui.</p>
+    </div>
+
+    <!-- 3. Por que usamos esses dados -->
+    <div class="pp-section">
+      <h2><span class="pp-icon">🎯</span> Por que usamos esses dados</h2>
+      <p>Cada dado que coletamos tem uma razão prática:</p>
+      <ul>
+        <li><strong>Fazer o sistema funcionar:</strong> sem seu nome e matrícula, não tem como criar conta nem controlar empréstimos.</li>
+        <li><strong>Comunicar sobre seus pedidos:</strong> confirmações de agendamento, status de solicitações, avisos importantes.</li>
+        <li><strong>Segurança do laboratório:</strong> saber quem está no espaço e quais equipamentos estão em uso.</li>
+        <li><strong>Melhorar o sistema:</strong> analisar quais funcionalidades são mais usadas e onde as pessoas encontram dificuldade — com dados que ficam só no nosso servidor.</li>
+      </ul>
+    </div>
+
+    <!-- 4. Analytics próprio -->
+    <div class="pp-section">
+      <h2><span class="pp-icon">📡</span> Como medimos o uso do sistema</h2>
+      <p>
+        Usamos o <strong>Umami</strong>, uma ferramenta de análise de código aberto que roda no nosso
+        próprio servidor, dentro da infraestrutura do IFMT.
+      </p>
+      <div class="highlight-box" style="background:#f0fdf4; border-color:#22c55e; color:#166534;">
+        <strong>O que isso significa na prática:</strong> contamos coisas como quantas pessoas acessaram
+        cada página, de qual cidade vieram e que tipo de dispositivo usaram.
+        Esses dados ficam <strong>100% no nosso servidor</strong> — nada é enviado para Google, Meta
+        ou qualquer outra empresa externa. Não usamos cookies de rastreamento. Você não precisa de
+        nenhum banner de "aceitar cookies" por causa disso.
+      </div>
+      <p>
+        Não associamos esses números ao seu perfil. São estatísticas agregadas que nos ajudam a entender,
+        por exemplo, se a página de agendamentos está sendo usada ou se algum recurso está sendo ignorado.
+      </p>
+    </div>
+
+    <!-- 5. Compartilhamento -->
+    <div class="pp-section">
+      <h2><span class="pp-icon">🤝</span> Com quem compartilhamos</h2>
+      <ul>
+        <li><strong>IFMT:</strong> gestores da instituição podem acessar dados operacionais (registros de acesso, empréstimos) para fins de auditoria interna.</li>
+        <li><strong>Ninguém mais.</strong> Não vendemos, não trocamos, não alugamos seus dados. Nossa ferramenta de análise é própria — nenhum dado de navegação sai do nosso servidor.</li>
+      </ul>
+    </div>
+
+    <!-- 6. Por quanto tempo -->
+    <div class="pp-section">
+      <h2><span class="pp-icon">⏱️</span> Por quanto tempo guardamos</h2>
+      <p>
+        Seus dados ficam com a gente enquanto sua conta estiver ativa.
+        Se você pedir a exclusão, apagamos nome, e-mail, foto e senha <strong>imediatamente</strong>.
+        Registros operacionais (empréstimos, sessões de acesso, participações) ficam no sistema de forma anônima —
+        sem nenhuma ligação ao seu nome — porque precisamos deles para relatórios institucionais.
+      </p>
+    </div>
+
+    <!-- 7. Seus direitos -->
+    <div class="pp-section">
+      <h2><span class="pp-icon">✋</span> O que você pode fazer</h2>
+      <p>Você tem controle real sobre seus dados:</p>
+      <div class="rights-grid">
+        <div class="right-chip">
+          <span class="chip-emoji">📦</span>
+          <strong>Baixar tudo</strong>
+          Exporte um arquivo com todos os seus dados em qualquer momento.
+        </div>
+        <div class="right-chip">
+          <span class="chip-emoji">✏️</span>
+          <strong>Corrigir</strong>
+          Atualize nome, e-mail ou foto diretamente no seu perfil.
+        </div>
+        <div class="right-chip">
+          <span class="chip-emoji">🗑️</span>
+          <strong>Excluir</strong>
+          Peça a exclusão da conta pelo Portal de Privacidade. Feito em menos de 24 h.
+        </div>
+        <div class="right-chip">
+          <span class="chip-emoji">📬</span>
+          <strong>Perguntar</strong>
+          Qualquer dúvida, mande e-mail para <a href="mailto:fablab@ifmt.edu.br" class="pp-link">fablab@ifmt.edu.br</a>.
+        </div>
+      </div>
+      {% if user.is_authenticated %}
+      <p style="margin-top:20px;">
+        <a href="{% url 'users:portal_lgpd' %}" class="btn btn-outline-primary btn-sm">
+          Acessar meu Portal de Privacidade →
+        </a>
+      </p>
+      {% endif %}
+    </div>
+
+    <!-- 8. Mudanças nesta política -->
+    <div class="pp-section">
+      <h2><span class="pp-icon">📝</span> Se mudarmos algo</h2>
+      <p>
+        Se fizermos mudanças relevantes — especialmente em como usamos seus dados — avisaremos por e-mail
+        com antecedência. Você sempre terá a opção de discordar e excluir sua conta se não concordar com as novas regras.
+        Pequenas atualizações de texto ficam registradas na data de atualização no topo desta página.
+      </p>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

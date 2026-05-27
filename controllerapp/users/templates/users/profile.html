@@ -413,7 +413,7 @@
         {% endif %}
       </div>
 
-      <div class="glass-card p-4">
+      <div class="glass-card p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0">Inventário em uso</h5>
           <span class="badge bg-warning text-dark">Empréstimos</span>
@@ -432,6 +432,20 @@
           <div class="text-muted">Nenhum empréstimo ativo.</div>
         {% endif %}
       </div>
+
+      {% if is_self %}
+      <div class="glass-card p-4" style="border: 1px solid #fee2e2;">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span style="font-size:18px;">🔒</span>
+          <h5 class="mb-0">Privacidade e dados</h5>
+        </div>
+        <p class="text-muted small mb-3">Gerencie seus dados pessoais e exerça seus direitos garantidos pela LGPD.</p>
+        <a href="{% url 'users:portal_lgpd' %}" class="btn btn-outline-secondary btn-sm w-100">
+          Acessar Portal de Privacidade
+        </a>
+      </div>
+      {% endif %}
+
     </div>
   </div>
 </div>
