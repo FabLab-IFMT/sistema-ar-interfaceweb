@@ -2,6 +2,8 @@ from django.db import models
 from django.conf import settings  # Importamos settings em vez de User diretamente
 from django.utils import timezone
 
+from controllerapp.fields import WebPImageField
+
 
 class Categoria(models.Model):
     nome = models.CharField(max_length=100)
@@ -40,7 +42,7 @@ class Item(models.Model):
     localizacao = models.CharField(max_length=100, blank=True, null=True)
     data_cadastro = models.DateTimeField(default=timezone.now)
     data_atualizacao = models.DateTimeField(auto_now=True)
-    imagem = models.ImageField(upload_to='inventario/itens/', blank=True, null=True)
+    imagem = WebPImageField(upload_to='inventario/itens/', blank=True, null=True)
     observacoes = models.TextField(blank=True, null=True)
     
     def save(self, *args, **kwargs):

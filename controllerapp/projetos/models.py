@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import date
 
+from controllerapp.fields import WebPImageField
+
 User = get_user_model()
 
 class ProjetoTag(models.Model):
@@ -38,7 +40,7 @@ class Projeto(models.Model):
     slug = models.SlugField(max_length=200, unique=True)
     descricao_curta = models.CharField(max_length=250, help_text="Descrição curta para exibição em cards")
     descricao = models.TextField(help_text="Descrição completa do projeto")
-    imagem = models.ImageField(upload_to='projetos/', help_text="Imagem principal do projeto")
+    imagem = WebPImageField(upload_to='projetos/', help_text="Imagem principal do projeto")
     
     # Metadados
     data_inicio = models.DateField()
@@ -95,7 +97,7 @@ class ProjetoImagem(models.Model):
     """Imagens adicionais para os projetos"""
     projeto = models.ForeignKey(Projeto, on_delete=models.CASCADE, related_name='imagens_adicionais')
     titulo = models.CharField(max_length=100)
-    imagem = models.ImageField(upload_to='projetos/imagens/')
+    imagem = WebPImageField(upload_to='projetos/imagens/')
     legenda = models.CharField(max_length=200, blank=True)
     ordem = models.PositiveIntegerField(default=0)
     

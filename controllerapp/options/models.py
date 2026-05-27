@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils.text import slugify
 
+from controllerapp.fields import WebPImageField
+
 # Create your models here.
 class Material(models.Model):
     nome_do_material = models.CharField(max_length=100)  # Corrigido de Nome_do_meterial
@@ -13,7 +15,7 @@ class Material(models.Model):
     ano_aquisicao = models.PositiveIntegerField(null=True, blank=True)
     fabricante = models.CharField(max_length=100, default='')
     link_fabricante = models.URLField(blank=True, null=True)
-    imagem_do_material = models.ImageField(upload_to='materials/')
+    imagem_do_material = WebPImageField(upload_to='materials/')
     descricao_do_material = models.TextField()  # Corrigido de descrição_do_material
     parametros = models.TextField(help_text="Potência, Capacidade, Área de impressão...", blank=True, null=True)
     responsaveis = models.ManyToManyField('Membro', related_name='equipamentos_responsavel', blank=True)
@@ -30,7 +32,7 @@ class Membro(models.Model):
     nome = models.CharField(max_length=100)
     cargo = models.CharField(max_length=100)
     email = models.EmailField(blank=True)
-    foto = models.ImageField(upload_to='membros/', blank=True)
+    foto = WebPImageField(upload_to='membros/', blank=True)
     bio = models.TextField(blank=True)
     linkedin = models.URLField(blank=True)
     github = models.URLField(blank=True)
@@ -66,7 +68,7 @@ class Servico(models.Model):
     nome = models.CharField(max_length=100)
     descricao_curta = models.CharField(max_length=200)
     descricao = models.TextField()
-    imagem = models.ImageField(upload_to='servicos/', blank=True)
+    imagem = WebPImageField(upload_to='servicos/', blank=True)
     tempo_estimado = models.CharField(max_length=100, blank=True, help_text="Ex: '2-3 dias', '1 semana', etc.")
     disponivel = models.BooleanField(default=True)
     destaque = models.BooleanField(default=False, help_text="Serviço em destaque na página inicial")
@@ -102,7 +104,7 @@ class ProjetoExemplo(models.Model):
     servico = models.ForeignKey(Servico, on_delete=models.CASCADE, related_name='exemplos')
     titulo = models.CharField(max_length=100)
     descricao = models.TextField()
-    imagem = models.ImageField(upload_to='exemplos_servicos/')
+    imagem = WebPImageField(upload_to='exemplos_servicos/')
     data = models.DateField()
     
     def __str__(self):
@@ -161,7 +163,7 @@ class Noticia(models.Model):
     slug = models.SlugField(max_length=200, unique=True, help_text="URL amigável baseada no título")
     resumo = models.TextField(help_text="Resumo curto da notícia (exibido na listagem)")
     conteudo = models.TextField(help_text="Conteúdo completo da notícia")
-    imagem = models.ImageField(upload_to='noticias/', help_text="Imagem principal da notícia")
+    imagem = WebPImageField(upload_to='noticias/', help_text="Imagem principal da notícia")
     data_publicacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
     autor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='noticias')
@@ -192,7 +194,7 @@ class NoticiaFoto(models.Model):
         Noticia, on_delete=models.CASCADE,
         related_name='fotos', verbose_name='Notícia'
     )
-    imagem  = models.ImageField(upload_to='noticias/galeria/')
+    imagem  = WebPImageField(upload_to='noticias/galeria/')
     legenda = models.CharField(max_length=200, blank=True,
                                help_text="Legenda opcional da foto")
     ordem   = models.PositiveIntegerField(default=0)

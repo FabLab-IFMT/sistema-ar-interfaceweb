@@ -1,8 +1,10 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from controllerapp.fields import WebPImageField
+
 class CarouselImage(models.Model):
-    image = models.ImageField(upload_to='carousel/')
+    image = WebPImageField(upload_to='carousel/')
     caption = models.CharField(max_length=255, blank=True, null=True)
     active = models.BooleanField(default=True, help_text="Marque para exibir essa imagem no carrossel.")
     title = models.CharField(max_length=255, blank=True, null=True, help_text="Título da imagem.")

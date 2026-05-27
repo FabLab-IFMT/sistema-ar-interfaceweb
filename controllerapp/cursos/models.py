@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from django.urls import reverse
 
+from controllerapp.fields import WebPImageField
+
 User = get_user_model()
 
 
@@ -40,7 +42,7 @@ class Curso(models.Model):
     descricao_curta = models.CharField(max_length=300,
                                        help_text="Resumo exibido nos cards")
     descricao       = models.TextField(help_text="Conteúdo completo do curso")
-    imagem          = models.ImageField(upload_to='cursos/', blank=True, null=True)
+    imagem          = WebPImageField(upload_to='cursos/', blank=True, null=True)
 
     categoria  = models.ForeignKey(CategoriaCurso, on_delete=models.SET_NULL,
                                    null=True, blank=True, related_name='cursos')

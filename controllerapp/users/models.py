@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 from .managers import CustomUserManager
+from controllerapp.fields import WebPImageField
 
 
 class Role(models.Model):
@@ -32,7 +33,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(_("email address"), blank=False, unique=True, 
                               error_messages={"unique": _("Um usuário com este email já está cadastrado.")})
 
-    profile_image = models.ImageField(upload_to='users/profile/', null=True, blank=True)
+    profile_image = WebPImageField(upload_to='users/profile/', null=True, blank=True)
     email_verified = models.BooleanField(default=True, help_text="Indica se o email foi confirmado")
 
     id = models.CharField(_("matricula"), 
