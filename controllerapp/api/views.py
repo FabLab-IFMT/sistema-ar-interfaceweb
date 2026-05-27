@@ -329,6 +329,28 @@ class ItemViewSet(viewsets.ModelViewSet):
     filterset_fields = ['categoria', 'unidade']
     ordering_fields = ['nome', 'quantidade', 'data_cadastro']
 
+    def _process_image(self, request):
+        """Converte imagem enviada para WebP antes de salvar."""
+        from gestao.utils import convert_to_webp
+        if 'imagem' in request.FILES:
+            request.data._mutable = True if hasattr(request.data, '_mutable') else None
+            try:
+                request.FILES['imagem'] = convert_to_webp(
+                    request.FILES['imagem'],
+                    quality=80,
+                    max_width=1200,
+                )
+            except Exception:
+                pass  # Se falhar, salva original
+
+    def perform_create(self, serializer):
+        self._process_image(self.request)
+        serializer.save()
+
+    def perform_update(self, serializer):
+        self._process_image(self.request)
+        serializer.save()
+
     @action(detail=False)
     def criticos(self, request):
         """Retorna itens com estoque baixo."""

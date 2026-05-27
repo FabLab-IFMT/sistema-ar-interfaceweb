@@ -29,7 +29,7 @@ class Item(models.Model):
         ('m²', 'Metro Quadrado'),
     ]
     
-    codigo = models.CharField(max_length=50, unique=True)
+    codigo = models.CharField(max_length=50, unique=True, blank=True)
     nome = models.CharField(max_length=200)
     descricao = models.TextField(blank=True, null=True)
     categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, related_name='itens')
@@ -43,6 +43,13 @@ class Item(models.Model):
     imagem = models.ImageField(upload_to='inventario/itens/', blank=True, null=True)
     observacoes = models.TextField(blank=True, null=True)
     
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.codigo:
+            ano = timezone.now().year
+            self.codigo = f'FAB-{ano}-{self.pk:05d}'
+            super().save(update_fields=['codigo'])
+
     def __str__(self):
         return f"{self.codigo} - {self.nome}"
     

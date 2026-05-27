@@ -10,7 +10,7 @@ from gestao.models import AcessoGestao, Configuracao
 # --- Options ---
 from options.models import (
     Material, Membro, CategoriaServico, Servico, ProjetoExemplo,
-    SolicitacaoInteresse, Hashtag, Noticia,
+    SolicitacaoInteresse, Hashtag, Noticia, NoticiaFoto,
 )
 
 # --- Inventário ---
@@ -196,8 +196,15 @@ class SolicitacaoInteresseSerializer(serializers.ModelSerializer):
         read_only_fields = ['data_solicitacao']
 
 
+class NoticiaFotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NoticiaFoto
+        fields = ['id', 'imagem', 'legenda', 'ordem']
+
+
 class NoticiaSerializer(serializers.ModelSerializer):
     hashtags = HashtagSerializer(many=True, read_only=True)
+    fotos = NoticiaFotoSerializer(many=True, read_only=True)
     autor_nome = serializers.SerializerMethodField()
 
     class Meta:
@@ -234,7 +241,7 @@ class ItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
         fields = '__all__'
-        read_only_fields = ['data_cadastro', 'data_atualizacao']
+        read_only_fields = ['codigo', 'data_cadastro', 'data_atualizacao']
 
 
 class EmprestimoSerializer(serializers.ModelSerializer):

@@ -352,6 +352,47 @@
     </div>
 
     <div class="col-lg-4">
+      {% if profile_user.is_superuser or profile_user.is_staff %}
+      <div class="glass-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="mb-1">Insights do assistente de IA</h5>
+            <div class="text-muted small">Preview com dados mockados</div>
+          </div>
+          <span class="badge bg-dark text-white">Beta</span>
+        </div>
+        <div class="list-group list-group-flush">
+          <div class="list-group-item d-flex align-items-start gap-3">
+            <span class="badge bg-primary"><i class="fas fa-bolt"></i></span>
+            <div>
+              <div class="fw-semibold">Ação sugerida</div>
+              <small class="text-muted">Finalize 2 cards do Kanban com bloqueio de mais de 3 dias.</small>
+            </div>
+          </div>
+          <div class="list-group-item d-flex align-items-start gap-3">
+            <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle"></i></span>
+            <div>
+              <div class="fw-semibold">Risco de atraso</div>
+              <small class="text-muted">Projeto "Corte Laser" com 18% da meta de horas nesta semana.</small>
+            </div>
+          </div>
+          <div class="list-group-item d-flex align-items-start gap-3">
+            <span class="badge bg-success"><i class="fas fa-robot"></i></span>
+            <div>
+              <div class="fw-semibold">Otimização</div>
+              <small class="text-muted">Redistribuir emprestimos de impressora 3D para reduzir fila em 25%.</small>
+            </div>
+          </div>
+          <div class="list-group-item d-flex align-items-start gap-3">
+            <span class="badge bg-info text-dark"><i class="fas fa-chart-line"></i></span>
+            <div>
+              <div class="fw-semibold">Saúde da semana</div>
+              <small class="text-muted">Uso médio de horas: 62% da meta global; 3 usuários com queda contínua.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
       <div class="glass-card p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0">Próximos eventos</h5>
