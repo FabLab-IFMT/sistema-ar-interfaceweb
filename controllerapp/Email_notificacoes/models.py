@@ -265,7 +265,8 @@ def enviar_email_confirmacao_exclusao(usuario, confirm_link):
     """
     assunto = 'Confirme a exclusão da sua conta - FabLab IFMT'
 
-    contexto = {'usuario': usuario, 'confirm_link': confirm_link}
+    site_url = _site_url()
+    contexto = {'usuario': usuario, 'confirm_link': confirm_link, 'site_url': site_url}
     html_mensagem = render_to_string('emails/lgpd_exclusao_confirmacao.html', contexto)
 
     mensagem = (

@@ -4,53 +4,57 @@
 {% block title %}Confirmar exclusão de conta{% endblock %}
 
 {% block content %}
-<div class="container py-5" style="max-width: 560px;">
+<div class="container py-5" style="max-width: 520px;">
 
   <div class="text-center mb-4">
-    <div style="font-size:56px; line-height:1;">⚠️</div>
-    <h2 class="fw-bold mt-2 text-danger">Excluir minha conta</h2>
-    <p class="text-muted">Você está prestes a excluir permanentemente a conta de<br>
-      <strong>{{ usuario.first_name }} {{ usuario.last_name }}</strong></p>
+    <div style="font-size:52px; line-height:1;">🗑️</div>
+    <h2 class="fw-bold mt-3">Tem certeza que quer sair?</h2>
+    <p class="text-muted">Isso vai apagar a conta de <strong>{{ usuario.first_name }} {{ usuario.last_name }}</strong>.</p>
   </div>
 
-  <div class="card border-danger border-opacity-25 rounded-4 shadow-sm p-4 mb-4">
-    <h6 class="fw-bold text-danger mb-3">O que será anonimizado:</h6>
-    <ul class="small text-muted mb-0">
-      <li>Nome completo</li>
-      <li>Endereço de email (<em>{{ usuario.email }}</em>)</li>
-      <li>Foto de perfil</li>
-      <li>Senha e acesso ao sistema</li>
-      <li>Cargos e permissões</li>
-    </ul>
+  <!-- O que some -->
+  <div class="card rounded-4 shadow-sm border-0 mb-3" style="border-left: 4px solid #ef4444 !important; border-left-width: 4px;">
+    <div class="card-body px-4 py-3">
+      <p class="fw-semibold mb-2 text-danger" style="font-size:.9rem;">O que a gente apaga:</p>
+      <ul class="text-muted mb-0" style="font-size:.875rem;">
+        <li>Seu nome e sobrenome</li>
+        <li>Seu email ({{ usuario.email }})</li>
+        <li>Foto de perfil</li>
+        <li>Senha e acesso ao sistema</li>
+      </ul>
+    </div>
   </div>
 
-  <div class="card bg-light border-0 rounded-4 p-4 mb-4">
-    <h6 class="fw-bold mb-2">O que é mantido de forma anônima:</h6>
-    <p class="small text-muted mb-0">
-      Registros históricos (sessões de acesso, empréstimos de equipamentos, participações em eventos e projetos)
-      são preservados de forma anônima para fins de auditoria institucional, conforme previsto em lei.
-    </p>
+  <!-- O que fica -->
+  <div class="card rounded-4 shadow-sm border-0 bg-light mb-4">
+    <div class="card-body px-4 py-3">
+      <p class="fw-semibold mb-2" style="font-size:.9rem;">O que fica guardado:</p>
+      <p class="text-muted mb-0" style="font-size:.875rem;">
+        O histórico de empréstimos de equipamentos e as visitas que você fez ao lab continuam salvos
+        — mas sem nenhuma informação que te identifique. Seu nome não aparece em lugar nenhum.
+      </p>
+    </div>
   </div>
 
-  <div class="alert alert-danger small" role="alert">
-    <strong>Esta ação é irreversível.</strong> Após a confirmação, não será possível recuperar a conta
-    nem os dados pessoais associados.
+  <div class="alert alert-warning small rounded-3" role="alert">
+    <strong>Essa ação não tem como desfazer.</strong> Depois de confirmar, a conta some de vez.
   </div>
 
   <form method="post">
     {% csrf_token %}
     <div class="d-grid gap-2">
-      <button type="submit" class="btn btn-danger fw-semibold">
-        <i class="bi bi-trash me-2"></i>Sim, excluir minha conta permanentemente
+      <button type="submit" class="btn btn-danger fw-semibold py-2">
+        <i class="bi bi-trash me-2"></i>Sim, pode apagar minha conta
       </button>
-      <a href="{% url 'users:portal_lgpd' %}" class="btn btn-outline-secondary">
-        Cancelar — manter minha conta
+      <a href="{% url 'users:portal_lgpd' %}" class="btn btn-outline-secondary py-2">
+        Cancelar — quero continuar com minha conta
       </a>
     </div>
   </form>
 
   <p class="text-center text-muted small mt-4">
-    Dúvidas? Entre em contato pelo <a href="mailto:fablab@ifmt.edu.br">fablab@ifmt.edu.br</a>
+    Dúvidas? <a href="mailto:fablab@ifmt.edu.br" style="color:#13678a;">fablab@ifmt.edu.br</a>
   </p>
+
 </div>
 {% endblock %}

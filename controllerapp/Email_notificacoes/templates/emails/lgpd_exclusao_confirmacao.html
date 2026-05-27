@@ -1,86 +1,152 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Confirmação de exclusão de conta – FabLab IFMT</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
-        .header { background-color: #c0392b; color: white; padding: 20px; text-align: center; }
-        .header h2 { margin: 0; font-size: 20px; }
-        .content { padding: 24px; background-color: #f9f9f9; }
-        .alert-box {
-            background-color: #fff3cd;
-            border-left: 4px solid #e67e22;
-            padding: 14px 16px;
-            margin: 16px 0;
-            border-radius: 4px;
-        }
-        .alert-box strong { color: #c0392b; }
-        .btn {
-            display: inline-block;
-            background-color: #c0392b;
-            color: white !important;
-            padding: 12px 28px;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
-            margin-top: 16px;
-        }
-        .info-section {
-            margin: 16px 0;
-            padding: 14px;
-            background-color: #fff;
-            border-left: 3px solid #c0392b;
-            border-radius: 0 4px 4px 0;
-        }
-        .footer { padding: 12px 20px; font-size: 11px; text-align: center; color: #666; background-color: #eee; }
-        ul { padding-left: 20px; }
-        li { margin-bottom: 4px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmação de exclusão de conta – FabLab IFMT</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #f4f4f4;
+    }
+    .wrapper { background-color: #f4f4f4; padding: 24px 0; }
+    .card {
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .header {
+      background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+      color: #fff;
+      padding: 28px 32px;
+      text-align: center;
+    }
+    .header .icon { font-size: 36px; display: block; margin-bottom: 8px; }
+    .header h1 { margin: 0; font-size: 20px; font-weight: 700; }
+    .header p  { margin: 6px 0 0; font-size: 13px; opacity: 0.85; }
+    .content { padding: 28px 32px; }
+    .content p { margin: 0 0 16px; font-size: 15px; color: #374151; }
+    .warn-box {
+      background-color: #fef9c3;
+      border-left: 4px solid #ca8a04;
+      border-radius: 0 6px 6px 0;
+      padding: 14px 16px;
+      margin: 20px 0;
+      font-size: 14px;
+      color: #713f12;
+    }
+    .what-happens {
+      background-color: #f9fafb;
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin: 20px 0;
+    }
+    .what-happens p {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: #374151;
+    }
+    .what-happens p:last-child { margin-bottom: 0; }
+    .btn {
+      display: inline-block;
+      background-color: #b91c1c;
+      color: #ffffff !important;
+      padding: 14px 32px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 15px;
+      margin-top: 8px;
+    }
+    .btn-wrap { text-align: center; margin: 24px 0 8px; }
+    .validity {
+      text-align: center;
+      font-size: 12px;
+      color: #9ca3af;
+      margin: 4px 0 20px;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 24px 0;
+    }
+    .no-action {
+      font-size: 13px;
+      color: #6b7280;
+      background-color: #f0fdf4;
+      border-left: 3px solid #22c55e;
+      border-radius: 0 6px 6px 0;
+      padding: 12px 16px;
+    }
+    .footer {
+      background-color: #f3f4f6;
+      padding: 16px 24px;
+      text-align: center;
+      font-size: 11px;
+      color: #9ca3af;
+      border-top: 1px solid #e5e7eb;
+    }
+    .footer a { color: #6b7280; text-decoration: none; }
+  </style>
 </head>
 <body>
+<div class="wrapper">
+  <div class="card">
+
     <div class="header">
-        <h2>⚠️ Solicitação de exclusão de conta</h2>
+      <span class="icon">🗑️</span>
+      <h1>Você pediu pra sair do FabLab</h1>
+      <p>Antes de confirmar, dá uma olhada no que acontece</p>
     </div>
 
     <div class="content">
-        <p>Olá <strong>{{ usuario.first_name }} {{ usuario.last_name }}</strong>,</p>
 
-        <p>Recebemos uma solicitação para <strong>excluir permanentemente</strong> sua conta no Sistema do FabLab IFMT.</p>
+      <p>Oi <strong>{{ usuario.first_name }}</strong>,</p>
 
-        <div class="alert-box">
-            <strong>ATENÇÃO – esta ação é irreversível.</strong><br>
-            Ao confirmar, os seguintes dados serão anonimizados e você <strong>não poderá mais acessar o sistema</strong>:
-            <ul>
-                <li>Nome completo</li>
-                <li>Endereço de email</li>
-                <li>Foto de perfil</li>
-                <li>Senha e permissões de acesso</li>
-            </ul>
-            Registros históricos (empréstimos, sessões, projetos) são mantidos de forma anonimizada
-            para fins de auditoria e conformidade legal.
-        </div>
+      <p>
+        Recebemos seu pedido de exclusão de conta. Se foi você mesmo(a),
+        clique no botão abaixo para confirmar. Se não foi, pode ignorar este email —
+        sua conta continua intacta.
+      </p>
 
-        <p>Se você realmente deseja excluir sua conta, clique no botão abaixo:</p>
+      <div class="what-happens">
+        <p><strong>🗂️ O que some:</strong><br>
+          Seu nome, email, foto de perfil e senha são apagados permanentemente.</p>
+        <p><strong>📋 O que fica guardado:</strong><br>
+          O histórico de empréstimos de equipamentos e as visitas que você fez ao lab
+          continuam no sistema, mas sem nenhuma informação que te identifique.</p>
+      </div>
 
-        <a href="{{ confirm_link }}" class="btn">Confirmar exclusão de conta</a>
+      <div class="warn-box">
+        ⚠️ <strong>Essa ação não tem volta.</strong> Depois de confirmar, não tem como recuperar a conta.
+      </div>
 
-        <div class="info-section" style="margin-top: 24px;">
-            <p><strong>Esse link é válido por 24 horas.</strong><br>
-            Se você <strong>NÃO</strong> fez esta solicitação, ignore este email com segurança —
-            sua conta permanece ativa e nenhuma alteração será feita.</p>
-        </div>
+      <div class="btn-wrap">
+        <a href="{{ confirm_link }}" class="btn">Sim, pode apagar minha conta</a>
+      </div>
+      <p class="validity">Este link funciona por 24 horas a partir de agora.</p>
 
-        <p style="font-size: 12px; color: #666; margin-top: 20px;">
-            Em caso de dúvidas sobre seus direitos na LGPD, acesse nosso
-            <a href="{% url 'users:portal_lgpd' %}">Portal de Privacidade</a>
-            ou entre em contato pelo email <strong>fablab@ifmt.edu.br</strong>.
-        </p>
+      <hr class="divider">
+
+      <div class="no-action">
+        <strong>Não foi você?</strong> Sem estresse — é só ignorar este email.
+        Nada muda na sua conta enquanto você não clicar no botão acima.
+        Se quiser, entre em contato: <a href="mailto:fablab@ifmt.edu.br">fablab@ifmt.edu.br</a>
+      </div>
+
     </div>
 
     <div class="footer">
-        <p>Esta mensagem foi enviada automaticamente pelo sistema do FabLab IFMT.</p>
-        <p>© {% now "Y" %} FabLab IFMT. Todos os direitos reservados.</p>
+      <p>FabLab IFMT &mdash; <a href="{{ site_url }}">{{ site_url }}</a></p>
+      <p>Esta mensagem foi enviada automaticamente. Por favor, não responda a este email.</p>
     </div>
+
+  </div>
+</div>
 </body>
 </html>

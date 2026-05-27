@@ -69,8 +69,23 @@ def login_view(request):
     return render(request, "users/login.html", { "form": form })
 
 def register_view(request):
-    if request.method == "POST": 
-        form = CustomUserCreationForm(request.POST) 
+    if request.method == "POST":
+        # Re-registro após exclusão de conta: se a matrícula já existe mas a conta foi
+        # anonimizada, "reativamos" o mesmo registro em vez de bloquear o cadastro.
+        id_number = request.POST.get('id', '').strip()
+        conta_anterior = None
+        if id_number:
+            try:
+                candidato = CustomUser.objects.get(pk=id_number)
+                if not candidato.is_active and candidato.email.endswith('@anonimizado.invalid'):
+                    conta_anterior = candidato
+            except CustomUser.DoesNotExist:
+                pass
+
+        # Passar instance=conta_anterior faz o ModelForm fazer UPDATE (não INSERT),
+        # e exclui esse registro dos checks de unicidade automaticamente.
+        form = CustomUserCreationForm(request.POST, instance=conta_anterior)
+
         if form.is_valid():
             user: CustomUser = form.save(commit=False)
             user.is_active = False
@@ -89,23 +104,19 @@ def register_view(request):
                 request,
                 "Estamos enviando o link de confirmação. Pode levar alguns minutos; verifique também o spam."
             )
-
             return redirect("/")
         else:
-            # Mensagens de erro específicas para campos únicos
             if 'email' in form.errors:
                 messages.error(request, "Este email já está cadastrado no sistema.")
             if 'id' in form.errors:
                 messages.error(request, "Este número de matrícula já está cadastrado no sistema.")
-            
-            # Exibir também erros de senha e outros campos
             for field, errors in form.errors.items():
                 for error in errors:
                     if field not in ['email', 'id']:
                         messages.error(request, f"{error}")
     else:
         form = CustomUserCreationForm()
-    return render(request, "users/register.html", { "form": form })
+    return render(request, "users/register.html", {"form": form})
 
 
 def confirm_email(request, uidb64, token):
