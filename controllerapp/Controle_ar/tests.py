@@ -165,7 +165,7 @@ class ArCondicionadoAPITest(APITestCase):
     def test_set_temperature_atualiza_valor(self):
         resp = auth_client(self.admin).post(
             f'/api/ar-condicionados/{self.ar.pk}/set_temperature/',
-            {'temperature': 18}, format='json',
+            {'temperatura': 18}, format='json',
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.ar.refresh_from_db()

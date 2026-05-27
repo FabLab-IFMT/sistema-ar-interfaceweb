@@ -223,3 +223,68 @@ def enviar_email_notificacao_interesse(solicitacao):
         email_para,
         html_message=html_mensagem
     )
+
+
+def enviar_email_confirmacao(usuario, confirm_link):
+    """
+    Envia email de confirmação de endereço para o usuário recém-cadastrado.
+
+    Args:
+        usuario: O objeto usuário que se cadastrou
+        confirm_link: URL completa para confirmação do email
+    """
+    assunto = 'Confirme seu email - FabLab IFMT'
+
+    contexto = {'usuario': usuario, 'confirm_link': confirm_link}
+    html_mensagem = render_to_string('users/email_confirm.html', contexto)
+
+    mensagem = (
+        f"Olá {usuario.first_name} {usuario.last_name},\n\n"
+        f"Obrigado por se cadastrar no Sistema de Gestão do FabLab IFMT!\n\n"
+        f"Por favor, confirme seu email clicando no link abaixo:\n"
+        f"{confirm_link}\n\n"
+        f"Este link é válido por 3 dias.\n\n"
+        f"Se você não criou esta conta, ignore este email.\n\n"
+        f"Atenciosamente,\nEquipe FabLab IFMT"
+    )
+
+    email_de = settings.DEFAULT_FROM_EMAIL
+    email_para = [usuario.email]
+
+    return enviar_email_async(assunto, mensagem, email_de, email_para, html_message=html_mensagem)
+
+
+def enviar_email_redefinicao_senha(usuario, reset_url):
+    """
+    Envia email de redefinição de senha para o usuário.
+
+    Args:
+        usuario: O objeto usuário que solicitou a redefinição
+        reset_url: URL completa para redefinição da senha
+    """
+    assunto = 'Redefinição de senha - FabLab IFMT'
+
+    contexto = {
+        'user': usuario,
+        'usuario': usuario,
+        'email': usuario.email,
+        'reset_url': reset_url,
+        'site_name': 'FabLab IFMT',
+    }
+    html_mensagem = render_to_string('users/password_reset_email.html', contexto)
+
+    mensagem = (
+        f"Olá {usuario.first_name} {usuario.last_name},\n\n"
+        f"Recebemos uma solicitação para redefinir a senha da sua conta no FabLab IFMT.\n\n"
+        f"Clique no link abaixo para criar uma nova senha:\n"
+        f"{reset_url}\n\n"
+        f"Este link é válido por 24 horas.\n\n"
+        f"Se você não solicitou a redefinição de senha, ignore este email. "
+        f"Sua senha permanece a mesma.\n\n"
+        f"Atenciosamente,\nEquipe FabLab IFMT"
+    )
+
+    email_de = settings.DEFAULT_FROM_EMAIL
+    email_para = [usuario.email]
+
+    return enviar_email_async(assunto, mensagem, email_de, email_para, html_message=html_mensagem)

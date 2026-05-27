@@ -118,7 +118,8 @@ class ItemAPITest(APITestCase):
     def test_endpoint_criticos_retorna_itens_com_estoque_baixo(self):
         resp = auth_client(self.admin).get('/api/itens/criticos/')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        nomes = [i['nome'] for i in resp.data.get('results', resp.data)]
+        data = resp.data if isinstance(resp.data, list) else resp.data.get('results', resp.data)
+        nomes = [i['nome'] for i in data]
         self.assertIn('Arduino Uno', nomes)
         self.assertIn('Raspberry Pi', nomes)
 
