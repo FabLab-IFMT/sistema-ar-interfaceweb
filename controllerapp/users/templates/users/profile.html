@@ -1,445 +1,364 @@
 {% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}Perfil{% endblock %}
+{% block title %}Perfil – {{ profile_user.first_name }} {{ profile_user.last_name }}{% endblock %}
 
 {% block head %}
 <style>
+  /* ── Hero ── */
   .profile-hero {
     background: linear-gradient(135deg, #0b2545, #134074, #13678a);
     color: #fff;
-    padding: 48px 0 36px;
-    position: relative;
-    overflow: hidden;
+    padding: 36px 0 28px;
+    position: relative; overflow: hidden;
   }
   .profile-hero::after {
     content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 20% 20%, rgba(69,196,176,.15), transparent 35%),
-                radial-gradient(circle at 80% 0%, rgba(255,255,255,.08), transparent 30%);
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 15% 30%, rgba(69,196,176,.13), transparent 40%),
+                radial-gradient(circle at 85% 0%,  rgba(255,255,255,.06), transparent 30%);
     pointer-events: none;
   }
-  .avatar-badge {
-    width: 92px;
-    height: 92px;
-    border-radius: 28px;
-    background: rgba(255,255,255,.08);
-    display: grid;
-    place-items: center;
-    font-size: 30px;
-    font-weight: 800;
-    letter-spacing: .02em;
-    border: 1px solid rgba(255,255,255,.16);
-    box-shadow: 0 12px 32px rgba(0,0,0,.12);
+
+  /* ── Avatar ── */
+  .av-wrap { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+  .av-photo {
+    width: 80px; height: 80px; border-radius: 22px; object-fit: cover;
+    border: 2px solid rgba(255,255,255,.35);
+    box-shadow: 0 8px 24px rgba(0,0,0,.15);
   }
-  .avatar-photo { width:92px; height:92px; border-radius:28px; object-fit:cover; border:2px solid rgba(255,255,255,.35); box-shadow:0 12px 32px rgba(0,0,0,.12); background:#fff; }
-  .avatar-wrap { position:relative; width:92px; height:92px; }
-  .avatar-edit {
-    position:absolute;
-    inset:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:rgba(0,0,0,.35);
-    color:#fff;
-    border-radius:28px;
-    opacity:0;
-    transition:opacity .2s ease;
-    cursor:pointer;
-    font-size:1rem;
+  .av-initials {
+    width: 80px; height: 80px; border-radius: 22px;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+    display: grid; place-items: center;
+    font-size: 26px; font-weight: 800; letter-spacing: .02em;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
   }
-  .avatar-wrap:hover .avatar-edit { opacity:1; }
-  .avatar-input { display:none; }
-  .glass-card {
-    background: #fff;
-    border-radius: 16px;
+  .av-edit-overlay {
+    position: absolute; inset: 0; border-radius: 22px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.4); color: #fff;
+    opacity: 0; transition: opacity .2s; cursor: pointer;
+  }
+  .av-wrap:hover .av-edit-overlay { opacity: 1; }
+  .av-input { display: none; }
+
+  /* ── Pills / role chips ── */
+  .hpill {
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .28rem .7rem; border-radius: 999px;
+    background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.22);
+    color: #fff; font-weight: 600; font-size: .82rem;
+  }
+  .rc { display: inline-block; border-radius: 999px; padding: 3px 12px; font-weight: 600; font-size: .8rem; }
+  .rc-green   { background: #ecfdf3; color: #166534; border: 1px solid #bbf7d0; }
+  .rc-yellow  { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+  .rc-blue    { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+
+  /* ── Cards ── */
+  .g-card {
+    background: #fff; border-radius: 16px;
     border: 1px solid #e5e7eb;
-    box-shadow: 0 12px 40px rgba(11,37,69,.12);
+    box-shadow: 0 2px 16px rgba(11,37,69,.06);
   }
+
+  /* ── Stats row ── */
   .stat-chip {
-    background: #f5f7fb;
-    border-radius: 12px;
-    padding: 12px 14px;
-    border: 1px solid #e5e7eb;
+    background: #f9fafb; border: 1px solid #e5e7eb;
+    border-radius: 12px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
   }
-  .xp-bar {
-    height: 12px;
-    border-radius: 999px;
-    background: rgba(255,255,255,.25);
-    overflow: hidden;
+
+  /* ── Hours bar ── */
+  .hbar { height: 7px; border-radius: 999px; background: #e5e7eb; overflow: hidden; }
+  .hbar span { display: block; height: 100%; border-radius: 999px;
+               background: linear-gradient(90deg, #45c4b0, #13678a); }
+
+  /* ── Sessions ── */
+  .sess-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid #f3f4f6;
   }
-  .xp-bar span {
-    display: block;
-    height: 100%;
-    background: linear-gradient(90deg, #45c4b0, #8be9c7);
-  }
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
-    padding: .35rem .75rem;
-    border-radius: 999px;
-    background: rgba(255,255,255,.14);
-    border: 1px solid rgba(255,255,255,.25);
-    color: #fff;
-    font-weight: 600;
-    font-size: .9rem;
-  }
-  .role-chip {
-    display: inline-block;
-    background: #eef2ff;
-    color: #4338ca;
-    border-radius: 999px;
-    padding: 6px 12px;
-    font-weight: 600;
-    font-size: .85rem;
-    border: 1px solid #e0e7ff;
-  }
-  .role-chip.role-projetista { background:#ecfdf3; color:#166534; border-color:#bbf7d0; }
-  .role-chip.role-pending { background:#fffbeb; color:#92400e; border-color:#fcd34d; }
-  .role-chip.role-cta { background:#eef2ff; color:#4338ca; border-color:#c7d2fe; text-decoration:none; }
-  .mini-card {
-    border-radius: 14px;
-    border: 1px solid #edf1f7;
-    padding: 18px;
-    background: #fff;
-    box-shadow: 0 8px 24px rgba(11,37,69,.06);
-  }
-  .timeline-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 999px;
-    background: #13678a;
-    margin-top: 6px;
-  }
+  .sess-row:last-child { border-bottom: none; }
 </style>
 {% endblock %}
 
 {% block content %}
+
+<!-- ══ Hero ══ -->
 <section class="profile-hero">
   <div class="container position-relative" style="z-index:1;">
-    <div class="row align-items-center g-4">
-      <div class="col-lg-8 d-flex align-items-center gap-4">
-        <div class="avatar-wrap">
-          {% if profile_user.profile_image and profile_user.profile_image.name %}
-            <img src="{{ profile_user.profile_image.url }}" alt="Foto de perfil" class="avatar-photo">
-          {% else %}
-            <div class="avatar-badge text-uppercase">{{ profile_user.first_name|first }}{{ profile_user.last_name|first }}</div>
-          {% endif %}
-          {% if is_self %}
-          <form method="post" action="" enctype="multipart/form-data" class="avatar-edit" title="Alterar foto">
-            {% csrf_token %}
-            <label class="w-100 h-100 d-flex align-items-center justify-content-center mb-0" style="cursor:pointer;">
-              <i class="fas fa-pen"></i>
-              <input class="avatar-input" type="file" name="profile_image" accept="image/*" onchange="this.form.submit();">
-            </label>
-          </form>
-          {% endif %}
-        </div>
-        <div>
-          <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
-            <h1 class="h3 mb-0">{{ profile_user.first_name }} {{ profile_user.last_name }}</h1>
-            {% if profile_user.is_superuser %}
-              <span class="pill"><i class="fas fa-crown"></i> Admin</span>
-            {% elif profile_user.is_staff %}
-              <span class="pill"><i class="fas fa-shield-alt"></i> Equipe</span>
-            {% else %}
-              <span class="pill" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#dbeafe;"><i class="fas fa-user"></i> Membro</span>
-            {% endif %}
-            {% if projectist_status == 'aprovado' %}
-              <span class="role-chip role-projetista"><i class="fas fa-hammer me-1"></i>Projetista</span>
-            {% elif projectist_status == 'pendente' and is_self %}
-              <span class="role-chip role-pending"><i class="fas fa-hourglass-half me-1"></i>Projetista pendente</span>
-            {% elif projectist_status == 'disponivel' and is_self %}
-              <a class="role-chip role-cta" href="{% url 'users:request_projectist' %}"><i class="fas fa-plus me-1"></i>Pedir título</a>
-            {% endif %}
-            {% for role in profile_user.roles.all %}
-              <span class="role-chip"><i class="fas fa-tag me-1"></i>{{ role.name }}</span>
-            {% endfor %}
+
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+
+      <!-- Avatar (foto editável ao hover para o próprio user) -->
+      <div class="av-wrap">
+        {% if profile_user.profile_image and profile_user.profile_image.name %}
+          <img src="{{ profile_user.profile_image.url }}" alt="Foto de perfil" class="av-photo">
+        {% else %}
+          <div class="av-initials text-uppercase">
+            {{ profile_user.first_name|first }}{{ profile_user.last_name|first }}
           </div>
-          <div class="text-white-75 mb-2">Matrícula {{ profile_user.id }} · {{ profile_user.email }}</div>
-          {% if not profile_user.roles.all %}
-            <div class="d-flex flex-wrap gap-2 mt-2"><span class="role-chip" style="opacity:.7;">Sem cargos atribuídos</span></div>
+        {% endif %}
+
+        {% if is_self %}
+        <form method="post" enctype="multipart/form-data" class="av-edit-overlay" title="Alterar foto">
+          {% csrf_token %}
+          <label class="w-100 h-100 d-flex align-items-center justify-content-center mb-0" style="cursor:pointer;">
+            <i class="bi bi-pencil-fill"></i>
+            <input class="av-input" type="file" name="profile_image" accept="image/*"
+                   onchange="this.form.submit();">
+          </label>
+        </form>
+        {% endif %}
+      </div>
+
+      <!-- Nome + badges -->
+      <div>
+        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+          <h1 class="h4 fw-bold mb-0">{{ profile_user.first_name }} {{ profile_user.last_name }}</h1>
+
+          {% if profile_user.is_superuser %}
+            <span class="hpill"><i class="bi bi-crown-fill"></i> Admin</span>
+          {% elif profile_user.is_staff %}
+            <span class="hpill"><i class="bi bi-shield-fill"></i> Equipe</span>
           {% endif %}
+
+          {% if projectist_status == 'aprovado' %}
+            <span class="rc rc-green"><i class="bi bi-hammer me-1"></i>Projetista</span>
+          {% elif projectist_status == 'pendente' and is_self %}
+            <span class="rc rc-yellow"><i class="bi bi-hourglass-split me-1"></i>Projetista pendente</span>
+          {% elif projectist_status == 'disponivel' and is_self %}
+            <a class="rc rc-blue text-decoration-none" href="{% url 'users:request_projectist' %}">
+              <i class="bi bi-plus me-1"></i>Pedir título de Projetista
+            </a>
+          {% endif %}
+
+          {% for role in profile_user.roles.all %}
+            <span class="rc rc-blue">{{ role.name }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="small" style="opacity:.72;">
+          Matrícula {{ profile_user.id }}
+          <span class="mx-1 opacity-50">·</span>
+          {{ profile_user.email }}
         </div>
       </div>
-      <div class="col-lg-4">
-        <div class="glass-card p-3" style="background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.2);">
-          {% with p=projetos|length kc=kanban_cards|length ev=eventos|length %}
-          <div class="d-flex justify-content-between align-items-center mb-2 text-white-75">
-            <span>Horas semanais</span>
-            <strong>{{ week_hours|floatformat:1 }}h / {{ required_hours|default:0 }}h</strong>
-          </div>
-          <div class="xp-bar mb-2"><span style="width: {{ progress_percent|default:0 }}%;"></span></div>
-          <div class="d-flex justify-content-between text-white-75 small">
-            {% if required_hours %}
-              <span>Restam {{ time_remaining|floatformat:1 }}h</span>
-              <span>{{ progress_percent|default:0 }}% da meta</span>
-            {% else %}
-              <span>Meta semanal não definida</span>
-            {% endif %}
-          </div>
-          {% endwith %}
-        </div>
-      </div>
+
     </div>
   </div>
 </section>
 
-<div class="container py-5">
-   <div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
-      <div class="mini-card">
-        <div class="text-muted small">Projetos</div>
-        <div class="d-flex align-items-center gap-2">
-          <span class="h4 mb-0">{{ projetos|length|default:0 }}</span>
-          <i class="fas fa-diagram-project text-primary"></i>
-        </div>
-        <small class="text-muted">Ativos e participando</small>
-      </div>
+<!-- ══ Corpo ══ -->
+<div class="container py-4">
+
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    <div class="col-6 col-lg-3">
-      <div class="mini-card">
-        <div class="text-muted small">Cards Kanban</div>
-        <div class="d-flex align-items-center gap-2">
-          <span class="h4 mb-0">{{ kanban_cards|length|default:0 }}</span>
-          <i class="fas fa-columns text-info"></i>
-        </div>
-        <small class="text-muted">Tarefas atribuídas</small>
-      </div>
+  {% endfor %}
+
+  <!-- Chips de resumo — só aparecem se houver dados -->
+  {% if projetos or kanban_cards or eventos or emprestimos_ativos %}
+  <div class="d-flex flex-wrap gap-3 mb-4">
+    {% if projetos %}
+    <div class="stat-chip">
+      <i class="bi bi-diagram-3 text-primary"></i>
+      <span><strong>{{ projetos|length }}</strong> <span class="text-muted small">projeto{{ projetos|length|pluralize }}</span></span>
     </div>
-    <div class="col-6 col-lg-3">
-      <div class="mini-card">
-        <div class="text-muted small">Eventos</div>
-        <div class="d-flex align-items-center gap-2">
-          <span class="h4 mb-0">{{ eventos|length|default:0 }}</span>
-          <i class="fas fa-calendar-check text-success"></i>
-        </div>
-        <small class="text-muted">Próximos compromissos</small>
-      </div>
+    {% endif %}
+    {% if kanban_cards %}
+    <div class="stat-chip">
+      <i class="bi bi-kanban text-info"></i>
+      <span><strong>{{ kanban_cards|length }}</strong> <span class="text-muted small">card{{ kanban_cards|length|pluralize }} Kanban</span></span>
     </div>
-    <div class="col-6 col-lg-3">
-      <div class="mini-card">
-        <div class="text-muted small">Empréstimos</div>
-        <div class="d-flex align-items-center gap-2">
-          <span class="h4 mb-0">{{ emprestimos_ativos|length|default:0 }}</span>
-          <i class="fas fa-box text-warning"></i>
-        </div>
-        <small class="text-muted">Materiais em uso</small>
-      </div>
+    {% endif %}
+    {% if eventos %}
+    <div class="stat-chip">
+      <i class="bi bi-calendar-check text-success"></i>
+      <span><strong>{{ eventos|length }}</strong> <span class="text-muted small">próximo{{ eventos|length|pluralize }} evento{{ eventos|length|pluralize }}</span></span>
     </div>
+    {% endif %}
+    {% if emprestimos_ativos %}
+    <div class="stat-chip">
+      <i class="bi bi-box-seam" style="color:#f59e0b;"></i>
+      <span><strong>{{ emprestimos_ativos|length }}</strong> <span class="text-muted small">empréstimo{{ emprestimos_ativos|length|pluralize }} ativo{{ emprestimos_ativos|length|pluralize }}</span></span>
+    </div>
+    {% endif %}
   </div>
+  {% endif %}
 
   <div class="row g-4">
+
+    <!-- ── Coluna principal ── -->
     <div class="col-lg-8">
-      <div class="glass-card p-4 mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <h5 class="mb-1">Missões recentes</h5>
-            <div class="text-muted small">Cards Kanban e projetos onde você está atuando</div>
-          </div>
-          <a href="{% url 'projetos:lista' %}" class="btn btn-sm btn-outline-primary">Ver projetos</a>
-        </div>
-        <div class="list-group list-group-flush">
-          {% if kanban_cards %}
-            {% for card in kanban_cards|slice:':4' %}
-            <div class="list-group-item d-flex align-items-start gap-3">
-              <div class="timeline-dot"></div>
-              <div>
-                <div class="fw-semibold">{{ card.titulo|default:"Card" }}</div>
-                <div class="text-muted small">{% if card.projeto %}Projeto {{ card.projeto }}{% else %}Kanban{% endif %}</div>
-              </div>
-              <span class="badge bg-light text-dark ms-auto">Kanban</span>
-            </div>
-            {% endfor %}
-          {% elif projetos %}
-            {% for projeto in projetos|slice:':4' %}
-            <div class="list-group-item d-flex align-items-start gap-3">
-              <div class="timeline-dot"></div>
-              <div>
-                <div class="fw-semibold">{{ projeto.titulo }}</div>
-                <div class="text-muted small">{{ projeto.descricao|default:"Projeto"|truncatewords:12 }}</div>
-              </div>
-              <span class="badge bg-primary-subtle text-primary ms-auto">Projeto</span>
-            </div>
-            {% endfor %}
-          {% else %}
-            <div class="text-muted text-center py-3">Sem missões registradas ainda.</div>
-          {% endif %}
-        </div>
-      </div>
 
-      <div class="glass-card p-4 mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <h5 class="mb-1">Ponto e horas da semana</h5>
-            <div class="text-muted small">Acompanhamento do sistema de ponto</div>
-          </div>
-          {% if active_session %}
-            <span class="badge bg-success">Sessão ativa</span>
-          {% else %}
-            <span class="badge bg-secondary">Sem sessão</span>
-          {% endif %}
-        </div>
-        <div class="mb-3">
-          <div class="d-flex justify-content-between small text-muted mb-1">
-            <span>Acumulado</span>
-            <span>{{ week_hours|floatformat:1 }}h / {{ required_hours|default:0 }}h</span>
-          </div>
-          <div class="progress" style="height: 10px;">
-            <div class="progress-bar" role="progressbar" style="width: {{ progress_percent|default:0 }}%;" aria-valuenow="{{ progress_percent|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
-          </div>
-          {% if required_hours %}
-          <div class="small text-muted mt-1">Faltam {{ time_remaining|floatformat:1 }}h para a meta semanal.</div>
-          {% else %}
-          <div class="small text-muted mt-1">Meta semanal não configurada.</div>
-          {% endif %}
-        </div>
-        <div class="list-group list-group-flush">
-          {% if sessoes_recentes %}
-            {% for s in sessoes_recentes %}
-              <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                  <div class="fw-semibold">Entrada {{ s.entry_time|date:"d/m H:i" }}</div>
-                  {% if s.exit_time %}
-                    <small class="text-muted">Saída {{ s.exit_time|date:"d/m H:i" }}</small>
-                  {% else %}
-                    <small class="text-warning">Sessão em aberto</small>
-                  {% endif %}
-                </div>
-                {% if s.duration %}
-                  <span class="badge bg-light text-dark">{{ s.duration }}</span>
-                {% endif %}
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="list-group-item text-muted">Nenhum registro recente.</div>
-          {% endif %}
-        </div>
-      </div>
+      <!-- Editar dados pessoais (sempre visível para o próprio user) -->
+      {% if is_self and form %}
+      <div class="g-card p-4 mb-4">
+        <h5 class="fw-bold mb-1">Dados pessoais</h5>
+        <p class="text-muted small mb-4">Nome e email são usados em comunicações e na identificação dentro do sistema.</p>
 
-      <div class="glass-card p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <h5 class="mb-1">Últimos acessos</h5>
-            <div class="text-muted small">Entradas registradas recentemente</div>
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold">Nome</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}
+                <div class="text-danger small mt-1">{{ form.first_name.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-semibold">Sobrenome</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}
+                <div class="text-danger small mt-1">{{ form.last_name.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">E-mail</label>
+              {{ form.email }}
+              {% if form.email.errors %}
+                <div class="text-danger small mt-1">{{ form.email.errors|join:", " }}</div>
+              {% endif %}
+            </div>
           </div>
-          {% if is_self %}
-          <a href="{% url 'acesso_e_ponto:my_access_history' %}" class="btn btn-sm btn-outline-secondary">Histórico completo</a>
-          {% endif %}
-        </div>
-        <div class="list-group list-group-flush">
-          {% if sessoes_recentes %}
-            {% for s in sessoes_recentes %}
-              <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                  <div class="fw-semibold">Entrada em {{ s.entry_time|date:"d/m/Y H:i" }}</div>
-                  {% if s.exit_time %}
-                    <small class="text-muted">Saída {{ s.exit_time|date:"d/m/Y H:i" }}</small>
-                  {% else %}
-                    <small class="text-warning">Sessão aberta</small>
-                  {% endif %}
-                </div>
-                <span class="badge bg-light text-dark">{{ s.localizacao|default:"FabLab" }}</span>
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="text-muted text-center py-3">Nenhuma sessão registrada.</div>
-          {% endif %}
-        </div>
+          <div class="d-flex align-items-center gap-3 mt-4">
+            <button type="submit" class="btn btn-primary px-4">Salvar alterações</button>
+            <a href="{% url 'users:change_password' %}" class="btn btn-outline-secondary">Alterar senha</a>
+          </div>
+        </form>
       </div>
-    </div>
+      {% endif %}
 
-    <div class="col-lg-4">
-      {% if profile_user.is_superuser or profile_user.is_staff %}
-      <div class="glass-card p-4 mb-4">
+      <!-- Missões (só se tiver projetos ou cards) -->
+      {% if kanban_cards or projetos %}
+      <div class="g-card p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <h5 class="mb-1">Insights do assistente de IA</h5>
-            <div class="text-muted small">Preview com dados mockados</div>
+            <h5 class="fw-bold mb-0">Missões</h5>
+            <div class="text-muted small">Cards Kanban e projetos ativos</div>
           </div>
-          <span class="badge bg-dark text-white">Beta</span>
+          <a href="{% url 'projetos:lista' %}" class="btn btn-sm btn-outline-primary">Ver todos</a>
         </div>
         <div class="list-group list-group-flush">
-          <div class="list-group-item d-flex align-items-start gap-3">
-            <span class="badge bg-primary"><i class="fas fa-bolt"></i></span>
-            <div>
-              <div class="fw-semibold">Ação sugerida</div>
-              <small class="text-muted">Finalize 2 cards do Kanban com bloqueio de mais de 3 dias.</small>
-            </div>
+          {% for card in kanban_cards|slice:':5' %}
+          <div class="list-group-item px-0 py-2">
+            <div class="fw-semibold small">{{ card.titulo|default:"Card sem título" }}</div>
+            <div class="text-muted" style="font-size:.8rem;">{% if card.projeto %}{{ card.projeto }}{% else %}Kanban{% endif %}</div>
           </div>
-          <div class="list-group-item d-flex align-items-start gap-3">
-            <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle"></i></span>
-            <div>
-              <div class="fw-semibold">Risco de atraso</div>
-              <small class="text-muted">Projeto "Corte Laser" com 18% da meta de horas nesta semana.</small>
-            </div>
+          {% endfor %}
+          {% for projeto in projetos|slice:':5' %}
+          <div class="list-group-item px-0 py-2">
+            <div class="fw-semibold small">{{ projeto.titulo }}</div>
+            {% if projeto.descricao %}
+            <div class="text-muted" style="font-size:.8rem;">{{ projeto.descricao|truncatewords:10 }}</div>
+            {% endif %}
           </div>
-          <div class="list-group-item d-flex align-items-start gap-3">
-            <span class="badge bg-success"><i class="fas fa-robot"></i></span>
-            <div>
-              <div class="fw-semibold">Otimização</div>
-              <small class="text-muted">Redistribuir emprestimos de impressora 3D para reduzir fila em 25%.</small>
-            </div>
-          </div>
-          <div class="list-group-item d-flex align-items-start gap-3">
-            <span class="badge bg-info text-dark"><i class="fas fa-chart-line"></i></span>
-            <div>
-              <div class="fw-semibold">Saúde da semana</div>
-              <small class="text-muted">Uso médio de horas: 62% da meta global; 3 usuários com queda contínua.</small>
-            </div>
-          </div>
+          {% endfor %}
         </div>
       </div>
       {% endif %}
-      <div class="glass-card p-4 mb-4">
+
+      <!-- Ponto / acessos (só se tiver sessões registradas) -->
+      {% if sessoes_recentes or active_session %}
+      <div class="g-card p-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="mb-0">Próximos eventos</h5>
-          <span class="badge bg-primary-subtle text-primary">Agenda</span>
-        </div>
-        {% if eventos %}
-          <div class="list-group list-group-flush">
-            {% for ev in eventos|slice:':4' %}
-              <div class="list-group-item">
-                <div class="fw-semibold">{{ ev.title|default:"Evento" }}</div>
-                <div class="text-muted small">{{ ev.start_time|date:"d/m/Y H:i" }}</div>
-                {% if ev.location %}<small class="text-muted">{{ ev.location }}</small>{% endif %}
-              </div>
-            {% endfor %}
+          <div>
+            <h5 class="fw-bold mb-0">Ponto da semana</h5>
+            <div class="text-muted small">Horas acumuladas e últimas entradas</div>
           </div>
-        {% else %}
-          <div class="text-muted">Nenhum evento agendado.</div>
+          {% if active_session %}
+            <span class="badge bg-success-subtle text-success fw-semibold px-3">Sessão ativa</span>
+          {% endif %}
+        </div>
+
+        {% if required_hours %}
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>{{ week_hours|floatformat:1 }}h acumuladas</span>
+            <span>Meta {{ required_hours }}h · {{ progress_percent }}%</span>
+          </div>
+          <div class="hbar"><span style="width:{{ progress_percent }}%;"></span></div>
+          {% if time_remaining %}
+          <div class="text-muted small mt-1">Faltam {{ time_remaining|floatformat:1 }}h para a meta.</div>
+          {% endif %}
+        </div>
+        {% elif week_hours %}
+        <div class="mb-3">
+          <div class="text-muted small mb-1">{{ week_hours|floatformat:1 }}h esta semana</div>
+          <div class="hbar"><span style="width:100%;"></span></div>
+        </div>
+        {% endif %}
+
+        {% for s in sessoes_recentes %}
+        <div class="sess-row">
+          <div>
+            <div class="fw-semibold" style="font-size:.875rem;">{{ s.entry_time|date:"d/m · H:i" }}</div>
+            {% if s.exit_time %}
+              <div class="text-muted" style="font-size:.8rem;">Saída {{ s.exit_time|date:"H:i" }}</div>
+            {% else %}
+              <div class="text-warning" style="font-size:.8rem;">Sessão em aberto</div>
+            {% endif %}
+          </div>
+          {% if s.duration %}
+          <span class="badge bg-light text-dark">{{ s.duration }}</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+        {% if is_self %}
+        <div class="mt-3">
+          <a href="{% url 'acesso_e_ponto:my_access_history' %}" class="btn btn-sm btn-outline-secondary">
+            Histórico completo
+          </a>
+        </div>
         {% endif %}
       </div>
+      {% endif %}
 
-      <div class="glass-card p-4 mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="mb-0">Inventário em uso</h5>
-          <span class="badge bg-warning text-dark">Empréstimos</span>
+    </div>
+
+    <!-- ── Sidebar ── -->
+    <div class="col-lg-4">
+
+      <!-- Próximos eventos — só se houver -->
+      {% if eventos %}
+      <div class="g-card p-4 mb-4">
+        <h5 class="fw-bold mb-3">Próximos eventos</h5>
+        {% for ev in eventos|slice:':4' %}
+        <div class="{% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}">
+          <div class="fw-semibold small">{{ ev.title|default:"Evento" }}</div>
+          <div class="text-muted" style="font-size:.8rem;">{{ ev.start_time|date:"d/m/Y · H:i" }}</div>
+          {% if ev.location %}<div class="text-muted" style="font-size:.8rem;">{{ ev.location }}</div>{% endif %}
         </div>
-        {% if emprestimos_ativos %}
-          <div class="list-group list-group-flush">
-            {% for emp in emprestimos_ativos|slice:':5' %}
-              <div class="list-group-item">
-                <div class="fw-semibold">{{ emp.item }}</div>
-                <div class="text-muted small">Retirado em {{ emp.data_emprestimo|date:"d/m/Y" }}</div>
-                <small class="text-muted">Responsável: {{ emp.usuario }}</small>
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <div class="text-muted">Nenhum empréstimo ativo.</div>
-        {% endif %}
+        {% endfor %}
       </div>
+      {% endif %}
 
+      <!-- Inventário em uso — só se houver empréstimos ativos -->
+      {% if emprestimos_ativos %}
+      <div class="g-card p-4 mb-4">
+        <h5 class="fw-bold mb-3">Em uso agora</h5>
+        {% for emp in emprestimos_ativos|slice:':4' %}
+        <div class="{% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}">
+          <div class="fw-semibold small">{{ emp.item }}</div>
+          <div class="text-muted" style="font-size:.8rem;">Desde {{ emp.data_emprestimo|date:"d/m/Y" }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Privacidade — só para o próprio usuário -->
       {% if is_self %}
-      <div class="glass-card p-4" style="border: 1px solid #fee2e2;">
+      <div class="g-card p-4" style="border-color:#fee2e2;">
         <div class="d-flex align-items-center gap-2 mb-2">
-          <span style="font-size:18px;">🔒</span>
-          <h5 class="mb-0">Privacidade e dados</h5>
+          <span>🔒</span>
+          <h5 class="fw-bold mb-0">Privacidade</h5>
         </div>
-        <p class="text-muted small mb-3">Gerencie seus dados pessoais e exerça seus direitos garantidos pela LGPD.</p>
+        <p class="text-muted small mb-3">Baixe seus dados, corrija informações ou exclua a conta.</p>
         <a href="{% url 'users:portal_lgpd' %}" class="btn btn-outline-secondary btn-sm w-100">
           Acessar Portal de Privacidade
         </a>
@@ -449,4 +368,5 @@
     </div>
   </div>
 </div>
+
 {% endblock %}

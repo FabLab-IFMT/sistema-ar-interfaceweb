@@ -409,7 +409,13 @@ def profile(request, user_id=None):
     form = None
     if is_self:
         if request.method == 'POST':
-            # Garante que uploads só de imagem continuem válidos preenchendo campos obrigatórios com os valores atuais
+            # Salva a foto original ANTES de qualquer processamento do form.
+            # form.save(commit=False) muta o instance em memória, o que poderia
+            # zerar profile_image se nenhum arquivo for enviado.
+            _foto_original = profile_user.profile_image
+
+            # Garante que uploads de foto continuem válidos preenchendo os campos
+            # de texto obrigatórios com os valores atuais caso estejam ausentes no POST.
             data = request.POST.copy()
             if not data.get('first_name'):
                 data['first_name'] = profile_user.first_name
@@ -420,8 +426,12 @@ def profile(request, user_id=None):
 
             form = ProfileUpdateForm(data, request.FILES, instance=profile_user)
             if form.is_valid():
-                form.save()
-                messages.success(request, 'Seu perfil foi atualizado com sucesso.')
+                user_obj = form.save(commit=False)
+                # Se não foi enviado arquivo novo, preserva a foto atual
+                if not request.FILES.get('profile_image'):
+                    user_obj.profile_image = _foto_original
+                user_obj.save()
+                messages.success(request, 'Perfil atualizado com sucesso.')
                 return redirect('users:profile')
         else:
             form = ProfileUpdateForm(instance=profile_user)
