@@ -436,6 +436,35 @@ def profile(request, user_id=None):
         else:
             form = ProfileUpdateForm(instance=profile_user)
     
+    # Dados administrativos rápidos (só para admins vendo o próprio perfil)
+    admin_stats = None
+    if is_self and profile_user.is_staff:
+        try:
+            from options.models import SolicitacaoInteresse
+            sol_pendentes = SolicitacaoInteresse.objects.filter(status='pendente').count()
+        except Exception:
+            sol_pendentes = 0
+
+        proj_pendentes = ProjectistRequest.objects.filter(status='pending').count()
+        total_users = CustomUser.objects.filter(is_active=True).count()
+        pending_regs = CustomUser.objects.filter(is_active=False, email_verified=False).exclude(
+            email__endswith='@anonimizado.invalid'
+        ).count()
+
+        try:
+            from logs.models import Event
+            eventos_pendentes = Event.objects.filter(approved=False).count()
+        except Exception:
+            eventos_pendentes = 0
+
+        admin_stats = {
+            'total_users': total_users,
+            'pending_regs': pending_regs,
+            'sol_pendentes': sol_pendentes,
+            'proj_pendentes': proj_pendentes,
+            'eventos_pendentes': eventos_pendentes,
+        }
+
     context = {
         'profile_user': profile_user,
         'is_self': is_self,
@@ -454,6 +483,7 @@ def profile(request, user_id=None):
         'active_session': active_session,
         'pending_projectist': pending_projectist,
         'projectist_status': projectist_status,
+        'admin_stats': admin_stats,
     }
     
     return render(request, 'users/profile.html', context)

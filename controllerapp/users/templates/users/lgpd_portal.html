@@ -11,10 +11,10 @@
     padding: 48px 0 36px;
   }
   .action-card {
-    background: #fff;
+    background: var(--white, #fff);
     border-radius: 16px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 4px 20px rgba(0,0,0,.06);
+    border: 1px solid var(--border, #e5e7eb);
+    box-shadow: var(--shadow-md, 0 4px 20px rgba(0,0,0,.06));
     padding: 26px;
     height: 100%;
     display: flex;
@@ -24,11 +24,13 @@
     font-size: 28px;
     margin-bottom: 12px;
   }
-  .action-card h5 { font-weight: 700; margin-bottom: 6px; font-size: 1rem; }
-  .action-card p { font-size: .85rem; color: #6b7280; flex: 1; line-height: 1.55; margin-bottom: 16px; }
+  .action-card h5 { font-weight: 700; margin-bottom: 6px; font-size: 1rem; color: var(--text, #111827); }
+  .action-card p { font-size: .85rem; color: var(--text-muted, #6b7280); flex: 1; line-height: 1.55; margin-bottom: 16px; }
+
   .info-section {
-    background: #f8fafc;
+    background: var(--surface-alt, #f8fafc);
     border-radius: 16px;
+    border: 1px solid var(--border, #e5e7eb);
     padding: 28px 32px;
     margin-bottom: 40px;
   }
@@ -37,23 +39,45 @@
     font-weight: 700;
     letter-spacing: .07em;
     text-transform: uppercase;
-    color: #9ca3af;
+    color: var(--text-muted, #9ca3af);
     margin-bottom: 16px;
   }
   .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .info-block p { font-size: .875rem; color: #4b5563; line-height: 1.65; }
-  .info-block strong { color: #111827; }
+  .info-block p { font-size: .875rem; color: var(--text-muted, #4b5563); line-height: 1.65; }
+  .info-block strong { color: var(--text, #111827); }
+
   .badge-pendente  { background: #fff3cd; color: #856404; }
   .badge-concluida { background: #d1e7dd; color: #0f5132; }
+
   .warn-box {
-    background: #fff7ed;
+    background: rgba(245,158,11,.08);
     border-left: 3px solid #f59e0b;
     border-radius: 0 8px 8px 0;
     padding: 12px 16px;
     font-size: .83rem;
-    color: #78350f;
+    color: var(--text, #78350f);
     margin-bottom: 16px;
   }
+
+  .lgpd-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .lgpd-table th {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-muted, #6b7280);
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--border, #e5e7eb);
+  }
+  .lgpd-table td {
+    padding: 12px 14px;
+    font-size: .88rem;
+    color: var(--text, #374151);
+    border-bottom: 1px solid var(--border, #f3f4f6);
+  }
+
   @media(max-width:576px){ .info-grid { grid-template-columns: 1fr; } }
 </style>
 {% endblock %}
@@ -65,8 +89,8 @@
     <div class="d-flex align-items-center gap-3">
       <span style="font-size:36px;">🔒</span>
       <div>
-        <h1 class="h3 fw-bold mb-1">Seus dados e privacidade</h1>
-        <p class="mb-0 small" style="opacity:.7; max-width:500px;">
+        <h1 class="h3 fw-bold mb-1" style="color:#fff;">Seus dados e privacidade</h1>
+        <p class="mb-0 small" style="opacity:.7; max-width:500px; color:#fff;">
           Aqui você vê o que guardamos sobre você e decide o que quer fazer com isso.
           Sem surpresas, sem enrolação.
         </p>
@@ -77,14 +101,8 @@
 
 <div class="container py-5">
 
-  {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-      {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-  {% endfor %}
-
   <!-- O que você pode fazer -->
-  <p style="font-size:.75rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#9ca3af; margin-bottom:16px;">O que você pode fazer</p>
+  <p style="font-size:.75rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted, #9ca3af); margin-bottom:16px;">O que você pode fazer</p>
   <div class="row g-4 mb-5">
 
     <!-- Baixar dados -->
@@ -94,7 +112,7 @@
         <h5>Baixar meus dados</h5>
         <p>Gera um arquivo com tudo que guardamos sobre você — nome, histórico de acesso, empréstimos, eventos. É seu, você pode levar.</p>
         <a href="{% url 'users:exportar_dados' %}" class="btn btn-outline-primary btn-sm mt-auto">
-          <i class="bi bi-download me-1"></i> Exportar em JSON
+          <i class="fas fa-download me-1"></i> Exportar em JSON
         </a>
       </div>
     </div>
@@ -106,25 +124,25 @@
         <h5>Corrigir minhas informações</h5>
         <p>Nome, e-mail ou foto errados? Corrija agora no seu perfil. Leva menos de um minuto.</p>
         <a href="{% url 'users:profile' %}" class="btn btn-outline-success btn-sm mt-auto">
-          <i class="bi bi-person-fill-gear me-1"></i> Ir ao meu perfil
+          <i class="fas fa-user-cog me-1"></i> Ir ao meu perfil
         </a>
       </div>
     </div>
 
     <!-- Excluir -->
     <div class="col-md-4">
-      <div class="action-card" style="border-color:#fecaca;">
+      <div class="action-card" style="border-color:rgba(239,68,68,.3);">
         <div class="ac-icon">🗑️</div>
         <h5>Sair de vez</h5>
         <p>Quer sair de vez? A gente apaga nome, e-mail, foto e senha. O histórico de empréstimos e visitas fica, mas sem nenhum dado que te identifique.</p>
         {% if exclusao_pendente %}
           <div class="warn-box mt-auto">
-            <i class="bi bi-clock me-1"></i>
+            <i class="fas fa-clock me-1"></i>
             Solicitação pendente — verifique seu e-mail e clique no link de confirmação.
           </div>
         {% else %}
           <button class="btn btn-outline-danger btn-sm mt-auto" data-bs-toggle="modal" data-bs-target="#modalExclusao">
-            <i class="bi bi-trash me-1"></i> Solicitar exclusão
+            <i class="fas fa-trash me-1"></i> Solicitar exclusão
           </button>
         {% endif %}
       </div>
@@ -163,20 +181,20 @@
         </p>
       </div>
     </div>
-    <p style="font-size:.8rem; color:#9ca3af; margin-top:12px; margin-bottom:0;">
+    <p style="font-size:.8rem; color:var(--text-muted, #9ca3af); margin-top:12px; margin-bottom:0;">
       Quer ler isso tudo com mais detalhe?
-      <a href="{% url 'users:politica_privacidade' %}" style="color:#13678a; font-weight:600;">Abrir a Política de Privacidade completa →</a>
+      <a href="{% url 'users:politica_privacidade' %}" style="color:var(--accent, #13678a); font-weight:600;">Abrir a Política de Privacidade completa →</a>
     </p>
   </div>
 
   <!-- Histórico de solicitações -->
   {% if solicitacoes %}
-  <p style="font-size:.75rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#9ca3af; margin-bottom:16px;">
+  <p style="font-size:.75rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted, #9ca3af); margin-bottom:16px;">
     Histórico das suas solicitações
   </p>
-  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-    <table class="table table-hover mb-0">
-      <thead class="table-light">
+  <div class="action-card overflow-hidden mb-4" style="padding:0;">
+    <table class="lgpd-table">
+      <thead>
         <tr>
           <th>Tipo</th>
           <th>Pedido em</th>
@@ -202,8 +220,8 @@
   </div>
   {% endif %}
 
-  <p class="text-muted small text-center">
-    Dúvidas? Manda um e-mail pra <a href="mailto:fablab@ifmt.edu.br" style="color:#13678a;">fablab@ifmt.edu.br</a>
+  <p style="color:var(--text-muted, #6b7280);" class="small text-center">
+    Dúvidas? Manda um e-mail pra <a href="mailto:fablab@ifmt.edu.br" style="color:var(--accent, #13678a);">fablab@ifmt.edu.br</a>
   </p>
 
 </div>
@@ -211,13 +229,13 @@
 <!-- Modal de exclusão -->
 <div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 border-0 shadow">
+    <div class="modal-content rounded-4 border-0 shadow" style="background:var(--white, #fff); color:var(--text, #1f2937);">
       <div class="modal-header border-0 pb-0">
         <h5 class="modal-title fw-bold text-danger" id="modalExclusaoLabel">Excluir minha conta</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p class="text-muted small mb-3">
+        <p class="small mb-3" style="color:var(--text-muted, #6b7280);">
           A gente apaga seu <strong>nome, e-mail, foto de perfil e senha</strong> — fim, sem rastro.<br>
           O histórico de empréstimos e as visitas que você fez ao lab ficam guardados,
           mas sem nenhuma informação que te identifique.
@@ -226,14 +244,14 @@
           Antes de qualquer coisa, <strong>você recebe um e-mail com um link de confirmação</strong>.
           Nada acontece enquanto você não clicar nele.
         </div>
-        <p class="text-muted small mb-0">Não recebeu o e-mail? Olha na pasta de spam ou fala com a gente.</p>
+        <p class="small mb-0" style="color:var(--text-muted, #6b7280);">Não recebeu o e-mail? Olha na pasta de spam ou fala com a gente.</p>
       </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
         <form method="post" action="{% url 'users:solicitar_exclusao_conta' %}">
           {% csrf_token %}
           <button type="submit" class="btn btn-danger btn-sm">
-            <i class="bi bi-envelope me-1"></i> Enviar e-mail de confirmação
+            <i class="fas fa-envelope me-1"></i> Enviar e-mail de confirmação
           </button>
         </form>
       </div>
