@@ -60,6 +60,9 @@ router.register(r'recursos', views.ResourceViewSet, basename='recurso')
 router.register(r'resource-files', views.ResourceFileViewSet, basename='resource-file')
 router.register(r'resource-comments', views.ResourceCommentViewSet, basename='resource-comment')
 
+# IA — Insights
+router.register(r'insights', views.InsightIAViewSet, basename='insight')
+
 # Acesso e Ponto
 router.register(r'weekly-hours', views.WeeklyRequiredHoursViewSet, basename='weekly-hours')
 router.register(r'time-logs', views.TimeLogViewSet, basename='time-log')
@@ -74,6 +77,9 @@ urlpatterns = [
 
     # Perfil do usuário autenticado
     path('me/', views.UserProfileView.as_view(), name='user-profile'),
+
+    # Disponibilidade de monitor (agendamento inteligente)
+    path('minha-disponibilidade/', views.MinhaDisponibilidadeView.as_view(), name='minha-disponibilidade'),
 
     # Dashboard de gestão
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),

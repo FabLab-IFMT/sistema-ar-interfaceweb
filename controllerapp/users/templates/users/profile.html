@@ -346,6 +346,35 @@
       </div>
       {% endif %}
 
+      <!-- ─── Disponibilidade de monitor (agendamento inteligente) ─── -->
+      {% if is_self and pode_ser_monitor %}
+      <div class="glass-card p-4 mb-4">
+        <div class="section-head d-flex align-items-start justify-content-between flex-wrap gap-2">
+          <div>
+            <h5><i class="fas fa-user-clock me-2 text-muted"></i>Disponibilidade de monitor</h5>
+            <p class="text-muted small mb-0 mt-1">
+              Horários em que você pode acompanhar visitas. O agendamento inteligente
+              só chama automaticamente quem marcou horários na grade.
+            </p>
+          </div>
+          <a href="{% url 'users:minha_disponibilidade' %}" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-calendar-check me-1"></i> Editar grade
+          </a>
+        </div>
+        <div class="mt-2">
+          {% if disponibilidade_count %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle">
+              <i class="fas fa-check me-1"></i>{{ disponibilidade_count }} horário(s) marcados — você pode ser chamado automaticamente
+            </span>
+          {% else %}
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+              <i class="fas fa-exclamation-triangle me-1"></i>Nenhum horário marcado — você não é chamado automaticamente para visitas
+            </span>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
       <!-- ─── Missões (projetos + kanban) ─── -->
       {% if kanban_cards or projetos %}
       <div class="glass-card p-4 mb-4">

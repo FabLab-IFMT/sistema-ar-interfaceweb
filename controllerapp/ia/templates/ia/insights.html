@@ -1,0 +1,126 @@
+{% extends 'gestao/admin_base.html' %}
+
+{% block title %}Insights de IA{% endblock %}
+{% block nav_ia %}active{% endblock %}
+
+{% block breadcrumb %}
+<span class="sep"><i class="fas fa-chevron-right" aria-hidden="true"></i></span>
+<span class="current">Insights de IA</span>
+{% endblock %}
+
+{% block admin_content %}
+
+<div class="adm-alert adm-alert-info">
+  <i class="fas fa-robot" aria-hidden="true"></i>
+  <div>
+    A IA analisa os dados de <strong>agenda, inventário, projetos, fluxo de pessoas e climatização</strong>
+    do SGL e gera recomendações operacionais em linguagem natural. Escolha um foco e clique em gerar.
+  </div>
+</div>
+
+<!-- Geração -->
+<div class="adm-card mb-4">
+  <div class="adm-card-header">
+    <h5 class="adm-card-title"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Gerar novo insight</h5>
+  </div>
+  <div class="adm-card-body">
+    <form method="post" action="{% url 'ia:gerar' %}" id="formGerar" class="d-flex flex-wrap align-items-center gap-3">
+      {% csrf_token %}
+      <label for="focoSelect" class="mb-0" style="font-size:.875rem;font-weight:600;">Foco da análise:</label>
+      <select name="foco" id="focoSelect" class="form-select" style="max-width:260px;">
+        {% for valor, rotulo in focos %}
+        <option value="{{ valor }}">{{ rotulo }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="adm-btn adm-btn-primary" id="btnGerar">
+        <i class="fas fa-bolt" aria-hidden="true"></i> Gerar insight
+      </button>
+      <span id="gerandoAviso" class="d-none" style="font-size:.85rem;color:var(--text-muted);">
+        <i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i>
+        Analisando dados do laboratório… isso pode levar alguns segundos.
+      </span>
+    </form>
+  </div>
+</div>
+
+<!-- Histórico -->
+<div class="adm-card">
+  <div class="adm-card-header">
+    <h5 class="adm-card-title"><i class="fas fa-history" aria-hidden="true"></i> Histórico de insights</h5>
+  </div>
+
+  {% if page_obj.object_list %}
+  <div style="overflow-x:auto;">
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>Foco</th>
+          <th>Resumo</th>
+          <th>Gerado por</th>
+          <th>Data</th>
+          <th>Modelo</th>
+          <th style="width:120px;">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for insight in page_obj.object_list %}
+        <tr>
+          <td>
+            <span class="adm-tag adm-tag-purple"><i class="fas fa-robot" aria-hidden="true"></i> {{ insight.get_foco_display }}</span>
+          </td>
+          <td style="max-width:380px;">
+            <span class="d-inline-block text-truncate" style="max-width:100%;">{{ insight.conteudo|truncatechars:110 }}</span>
+          </td>
+          <td>{{ insight.gerado_por|default:'—' }}</td>
+          <td>{{ insight.criado_em|date:'d/m/Y H:i' }}</td>
+          <td><span class="adm-tag adm-tag-gray">{{ insight.modelo_usado|default:'—' }}</span></td>
+          <td>
+            <a href="{% url 'ia:detalhe' insight.pk %}" class="adm-btn adm-btn-secondary adm-btn-sm" title="Ver completo">
+              <i class="fas fa-eye" aria-hidden="true"></i>
+            </a>
+            <form method="post" action="{% url 'ia:excluir' insight.pk %}" class="d-inline"
+                  onsubmit="return confirm('Excluir este insight?');">
+              {% csrf_token %}
+              <button type="submit" class="adm-btn adm-btn-danger adm-btn-sm" title="Excluir">
+                <i class="fas fa-trash" aria-hidden="true"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="adm-card-body d-flex justify-content-center gap-2">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="adm-btn adm-btn-secondary adm-btn-sm">&laquo; Anterior</a>
+    {% endif %}
+    <span style="font-size:.85rem;color:var(--text-muted);align-self:center;">
+      Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+    </span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="adm-btn adm-btn-secondary adm-btn-sm">Próxima &raquo;</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="adm-empty">
+    <i class="fas fa-robot" aria-hidden="true"></i>
+    <p>Nenhum insight gerado ainda.<br>Escolha um foco acima e gere o primeiro!</p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block admin_scripts %}
+<script>
+document.getElementById('formGerar').addEventListener('submit', function () {
+  document.getElementById('btnGerar').disabled = true;
+  document.getElementById('gerandoAviso').classList.remove('d-none');
+});
+</script>
+{% endblock %}

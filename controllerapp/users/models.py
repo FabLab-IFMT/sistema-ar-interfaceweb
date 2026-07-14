@@ -189,3 +189,39 @@ class ProjectistRequest(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.get_status_display()}"
+
+
+class MonitorDisponibilidade(models.Model):
+    """
+    Horário em que um monitor declarou estar disponível para acompanhar visitas.
+    Cada registro é uma hora cheia de um dia da semana (ex.: segunda, 8 = 08h–09h).
+    Quem não marca nenhum horário nunca é chamado automaticamente.
+    """
+    DIA_CHOICES = [
+        (0, 'Segunda-feira'),
+        (1, 'Terça-feira'),
+        (2, 'Quarta-feira'),
+        (3, 'Quinta-feira'),
+        (4, 'Sexta-feira'),
+        (5, 'Sábado'),
+        (6, 'Domingo'),
+    ]
+    HORA_MIN = 7
+    HORA_MAX = 21  # último slot: 21h–22h
+
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE,
+        related_name='disponibilidades_monitor',
+        verbose_name='Monitor',
+    )
+    dia_semana = models.IntegerField('Dia da semana', choices=DIA_CHOICES)
+    hora = models.PositiveSmallIntegerField('Hora (início do slot)')
+
+    class Meta:
+        verbose_name = 'Disponibilidade de Monitor'
+        verbose_name_plural = 'Disponibilidades de Monitores'
+        unique_together = ('user', 'dia_semana', 'hora')
+        ordering = ['user', 'dia_semana', 'hora']
+
+    def __str__(self):
+        return f"{self.user} — {self.get_dia_semana_display()} {self.hora:02d}:00"

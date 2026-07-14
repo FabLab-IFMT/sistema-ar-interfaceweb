@@ -258,15 +258,42 @@ def agenda_request_visit(request):
             )
             event.description = visitor_info
             event.save()
-            
-            # Enviar email de confirmação de solicitação
-            try:
-                enviar_email_solicitacao_enviada(event)
-            except Exception as e:
-                # Registrar erro mas não impedir o fluxo
-                print(f"Erro ao enviar email de solicitação: {e}")
-            
-            messages.success(request, 'Solicitação de visita enviada com sucesso! Aguardando aprovação.')
+
+            # Agendamento inteligente: tenta alocar um monitor disponível
+            # e confirmar a visita automaticamente, sem intervenção manual.
+            from .services import alocar_monitor_para_visita
+            monitor = alocar_monitor_para_visita(event.start_time, event.end_time)
+
+            if monitor:
+                event.monitor_responsavel = monitor
+                event.approved = True
+                event.save(update_fields=['monitor_responsavel', 'approved'])
+
+                try:
+                    enviar_email_solicitacao_aprovada(event)
+                except Exception as e:
+                    print(f"Erro ao enviar email de aprovação: {e}")
+
+                nome_monitor = monitor.get_full_name() or str(monitor)
+                messages.success(
+                    request,
+                    f'Visita confirmada automaticamente! '
+                    f'Monitor responsável: {nome_monitor}.'
+                )
+            else:
+                # Nenhum monitor disponível no horário: segue para aprovação manual
+                try:
+                    enviar_email_solicitacao_enviada(event)
+                except Exception as e:
+                    # Registrar erro mas não impedir o fluxo
+                    print(f"Erro ao enviar email de solicitação: {e}")
+
+                messages.success(
+                    request,
+                    'Solicitação de visita enviada com sucesso! Nenhum monitor '
+                    'disponível para confirmação automática neste horário — '
+                    'a equipe irá avaliar sua solicitação.'
+                )
             return redirect('logs:agenda_home')
     else:
         # Preencher os dados básicos do usuário logado

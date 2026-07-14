@@ -465,10 +465,16 @@ def profile(request, user_id=None):
             'eventos_pendentes': eventos_pendentes,
         }
 
+    # Disponibilidade de monitor (agendamento inteligente de visitas)
+    pode_ser_monitor = profile_user.is_staff or profile_user.roles.exists()
+    disponibilidade_count = profile_user.disponibilidades_monitor.count() if pode_ser_monitor else 0
+
     context = {
         'profile_user': profile_user,
         'is_self': is_self,
         'is_team_member': is_team_member,
+        'pode_ser_monitor': pode_ser_monitor,
+        'disponibilidade_count': disponibilidade_count,
         'membro': membro,
         'form': form,
         'projetos': projetos,
@@ -728,3 +734,80 @@ def confirmar_exclusao_conta(request, token):
         'Obrigado por usar o FabLab IFMT.',
     )
     return redirect('/')
+
+
+# ─────────────────────────────────────────────
+# Disponibilidade de monitor (agendamento inteligente)
+# ─────────────────────────────────────────────
+
+def _pode_ser_monitor(user):
+    """Membros da equipe (staff ou com cargo) podem se declarar monitores."""
+    return user.is_authenticated and (user.is_staff or user.roles.exists())
+
+
+@login_required
+def minha_disponibilidade(request):
+    """
+    Grade de checkboxes (dia da semana × hora) em que o usuário marca os
+    horários em que está disponível para acompanhar visitas. Quem não marca
+    nada nunca é chamado automaticamente pelo agendamento inteligente.
+    """
+    from django.db import transaction
+    from .models import MonitorDisponibilidade
+
+    if not _pode_ser_monitor(request.user):
+        messages.error(request, 'Apenas membros da equipe podem cadastrar disponibilidade de monitor.')
+        return redirect('users:profile')
+
+    horas = list(range(MonitorDisponibilidade.HORA_MIN, MonitorDisponibilidade.HORA_MAX + 1))
+    dias = MonitorDisponibilidade.DIA_CHOICES
+
+    if request.method == 'POST':
+        novos = set()
+        for chave in request.POST:
+            if not chave.startswith('slot_'):
+                continue
+            try:
+                _, dia, hora = chave.split('_')
+                dia, hora = int(dia), int(hora)
+            except ValueError:
+                continue
+            if 0 <= dia <= 6 and MonitorDisponibilidade.HORA_MIN <= hora <= MonitorDisponibilidade.HORA_MAX:
+                novos.add((dia, hora))
+
+        with transaction.atomic():
+            request.user.disponibilidades_monitor.all().delete()
+            MonitorDisponibilidade.objects.bulk_create([
+                MonitorDisponibilidade(user=request.user, dia_semana=d, hora=h)
+                for d, h in novos
+            ])
+
+        log_user_action(
+            request,
+            'Disponibilidade de monitor',
+            f'Atualizou a grade de disponibilidade ({len(novos)} horários marcados).',
+        )
+        if novos:
+            messages.success(request, f'Disponibilidade salva: {len(novos)} horário(s) marcados. '
+                                      'Você já pode ser chamado automaticamente para visitas nesses horários.')
+        else:
+            messages.warning(request, 'Disponibilidade salva sem nenhum horário marcado — '
+                                      'você não será chamado automaticamente para visitas.')
+        return redirect('users:minha_disponibilidade')
+
+    marcados = set(
+        request.user.disponibilidades_monitor.values_list('dia_semana', 'hora')
+    )
+    grade = [
+        {
+            'hora': h,
+            'celulas': [{'dia': d, 'marcado': (d, h) in marcados} for d, _ in dias],
+        }
+        for h in horas
+    ]
+
+    return render(request, 'users/disponibilidade.html', {
+        'dias': dias,
+        'grade': grade,
+        'total_marcados': len(marcados),
+    })

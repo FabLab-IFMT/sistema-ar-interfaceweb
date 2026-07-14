@@ -339,6 +339,7 @@ class ActionSerializer(serializers.ModelSerializer):
 
 class EventSerializer(serializers.ModelSerializer):
     created_by_nome = serializers.SerializerMethodField()
+    monitor_responsavel_nome = serializers.SerializerMethodField()
     event_type_display = serializers.CharField(source='get_event_type_display', read_only=True)
 
     class Meta:
@@ -348,6 +349,11 @@ class EventSerializer(serializers.ModelSerializer):
     def get_created_by_nome(self, obj):
         if obj.created_by:
             return str(obj.created_by)
+        return None
+
+    def get_monitor_responsavel_nome(self, obj):
+        if obj.monitor_responsavel:
+            return str(obj.monitor_responsavel)
         return None
 
 
@@ -515,3 +521,42 @@ class SessionSerializer(serializers.ModelSerializer):
             minutes, _ = divmod(remainder, 60)
             return f"{hours}h {minutes}min"
         return None
+
+
+# =============================================================================
+# IA — INSIGHTS
+# =============================================================================
+
+from ia.models import InsightIA
+
+
+class InsightIASerializer(serializers.ModelSerializer):
+    foco_display = serializers.CharField(source='get_foco_display', read_only=True)
+    gerado_por_nome = serializers.SerializerMethodField()
+
+    class Meta:
+        model = InsightIA
+        fields = [
+            'id', 'foco', 'foco_display', 'titulo', 'conteudo',
+            'modelo_usado', 'tokens_usados', 'gerado_por', 'gerado_por_nome',
+            'criado_em',
+        ]
+        read_only_fields = fields
+
+    def get_gerado_por_nome(self, obj):
+        return str(obj.gerado_por) if obj.gerado_por else None
+
+
+# =============================================================================
+# DISPONIBILIDADE DE MONITOR (agendamento inteligente)
+# =============================================================================
+
+from users.models import MonitorDisponibilidade
+
+
+class MonitorDisponibilidadeSerializer(serializers.ModelSerializer):
+    dia_semana_display = serializers.CharField(source='get_dia_semana_display', read_only=True)
+
+    class Meta:
+        model = MonitorDisponibilidade
+        fields = ['dia_semana', 'dia_semana_display', 'hora']

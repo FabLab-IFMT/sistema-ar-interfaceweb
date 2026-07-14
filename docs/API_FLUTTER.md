@@ -27,7 +27,9 @@
 16. [Kanban](#16-kanban)
 17. [Repositório de Recursos](#17-repositório-de-recursos)
 18. [Solicitações de Serviço](#18-solicitações-de-serviço)
+    - [Disponibilidade de Monitor / Agendamento Inteligente](#181-disponibilidade-de-monitor--agendamento-inteligente-)
 19. [Dashboard Administrativo](#19-dashboard-administrativo)
+    - [Insights de IA](#191-insights-de-ia-)
 20. [Níveis de Permissão](#20-níveis-de-permissão)
 21. [Guia Rápido Flutter / Dart](#21-guia-rápido-flutter--dart)
 
@@ -722,6 +724,43 @@ Endpoint especial para ler e atualizar o próprio perfil sem precisar do ID.
 
 ---
 
+## 18.1. Disponibilidade de Monitor / Agendamento Inteligente 🗓️
+
+> 🔒 **Autenticado.** Grade de horários em que o usuário pode acompanhar visitas.
+> O agendamento inteligente usa essa grade para **confirmar visitas automaticamente**:
+> quem não marca nenhum horário nunca é chamado. Um monitor pode acompanhar até
+> **2 visitas simultâneas**, mas a 2ª só é atribuída quando nenhum outro monitor está livre.
+
+| Método | Endpoint                     | Descrição                                  | Permissão   |
+|--------|------------------------------|--------------------------------------------|-------------|
+| GET    | `/api/minha-disponibilidade/` | Grade do usuário logado                    | Autenticado |
+| PUT    | `/api/minha-disponibilidade/` | Substitui a grade inteira                  | Membro da equipe (staff ou com cargo) |
+
+**Resposta do GET:**
+```json
+{
+  "pode_ser_monitor": true,
+  "slots": [
+    { "dia_semana": 1, "dia_semana_display": "Terça-feira", "hora": 14 }
+  ]
+}
+```
+
+**Body do PUT** (substitui tudo — envie a grade completa):
+```json
+{ "slots": [ { "dia_semana": 1, "hora": 14 }, { "dia_semana": 1, "hora": 15 } ] }
+```
+
+- `dia_semana`: 0 = segunda … 6 = domingo.
+- `hora`: hora cheia do início do slot, entre **7** e **21** (21 = slot 21h–22h).
+- PUT com lista vazia (`{"slots": []}`) desmarca tudo — o usuário deixa de ser chamado automaticamente.
+- Erros: `400` slot inválido; `403` usuário não é membro da equipe.
+
+**Eventos**: o serializer de `/api/eventos/` agora inclui `monitor_responsavel` (id) e
+`monitor_responsavel_nome` — preenchidos quando a visita foi confirmada automaticamente.
+
+---
+
 ## 19. Dashboard Administrativo
 
 > 🔒 **Gestão (superuser ou acesso_gestao).**
@@ -755,6 +794,54 @@ Endpoint especial para ler e atualizar o próprio perfil sem precisar do ID.
   },
   "noticias_recentes": [ ... ],
   "logs_recentes": [ ... ]
+}
+```
+
+---
+
+## 19.1. Insights de IA 🤖
+
+> 🔒 **Gestão (superuser ou acesso_gestao).**
+> A geração consulta a API da OpenAI no servidor — pode levar de 5 a 20 segundos. Use um indicador de carregamento no app.
+
+| Método | Endpoint               | Descrição                                        | Permissão |
+|--------|------------------------|--------------------------------------------------|-----------|
+| GET    | `/api/insights/`       | Histórico de insights (paginado, `?foco=` filtra) | Gestão    |
+| GET    | `/api/insights/{id}/`  | Insight completo                                 | Gestão    |
+| POST   | `/api/insights/gerar/` | Gera um novo insight a partir dos dados do SGL   | Gestão    |
+
+**Body do POST `/api/insights/gerar/`** (opcional):
+```json
+{ "foco": "geral" }
+```
+
+Valores de `foco`: `geral` (padrão), `agenda`, `estoque`, `projetos`, `manutencao`.
+
+**Resposta (201):**
+```json
+{
+  "id": 7,
+  "foco": "estoque",
+  "foco_display": "Inventário e Estoque",
+  "titulo": "Insight — Inventário e Estoque",
+  "conteudo": "• O item Filamento PLA está com estoque zerado...\n\nAções recomendadas:\n• ...",
+  "modelo_usado": "gpt-4o-2024-08-06",
+  "tokens_usados": 1235,
+  "gerado_por": "2024001234567",
+  "gerado_por_nome": "Henrique Cunha",
+  "criado_em": "2026-07-14T15:32:00-04:00"
+}
+```
+
+**Erros:**
+- `503` — chave da OpenAI ausente/expirada ou falha de comunicação (`{"error": "..."}`).
+- `403` — usuário sem acesso à gestão.
+
+**Exemplo Flutter:**
+```dart
+Future<Insight> gerarInsight(String foco) async {
+  final resp = await dio.post('/api/insights/gerar/', data: {'foco': foco});
+  return Insight.fromJson(resp.data);
 }
 ```
 

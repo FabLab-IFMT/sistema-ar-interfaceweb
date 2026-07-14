@@ -559,6 +559,12 @@
           <i class="fas fa-chart-line" aria-hidden="true"></i> Monitoramento
         </a>
         {% endif %}
+        {% if 'ia' in admin_sections %}
+        <a href="{% url 'ia:painel' %}"
+           class="adm-nav-item {% block nav_ia %}{% endblock %}">
+          <i class="fas fa-robot" aria-hidden="true"></i> Insights de IA
+        </a>
+        {% endif %}
         {% if 'usuarios' in admin_sections %}
         <a href="{% url 'logs:index' %}" class="adm-nav-item">
           <i class="fas fa-history" aria-hidden="true"></i> Logs do Sistema

@@ -60,9 +60,18 @@ class Event(models.Model):
         related_name="created_events"
     )
     approved = models.BooleanField(_("Aprovado"), default=False)
+    monitor_responsavel = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="visitas_como_monitor",
+        verbose_name=_("Monitor responsável"),
+        help_text="Atribuído automaticamente pelo agendamento inteligente em visitas.",
+    )
     participants = models.ManyToManyField(
-        CustomUser, 
-        related_name="events", 
+        CustomUser,
+        related_name="events",
         blank=True,
         verbose_name=_("Participantes")
     )

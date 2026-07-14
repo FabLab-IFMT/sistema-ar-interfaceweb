@@ -37,6 +37,16 @@ CSRF_TRUSTED_ORIGINS = [o.strip() for o in config(
 # Defina SITE_URL no .env de produção (ex: https://ifmaker.cba.ifmt.edu.br)
 SITE_URL = config('SITE_URL', default='http://localhost:8000')
 
+# ---------------------------------------------------------------------------
+# Módulo de IA — insights operacionais via API da OpenAI
+# Configure no .env:
+#   OPENAI_API_KEY=sk-...
+#   OPENAI_MODEL=gpt-4o   (opcional; padrão gpt-4o)
+# Sem chave configurada o módulo fica visível, mas a geração é desabilitada.
+# ---------------------------------------------------------------------------
+OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
+OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-4o')
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -66,6 +76,7 @@ INSTALLED_APPS = [
     'inventario',
     'Controle_ar',
     'Email_notificacoes',
+    'ia',
 ]
 
 MIDDLEWARE = [

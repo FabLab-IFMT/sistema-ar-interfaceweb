@@ -667,3 +667,116 @@ class SessionViewSet(viewsets.ModelViewSet):
             {'error': 'Sessão já está fechada.'},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+# =============================================================================
+# IA — INSIGHTS OPERACIONAIS
+# =============================================================================
+
+from ia.models import InsightIA
+from ia.services import IAError, gerar_insight
+from .serializers import InsightIASerializer
+
+
+class InsightIAViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Insights operacionais gerados por IA.
+
+    - GET /api/insights/            → histórico de insights
+    - GET /api/insights/{id}/       → insight completo
+    - POST /api/insights/gerar/     → gera um novo insight
+      Body opcional: {"foco": "geral|agenda|estoque|projetos|manutencao"}
+    """
+    queryset = InsightIA.objects.all().select_related('gerado_por')
+    serializer_class = InsightIASerializer
+    permission_classes = [IsGestaoAuthorized]
+    filterset_fields = ['foco']
+    ordering_fields = ['criado_em']
+
+    @action(detail=False, methods=['post'])
+    def gerar(self, request):
+        """Coleta os dados do SGL e gera um novo insight via OpenAI."""
+        foco = request.data.get('foco', InsightIA.Foco.GERAL)
+        try:
+            insight = gerar_insight(usuario=request.user, foco=foco)
+        except IAError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        return Response(
+            InsightIASerializer(insight).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+# =============================================================================
+# DISPONIBILIDADE DE MONITOR (agendamento inteligente)
+# =============================================================================
+
+from django.db import transaction
+
+from users.models import MonitorDisponibilidade
+from .serializers import MonitorDisponibilidadeSerializer
+
+
+class MinhaDisponibilidadeView(APIView):
+    """
+    Grade de disponibilidade de monitor do usuário autenticado.
+
+    - GET /api/minha-disponibilidade/  → lista de slots marcados
+    - PUT /api/minha-disponibilidade/  → substitui a grade inteira
+      Body: {"slots": [{"dia_semana": 0, "hora": 8}, ...]}
+    """
+    permission_classes = [IsAuthenticated]
+
+    def _pode_ser_monitor(self, user):
+        return user.is_staff or user.roles.exists()
+
+    def get(self, request):
+        slots = request.user.disponibilidades_monitor.all()
+        return Response({
+            'pode_ser_monitor': self._pode_ser_monitor(request.user),
+            'slots': MonitorDisponibilidadeSerializer(slots, many=True).data,
+        })
+
+    def put(self, request):
+        if not self._pode_ser_monitor(request.user):
+            return Response(
+                {'error': 'Apenas membros da equipe podem cadastrar disponibilidade de monitor.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        slots = request.data.get('slots', [])
+        if not isinstance(slots, list):
+            return Response({'error': 'Formato inválido: "slots" deve ser uma lista.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        novos = set()
+        for slot in slots:
+            try:
+                dia = int(slot['dia_semana'])
+                hora = int(slot['hora'])
+            except (KeyError, TypeError, ValueError):
+                return Response({'error': f'Slot inválido: {slot}'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            if not (0 <= dia <= 6 and
+                    MonitorDisponibilidade.HORA_MIN <= hora <= MonitorDisponibilidade.HORA_MAX):
+                return Response(
+                    {'error': f'Slot fora do intervalo permitido (dia 0-6, hora '
+                              f'{MonitorDisponibilidade.HORA_MIN}-{MonitorDisponibilidade.HORA_MAX}): {slot}'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            novos.add((dia, hora))
+
+        with transaction.atomic():
+            request.user.disponibilidades_monitor.all().delete()
+            MonitorDisponibilidade.objects.bulk_create([
+                MonitorDisponibilidade(user=request.user, dia_semana=d, hora=h)
+                for d, h in novos
+            ])
+
+        slots_atuais = request.user.disponibilidades_monitor.all()
+        return Response({
+            'pode_ser_monitor': True,
+            'slots': MonitorDisponibilidadeSerializer(slots_atuais, many=True).data,
+        })

@@ -60,3 +60,13 @@ class SolicitacaoLGPDAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False  # Solicitações só são criadas pelo sistema
+
+
+from .models import MonitorDisponibilidade
+
+
+@admin.register(MonitorDisponibilidade)
+class MonitorDisponibilidadeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'dia_semana', 'hora')
+    list_filter = ('dia_semana', 'hora')
+    search_fields = ('user__first_name', 'user__last_name', 'user__id')

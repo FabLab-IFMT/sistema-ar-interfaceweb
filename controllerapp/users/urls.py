@@ -16,6 +16,9 @@ urlpatterns = [
     path('solicitar-projetista/', views.request_projectist_title, name='request_projectist'),
     path('roles/', views.manage_roles, name='manage_roles'),
     
+    # Disponibilidade de monitor (agendamento inteligente de visitas)
+    path('minha-disponibilidade/', views.minha_disponibilidade, name='minha_disponibilidade'),
+
     # Páginas de perfil de usuário
     path('profile/', views.profile, name='profile'),  # Perfil do usuário logado
     path('profile/<str:user_id>/', views.profile, name='user_profile'),  # Perfil de outro usuário

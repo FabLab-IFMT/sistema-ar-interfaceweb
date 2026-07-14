@@ -8,12 +8,12 @@ ROLE_SECTION_MAP = {
     'administrador': {
         'dashboard', 'usuarios', 'conteudo', 'noticias', 'membros',
         'servicos', 'solicitacoes', 'inventario', 'monitoramento',
-        'cursos', 'projetos', 'configuracoes', 'automacao',
+        'cursos', 'projetos', 'configuracoes', 'automacao', 'ia',
     },
     'gestor': {
         'dashboard', 'usuarios', 'conteudo', 'noticias', 'membros',
         'servicos', 'solicitacoes', 'inventario', 'monitoramento',
-        'cursos', 'projetos', 'automacao',
+        'cursos', 'projetos', 'automacao', 'ia',
     },
     'jornalista': {
         'dashboard', 'noticias',
