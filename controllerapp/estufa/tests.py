@@ -10,7 +10,7 @@ from .models import Estufa, LeituraEstufa
 class ApiTelemetriaTests(TestCase):
     def setUp(self):
         self.estufa = Estufa.objects.create(nome='Estufa Teste')
-        self.url = reverse('estufa:api_telemetria')
+        self.url = reverse('estufa_api:telemetria')
         self.payload = {
             'modo': 'ARMAZEM',
             'estado': 'ESTAVEL',
@@ -67,7 +67,7 @@ class ApiTelemetriaTests(TestCase):
 class ApiComandosTests(TestCase):
     def setUp(self):
         self.estufa = Estufa.objects.create(nome='Estufa Teste')
-        self.url = reverse('estufa:api_comandos')
+        self.url = reverse('estufa_api:comandos')
 
     def test_comandos_retorna_estado_desejado_completo(self):
         self.estufa.modo_desejado = 'SECAGEM'

@@ -30,7 +30,10 @@ urlpatterns = [
     path('gestao/ia/', include('ia.urls')),
     path('cursos/', include('cursos.urls')),
     path('api/', include('api.urls')),
-    path('estufa/', include('estufa.urls')),
+    # Páginas da estufa dentro da seção de automação
+    path('painelar/estufa/', include('estufa.urls')),
+    # Endpoints do ESP32 da estufa (caminho fixo — o firmware aponta pra cá)
+    path('estufa/api/', include('estufa.api_urls')),
 ]
 
 # Serve arquivos de mídia localmente e opcionalmente em produção se SERVE_MEDIA=True
