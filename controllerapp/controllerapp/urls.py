@@ -30,6 +30,7 @@ urlpatterns = [
     path('gestao/ia/', include('ia.urls')),
     path('cursos/', include('cursos.urls')),
     path('api/', include('api.urls')),
+    path('estufa/', include('estufa.urls')),
 ]
 
 # Serve arquivos de mídia localmente e opcionalmente em produção se SERVE_MEDIA=True

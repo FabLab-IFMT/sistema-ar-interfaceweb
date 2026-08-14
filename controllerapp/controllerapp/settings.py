@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'Controle_ar',
     'Email_notificacoes',
     'ia',
+    'estufa',
 ]
 
 MIDDLEWARE = [
