@@ -64,6 +64,112 @@ class ApiTelemetriaTests(TestCase):
         self.assertEqual(resposta.status_code, 400)
 
 
+class ApiComandosTests(TestCase):
+    def setUp(self):
+        self.estufa = Estufa.objects.create(nome='Estufa Teste')
+        self.url = reverse('estufa:api_comandos')
+
+    def test_comandos_retorna_estado_desejado_completo(self):
+        self.estufa.modo_desejado = 'SECAGEM'
+        self.estufa.controle = 'MANUAL'
+        self.estufa.lampada_desejada = True
+        self.estufa.temp_alvo_sec = 48.0
+        self.estufa.save()
+
+        resposta = self.client.get(self.url, headers={'X-Estufa-Token': self.estufa.token})
+        self.assertEqual(resposta.status_code, 200)
+        dados = resposta.json()
+        self.assertEqual(dados['modo_desejado'], 'SECAGEM')
+        self.assertEqual(dados['controle'], 'MANUAL')
+        self.assertTrue(dados['lampada_desejada'])
+        self.assertEqual(dados['temp_alvo_sec'], 48.0)
+
+    def test_comandos_atualiza_ultimo_contato(self):
+        self.assertIsNone(self.estufa.ultimo_contato)
+        self.client.get(self.url, headers={'X-Estufa-Token': self.estufa.token})
+        self.estufa.refresh_from_db()
+        self.assertIsNotNone(self.estufa.ultimo_contato)
+        self.assertTrue(self.estufa.online)
+
+    def test_comandos_token_invalido_retorna_403(self):
+        resposta = self.client.get(self.url, headers={'X-Estufa-Token': 'errado'})
+        self.assertEqual(resposta.status_code, 403)
+
+
+class ControleManualTests(TestCase):
+    def setUp(self):
+        self.estufa = Estufa.objects.create(nome='Estufa Teste')
+        User = get_user_model()
+        self.user = User.objects.create_user(id='1234567', email='teste@ifmt.edu.br',
+                                             password='senha-teste-123')
+        self.client.force_login(self.user)
+
+    def test_atuador_ativa_controle_manual(self):
+        resposta = self.client.post(
+            reverse('estufa:definir_atuador', args=[self.estufa.id]),
+            {'atuador': 'lampada', 'acao': 'on'})
+        self.assertEqual(resposta.status_code, 200)
+        self.estufa.refresh_from_db()
+        self.assertEqual(self.estufa.controle, 'MANUAL')
+        self.assertTrue(self.estufa.lampada_desejada)
+
+    def test_atuador_cooler_off(self):
+        self.estufa.controle = 'MANUAL'
+        self.estufa.cooler_desejado = True
+        self.estufa.save()
+        self.client.post(reverse('estufa:definir_atuador', args=[self.estufa.id]),
+                         {'atuador': 'cooler', 'acao': 'off'})
+        self.estufa.refresh_from_db()
+        self.assertFalse(self.estufa.cooler_desejado)
+
+    def test_atuador_invalido_retorna_400(self):
+        resposta = self.client.post(
+            reverse('estufa:definir_atuador', args=[self.estufa.id]),
+            {'atuador': 'turbina', 'acao': 'on'})
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_voltar_para_auto(self):
+        self.estufa.controle = 'MANUAL'
+        self.estufa.save()
+        self.client.post(reverse('estufa:definir_controle', args=[self.estufa.id]),
+                         {'controle': 'AUTO'})
+        self.estufa.refresh_from_db()
+        self.assertEqual(self.estufa.controle, 'AUTO')
+
+
+class ParametrosTests(TestCase):
+    def setUp(self):
+        self.estufa = Estufa.objects.create(nome='Estufa Teste')
+        User = get_user_model()
+        self.user = User.objects.create_user(id='1234567', email='teste@ifmt.edu.br',
+                                             password='senha-teste-123')
+        self.client.force_login(self.user)
+        self.url = reverse('estufa:definir_parametros', args=[self.estufa.id])
+        self.validos = {
+            'temp_alvo_sec': 47, 'temp_max_sec': 52, 'histerese_sec': 1.5,
+            'temp_min_arm': 16, 'temp_max_arm': 28,
+        }
+
+    def test_salva_parametros_validos(self):
+        resposta = self.client.post(self.url, self.validos)
+        self.assertEqual(resposta.status_code, 200)
+        self.estufa.refresh_from_db()
+        self.assertEqual(self.estufa.temp_alvo_sec, 47)
+        self.assertEqual(self.estufa.temp_max_arm, 28)
+
+    def test_rejeita_alvo_maior_que_max(self):
+        resposta = self.client.post(self.url, dict(self.validos, temp_alvo_sec=55))
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_rejeita_fora_da_faixa(self):
+        resposta = self.client.post(self.url, dict(self.validos, temp_max_sec=90))
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_rejeita_min_arm_maior_que_max_arm(self):
+        resposta = self.client.post(self.url, dict(self.validos, temp_min_arm=30))
+        self.assertEqual(resposta.status_code, 400)
+
+
 class DefinirModoTests(TestCase):
     def setUp(self):
         self.estufa = Estufa.objects.create(nome='Estufa Teste')

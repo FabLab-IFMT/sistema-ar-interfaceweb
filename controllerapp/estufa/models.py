@@ -31,8 +31,28 @@ class Estufa(models.Model):
         help_text='Token de autenticação do dispositivo (enviado no header X-Estufa-Token)'
     )
 
+    CONTROLE_AUTO = 'AUTO'
+    CONTROLE_MANUAL = 'MANUAL'
+    CONTROLE_CHOICES = [
+        (CONTROLE_AUTO, 'Automático (termostato)'),
+        (CONTROLE_MANUAL, 'Manual'),
+    ]
+
     # Modo que o servidor deseja que a estufa opere (comando pendente)
     modo_desejado = models.CharField(max_length=10, choices=MODO_CHOICES, default=MODO_ARMAZEM)
+
+    # Controle manual dos atuadores (quando controle=MANUAL o termostato é ignorado,
+    # exceto pela trava de segurança de 55°C gravada no firmware)
+    controle = models.CharField(max_length=10, choices=CONTROLE_CHOICES, default=CONTROLE_AUTO)
+    lampada_desejada = models.BooleanField(default=False)
+    cooler_desejado = models.BooleanField(default=False)
+
+    # Parâmetros do termostato, configuráveis pela interface web
+    temp_alvo_sec = models.FloatField(default=45.0, help_text='Temperatura alvo no modo secagem (°C)')
+    temp_max_sec = models.FloatField(default=50.0, help_text='Temperatura máxima no modo secagem (°C)')
+    histerese_sec = models.FloatField(default=1.0, help_text='Histerese do modo secagem (°C)')
+    temp_max_arm = models.FloatField(default=30.0, help_text='Temperatura máxima no armazenamento (°C)')
+    temp_min_arm = models.FloatField(default=15.0, help_text='Temperatura mínima no armazenamento (°C)')
 
     # Último estado reportado pelo dispositivo
     modo_atual = models.CharField(max_length=10, choices=MODO_CHOICES, default=MODO_ARMAZEM)

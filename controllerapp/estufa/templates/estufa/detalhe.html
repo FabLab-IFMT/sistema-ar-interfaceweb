@@ -46,16 +46,101 @@
                 <div class="card-header">Modo de operação</div>
                 <div class="card-body text-center">
                     <p>Modo atual do dispositivo: <strong id="modo-atual">{{ estufa.get_modo_atual_display }}</strong></p>
-                    <p class="text-muted small">O comando é aplicado no próximo contato da estufa (até ~30 s).</p>
+                    <p class="text-muted small">O comando chega à estufa em até ~3 s.</p>
                     <div class="d-grid gap-2 col-8 mx-auto">
                         <button class="btn btn-warning btn-lg" onclick="definirModo('SECAGEM')">
-                            <i class="fas fa-fire me-1"></i> Secagem (45 °C)
+                            <i class="fas fa-fire me-1"></i> Secagem
                         </button>
                         <button class="btn btn-info btn-lg" onclick="definirModo('ARMAZEM')">
                             <i class="fas fa-box me-1"></i> Armazenamento
                         </button>
                     </div>
                     <p class="mt-3 mb-0">Comando pendente: <strong id="modo-desejado">{{ estufa.get_modo_desejado_display }}</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Controle manual dos atuadores -->
+        <div class="col-lg-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Atuadores</span>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button id="btn-auto" class="btn {% if estufa.controle == 'AUTO' %}btn-success{% else %}btn-outline-success{% endif %}"
+                                onclick="definirControle('AUTO')">Automático</button>
+                        <button id="btn-manual" class="btn {% if estufa.controle == 'MANUAL' %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                                onclick="definirControle('MANUAL')">Manual</button>
+                    </div>
+                </div>
+                <div class="card-body text-center">
+                    <p class="text-muted small mb-3">
+                        No automático o termostato decide; ligar/desligar aqui ativa o modo manual.
+                        A trava de segurança de 55&nbsp;°C do firmware vale sempre.
+                    </p>
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="mb-2"><i class="fas fa-lightbulb me-1 text-warning"></i> Lâmpada</p>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-warning" onclick="definirAtuador('lampada','on')">Ligar</button>
+                                <button class="btn btn-outline-secondary" onclick="definirAtuador('lampada','off')">Desligar</button>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-2"><i class="fas fa-fan me-1 text-info"></i> Ventoinha</p>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-info" onclick="definirAtuador('cooler','on')">Ligar</button>
+                                <button class="btn btn-outline-secondary" onclick="definirAtuador('cooler','off')">Desligar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parâmetros do termostato -->
+        <div class="col-lg-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header">Parâmetros de temperatura</div>
+                <div class="card-body">
+                    <form id="form-parametros" onsubmit="salvarParametros(event)">
+                        <h6 class="text-muted">Secagem</h6>
+                        <div class="row g-2 mb-3">
+                            <div class="col-4">
+                                <label class="form-label small">Alvo (°C)</label>
+                                <input type="number" step="0.5" min="0" max="60" class="form-control form-control-sm"
+                                       name="temp_alvo_sec" value="{{ estufa.temp_alvo_sec }}">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label small">Máxima (°C)</label>
+                                <input type="number" step="0.5" min="0" max="60" class="form-control form-control-sm"
+                                       name="temp_max_sec" value="{{ estufa.temp_max_sec }}">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label small">Histerese (°C)</label>
+                                <input type="number" step="0.1" min="0.1" max="5" class="form-control form-control-sm"
+                                       name="histerese_sec" value="{{ estufa.histerese_sec }}">
+                            </div>
+                        </div>
+                        <h6 class="text-muted">Armazenamento</h6>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small">Mínima (°C)</label>
+                                <input type="number" step="0.5" min="0" max="60" class="form-control form-control-sm"
+                                       name="temp_min_arm" value="{{ estufa.temp_min_arm }}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">Máxima (°C)</label>
+                                <input type="number" step="0.5" min="0" max="60" class="form-control form-control-sm"
+                                       name="temp_max_arm" value="{{ estufa.temp_max_arm }}">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-save me-1"></i> Salvar parâmetros
+                        </button>
+                        <p id="parametros-msg" class="small text-center mt-2 mb-0"></p>
+                    </form>
                 </div>
             </div>
         </div>
@@ -123,18 +208,55 @@ function getCookie(name) {
     return v ? decodeURIComponent(v.split('=')[1]) : '';
 }
 
-function definirModo(modo) {
-    fetch("{% url 'estufa:definir_modo' estufa.id %}", {
+function postar(url, body) {
+    return fetch(url, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken'),
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: 'modo=' + modo,
-    })
-    .then(r => r.json())
+        body: body,
+    }).then(r => r.json());
+}
+
+function definirModo(modo) {
+    postar("{% url 'estufa:definir_modo' estufa.id %}", 'modo=' + modo)
     .then(d => {
         if (d.ok) document.getElementById('modo-desejado').textContent = MODO_DISPLAY[d.modo_desejado];
+    });
+}
+
+function atualizarBotoesControle(controle) {
+    document.getElementById('btn-auto').className =
+        'btn ' + (controle === 'AUTO' ? 'btn-success' : 'btn-outline-success');
+    document.getElementById('btn-manual').className =
+        'btn ' + (controle === 'MANUAL' ? 'btn-danger' : 'btn-outline-danger');
+}
+
+function definirControle(controle) {
+    postar("{% url 'estufa:definir_controle' estufa.id %}", 'controle=' + controle)
+    .then(d => { if (d.ok) atualizarBotoesControle(d.controle); });
+}
+
+function definirAtuador(atuador, acao) {
+    postar("{% url 'estufa:definir_atuador' estufa.id %}", 'atuador=' + atuador + '&acao=' + acao)
+    .then(d => { if (d.ok) atualizarBotoesControle(d.controle); });
+}
+
+function salvarParametros(ev) {
+    ev.preventDefault();
+    const form = document.getElementById('form-parametros');
+    const body = new URLSearchParams(new FormData(form)).toString();
+    const msg = document.getElementById('parametros-msg');
+    postar("{% url 'estufa:definir_parametros' estufa.id %}", body)
+    .then(d => {
+        if (d.ok) {
+            msg.textContent = 'Parâmetros salvos — a estufa aplica em ~3 s.';
+            msg.className = 'small text-center mt-2 mb-0 text-success';
+        } else {
+            msg.textContent = d.erro || 'Erro ao salvar.';
+            msg.className = 'small text-center mt-2 mb-0 text-danger';
+        }
     });
 }
 
@@ -154,6 +276,7 @@ function atualizarStatus() {
         document.getElementById('cooler').textContent = d.cooler_ligado ? 'Ligado' : 'Desligado';
         document.getElementById('modo-atual').textContent = MODO_DISPLAY[d.modo_atual] || d.modo_atual;
         document.getElementById('modo-desejado').textContent = MODO_DISPLAY[d.modo_desejado] || d.modo_desejado;
+        atualizarBotoesControle(d.controle);
         if (d.ultimo_contato) document.getElementById('ultimo-contato').textContent = d.ultimo_contato;
     });
 }

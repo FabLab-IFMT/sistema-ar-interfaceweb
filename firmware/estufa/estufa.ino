@@ -1,27 +1,23 @@
 /*
  * ============================================================
- * ESTUFA DE FILAMENTO - INTEGRADA AO SERVIDOR DO FABLAB
+ * ESTUFA DE FILAMENTO - INTEGRADA AO SERVIDOR DO FABLAB (v2)
  * ============================================================
- * A estufa continua com controle local autônomo (histerese,
- * botões físicos, painel web local), mas agora sincroniza com
- * o servidor Django do FabLab:
+ * Comunicação com o servidor Django (a estufa sempre inicia,
+ * pois está atrás do NAT do laboratório):
  *
- *   - A cada SYNC_INTERVALO ms envia POST JSON para
- *     /estufa/api/telemetria/ com as leituras dos 5 sensores.
- *   - A resposta traz "modo_desejado": se for diferente do modo
- *     atual, a estufa troca de modo (comando vindo do site).
- *   - Ao apertar um botão físico, envia sync imediato com
- *     origem_botao=true — o botão tem prioridade no servidor.
+ *   - GET  /estufa/api/comandos/   a cada ~2,5 s (poll leve):
+ *     recebe modo desejado, controle AUTO/MANUAL, estado desejado
+ *     da lâmpada/ventoinha e os parâmetros de temperatura.
+ *   - POST /estufa/api/telemetria/ a cada 30 s (ou após botão):
+ *     envia leituras dos 5 DHT22 e estado atual.
  *
- * Como a estufa está atrás do NAT do laboratório, é sempre ela
- * quem inicia a conexão (polling). O servidor nunca precisa
- * alcançar o ESP32 diretamente.
- *
- * CONFIGURAÇÃO:
- *   1. Cadastre a estufa no admin do site (/admin/estufa/estufa/)
- *      e copie o token gerado para ESTUFA_TOKEN abaixo.
- *   2. Ajuste SERVER_URL para o endereço público do servidor.
- *   3. Ajuste o Wi-Fi.
+ * Controle:
+ *   - AUTO: termostato local com os parâmetros vindos do site.
+ *   - MANUAL: obedece lâmpada/ventoinha definidos no site.
+ *   - TRAVA DE SEGURANÇA (sempre ativa, mesmo em manual):
+ *     media >= TEMP_SEGURANCA -> lâmpada OFF + ventoinha ON.
+ *   - Sem contato com o servidor por mais de FALHA_COMANDOS_MS:
+ *     volta sozinho para AUTO (fail-safe).
  */
 
 #include <DHT.h>
@@ -38,38 +34,40 @@ const char* ssid = "Fabnet";
 const char* password = "SUA_SENHA_AQUI";
 
 // --- SERVIDOR DJANGO DO FABLAB ---
-// Use https:// se o site tiver certificado; http:// caso contrário.
-const char* SERVER_URL = "https://SEU_SERVIDOR_DA_FACULDADE/estufa/api/telemetria/";
-// Token gerado no admin do site (campo "token" da estufa cadastrada)
-const char* ESTUFA_TOKEN = "COLE_O_TOKEN_AQUI";
+const char* URL_TELEMETRIA = "https://ifmaker.cba.ifmt.edu.br/estufa/api/telemetria/";
+const char* URL_COMANDOS   = "https://ifmaker.cba.ifmt.edu.br/estufa/api/comandos/";
+const char* ESTUFA_TOKEN   = "COLE_O_TOKEN_AQUI";
 
-// Intervalo de sincronização com o servidor (30 s)
-const unsigned long SYNC_INTERVALO = 30000;
+// Intervalos
+const unsigned long COMANDOS_INTERVALO   = 2500;   // poll de comandos (~2,5 s)
+const unsigned long TELEMETRIA_INTERVALO = 30000;  // envio de leituras (30 s)
+const unsigned long FALHA_COMANDOS_MS    = 120000; // 2 min sem servidor -> volta pra AUTO
+
+// Trava de segurança absoluta (não configurável pelo site de propósito)
+#define TEMP_SEGURANCA 55.0
 
 // ================= HARDWARE =================
 
 WebServer server(80);
 
-// --- PINOS DE CONTROLE ---
 #define LAMPADA_PIN 5
 #define COOLER_PIN 6
 #define BOTAO_SECAGEM 2
 #define BOTAO_ARMAZEM 3
 
-// --- SENSORES DHT22 ---
 #define DHTTYPE DHT22
 DHT dht1(0, DHTTYPE); DHT dht2(1, DHTTYPE); DHT dht3(4, DHTTYPE); DHT dht4(7, DHTTYPE); DHT dht5(10, DHTTYPE);
 
-// --- LÓGICA DOS RELÉS ---
 #define RELE_ON LOW
 #define RELE_OFF HIGH
 
-// --- PARÂMETROS DE TEMPERATURA ---
-#define TEMP_MAX_SEC 50.0
-#define TEMP_ALVO_SEC 45.0
-#define HISTERESE_SEC 1.0
-#define TEMP_MAX_ARM 30.0
-#define TEMP_MIN_ARM 15.0
+// ================= PARÂMETROS (padrões; o servidor sobrescreve) =================
+
+float tempAlvoSec  = 45.0;
+float tempMaxSec   = 50.0;
+float histereseSec = 1.0;
+float tempMaxArm   = 30.0;
+float tempMinArm   = 15.0;
 
 // ================= ESTADO GLOBAL =================
 
@@ -78,11 +76,18 @@ float umidSensors[5] = {0,0,0,0,0};
 float mediaT = 0; float mediaU = 0;
 bool lampadaLigada = false; bool coolerLigado = false;
 bool modoSecagem = false;
-unsigned long ultimaLeitura = 0;
 
-unsigned long ultimoSync = 0;
-bool syncImediato = false;      // força sync fora do intervalo (botão físico)
-bool origemBotao = false;       // marca que a última troca veio do botão
+// Controle manual (definido pelo servidor)
+bool controleManual = false;
+bool lampadaDesejada = false;
+bool coolerDesejado = false;
+
+unsigned long ultimaLeitura = 0;
+unsigned long ultimoComandos = 0;
+unsigned long ultimaTelemetria = 0;
+unsigned long ultimoContatoOk = 0;
+bool syncImediato = false;
+bool origemBotao = false;
 
 enum Estado { AQUECENDO, MANTENDO, RESFRIANDO, ESTAVEL, ERRO };
 Estado estadoAtual = ESTAVEL;
@@ -99,7 +104,96 @@ const char* nomeEstado() {
   }
 }
 
-// Adiciona um float ao JSON, ou null se o sensor falhou (NaN)
+// ================= HELPERS DE REDE =================
+
+// Cliente TLS estático com reuso de conexão (evita handshake a cada poll)
+WiFiClientSecure clientSecure;
+HTTPClient http;
+
+bool iniciarRequisicao(const char* url) {
+  http.setTimeout(8000);
+  http.setReuse(true); // keep-alive: a conexão sobrevive entre os polls
+  if (!http.begin(clientSecure, url)) {
+    Serial.println("Falha ao iniciar conexao");
+    return false;
+  }
+  http.addHeader("X-Estufa-Token", ESTUFA_TOKEN);
+  return true;
+}
+
+// --- Parsers simples para o JSON do servidor (sem ArduinoJson) ---
+float pegarFloat(const String& s, const char* chave, float padrao) {
+  String k = "\""; k += chave; k += "\":";
+  int i = s.indexOf(k);
+  if (i < 0) return padrao;
+  i += k.length();
+  while (i < (int)s.length() && s[i] == ' ') i++;
+  return s.substring(i).toFloat();
+}
+
+bool pegarBool(const String& s, const char* chave, bool padrao) {
+  String k = "\""; k += chave; k += "\":";
+  int i = s.indexOf(k);
+  if (i < 0) return padrao;
+  i += k.length();
+  while (i < (int)s.length() && s[i] == ' ') i++;
+  return s.startsWith("true", i);
+}
+
+bool pegarModoSecagem(const String& s, bool padrao) {
+  if (s.indexOf("\"modo_desejado\": \"SECAGEM\"") >= 0 ||
+      s.indexOf("\"modo_desejado\":\"SECAGEM\"") >= 0) return true;
+  if (s.indexOf("\"modo_desejado\": \"ARMAZEM\"") >= 0 ||
+      s.indexOf("\"modo_desejado\":\"ARMAZEM\"") >= 0) return false;
+  return padrao;
+}
+
+// Aplica a resposta do servidor (mesma estrutura nos dois endpoints)
+void aplicarComandos(const String& resposta) {
+  bool novoModoSecagem = pegarModoSecagem(resposta, modoSecagem);
+  bool novoManual = (resposta.indexOf("\"controle\": \"MANUAL\"") >= 0 ||
+                     resposta.indexOf("\"controle\":\"MANUAL\"") >= 0);
+
+  lampadaDesejada = pegarBool(resposta, "lampada_desejada", lampadaDesejada);
+  coolerDesejado  = pegarBool(resposta, "cooler_desejado", coolerDesejado);
+
+  tempAlvoSec  = pegarFloat(resposta, "temp_alvo_sec", tempAlvoSec);
+  tempMaxSec   = pegarFloat(resposta, "temp_max_sec", tempMaxSec);
+  histereseSec = pegarFloat(resposta, "histerese_sec", histereseSec);
+  tempMaxArm   = pegarFloat(resposta, "temp_max_arm", tempMaxArm);
+  tempMinArm   = pegarFloat(resposta, "temp_min_arm", tempMinArm);
+
+  bool mudou = (novoModoSecagem != modoSecagem) || (novoManual != controleManual);
+  if (novoModoSecagem != modoSecagem) {
+    modoSecagem = novoModoSecagem;
+    Serial.println(modoSecagem ? "Servidor: SECAGEM" : "Servidor: ARMAZENAMENTO");
+  }
+  if (novoManual != controleManual) {
+    controleManual = novoManual;
+    Serial.println(controleManual ? "Servidor: controle MANUAL" : "Servidor: controle AUTO");
+  }
+
+  ultimoContatoOk = millis();
+  if (mudou || controleManual) controlarClima();
+}
+
+// ================= POLL DE COMANDOS (leve, ~2,5 s) =================
+
+void buscarComandos() {
+  if (WiFi.status() != WL_CONNECTED) return;
+  if (!iniciarRequisicao(URL_COMANDOS)) return;
+
+  int httpCode = http.GET();
+  if (httpCode == 200) {
+    aplicarComandos(http.getString());
+  } else {
+    Serial.printf("Poll comandos falhou: HTTP %d\n", httpCode);
+  }
+  http.end();
+}
+
+// ================= TELEMETRIA (30 s) =================
+
 void jsonCampoFloat(String& json, const char* chave, float valor, int casas) {
   json += "\""; json += chave; json += "\":";
   if (isnan(valor)) json += "null";
@@ -107,13 +201,9 @@ void jsonCampoFloat(String& json, const char* chave, float valor, int casas) {
   json += ",";
 }
 
-// ==========================================
-// SINCRONIZAÇÃO COM O SERVIDOR DO FABLAB
-// ==========================================
-void sincronizarComServidor() {
+void enviarTelemetria() {
   if (WiFi.status() != WL_CONNECTED) return;
 
-  // Monta o payload JSON
   String json;
   json.reserve(512);
   json = "{";
@@ -131,59 +221,23 @@ void sincronizarComServidor() {
   json += "\"origem_botao\":"; json += (origemBotao ? "true" : "false");
   json += "}";
 
-  HTTPClient http;
-  http.setTimeout(10000);
-
-  bool usaHttps = String(SERVER_URL).startsWith("https");
-  WiFiClientSecure clientSecure;
-  WiFiClient clientPlano;
-
-  bool ok;
-  if (usaHttps) {
-    clientSecure.setInsecure(); // sem validação de CA (ESP32 sem certificados)
-    ok = http.begin(clientSecure, SERVER_URL);
-  } else {
-    ok = http.begin(clientPlano, SERVER_URL);
-  }
-  if (!ok) { Serial.println("Falha ao iniciar conexao com o servidor"); return; }
-
+  if (!iniciarRequisicao(URL_TELEMETRIA)) return;
   http.addHeader("Content-Type", "application/json");
-  http.addHeader("X-Estufa-Token", ESTUFA_TOKEN);
 
   int httpCode = http.POST(json);
-
   if (httpCode == 200) {
-    String resposta = http.getString();
-    origemBotao = false; // botão já foi reportado com sucesso
-
-    // Resposta esperada: {"ok": true, "modo_desejado": "SECAGEM"|"ARMAZEM"}
-    bool desejaSecagem = (resposta.indexOf("\"modo_desejado\": \"SECAGEM\"") >= 0) ||
-                         (resposta.indexOf("\"modo_desejado\":\"SECAGEM\"") >= 0);
-    bool desejaArmazem = (resposta.indexOf("\"modo_desejado\": \"ARMAZEM\"") >= 0) ||
-                         (resposta.indexOf("\"modo_desejado\":\"ARMAZEM\"") >= 0);
-
-    if (desejaSecagem && !modoSecagem) {
-      modoSecagem = true;
-      Serial.println("Servidor: mudou para SECAGEM");
-      controlarClima();
-    } else if (desejaArmazem && modoSecagem) {
-      modoSecagem = false;
-      Serial.println("Servidor: mudou para ARMAZENAMENTO");
-      controlarClima();
-    }
-    Serial.println("Sync OK com o servidor do FabLab");
+    aplicarComandos(http.getString());
+    origemBotao = false;
+    Serial.println("Telemetria OK");
   } else {
-    Serial.printf("Sync falhou: HTTP %d (%s)\n", httpCode,
+    Serial.printf("Telemetria falhou: HTTP %d (%s)\n", httpCode,
                   http.errorToString(httpCode).c_str());
   }
-
   http.end();
-  if (usaHttps) clientSecure.stop();
 }
 
-// ==========================================
-// PÁGINA WEB LOCAL (acesso dentro do laboratório)
-// ==========================================
+// ================= PÁGINA WEB LOCAL =================
+
 void paginaPrincipal() {
   String html = "<!DOCTYPE html><html><head>";
   html += "<meta name='viewport' content='width=device-width, initial-scale=1.0'>";
@@ -199,7 +253,8 @@ void paginaPrincipal() {
     html += "<h2 class='erro'>ALERTA: FALHA NOS SENSORES!</h2>";
     html += "<p>Verifique as conexoes dos DHT22.</p>";
   } else {
-    html += "<p>Modo Atual: <b>" + String(modoSecagem ? "SECAGEM (45&deg;C)" : "ARMAZEM") + "</b></p>";
+    html += "<p>Modo: <b>" + String(modoSecagem ? "SECAGEM" : "ARMAZEM") + "</b>";
+    html += " | Controle: <b>" + String(controleManual ? "MANUAL" : "AUTO") + "</b></p>";
     html += "<h2 style='font-size:40px; margin:10px 0;'>" + String(mediaT, 1) + " &deg;C</h2>";
     html += "<h3 style='color:#aaa;'>" + String(mediaU, 0) + " % Umidade</h3>";
     html += "<hr style='border:1px solid #555;'>";
@@ -210,6 +265,8 @@ void paginaPrincipal() {
   html += "</div></body></html>";
   server.send(200, "text/html", html);
 }
+
+// ================= SETUP =================
 
 void setup() {
   Serial.begin(115200);
@@ -229,6 +286,8 @@ void setup() {
   Serial.print("IP do painel local: ");
   Serial.println(WiFi.localIP());
 
+  clientSecure.setInsecure(); // ESP32 sem bundle de certificados
+
   ArduinoOTA.setHostname("Estufa-IoT");
   ArduinoOTA.begin();
 
@@ -241,7 +300,11 @@ void setup() {
 
   dht1.begin(); dht2.begin(); dht3.begin(); dht4.begin(); dht5.begin();
   delay(2000);
+
+  ultimoContatoOk = millis();
 }
+
+// ================= SENSORES =================
 
 void lerSensoresEFazerMedia() {
   float somaT = 0, somaU = 0; int sensoresValidos = 0;
@@ -261,7 +324,7 @@ void lerSensoresEFazerMedia() {
   if (sensoresValidos > 0) {
     mediaT = somaT / sensoresValidos;
     mediaU = somaU / sensoresValidos;
-    if (estadoAtual == ERRO) estadoAtual = ESTAVEL; // sensores voltaram
+    if (estadoAtual == ERRO) estadoAtual = ESTAVEL;
     controlarClima();
   } else {
     estadoAtual = ERRO;
@@ -270,61 +333,107 @@ void lerSensoresEFazerMedia() {
   }
 }
 
-void controlarClima() {
-  if (modoSecagem) {
-    if (mediaT >= TEMP_MAX_SEC) { digitalWrite(LAMPADA_PIN, RELE_OFF); digitalWrite(COOLER_PIN, RELE_ON); lampadaLigada = false; coolerLigado = true; estadoAtual = RESFRIANDO; }
-    else if (coolerLigado && mediaT < (TEMP_MAX_SEC - 2.0)) { digitalWrite(COOLER_PIN, RELE_OFF); coolerLigado = false; }
-    else if (mediaT < (TEMP_ALVO_SEC - HISTERESE_SEC)) { digitalWrite(LAMPADA_PIN, RELE_ON); lampadaLigada = true; estadoAtual = AQUECENDO; }
-    else if (mediaT > (TEMP_ALVO_SEC + HISTERESE_SEC) && mediaT < TEMP_MAX_SEC) { digitalWrite(LAMPADA_PIN, RELE_OFF); lampadaLigada = false; estadoAtual = MANTENDO; }
-  } else {
-    if (mediaT >= TEMP_MAX_ARM) { digitalWrite(LAMPADA_PIN, RELE_OFF); digitalWrite(COOLER_PIN, RELE_ON); lampadaLigada = false; coolerLigado = true; estadoAtual = RESFRIANDO; }
-    else if (mediaT <= TEMP_MIN_ARM) { digitalWrite(LAMPADA_PIN, RELE_ON); digitalWrite(COOLER_PIN, RELE_OFF); lampadaLigada = true; coolerLigado = false; estadoAtual = AQUECENDO; }
-    else { digitalWrite(LAMPADA_PIN, RELE_OFF); digitalWrite(COOLER_PIN, RELE_OFF); lampadaLigada = false; coolerLigado = false; estadoAtual = ESTAVEL; }
-  }
-  if (!lampadaLigada && !coolerLigado && estadoAtual != ERRO) estadoAtual = ESTAVEL;
+// ================= CONTROLE =================
+
+void setLampada(bool ligar) {
+  digitalWrite(LAMPADA_PIN, ligar ? RELE_ON : RELE_OFF);
+  lampadaLigada = ligar;
 }
+
+void setCooler(bool ligar) {
+  digitalWrite(COOLER_PIN, ligar ? RELE_ON : RELE_OFF);
+  coolerLigado = ligar;
+}
+
+void controlarClima() {
+  if (estadoAtual == ERRO) return;
+
+  // TRAVA DE SEGURANÇA — vale em qualquer modo, inclusive manual
+  if (mediaT >= TEMP_SEGURANCA) {
+    setLampada(false); setCooler(true);
+    estadoAtual = RESFRIANDO;
+    return;
+  }
+
+  // Controle manual: obedece o que veio do servidor
+  if (controleManual) {
+    setLampada(lampadaDesejada);
+    setCooler(coolerDesejado);
+    if (lampadaLigada && !coolerLigado)      estadoAtual = AQUECENDO;
+    else if (coolerLigado && !lampadaLigada) estadoAtual = RESFRIANDO;
+    else if (lampadaLigada && coolerLigado)  estadoAtual = MANTENDO;
+    else                                     estadoAtual = ESTAVEL;
+    return;
+  }
+
+  // Controle automático (termostato)
+  if (modoSecagem) {
+    if (mediaT >= tempMaxSec) { setLampada(false); setCooler(true); estadoAtual = RESFRIANDO; }
+    else if (coolerLigado && mediaT < (tempMaxSec - 2.0)) { setCooler(false); }
+    else if (mediaT < (tempAlvoSec - histereseSec)) { setLampada(true); estadoAtual = AQUECENDO; }
+    else if (mediaT > (tempAlvoSec + histereseSec) && mediaT < tempMaxSec) { setLampada(false); estadoAtual = MANTENDO; }
+  } else {
+    if (mediaT >= tempMaxArm) { setLampada(false); setCooler(true); estadoAtual = RESFRIANDO; }
+    else if (mediaT <= tempMinArm) { setLampada(true); setCooler(false); estadoAtual = AQUECENDO; }
+    else { setLampada(false); setCooler(false); estadoAtual = ESTAVEL; }
+  }
+  if (!lampadaLigada && !coolerLigado) estadoAtual = ESTAVEL;
+}
+
+// ================= LOOP =================
 
 void loop() {
   ArduinoOTA.handle();
   server.handleClient();
 
-  // ===================================================
-  // BOTÕES FÍSICOS (com sync imediato para o servidor)
-  // ===================================================
+  // Botões físicos (mudam o modo; o servidor adota via origem_botao)
   bool modoAnterior = modoSecagem;
 
   if (digitalRead(BOTAO_SECAGEM) == LOW) {
-    delay(50); // Debounce
+    delay(50);
     if (digitalRead(BOTAO_SECAGEM) == LOW && !modoSecagem) {
       modoSecagem = true;
       origemBotao = true;
       syncImediato = true;
-      Serial.println("Botao Fisico: Mudou para SECAGEM");
+      Serial.println("Botao Fisico: SECAGEM");
     }
   }
 
   if (digitalRead(BOTAO_ARMAZEM) == LOW) {
-    delay(50); // Debounce
+    delay(50);
     if (digitalRead(BOTAO_ARMAZEM) == LOW && modoSecagem) {
       modoSecagem = false;
       origemBotao = true;
       syncImediato = true;
-      Serial.println("Botao Fisico: Mudou para ARMAZENAMENTO");
+      Serial.println("Botao Fisico: ARMAZENAMENTO");
     }
   }
 
   if (modoSecagem != modoAnterior) { controlarClima(); }
 
-  // 1. Atualiza sensores locais (a cada 2.5s)
+  // Fail-safe: sem contato com o servidor há muito tempo -> volta pra AUTO
+  if (controleManual && (millis() - ultimoContatoOk >= FALHA_COMANDOS_MS)) {
+    controleManual = false;
+    Serial.println("Sem contato com o servidor: voltando para controle AUTO");
+    controlarClima();
+  }
+
+  // 1. Sensores locais (2,5 s)
   if (millis() - ultimaLeitura >= 2500) {
     ultimaLeitura = millis();
     lerSensoresEFazerMedia();
   }
 
-  // 2. Sincroniza com o servidor do FabLab (a cada 30s ou após botão)
-  if (syncImediato || (millis() - ultimoSync >= SYNC_INTERVALO)) {
+  // 2. Poll de comandos do servidor (~2,5 s)
+  if (millis() - ultimoComandos >= COMANDOS_INTERVALO) {
+    ultimoComandos = millis();
+    buscarComandos();
+  }
+
+  // 3. Telemetria completa (30 s ou após botão)
+  if (syncImediato || (millis() - ultimaTelemetria >= TELEMETRIA_INTERVALO)) {
     syncImediato = false;
-    ultimoSync = millis();
-    sincronizarComServidor();
+    ultimaTelemetria = millis();
+    enviarTelemetria();
   }
 }
