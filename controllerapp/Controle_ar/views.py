@@ -126,10 +126,20 @@ def automacao_home(request):
     
     # Busca todos os ar-condicionados para o template
     ares = Ar_condicionado.objects.all()
-    
+
+    # Estufas de filamento (online é property, calculada em Python)
+    from estufa.models import Estufa
+    estufas = list(Estufa.objects.all())
+    estufa_count = len(estufas)
+    estufa_online = sum(1 for e in estufas if e.online)
+
     return render(request, 'Controle_ar/home.html', {
         'ar_count': ar_total,
         'ar_online': ar_online,
+        'estufa_count': estufa_count,
+        'estufa_online': estufa_online,
+        'total_count': ar_total + estufa_count,
+        'total_online': ar_online + estufa_online,
         'temperatura_media': temperatura_media,
         'consumo_total': round(consumo_total, 2),
         'ares': ares,  # Adiciona a variável ares que o template espera

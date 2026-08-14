@@ -14,12 +14,12 @@
       </div>
       <div class="at-hero-stats">
         <div class="at-hero-stat">
-          <span class="at-hero-num">{{ ar_online|default:"0" }}</span>
+          <span class="at-hero-num">{{ total_online|default:"0" }}</span>
           <span class="at-hero-label">Online</span>
         </div>
         <div class="at-hero-divider"></div>
         <div class="at-hero-stat">
-          <span class="at-hero-num">{{ ar_count|default:"0" }}</span>
+          <span class="at-hero-num">{{ total_count|default:"0" }}</span>
           <span class="at-hero-label">Dispositivos</span>
         </div>
       </div>
@@ -41,6 +41,20 @@
         <div class="at-subsys-status">
           <span class="at-dot {% if ar_online > 0 %}at-dot-on{% else %}at-dot-off{% endif %}"></span>
           <span>{{ ar_online }}/{{ ar_count }} online</span>
+        </div>
+        <i class="fas fa-chevron-right at-subsys-arrow"></i>
+      </a>
+
+      <!-- Estufa de Filamento -->
+      <a href="{% url 'estufa:dashboard' %}" class="at-subsys-card at-subsys-active">
+        <div class="at-subsys-icon" style="background:linear-gradient(135deg,#b45309,#f59e0b)"><i class="fas fa-temperature-high"></i></div>
+        <div class="at-subsys-body">
+          <h3>Estufa de Filamento</h3>
+          <p>Secagem e armazenamento de filamentos com controle de temperatura</p>
+        </div>
+        <div class="at-subsys-status">
+          <span class="at-dot {% if estufa_online > 0 %}at-dot-on{% else %}at-dot-off{% endif %}"></span>
+          <span>{{ estufa_online }}/{{ estufa_count }} online</span>
         </div>
         <i class="fas fa-chevron-right at-subsys-arrow"></i>
       </a>
@@ -92,7 +106,7 @@
           <div class="at-metric">
             <div class="at-metric-icon" style="background:rgba(16,185,129,.1);color:#10B981"><i class="fas fa-wifi"></i></div>
             <div>
-              <span class="at-metric-num">{{ ar_online|default:"0" }} / {{ ar_count|default:"0" }}</span>
+              <span class="at-metric-num">{{ total_online|default:"0" }} / {{ total_count|default:"0" }}</span>
               <span class="at-metric-label">Dispositivos Online</span>
             </div>
           </div>
