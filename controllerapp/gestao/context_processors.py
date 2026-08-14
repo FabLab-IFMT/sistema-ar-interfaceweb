@@ -64,6 +64,9 @@ def gestao_counts(request):
         if not sections:
             sections = {'dashboard'}
 
+        # Automação é liberada para todo staff, independente do cargo
+        sections.add('automacao')
+
         context['admin_sections'] = sections
 
     # ── Contagens de pendências (apenas para quem tem acesso admin) ───────────

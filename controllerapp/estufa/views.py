@@ -1,13 +1,27 @@
 import json
+from functools import wraps
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from .models import Estufa, LeituraEstufa, LogOperacaoEstufa
+
+
+def staff_required(view_func):
+    """Mesmo critério do módulo de automação (Controle_ar): apenas staff."""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_staff:
+            messages.error(request, 'Acesso negado. Apenas membros da equipe podem acessar a automação.')
+            return redirect('home')
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 def _float_ou_none(valor):
@@ -129,12 +143,14 @@ def api_telemetria(request):
 
 
 @login_required
+@staff_required
 def dashboard(request):
     estufas = Estufa.objects.all()
     return render(request, 'estufa/dashboard.html', {'estufas': estufas})
 
 
 @login_required
+@staff_required
 def detalhe(request, estufa_id):
     estufa = get_object_or_404(Estufa, pk=estufa_id)
     leituras = estufa.leituras.all()[:60]
@@ -152,6 +168,7 @@ def _log(estufa, request, mensagem):
 
 
 @login_required
+@staff_required
 @require_POST
 def definir_modo(request, estufa_id):
     estufa = get_object_or_404(Estufa, pk=estufa_id)
@@ -168,6 +185,7 @@ def definir_modo(request, estufa_id):
 
 
 @login_required
+@staff_required
 @require_POST
 def definir_controle(request, estufa_id):
     estufa = get_object_or_404(Estufa, pk=estufa_id)
@@ -188,6 +206,7 @@ def definir_controle(request, estufa_id):
 
 
 @login_required
+@staff_required
 @require_POST
 def definir_atuador(request, estufa_id):
     """Liga/desliga lâmpada ou cooler. Ativa o controle manual automaticamente."""
@@ -228,6 +247,7 @@ def definir_atuador(request, estufa_id):
 
 
 @login_required
+@staff_required
 @require_POST
 def definir_parametros(request, estufa_id):
     estufa = get_object_or_404(Estufa, pk=estufa_id)
@@ -267,6 +287,7 @@ def definir_parametros(request, estufa_id):
 
 
 @login_required
+@staff_required
 def status_ajax(request, estufa_id):
     """Consumido pela página de detalhe para atualizar o painel sem reload."""
     estufa = get_object_or_404(Estufa, pk=estufa_id)

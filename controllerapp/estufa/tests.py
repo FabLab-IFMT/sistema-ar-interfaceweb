@@ -101,7 +101,7 @@ class ControleManualTests(TestCase):
         self.estufa = Estufa.objects.create(nome='Estufa Teste')
         User = get_user_model()
         self.user = User.objects.create_user(id='1234567', email='teste@ifmt.edu.br',
-                                             password='senha-teste-123')
+                                             password='senha-teste-123', is_staff=True)
         self.client.force_login(self.user)
 
     def test_atuador_ativa_controle_manual(self):
@@ -142,7 +142,7 @@ class ParametrosTests(TestCase):
         self.estufa = Estufa.objects.create(nome='Estufa Teste')
         User = get_user_model()
         self.user = User.objects.create_user(id='1234567', email='teste@ifmt.edu.br',
-                                             password='senha-teste-123')
+                                             password='senha-teste-123', is_staff=True)
         self.client.force_login(self.user)
         self.url = reverse('estufa:definir_parametros', args=[self.estufa.id])
         self.validos = {
@@ -175,12 +175,25 @@ class DefinirModoTests(TestCase):
         self.estufa = Estufa.objects.create(nome='Estufa Teste')
         User = get_user_model()
         self.user = User.objects.create_user(id='1234567', email='teste@ifmt.edu.br',
-                                             password='senha-teste-123')
+                                             password='senha-teste-123', is_staff=True)
 
     def test_exige_login(self):
         resposta = self.client.post(reverse('estufa:definir_modo', args=[self.estufa.id]),
                                     {'modo': 'SECAGEM'})
         self.assertEqual(resposta.status_code, 302)
+
+    def test_usuario_comum_nao_acessa(self):
+        User = get_user_model()
+        comum = User.objects.create_user(id='7654321', email='comum@ifmt.edu.br',
+                                         password='senha-teste-123')
+        self.client.force_login(comum)
+        resposta = self.client.get(reverse('estufa:dashboard'))
+        self.assertRedirects(resposta, reverse('home'), fetch_redirect_response=False)
+        resposta = self.client.post(reverse('estufa:definir_atuador', args=[self.estufa.id]),
+                                    {'atuador': 'lampada', 'acao': 'on'})
+        self.assertEqual(resposta.status_code, 302)
+        self.estufa.refresh_from_db()
+        self.assertFalse(self.estufa.lampada_desejada)
 
     def test_define_modo(self):
         self.client.force_login(self.user)
